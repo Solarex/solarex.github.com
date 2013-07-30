@@ -108,3 +108,12 @@ git remote add origin git@github.com:gibuloto/gibuloto.github.com.git
 git pull origin master
 ```
 OK，现在可以继续写博客，然后po了。
+
+---------------------------------
+后记：
+
++ 写了文章，执行``rake deploy``可能会显示错误，修改Rakefile文件里的deploy函数中的``push``为``push -f``即可，注意文件中的第**18**行是修改过的。
+
+{% include_code ruby/push2forcepush.rb %}
+
++ 学习git可以参考<a href="/downloads/files/learninggit.pdf">看日记学git</a>和[pro-git-zh](https://github.com/numbbbbb/progit-zh-pdf-epub-mobi)。
