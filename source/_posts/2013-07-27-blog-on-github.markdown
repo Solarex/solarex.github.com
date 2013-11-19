@@ -28,7 +28,7 @@ git clone git://github.com/imathis/octopress.git
 gem sources -a http://ruby.taobao.org/
 gem sources -r http://rubygems.org/
 gem sources -l #确保只有淘宝的ruby镜像
-gen install bundle
+gem install bundle
 bundle install #建议更改Gemfile第一行source为taobao镜像
 ```
 
@@ -104,7 +104,7 @@ git clone -b source  git@github.com:yourname/yourname.github.com.git
 cd yourname.github.com
 mkdir _deploy && cd _deploy
 git init
-git remote add origin git@github.com:gibuloto/gibuloto.github.com.git
+git remote add origin git@github.com:yourname/yourname.github.com.git
 git pull origin master
 ```
 OK，现在可以继续写博客，然后po了。
