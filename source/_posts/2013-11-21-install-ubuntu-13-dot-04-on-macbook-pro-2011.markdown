@@ -6,6 +6,8 @@ comments: true
 categories: 
 - linux
 ---
+<center><p><img src="/images/logoubuntu.png" width="200" height="200" alt="ubuntu"></p></center>
+
 之前已经在MacBook上装过Ubuntu了，不知怎么搞的，最近Ubuntu更新后，分辨率一直保持在1024×768，屏幕惨不忍睹，网上搜了好多，都是使用[xrandr](https://wiki.ubuntu.com/X/Config/Resolution)之类的，但是执行``xrandr``的时候老是报错，搜了下，貌似是一个bug。不管了，重装一下吧。
 
 首先在MacBook下用``Disk Utility``分区，Ubuntu需要一个swap分区，一个``/``分区，用U盘安装的话有这两个就够了。但是我没有U盘，就又划分了一个2G的分区，把Ubuntu的镜像写进去，这样也便于以后恢复。分区全部使用FAT32格式。
