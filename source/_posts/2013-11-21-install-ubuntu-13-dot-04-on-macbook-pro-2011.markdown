@@ -4,7 +4,7 @@ title: "MacBook Pro 2011中安装Ubuntu 13.04"
 date: 2013-11-21 22:55
 comments: true
 categories: 
-- linux
+- tools
 ---
 <center><p><img src="/images/logoubuntu.png" width="200" height="200" alt="ubuntu"></p></center>
 
@@ -51,7 +51,7 @@ sudo apt-get install fcitx fcitx-config-gtk fcitx-sunpinyin fcitx-googlepinyin f
 + 安装卸载软件
 ```bash 
 sudo apt-get update && sudo apt-get upgrade
-sudo apt-get install python3-dev python3-openssl libxss1 flashplugin-installer mplayer vim git-core tig xclip zathura unrar p7zip-full  p7zip-rar zip unzip rar chmsee bleachbit preload goldendict goldendict-wordnet tcpdump mtr curl nscd ack-grep
+sudo apt-get install python3-dev python3-openssl libxss1 flashplugin-installer mplayer vim git-core tig xclip zathura unrar p7zip-full  p7zip-rar zip unzip rar chmsee bleachbit preload goldendict goldendict-wordnet tcpdump mtr curl nscd ack-grep meld
 sudo apt-get purge ibus ibus-gtk ibus-gtk3 ibus-pinyin ibus-pinyin-db-android ibus-table
 sudo apt-get autoremove unity-lens-music unity-lens-photos unity-lens-gwibber unity-lens-shopping unity-lens-video
 ```
