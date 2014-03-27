@@ -3,7 +3,8 @@ layout: post
 title: "使用Octopress和Github写博客"
 date: 2012-07-27 14:50
 comments: true
-categories: [octopress]
+categories: 
+- tools
 ---
 <center><em>Ubuntu下建立Octopress博客过程</em></center>
 <center><p><img src="/images/octopress_logo.jpg" alt="Octopress"></p></center>
