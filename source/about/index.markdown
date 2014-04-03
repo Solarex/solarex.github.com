@@ -21,7 +21,16 @@ Officially speaking,my main working language include but not limited to C,Java,J
 
 Well,I do reading,listening to music,going jogging,thinking,cycling,playing badminton or billiard for relax.
 
---------------------------
-Contact me if you like via <img src="/images/gmail.gif" ></img>
+Contact me via <img src="/images/gmail.gif" ></img>
 
-Thank you!
+--------------------------
+
+<center><h1><em>Wishing List</em></h1></center>
+--------------------------
++ <strike>Macbook Pro</strike>
++ <strike>Kindle DXG</strike>
++ Nexus 5
++ iPad
++ Raspberry pi
++ Fitbit
++ Google Glass

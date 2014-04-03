@@ -9,7 +9,7 @@ layout: default
     <div class="entry-content">{{ content }}</div>
 </article>
 {% unless page.sharing == false %}
-	{% include post/sharingpage.html %}
+	{% include post/sharing.html %}
 {% endunless %}
 {% if site.disqus_short_name and page.comments == true %}
 <section id="comment">

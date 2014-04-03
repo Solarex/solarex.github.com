@@ -135,13 +135,7 @@ article{
 		}
 	}
 }
-
 .share{
-	padding: 0 0 0 200px;
-	@include border-shadow();
-}
-
-.sharepage{
-	padding: 0 0 0 0;
+	padding: 0 0;
 	@include border-shadow();
 }
