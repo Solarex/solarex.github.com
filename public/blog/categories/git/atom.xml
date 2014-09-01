@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: git | Solarex's Blog]]></title>
+  <link href="http://Solarex.github.io/blog/categories/git/atom.xml" rel="self"/>
+  <link href="http://Solarex.github.io/"/>
+  <updated>2014-09-02T00:13:52+08:00</updated>
+  <id>http://Solarex.github.io/</id>
+  <author>
+    <name><![CDATA[Solarex]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[SSH key settings for multi github accounts]]></title>
+    <link href="http://Solarex.github.io/blog/2014/06/02/ssh-key-config-for-multi-github-accounts/"/>
+    <updated>2014-06-02T15:13:00+08:00</updated>
+    <id>http://Solarex.github.io/blog/2014/06/02/ssh-key-config-for-multi-github-accounts</id>
+    <content type="html"><![CDATA[<p>在同一台电脑上有多个github账户时，切换ssh key会比较麻烦，可以使用ssh config来简化这一动作。</p>
+
+<p>在使用<code>ssh-keygen</code>时，为不同的账户选择不同的ssh key文件。</p>
+
+<p><code>bash
+hrh@Solarex:~$ ls ~/.ssh/
+id_rsa_accountA id_rsa_accountA.pub id_rsa_accountB id_rsa_accountB.pub known_hosts config
+</code></p>
+
+<p>在<code>~/.bashrc</code>中添加ssh key。</p>
+
+<p><code>bash
+ssh-add ~/.ssh/id_rsa_accountA &gt;/dev/null 2&gt;&amp;1
+ssh-add ~/.ssh/id_rsa_accountB &gt;/dev/null 2&gt;&amp;1
+</code></p>
+
+<p>配置ssh config文件<code>~/.ssh/config</code>。
+```bash</p>
+
+<h1>AccountA</h1>
+
+<p>Host github-a.com</p>
+
+<pre><code>HostName github.com
+User git
+IdentityFile ~/.ssh/id_rsa_accountA
+</code></pre>
+
+<h1>AccountB</h1>
+
+<p>Host github-b.com</p>
+
+<pre><code>HostName github.com
+User git
+IdentityFile ~/.ssh/id_rsa_accountB
+</code></pre>
+
+<p>```</p>
+
+<p>这样以后使用AccountA时可以<code>git clone git@github-a.com:user/repos.git local_dir</code>这样操作，clone下来后可以<code>cd local_dir</code>对<code>user.name</code>和<code>user.email</code>来进行config来覆盖global config，剩下的就和平时没有什么区别了，使用AccountB时相似操作就可以了。</p>
+]]></content>
+  </entry>
+  
+</feed>

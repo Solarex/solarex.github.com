@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: android | Solarex's Blog]]></title>
+  <link href="http://Solarex.github.io/blog/categories/android/atom.xml" rel="self"/>
+  <link href="http://Solarex.github.io/"/>
+  <updated>2014-09-02T00:13:52+08:00</updated>
+  <id>http://Solarex.github.io/</id>
+  <author>
+    <name><![CDATA[Solarex]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Checking Intent Availability]]></title>
+    <link href="http://Solarex.github.io/blog/2014/06/02/checking-intent-availability/"/>
+    <updated>2014-06-02T11:41:00+08:00</updated>
+    <id>http://Solarex.github.io/blog/2014/06/02/checking-intent-availability</id>
+    <content type="html"><![CDATA[<p>Intents are probably Android’s most powerful tool. They tie together loosely coupled components and make it possible to start Activities that are not part of your own app. Using intents you can delegate to the Contacts app to select a contact or you can start the browser, share data and so on.</p>
+
+<p>The receiving apps declare intent filters which describe the intents its component react to. If you know which intent filters the app provides and if the components are publicly available you can start any Activity of any app on the users device.</p>
+
+<p>The problem is: How do you know if the app is installed – if you can use the Intent?</p>
+
+<p>The solution is to create the Intent and check if it is available:</p>
+
+<p>```java
+public static boolean isIntentAvailable(Context ctx, Intent intent) {
+   final PackageManager mgr = ctx.getPackageManager();
+   List<ResolveInfo> list =</p>
+
+<pre><code>  mgr.queryIntentActivities(intent, 
+     PackageManager.MATCH_DEFAULT_ONLY);
+</code></pre>
+
+<p>   return list.size() > 0;
+}
+```</p>
+
+<p>And we can use it this way:</p>
+
+<p>```java
+public boolean onPrepareOptionsMenu(Menu menu) {</p>
+
+<pre><code>final boolean scanAvailable = isIntentAvailable(this,
+    "com.google.zxing.client.android.SCAN");
+
+MenuItem item;
+item = menu.findItem(R.id.menu_item_add);
+item.setEnabled(scanAvailable);
+
+return super.onPrepareOptionsMenu(menu);
+</code></pre>
+
+<p>}
+```</p>
+
+<p>If you wanna check this before <code>startActivity</code> in case not caught by <code>ActivityNotFoundException</code>,here is another way:</p>
+
+<p>```java
+if (intent.resolveActivity(ctx.getPackageManager()) != null) {</p>
+
+<pre><code>ctx.startActivity(intent);
+</code></pre>
+
+<p>} else {</p>
+
+<pre><code>log("No component can react to this intent = " + intent);
+</code></pre>
+
+<p>}
+```</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[近阶段总结]]></title>
+    <link href="http://Solarex.github.io/blog/2013/12/24/recent-summary/"/>
+    <updated>2013-12-24T22:06:00+08:00</updated>
+    <id>http://Solarex.github.io/blog/2013/12/24/recent-summary</id>
+    <content type="html"><![CDATA[<p>没有什么比漫无目的的徘徊更让人心烦意乱，消磨意志的了，最近就处于这样一种状态。Android开发基础已经基本上掌握了，但是高级点的技巧依然无从下手，一个Service如何长时间运行不被杀，流量监控后台运行的机制是什么都不了解。为什么无从下手，因为不知道优秀的应用是如何实现的，借鉴都不知道从哪抄。要打破这种状态，不仅仅需要巩固基础知识，更重要的是要学习高级技巧。</p>
+
+<ul>
+<li><p>巩固基础知识，Android开发基础知识总结，Android Guides，Android Training必须看完，做好笔记。Java基础知识巩固复习，设计模式学习总结，Android框架采用了许多设计模式，把Java基础知识打牢固才能更好的为下一步学习Android框架打好基础。 书籍/资料：Pro Android 4 / Java 编程思想 / Head First 设计模式 / 大话设计模式 / 设计模式视频</p></li>
+<li><p>借鉴优秀应用，Google原生应用，Android SDK Sample，优秀开源应用，学习这些优秀的开源应用如何处理后台Service，如何处理多线程，如何进行网络连接尽可能地少消耗流量。。。如果有时间，可以看下Google I/O开发者大会和Google Developer Blog来跟随大师脚步学习大师的开发技巧。</p></li>
+<li><p>工具的学习使用，总结开发工具使用技巧，Vim，Git，Source Insight，自动构建工具Ant，Maven，build.xml，pom.xml文件编写规则。调教好Vim插件，为以后学习框架时打log，看框架打好基础。学会高效使用Git，Github，利用Github Wiki来做笔记，作总结。 书籍/资料：Ant 视频 / Maven in action</p></li>
+<li><p>为学习框架和Android系统做准备，Linux系统编程，操作系统原理，Linux网络编程这些都要大致过一遍，不用太细致深入，有个概念就可以了。 书籍：Android内核剖析 / LKD / MOS / UNP / APUE / CSAPP</p></li>
+</ul>
+
+
+<p>计划</p>
+
+<ul>
+<li>年前必须搞定基础知识复习总结。Android开发基础知识，Java基础知识总结。Android Guides/Android Training，Pro Android 4总结学习。Sundy教学视频。</li>
+<li>看Google 原生Settings应用。</li>
+<li>调教好Vim，Git。</li>
+</ul>
+
+]]></content>
+  </entry>
+  
+</feed>
