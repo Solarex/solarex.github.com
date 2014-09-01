@@ -3,23 +3,35 @@ layout: default
 single: true
 ---
 
-<article class="post">
-{% include article.html %}
-<div class="entry-content">
-<center><img src="/images/by.png" />除非另有声明，本网站采用<a href="http://creativecommons.org/licenses/by/3.0/cn/" rel="license">知识共享“署名 3.0 中国大陆”许可协议</a>授权。</center>
-</div>
+<div>
+<article class="hentry" role="article">
+  {% include article.html %}
+  <footer>
+    <p class="meta">
+      {% include post/author.html %}
+      {% include post/date.html %}{% if updated %}{{ updated }}{% else %}{{ time }}{% endif %}
+      {% include post/categories.html %}
+    </p>
+    {% unless page.sharing == false %}
+      {% include post/sharing.html %}
+    {% endunless %}
+    <p class="meta">
+      {% if page.previous.url %}
+        <a class="basic-alignment left" href="{{page.previous.url}}" title="Previous Post: {{page.previous.title}}">&laquo; {{page.previous.title}}</a>
+      {% endif %}
+      {% if page.next.url %}
+        <a class="basic-alignment right" href="{{page.next.url}}" title="Next Post: {{page.next.title}}">{{page.next.title}} &raquo;</a>
+      {% endif %}
+    </p>
+  </footer>
 </article>
-
-{% unless page.sharing == false %}
-	{% include post/sharing.html %}
-{% endunless %}
 {% if site.disqus_short_name and page.comments == true %}
-<section id="comment">
-    <h2 class="title">Comments</h2>
+  <section>
+    <h1>Comments</h1>
     <div id="disqus_thread" aria-live="polite">{% include post/disqus_thread.html %}</div>
-</section>
+  </section>
 {% endif %}
-
+{% if page.comments == true %}
 <section id="comment">
 <!-- Duoshuo Comment BEGIN -->
 	<div class="ds-thread"></div>
@@ -36,3 +48,20 @@ var duoshuoQuery = {short_name:"solarex"};
 	</script>
 <!-- Duoshuo Comment END -->
 </section>
+{% endif %}
+{% if site.juvia_site_key and page.comments == true %}
+  <section>
+    <h1>Comments</h1>
+    <div id="juvia_thread" aria-live="polite">{% include post/juvia_thread.html %}</div>
+  </section>
+{% endif %}
+</div>
+{% unless page.sidebar == false %}
+<aside class="sidebar">
+  {% if site.post_asides.size %}
+    {% include_array post_asides %}
+  {% else %}
+    {% include_array default_asides %}
+  {% endif %}
+</aside>
+{% endunless %}
