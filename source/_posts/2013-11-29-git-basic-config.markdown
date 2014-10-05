@@ -5,6 +5,7 @@ date: 2013-11-29 23:14
 comments: true
 categories: 
 - tools
+- git
 ---
 <center><p><img src="/images/git-logo-black.png" width="182" height="76" alt="git"></p></center>
 

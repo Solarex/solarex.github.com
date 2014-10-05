@@ -39,3 +39,5 @@ Host github-b.com
 ```
 
 这样以后使用AccountA时可以``git clone git@github-a.com:user/repos.git local_dir``这样操作，clone下来后可以``cd local_dir``对``user.name``和``user.email``来进行config来覆盖global config，剩下的就和平时没有什么区别了，使用AccountB时相似操作就可以了。
+
+<script src="https://gist.github.com/flyfire/ecdf3b6d623923d73c07.js"></script>

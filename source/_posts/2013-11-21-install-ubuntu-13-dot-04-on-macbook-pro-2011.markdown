@@ -36,6 +36,7 @@ deb http://mirrors.163.com/ubuntu/ raring-security universe
 deb http://mirrors.163.com/ubuntu/ raring-security multiverse
 deb http://archive.canonical.com/ubuntu precise partner
 deb-src http://archive.canonical.com/ubuntu precise partner
+deb http://cz.archive.ubuntu.com/ubuntu trusty main universe
 ```
 
 + 添加ppa
@@ -44,8 +45,9 @@ sudo add-apt-repository ppa:fcitx-team/nightly
 sudo add-apt-repository ppa:indicator-multiload/stable-daily
 sudo add-apt-repository ppa:ubuntu-wine/ppa
 sudo add-apt-repository ppa:synapse-core/ppa
+sudo add-apt-repository ppa:fossfreedom/byzanz
 sudo apt-get update && sudo apt-get upgrade
-sudo apt-get install fcitx fcitx-config-gtk fcitx-sunpinyin fcitx-googlepinyin fcitx-module-cloudpinyin  fcitx-sogoupinyin fcitx-table-all indicator-multiload wine synapse
+sudo apt-get install fcitx fcitx-config-gtk fcitx-sunpinyin fcitx-googlepinyin fcitx-module-cloudpinyin  fcitx-sogoupinyin fcitx-table-all indicator-multiload wine synapse byzanz mtp-tools mtpfs
 ```
 
 + 安装卸载软件
@@ -55,3 +57,5 @@ sudo apt-get install python3-dev python3-openssl libxss1 flashplugin-installer m
 sudo apt-get purge ibus ibus-gtk ibus-gtk3 ibus-pinyin ibus-pinyin-db-android ibus-table
 sudo apt-get autoremove unity-lens-music unity-lens-photos unity-lens-gwibber unity-lens-shopping unity-lens-video
 ```
+
++ sublime_text配置文件在``$HOME/.config/sublime_text_3/``

@@ -5,13 +5,17 @@ date: 2014-09-01 07:57
 comments: true
 categories: 
 - dev
+- java
+- c
 ---
 <center><p><img src="/images/java_logo.svg" width="150" height="275" alt="java"></p></center>
 
 ##C version
 
 C版本的``hello,world``深入详解之前上学的时候在[SlideShare](http://www.slideshare.net/olvemaudal/deep-c)上看到过，记得当时大呼过瘾，许多C深入理解的知识基本上都被罗列了出来，现在看来仍然获益颇多。PDF版本可以在<a href="/downloads/files/DeepC0.pdf">这里和<a href="/downloads/files/DeepC1.pdf">这里</a>下载。
- 
+
+<!-- more -->
+
 <iframe src="//www.slideshare.net/slideshow/embed_code/9626718" width="427" height="356" frameborder="0" marginwidth="0" marginheight="0" scrolling="no" style="border:1px solid #CCC; border-width:1px; margin-bottom:5px; max-width: 100%;" allowfullscreen> </iframe> <div style="margin-bottom:5px"> <strong> <a href="https://www.slideshare.net/olvemaudal/deep-c" title="Deep C" target="_blank">Deep C</a> </strong> from <strong><a href="http://www.slideshare.net/olvemaudal" target="_blank">Olve Maudal</a></strong> </div>
  
  Q:In C,Why dot you think static variables gets a default value(usually 0),while auto variables does not get a default value?

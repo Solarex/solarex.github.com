@@ -142,6 +142,7 @@
 <span class='line-number'>10</span>
 <span class='line-number'>11</span>
 <span class='line-number'>12</span>
+<span class='line-number'>13</span>
 </pre></td><td class='code'><pre><code class='bash'><span class='line'>deb http://mirrors.163.com/ubuntu/ raring main restricted
 </span><span class='line'>deb http://mirrors.163.com/ubuntu/ raring-updates main restricted
 </span><span class='line'>deb http://mirrors.163.com/ubuntu/ raring universe
@@ -154,6 +155,7 @@
 </span><span class='line'>deb http://mirrors.163.com/ubuntu/ raring-security multiverse
 </span><span class='line'>deb http://archive.canonical.com/ubuntu precise partner
 </span><span class='line'>deb-src http://archive.canonical.com/ubuntu precise partner
+</span><span class='line'>deb http://cz.archive.ubuntu.com/ubuntu trusty main universe
 </span></code></pre></td></tr></table></div></figure>
 
 
@@ -168,12 +170,14 @@
 <span class='line-number'>4</span>
 <span class='line-number'>5</span>
 <span class='line-number'>6</span>
+<span class='line-number'>7</span>
 </pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo add-apt-repository ppa:fcitx-team/nightly
 </span><span class='line'>sudo add-apt-repository ppa:indicator-multiload/stable-daily
 </span><span class='line'>sudo add-apt-repository ppa:ubuntu-wine/ppa
 </span><span class='line'>sudo add-apt-repository ppa:synapse-core/ppa
+</span><span class='line'>sudo add-apt-repository ppa:fossfreedom/byzanz
 </span><span class='line'>sudo apt-get update <span class="o">&amp;&amp;</span> sudo apt-get upgrade
-</span><span class='line'>sudo apt-get install fcitx fcitx-config-gtk fcitx-sunpinyin fcitx-googlepinyin fcitx-module-cloudpinyin  fcitx-sogoupinyin fcitx-table-all indicator-multiload wine synapse
+</span><span class='line'>sudo apt-get install fcitx fcitx-config-gtk fcitx-sunpinyin fcitx-googlepinyin fcitx-module-cloudpinyin  fcitx-sogoupinyin fcitx-table-all indicator-multiload wine synapse byzanz mtp-tools mtpfs
 </span></code></pre></td></tr></table></div></figure>
 
 
@@ -191,6 +195,11 @@
 </span><span class='line'>sudo apt-get purge ibus ibus-gtk ibus-gtk3 ibus-pinyin ibus-pinyin-db-android ibus-table
 </span><span class='line'>sudo apt-get autoremove unity-lens-music unity-lens-photos unity-lens-gwibber unity-lens-shopping unity-lens-video
 </span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>sublime_text配置文件在<code>$HOME/.config/sublime_text_3/</code></li>
+</ul>
 
 </div>
 <div class="entry-content">
@@ -294,23 +303,23 @@ var duoshuoQuery = {short_name:"solarex"};
   <ul id="recent_posts">
     
       <li class="post">
-        <a href="/blog/2014/09/01/what-can-we-learn-from-hello-world/">What can we learn from hello world</a>
+        <a href="/blog/2014/09/30/moving-bitbucket-repo-to-github/">Moving bitbucket repo to github</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2014/06/02/ssh-key-config-for-multi-github-accounts/">SSH key settings for multi github accounts</a>
+        <a href="/blog/2014/09/28/android-guide-animation-and-graphics/">[Guides]Animation and Graphics</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2014/06/02/checking-intent-availability/">Checking Intent Availability</a>
+        <a href="/blog/2014/09/27/android-snippets/">Android Snippets</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2013/12/24/recent-summary/">近阶段总结</a>
+        <a href="/blog/2014/09/21/android-guide-app-component/">[Guides]App Component</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2013/11/29/git-basic-config/">Git配置(持续更新)</a>
+        <a href="/blog/2014/09/16/zhihu-intent-fileter-schema/">跳出浏览器</a>
       </li>
     
   </ul>
