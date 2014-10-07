@@ -4,7 +4,7 @@
   <title><![CDATA[Solarex's Blog]]></title>
   <link href="http://Solarex.github.io/atom.xml" rel="self"/>
   <link href="http://Solarex.github.io/"/>
-  <updated>2014-10-02T17:41:29+08:00</updated>
+  <updated>2014-10-07T10:41:38+08:00</updated>
   <id>http://Solarex.github.io/</id>
   <author>
     <name><![CDATA[Solarex]]></name>
@@ -80,6 +80,19 @@
 <script src="https://gist.github.com/flyfire/98a8b9b54c59276ed615.js"></script>
 
 
+
+
+<script src="https://gist.github.com/flyfire/882aa9f2ea02462d6a2c.js"></script>
+
+
+
+
+<script src="https://gist.github.com/flyfire/9760733.js"></script>
+
+
+
+
+<script src="https://gist.github.com/flyfire/90a2d6b78f0273f7d395.js"></script>
 
 ]]></content>
   </entry>
@@ -5227,6 +5240,9 @@ loaders are used:</p>
 
 
 <p>这样以后使用AccountA时可以<code>git clone git@github-a.com:user/repos.git local_dir</code>这样操作，clone下来后可以<code>cd local_dir</code>对<code>user.name</code>和<code>user.email</code>来进行config来覆盖global config，剩下的就和平时没有什么区别了，使用AccountB时相似操作就可以了。</p>
+
+<script src="https://gist.github.com/flyfire/ecdf3b6d623923d73c07.js"></script>
+
 ]]></content>
   </entry>
   
