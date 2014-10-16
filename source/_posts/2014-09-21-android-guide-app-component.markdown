@@ -838,6 +838,7 @@ Here is a quick overview of how ``AsyncTask`` works:
 
 ## Permissions 
 
+A central design point of the Android security architecture is that no application, by default, has permission to perform any operations that would adversely impact other applications, the operating system, or the user. This includes reading or writing the user's private data (such as contacts or e-mails), reading or writing another application's files, performing network access, keeping the device awake, etc.Android安全架构设计思想是默认没有应用有权限来做对其他应用程序，对系统或者其他用户有影响的操作。
 
 ## App Widgets
 

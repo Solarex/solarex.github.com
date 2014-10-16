@@ -9,7 +9,16 @@
   <meta name="author" content="Solarex">
 
   
-  <meta name="description" content="Ref:Java Annotations tutorial,Wiki,How do Annotations Work In Java?, Annotation is special kind of Java construct used to decorate a class, method, &hellip;">
+  <meta name="description" content="1
+2
+3
+4
+5
+6
+git clone https://bitbucket.org/username/repos.git local_dir
+cd local_dir
+git remote rename origin bitbucket
+git remote add origin git@ &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -87,7 +96,7 @@
       
   <header>
     
-      <h1 class="entry-title"><a href="/blog/2014/09/12/java-annotations/">Java Annotations</a></h1>
+      <h1 class="entry-title"><a href="/blog/2014/09/30/moving-bitbucket-repo-to-github/">Moving Bitbucket Repo to Github</a></h1>
     
     
       <p class="meta">
@@ -103,141 +112,72 @@
   
 
 
-<time datetime="2014-09-12T12:52:00+08:00" pubdate data-updated="true">Sep 12<span>th</span>, 2014</time>
+<time datetime="2014-09-30T15:38:00+08:00" pubdate data-updated="true">Sep 30<span>th</span>, 2014</time>
         
       </p>
     
   </header>
 
 
-  <div class="entry-content"><center><p><img src="/images/java-annotations.png" width="210" height="135" alt="java"></p></center>
-
-
-<p>Ref:<a href="http://docs.oracle.com/javase/tutorial/java/annotations/">Java Annotations tutorial</a>,<a href="https://en.wikipedia.org/wiki/Java_annotation">Wiki</a>,<a href="http://java.dzone.com/articles/how-annotations-work-java">How do Annotations Work In Java?</a>,</p>
-
-<p>Annotation is special kind of Java construct used to decorate a class, method, field, parameter, variable, constructor, or package. It’s the vehicle chosen by JSR-175 to provide metadata.Java annotations are typically used for the following purposes:</p>
-
-<ul>
-<li>Compiler instructions</li>
-<li>Build-time instructions</li>
-<li>Runtime instructions</li>
-</ul>
-
-
-<h2>Basics</h2>
-
-<p>Annotations have a number of uses, among them:</p>
-
-<ul>
-<li>Information for the compiler — Annotations can be used by the compiler to detect errors or suppress warnings.</li>
-<li>Compile-time and deployment-time processing — Software tools can process annotation information to generate code, XML files, and so forth.</li>
-<li>Runtime processing — Some annotations are available to be examined at runtime.</li>
-</ul>
-
-
-<p>The format of an Annotation:In its simplest form, an annotation looks like <code>@Entity</code>,the annotation can include elements, which can be named or unnamed,if there is just one element named value, then the name can be omitted,if the annotation has no elements, then the parentheses can be omitted, as shown in the previous <code>@Override</code> example,it is also possible to use multiple annotations on the same declaration.If the annotations have the same type, then this is called a repeating annotation,repeating annotations are supported as of the Java SE 8 release.</p>
-
-<p>The predefined annotation types defined in java.lang are <code>@Deprecated</code>, <code>@Override</code>, and <code>@SuppressWarnings</code>.Note that the Javadoc tag starts with a lowercase d (<code>deprecated</code>)and the annotation starts with an uppercase D(<code>Deprecated</code>).</p>
-
-<p>Every compiler warning belongs to a category. The Java Language Specification lists two categories: <code>deprecation</code> and <code>unchecked</code>. The unchecked warning can occur when interfacing with legacy code written before the advent of generics. To suppress multiple categories of warnings, use the following syntax:<code>@SuppressWarnings({"unchecked", "deprecation"})</code>.</p>
-
-<p>Annotations can be applied to declarations: declarations of classes, fields, methods, and other program elements. When used on a declaration, each annotation often appears, by convention, on its own line.As of the Java SE 8 release, annotations can also be applied to the use of types.</p>
-
-<h2>Declaring an Annotation Type</h2>
-
-<p>Declaring an annotation type, syntax for doing this is:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+  <div class="entry-content"><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
 <span class='line-number'>5</span>
 <span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="nd">@interface</span> <span class="n">ClassPreamble</span> <span class="o">{</span>
-</span><span class='line'>   <span class="n">String</span> <span class="nf">author</span><span class="o">();</span>
-</span><span class='line'>   <span class="n">String</span> <span class="nf">date</span><span class="o">();</span>
-</span><span class='line'>   <span class="kt">int</span> <span class="nf">currentRevision</span><span class="o">()</span> <span class="k">default</span> <span class="mi">1</span><span class="o">;</span>
-</span><span class='line'>   <span class="n">String</span> <span class="nf">lastModified</span><span class="o">()</span> <span class="k">default</span> <span class="s">&quot;N/A&quot;</span><span class="o">;</span>
-</span><span class='line'>   <span class="n">String</span> <span class="nf">lastModifiedBy</span><span class="o">()</span> <span class="k">default</span> <span class="s">&quot;N/A&quot;</span><span class="o">;</span>
-</span><span class='line'>   <span class="c1">// Note use of array</span>
-</span><span class='line'>   <span class="n">String</span><span class="o">[]</span> <span class="nf">reviewers</span><span class="o">();</span>
-</span><span class='line'><span class="o">}</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>git clone https://bitbucket.org/username/repos.git local_dir
+</span><span class='line'><span class="nb">cd </span>local_dir
+</span><span class='line'>git remote rename origin bitbucket
+</span><span class='line'>git remote add origin git@github.com:username/repos.git
+</span><span class='line'>git push -u origin master
+</span><span class='line'>git remote rm bitbucket
 </span></code></pre></td></tr></table></div></figure>
 
-
-<p>The annotation type definition looks similar to an interface definition where the keyword interface is preceded by the at sign (@) (@ = AT, as in annotation type). Annotation types are a form of interface.The body of the previous annotation definition contains annotation type element declarations, which look a lot like methods. Note that they can define optional default values.Annotations only support primitives, string and enumerations. All attributes of annotations are defined as methods and default values can also be provided.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="nd">@Target</span><span class="o">(</span><span class="n">ElementType</span><span class="o">.</span><span class="na">METHOD</span><span class="o">)</span>
-</span><span class='line'><span class="nd">@Retention</span><span class="o">(</span><span class="n">RetentionPolicy</span><span class="o">.</span><span class="na">RUNTIME</span><span class="o">)</span>
-</span><span class='line'><span class="nd">@interface</span> <span class="n">Todo</span> <span class="o">{</span>
-</span><span class='line'>    <span class="kd">public</span> <span class="kd">enum</span> <span class="n">Priority</span> <span class="o">{</span><span class="n">LOW</span><span class="o">,</span> <span class="n">MEDIUM</span><span class="o">,</span> <span class="n">HIGH</span><span class="o">}</span>
-</span><span class='line'>    <span class="kd">public</span> <span class="kd">enum</span> <span class="n">Status</span> <span class="o">{</span><span class="n">STARTED</span><span class="o">,</span> <span class="n">NOT_STARTED</span><span class="o">}</span>
-</span><span class='line'>    <span class="n">String</span> <span class="nf">author</span><span class="o">()</span> <span class="k">default</span> <span class="s">&quot;Yash&quot;</span><span class="o">;</span>
-</span><span class='line'>    <span class="n">Priority</span> <span class="nf">priority</span><span class="o">()</span> <span class="k">default</span> <span class="n">Priority</span><span class="o">.</span><span class="na">LOW</span><span class="o">;</span>
-</span><span class='line'>    <span class="n">Status</span> <span class="nf">status</span><span class="o">()</span> <span class="k">default</span> <span class="n">Status</span><span class="o">.</span><span class="na">NOT_STARTED</span><span class="o">;</span>
-</span><span class='line'><span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure>
+</div>
+  
+  
 
 
-<p><strong>Note</strong>: To make the information in @ClassPreamble appear in Javadoc-generated documentation, you must annotate the @ClassPreamble definition with the @Documented annotation:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="c1">// import this to use @Documented</span>
-</span><span class='line'><span class="kn">import</span> <span class="nn">java.lang.annotation.*</span><span class="o">;</span>
-</span><span class='line'>
-</span><span class='line'><span class="nd">@Documented</span>
-</span><span class='line'><span class="nd">@interface</span> <span class="n">ClassPreamble</span> <span class="o">{</span>
-</span><span class='line'>
-</span><span class='line'>   <span class="c1">// Annotation element definitions</span>
-</span><span class='line'>
-</span><span class='line'><span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>You can also define that your annotation is a qualifier for the <code>@Inject</code> annotation.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="nd">@javax.inject.Qualifier</span>
-</span><span class='line'><span class="nd">@Documented</span>
-</span><span class='line'><span class="nd">@Target</span><span class="o">({</span><span class="n">ElementType</span><span class="o">.</span><span class="na">FIELD</span><span class="o">,</span> <span class="n">ElementType</span><span class="o">.</span><span class="na">PARAMETER</span><span class="o">})</span>
-</span><span class='line'><span class="nd">@Retention</span><span class="o">(</span><span class="n">RetentionPolicy</span><span class="o">.</span><span class="na">RUNTIME</span><span class="o">)</span>
-</span><span class='line'><span class="kd">public</span> <span class="nd">@interface</span> <span class="n">Checker</span> <span class="o">{</span>
-</span><span class='line'><span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure>
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/09/28/android-guide-animation-and-graphics/">[Guides]Animation and Graphics</a></h1>
+    
+    
+      <p class="meta">
+        
 
 
 
+
+
+
+
+
+  
+
+
+<time datetime="2014-09-28T06:21:00+08:00" pubdate data-updated="true">Sep 28<span>th</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><center><p><img src="/images/android_robot.png" width="255" height="300"></p></center>
+
+
+<p>Android provides a variety of powerful APIs for applying animation to UI elements and drawing custom 2D and 3D graphics.</p>
 
 </div>
   
   
     <footer>
-      <a rel="full-article" href="/blog/2014/09/12/java-annotations/">Read on &rarr;</a>
+      <a rel="full-article" href="/blog/2014/09/28/android-guide-animation-and-graphics/">Read on &rarr;</a>
     </footer>
   
 
@@ -249,7 +189,7 @@
       
   <header>
     
-      <h1 class="entry-title"><a href="/blog/2014/09/04/notes-on-java/">Java学习备忘</a></h1>
+      <h1 class="entry-title"><a href="/blog/2014/09/27/android-snippets/">Android Snippets</a></h1>
     
     
       <p class="meta">
@@ -265,263 +205,117 @@
   
 
 
-<time datetime="2014-09-04T13:05:00+08:00" pubdate data-updated="true">Sep 4<span>th</span>, 2014</time>
+<time datetime="2014-09-27T12:50:00+08:00" pubdate data-updated="true">Sep 27<span>th</span>, 2014</time>
         
       </p>
     
   </header>
 
 
-  <div class="entry-content"><center><p><img src="/images/java_logo.svg" width="150" height="275" alt="java"></p></center>
+  <div class="entry-content"><center><p><img src="/images/android_robot.png" width="255" height="300"></p></center>
 
 
-<h2>class loaded and initialized</h2>
 
-<p><code>java -verbose:class -classpath . org.solarex.TestClassLoader</code> get information about each class loaded.The “-verbose:class” option displays information about each class loaded.</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kn">package</span> <span class="n">org</span><span class="o">.</span><span class="na">solarex</span><span class="o">.</span><span class="na">test</span><span class="o">;</span>
-</span><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">A</span><span class="o">{</span>
-</span><span class='line'>  <span class="kd">public</span> <span class="kt">void</span> <span class="nf">method</span><span class="o">(){</span>
-</span><span class='line'>      <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">&quot;inside of A&quot;</span><span class="o">);</span>
-</span><span class='line'>  <span class="o">}</span>
-</span><span class='line'><span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kn">package</span> <span class="n">org</span><span class="o">.</span><span class="na">solarex</span><span class="o">.</span><span class="na">test</span><span class="o">;</span>
-</span><span class='line'><span class="kd">public</span> <span class="kt">void</span> <span class="n">TestLoader</span><span class="o">{</span>
-</span><span class='line'>  <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">args</span><span class="o">){</span>
-</span><span class='line'>      <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">&quot;Hello,world\n&quot;</span><span class="o">);</span>
-</span><span class='line'>      <span class="c1">// A aInstance = new A();</span>
-</span><span class='line'>      <span class="c1">// aInstance.method();</span>
-</span><span class='line'>  <span class="o">}</span>
-</span><span class='line'><span class="o">}</span>  
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p><code>javac -d . *.java</code>,<code>java -verbose:class -classpath . org.solarex.test.TestLoader</code>得到结果:</p>
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2014/09/04/notes-on-java/">Read on &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2014/09/02/notes-on-git/">Git学习笔记</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-09-02T00:24:00+08:00" pubdate data-updated="true">Sep 2<span>nd</span>, 2014</time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><center><p><img src="/images/git-logo-black.png" width="455" height="190" alt="git" ></p></center>
-
-
-<h2>起步</h2>
-
-<p>Git 和其他版本控制系统的主要差别在于，Git 只关心文件数据的整体是否发生变化，而大多数其他系统则只关心文件内容的具体差异。这类系统（CVS，Subversion，Perforce，Bazaar 等等）每次记录有哪些文件作了更新，以及都更新了哪些行的什么内容。Git 并不保存这些前后变化的差异数据。实际上，Git 更像是把变化的文件作快照后，记录在一个微型的文件系统中。每次提交更新时，它会纵览一遍所有文件的指纹信息并对文件作一快照，然后保存一个指向这次快照的索引。为提高性能，若文件没有变化，Git 不会再次保存，而只对上次保存的快照作一链接。</p>
-
-<p>在保存到 Git 之前，所有数据都要进行内容的校验和（checksum）计算，并将此结果作为数据的唯一标识和索引。换句话说，不可能在你修改了文件或目录之后，Git 一无所知。这项特性作为 Git 的设计哲学，建在整体架构的最底层。所以如果文件在传输时变得不完整，或者磁盘损坏导致文件数据缺失，Git 都能立即察觉。Git 使用 SHA-1 算法计算数据的校验和，通过对文件的内容或目录的结构计算出一个 SHA-1 哈希值，作为指纹字符串。该字串由 40 个十六进制字符（0-9 及 a-f）组成。Git 的工作完全依赖于这类指纹字串，所以你会经常看到这样的哈希值。实际上，所有保存在 Git 数据库中的东西都是用此哈希值来作索引的，而不是靠文件名。</p>
-
-<p>常用的 Git 操作大多仅仅是把数据添加到数据库。因为任何一种不可逆的操作，比如删除数据，都会使回退或重现历史版本变得困难重重。在别的 VCS 中，若还未提交更新，就有可能丢失或者混淆一些修改的内容，但在 Git 里，一旦提交快照之后就完全不用担心丢失数据，特别是养成定期推送到其他仓库的习惯的话。</p>
-
-<p>对于任何一个文件，在 Git 内都只有三种状态：已提交（committed），已修改（modified）和已暂存（staged）。已提交表示该文件已经被安全地保存在本地数据库中了；已修改表示修改了某个文件，但还没有提交保存；已暂存表示把已修改的文件放在下次提交时要保存的清单中。</p>
-
-<p>每个项目都有一个 Git 目录（译注：如果 git clone 出来的话，就是其中 .git 的目录；如果 git clone &mdash;bare 的话，新建的目录本身就是 Git 目录。），它是 Git 用来保存元数据和对象数据库的地方。该目录非常重要，每次克隆镜像仓库的时候，实际拷贝的就是这个目录里面的数据。从项目中取出某个版本的所有文件和目录，用以开始后续工作的叫做工作目录。这些文件实际上都是从 Git 目录中的压缩对象数据库中提取出来的，接下来就可以在工作目录中对这些文件进行编辑。所谓的暂存区域只不过是个简单的文件，一般都放在 Git 目录中。有时候人们会把这个文件叫做索引文件，不过标准说法还是叫暂存区域。</p>
-
-<p>Git 提供了一个叫做 <code>git config</code> 的工具（译注：实际是 <code>git-config</code> 命令，只不过可以通过 git 加一个名字来呼叫此命令。），专门用来配置或读取相应的工作环境变量。而正是由这些环境变量，决定了 Git 在各个环节的具体工作方式和行为。这些变量可以存放在以下三个不同的地方：</p>
-
-<ul>
-<li><code>/etc/gitconfig</code> 文件：系统中对所有用户都普遍适用的配置。若使用 <code>git config</code> 时用 <code>--system</code> 选项，读写的就是这个文件。</li>
-<li><code>~/.gitconfig</code> 文件：用户目录下的配置文件只适用于该用户。若使用 <code>git config</code> 时用 <code>--global</code> 选项，读写的就是这个文件。</li>
-<li>当前项目的 git 目录中的配置文件（也就是工作目录中的 <code>.git/config</code> 文件）：这里的配置仅仅针对当前项目有效。每一个级别的配置都会覆盖上层的相同配置，所以 <code>.git/config</code> 里的配置会覆盖 <code>/etc/gitconfig</code> 中的同名变量。</li>
-</ul>
-
-
-<p>要检查已有的配置信息，可以使用 <code>git config --list</code> 命令。</p>
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2014/09/02/notes-on-git/">Read on &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2014/09/01/what-can-we-learn-from-hello-world/">What Can We Learn From Hello World</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-09-01T07:57:00+08:00" pubdate data-updated="true">Sep 1<span>st</span>, 2014</time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><center><p><img src="/images/java_logo.svg" width="150" height="275" alt="java"></p></center>
-
-
-<h2>C version</h2>
-
-<p>C版本的<code>hello,world</code>深入详解之前上学的时候在<a href="http://www.slideshare.net/olvemaudal/deep-c">SlideShare</a>上看到过，记得当时大呼过瘾，许多C深入理解的知识基本上都被罗列了出来，现在看来仍然获益颇多。PDF版本可以在<a href="/downloads/files/DeepC0.pdf">这里和<a href="/downloads/files/DeepC1.pdf">这里</a>下载。</p>
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2014/09/01/what-can-we-learn-from-hello-world/">Read on &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2014/06/02/ssh-key-config-for-multi-github-accounts/">SSH Key Settings for Multi Github Accounts</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-06-02T15:13:00+08:00" pubdate data-updated="true">Jun 2<span>nd</span>, 2014</time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>在同一台电脑上有多个github账户时，切换ssh key会比较麻烦，可以使用ssh config来简化这一动作。</p>
-
-<p>在使用<code>ssh-keygen</code>时，为不同的账户选择不同的ssh key文件。</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>hrh@Solarex:~<span class="nv">$ </span>ls ~/.ssh/
-</span><span class='line'>id_rsa_accountA id_rsa_accountA.pub id_rsa_accountB id_rsa_accountB.pub known_hosts config
-</span></code></pre></td></tr></table></div></figure>
+<script src="https://gist.github.com/flyfire/43442fbd80367f18ea86.js"></script>
 
 
 <p></p>
 
-<p>在<code>~/.bashrc</code>中添加ssh key。</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>ssh-add ~/.ssh/id_rsa_accountA &gt;/dev/null 2&gt;&amp;1
-</span><span class='line'>ssh-add ~/.ssh/id_rsa_accountB &gt;/dev/null 2&gt;&amp;1
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>配置ssh config文件<code>~/.ssh/config</code>。</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="c">#AccountA</span>
-</span><span class='line'>Host github-a.com
-</span><span class='line'>    HostName github.com
-</span><span class='line'>    User git
-</span><span class='line'>    IdentityFile ~/.ssh/id_rsa_accountA
-</span><span class='line'>
-</span><span class='line'><span class="c">#AccountB</span>
-</span><span class='line'>Host github-b.com
-</span><span class='line'>    HostName github.com
-</span><span class='line'>    User git
-</span><span class='line'>    IdentityFile ~/.ssh/id_rsa_accountB
-</span></code></pre></td></tr></table></div></figure>
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2014/09/27/android-snippets/">Read on &rarr;</a>
+    </footer>
+  
 
 
-<p>这样以后使用AccountA时可以<code>git clone git@github-a.com:user/repos.git local_dir</code>这样操作，clone下来后可以<code>cd local_dir</code>对<code>user.name</code>和<code>user.email</code>来进行config来覆盖global config，剩下的就和平时没有什么区别了，使用AccountB时相似操作就可以了。</p>
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/09/21/android-guide-app-component/">[Guides]App Component</a></h1>
+    
+    
+      <p class="meta">
+        
 
-<script src="https://gist.github.com/flyfire/ecdf3b6d623923d73c07.js"></script>
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-09-21T12:04:00+08:00" pubdate data-updated="true">Sep 21<span>st</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><center><p><img src="/images/android_robot.png" width="255" height="300"></p></center>
+
+
+<p>TL,DR;</p>
 
 </div>
   
+  
+    <footer>
+      <a rel="full-article" href="/blog/2014/09/21/android-guide-app-component/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/09/16/java-reflection-tutorial/">Java反射</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-09-16T14:35:00+08:00" pubdate data-updated="true">Sep 16<span>th</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p><center><img src="/images/java-reflection-tutorial.png"></center></p>
+
+
+
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2014/09/16/java-reflection-tutorial/">Read on &rarr;</a>
+    </footer>
   
 
 
@@ -544,23 +338,23 @@
   <ul id="recent_posts">
     
       <li class="post">
-        <a href="/blog/2014/09/30/moving-bitbucket-repo-to-github/">Moving bitbucket repo to github</a>
+        <a href="/blog/2014/10/14/android-context/">Android Context</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2014/09/28/android-guide-animation-and-graphics/">[Guides]Animation and Graphics</a>
+        <a href="/blog/2014/10/14/java-thread-tutorial/">Java thread tutorial</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2014/09/27/android-snippets/">Android Snippets</a>
+        <a href="/blog/2014/10/13/android-main-thread/">A journey on the Android Main Thread</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2014/09/21/android-guide-app-component/">[Guides]App Component</a>
+        <a href="/blog/2014/10/13/android-looper-handler/">Intro to Android Loopers and Handlers</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2014/09/16/zhihu-intent-fileter-schema/">跳出浏览器</a>
+        <a href="/blog/2014/10/12/android-decompile/">Android反编译</a>
       </li>
     
   </ul>

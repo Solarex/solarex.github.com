@@ -22,3 +22,5 @@ categories:
 <script src="https://gist.github.com/flyfire/9760733.js"></script>
 
 <script src="https://gist.github.com/flyfire/90a2d6b78f0273f7d395.js"></script>
+
+<script src="https://gist.github.com/flyfire/7112ce9e1d66d85a2500.js"></script>

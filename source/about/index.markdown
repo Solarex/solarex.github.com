@@ -27,10 +27,10 @@ Contact me via <img src="/images/gmail.gif" ></img>
 <p><center><script type="text/javascript" src="http://www.douban.com/service/badge/73580003/?selection=latest&amp;picsize=small&amp;show=collection&amp;n=4&amp;cat=drama%7Cmovie%7Cbook%7Cmusic&amp;columns=4"></script></center></p>
 
 + Solar[:4] + rex[:] = Solarex
-+ [Github_FlyFire](https://github.com/flyifre),[Github_Solarex](https://github.com/solarex)
++ [Github_FlyFire](https://github.com/flyfire),[Github_Solarex](https://github.com/solarex)
 + [Douban](http://www.douban.com/people/73580003/)
 + [Weibo](http://weibo.com/Solarex)
-+ [V2ex](http://v2ex.com/member/flyfire)
++ [Zhihu](http://www.zhihu.com/people/solarex/)
 + [OldBlog](http://flyfire-blog.appspot.com)
 + [Stackoverflow](https://stackoverflow.com/users/2573305/user2573305)
 
