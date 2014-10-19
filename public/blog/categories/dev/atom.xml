@@ -4,7 +4,7 @@
   <title><![CDATA[Category: dev | Solarex's Blog]]></title>
   <link href="http://Solarex.github.io/blog/categories/dev/atom.xml" rel="self"/>
   <link href="http://Solarex.github.io/"/>
-  <updated>2014-10-16T14:45:04+08:00</updated>
+  <updated>2014-10-19T19:22:22+08:00</updated>
   <id>http://Solarex.github.io/</id>
   <author>
     <name><![CDATA[Solarex]]></name>
@@ -12,6 +12,829 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[The Hidden Pitfalls of AsyncTask]]></title>
+    <link href="http://Solarex.github.io/blog/2014/10/19/android-asynctask-pitfalls/"/>
+    <updated>2014-10-19T15:56:00+08:00</updated>
+    <id>http://Solarex.github.io/blog/2014/10/19/android-asynctask-pitfalls</id>
+    <content type="html"><![CDATA[<p><center><img src="http://Solarex.github.io/images/android_logo.jpg"/></center></p>
+
+
+<p>I originally wrote this article when I was (foolishly) still using AsyncTasks. Nowadays I simply consider it a mistake in all cases. As you&rsquo;ll see from the original article, there are a lot of problems with it &ndash; and there are much better solutions.</p>
+
+<p>My preferred alternative these days are combining <a href="https://github.com/Netflix/RxJava">RxJava</a> with schedulers. You get the same effect as an <code>AsyncTask</code> with none of the problems, plus you get an awesome framework in addition. I know, recommending a library to solve a problem is irritating, but RxJava is worth looking at for many reasons.</p>
+
+<p>When <code>AsyncTask</code> was introduced to Android, it was labeled as “<a href="http://android-developers.blogspot.com/2009/05/painless-threading.html">Painless Threading</a>.” Its goal was to make background Threads which could interact with the UI thread easier. It was successful on that count, but it’s not exactly painless – there are a number of cases where <code>AsyncTask</code> is not a silver bullet. It is easy to blindly use <code>AsyncTask</code> without realizing what can go wrong if not handled with care. Below are some of the problems that can arise when using <code>AsyncTask</code> without fully understanding it.</p>
+
+<!-- more -->
+
+
+<h2>AsyncTask and Rotation</h2>
+
+<p>AsyncTask’s primary goal is to make it easy to run a Thread in the background that can later interact with the UI thread. Therefore the most common use case is to have an <code>AsyncTask</code> run a time-consuming operation that updates a portion of the UI when it’s completed (in <code>AsyncTask.onPostExecute()</code>).</p>
+
+<p>This works great… until you rotate the screen. <strong>When an app is rotated, the entire <code>Activity</code> is destroyed and recreated. When the Activity is restarted, your AsyncTask’s reference to the <code>Activity</code> is invalid, so <code>onPostExecute()</code> will have no effect on the new Activity.</strong> This can be confusing if you are implicitly referencing the current Activity by having AsyncTask as an inner class of the Activity.</p>
+
+<p>The usual solution to this problem is to hold onto a reference to AsyncTask that lasts between configuration changes, which updates the target Activity as it restarts. There are a variety of ways to do this, though they either boil down to using a global holder (such as in the <code>Application</code> object) or passing it through <code>Activity.onRetainNonConfigurationInstance()</code>. For a Fragment-based system, you could use a retained Fragment (via <code>Fragment.setRetainedInstance(true)</code>) to store running AsyncTasks.</p>
+
+<h2>AsyncTasks and the Lifecycle</h2>
+
+<p>Along the same lines as above, it is a misconception to think that just because the Activity that originally spawned the <code>AsyncTask</code> is dead, the <code>AsyncTask</code> is as well. It will continue running on its merry way even if you exit the entire application. <strong>The only way that an <code>AsyncTask</code> finishes early is if it is canceled via <code>AsyncTask.cancel()</code>.</strong></p>
+
+<p>This means that you have to manage the cancellation of AsyncTasks yourself; otherwise you run the risk of bogging down your app with unnecessary background tasks, or of leaking memory. When you know you will no longer need an <code>AsyncTask</code>, be sure to cancel it so that it doesn’t cause any headaches later in the execution of your app.</p>
+
+<h2>Cancelling AsyncTasks</h2>
+
+<p>Suppose you’ve got a search query that runs in an <code>AsyncTask</code>. The user may be able to change the search parameters while the <code>AsyncTask</code> is running, so you call <code>AsyncTask.cancel()</code> and then fire up a new <code>AsyncTask</code> for the next query. <strong>This seems to work… until you check the logs and realize that your <code>AsyncTask</code>s all ran till completion, regardless of whether you called <code>cancel()</code> or not!</strong> This even happens if you pass mayInterruptIfRunning as true – what’s going on?</p>
+
+<p>The problem is that there’s a misconception about what <code>AsyncTask.cancel()</code> actually does. It does not kill the Thread with no regard for the consequences! All it does is set the <code>AsyncTask</code> to a “cancelled” state. <strong>It’s up to you to check whether the AsyncTask has been canceled so that you can halt your operation</strong>. As for mayInterruptIfRunning – all it does is send an <code>interrupt()</code> to the running Thread. In the case that your Thread is uninterruptible, then it won’t stop the Thread at all.There are two simple solutions that cover most situations: Either check <code>AsyncTask.isCancelled()</code> on a regular basis during your long-running operation, or keep your Thread interruptible. Either way, when you call <code>AsyncTask.cancel()</code> these methods should prevent your operation from running longer than necessary.</p>
+
+<p>This advice doesn’t always work, though – what if you’re calling a long-running method that is uninterruptible (such as <code>BitmapFactory.decodeStream()</code>)? The only success I’ve had in this situation is to create a situation which causes an Exception to be thrown (in this case, prematurely closing the stream that BitmapFactory was using). This meant that <code>cancel()</code> alone wouldn’t solve the problem – outside intervention was required.</p>
+
+<h2>Limitations on Concurrent AsyncTasks</h2>
+
+<p>I’m not encouraging people to start hundreds of threads in the background; however, it is worth noting that there are some limitations on the number of <code>AsyncTask</code>s that you can start. The modern <code>AsyncTask</code> is limited to 128 concurrent tasks, with an additional queue of 10 tasks (if supporting Android 1.5, it’s a limit of ten tasks at a time, with a maximum queue of 10 tasks). That means that if you queue up more than 138 tasks before they can complete, your app will crash. Most often I see this problem when people use <code>AsyncTask</code>s to load Bitmaps from the net.</p>
+
+<p>If you are finding yourself running up against these limits, you should start by rethinking your design that calls for so many background threads. Alternatively, you could setup a more intelligent queue for your tasks so that you’re not starting them all at once. If you’re desperate, you can grab a copy of <code>AsyncTask</code> and adjust the pool sizes in the code itself.</p>
+
+<ul>
+<li><a href="http://blog.danlew.net/2014/06/21/the-hidden-pitfalls-of-asynctask/">The Hidden Pitfalls of AsyncTask</a></li>
+</ul>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Android Tips]]></title>
+    <link href="http://Solarex.github.io/blog/2014/10/19/android-tips/"/>
+    <updated>2014-10-19T13:00:00+08:00</updated>
+    <id>http://Solarex.github.io/blog/2014/10/19/android-tips</id>
+    <content type="html"><![CDATA[<p><center><img src="http://Solarex.github.io/images/android_training.jpg"/></center></p>
+
+
+<ul>
+<li><a href="#overview">Android Tips and Tricks</a>
+
+<ul>
+<li><a href="#part1">Part I</a></li>
+<li><a href="#part2">Part II</a></li>
+<li><a href="#part3">Part III</a></li>
+<li><a href="#part4">Part IV</a></li>
+<li><a href="#part5">Part V</a></li>
+</ul>
+</li>
+</ul>
+
+
+<h2 id="overview">Android Tips and Tricks</h2>
+
+
+
+
+<h3 id="part1">Part I</h3>
+
+
+<ul>
+<li><p><code>Activity.startActivities()</code> &ndash; Nice for launching to the middle of an app flow.</p></li>
+<li><p><code>TextUtils.isEmpty()</code> &ndash; Simple utility I use everywhere.</p></li>
+<li><p><code>Html.fromHtml()</code> &ndash; Quick method for formatting Html. It&rsquo;s not particularly fast so I wouldn&rsquo;t use it constantly (e.g., don&rsquo;t use it just to bold part of a string &ndash; construct the Spannable manually instead), but it&rsquo;s fine for rendering text obtained from the web.</p></li>
+<li><p><code>TextView.setError()</code> &ndash; Nice UI when validating user input.</p></li>
+<li><p><code>Build.VERSION_CODES</code> &ndash; Not only is it handy for routing code, it&rsquo;s also summarizes behavioral differences between each version of Android.</p></li>
+</ul>
+
+
+<!-- more -->
+
+
+<ul>
+<li><p><code>Log.getStackTraceString()</code> &ndash; Convenience utility for logging.</p></li>
+<li><p><code>LayoutInflater.from()</code> &ndash; Wraps the long-winded getSystemService() call in a simple utility.</p></li>
+<li><p><code>ViewConfiguration.getScaledTouchSlop()</code> &ndash; Using the values provided in ViewConfiguration ensures all touch interaction feels consistent across the OS.</p></li>
+<li><p><code>PhoneNumberUtils.convertKeypadLettersToDigits</code> &ndash; Makes handling phone number data a snap, as some companies provide them as letters.</p></li>
+<li><p><code>Context.getCacheDir()</code> &ndash; Use the cache dir for caching data. Simple enough but some don&rsquo;t know it exists.</p></li>
+<li><p><code>ArgbEvaluator</code> &ndash; Transition from one color to another. As was pointed out by Chris Banes, this class creates a lot of autoboxing churn so it&rsquo;d be better to just rip out the logic and run it yourself.</p></li>
+<li><p><code>ContextThemeWrapper</code> &ndash; Nice class for changing the theme of a Context on the fly.</p></li>
+<li><p><code>Space</code> &ndash; Lightweight View which skips drawing. Great for any situation that might require a placeholder.</p></li>
+<li><p><code>ValueAnimator.reverse()</code> &ndash; I love this for canceling animations smoothly.</p></li>
+</ul>
+
+
+<h3 id="part2">Part II</h3>
+
+
+<ul>
+<li><p><code>DateUtils.formatDateTime()</code> &ndash; One-stop shop for localized date/time strings.</p></li>
+<li><p><code>AlarmManager.setInexactRepeating</code> &ndash; Saves on battery life by grouping multiple alarms together. Even if you&rsquo;re only calling a single alarm this is better (just make sure to call AlarmManager.cancel() when done).</p></li>
+<li><p><code>Formatter.formatFileSize()</code> &ndash; A localized file size formatter.</p></li>
+<li><p><code>ActionBar.hide()/.show()</code> &ndash; Animates the action bar hiding/showing. Lets you switch to full-screen gracefully.</p></li>
+<li><p><code>Linkify.addLinks()</code> &ndash; If you need to control how links are added to text.</p></li>
+<li><p><code>StaticLayout</code> &ndash; Useful for measuring text that you&rsquo;re about to render into a custom View.</p></li>
+<li><p><code>Activity.onBackPressed()</code> &ndash; Easy way to manage the back button. While I wouldn&rsquo;t normally hijack back, sometimes it&rsquo;s necessary to make a flow work.</p></li>
+<li><p><code>GestureDetector</code> &ndash; Listens to motion events and fires listener events for common actions (like clicks, scrolls and flings). So much easier than implementing your own motion event system.</p></li>
+<li><p><code>DrawFilter</code> &ndash; Lets you manipulate a Canvas even if you&rsquo;re not calling the draw commands. For example, you could create a custom View which sets a DrawFilter which anti-aliases the draws of the parent View.</p></li>
+<li><p><code>ActivityManager.getMemoryClass()</code> &ndash; Gives you an idea of how much memory the device has. Great for figuring out how large to make your caches.</p></li>
+<li><p><code>SystemClock.sleep()</code> &ndash; Convenience method which guarantees sleeping the amount of time entered. I use it for debugging and simulating network delays.</p></li>
+<li><p><code>ViewStub</code> &ndash; A View that initially does nothing, but can later inflate a layout. This is a great placeholder for lazy-loading Views. Its only drawback is that it doesn&rsquo;t support <merge> tags, so it can create unnecessary nesting in the hierarchy if you&rsquo;re not careful.</p></li>
+<li><p><code>DisplayMetrics.density</code> &ndash; You can get the density of the screen this way. Most of the time you&rsquo;ll be better off letting the system scale dimensions automatically, but occasionally it&rsquo;s useful to have more control (especially with custom Views).</p></li>
+<li><p><code>Pair.create()</code> &ndash; Handy class, handy creator method.</p></li>
+</ul>
+
+
+<h3 id="part3">Part III</h3>
+
+
+<ul>
+<li><p><code>UrlQuerySanitizer</code> &ndash; Sanitize URLs with this handy utility.</p></li>
+<li><p><code>Fragment.setArguments</code> &ndash; Since you can&rsquo;t use a Fragment constructor w/ parameters this is the second best thing. Arguments set before creation last throughout the entire Fragment&rsquo;s lifecycle (even if it&rsquo;s destroyed/recreated due to a configuration change).</p></li>
+<li><p><code>DialogFragment.setShowsDialog()</code> &ndash; Neat trick &ndash; DialogFragments can act like normal Fragments! That way you can have the same Fragment do double-duty. I usually create a third View generation method that both onCreateView() and onCreateDialog() call into when creating a dual-purpose Fragment.</p></li>
+<li><p><code>FragmentManager.enableDebugLogging()</code> &ndash; Help when you need it when figuring out Fragments.</p></li>
+<li><p><code>LocalBroadcastManager</code> &ndash; Safer than global broadcasts. Simple and quick. Event buses like otto may make more sense for your use case though.</p></li>
+<li><p><code>PhoneNumberUtils.formatNumber()</code> &ndash; Let someone else figure out this problem for you.</p></li>
+<li><p><code>Region.op()</code> &ndash; I found this useful for comparing two generic areas before rendering. If I&rsquo;ve got two Paths, do they overlap? I can figure that out with this method.</p></li>
+<li><p><code>Application.registerActivityLifecycleCallbacks</code> &ndash; Though lacking documentation I feel this is self-evident. Just a handy tool.</p></li>
+<li><p><code>versionNameSuffix</code> &ndash; This gradle setting lets you modify the versionName field in your manifest based on different build types. For example, I would setup my debug build type to end in &ldquo;-SNAPSHOT&rdquo;; that way you can easily tell if you&rsquo;re on a debug build or release build.</p></li>
+<li><p><code>CursorJoiner</code> &ndash; If you&rsquo;re using a single database then a join in SQL is the natural solution, but what if you&rsquo;ve received data from two separate ContentProviders? In that case CursorJoiner can be helpful.</p></li>
+<li><p><code>Genymotion</code> &ndash; A much faster Android emulator. I use it all day.</p></li>
+<li><p><code>-nodpi</code> &ndash; Most qualifiers (-mdpi, -hdpi, -xhdpi, etc.) automatically scale assets/dimensions if you&rsquo;re on a device that isn&rsquo;t explicitly defined. Sometimes you just want something consistent though; in that case use -nodpi.</p></li>
+<li><p><code>BroadcastRecevier.setDebugUnregister()</code> &ndash; Another handy debugging tool.</p></li>
+<li><p><code>Activity.recreate()</code> &ndash; Forces an Activity to recreate itself for whatever reason.</p></li>
+<li><p><code>PackageManager.checkSignatures()</code> &ndash; You can use this to find out if two apps (presumably your own) are installed at the same time. Without checking signatures someone could imitate your app easily by just using the same package name.</p></li>
+</ul>
+
+
+<h3 id="part4">Part IV</h3>
+
+
+<ul>
+<li><p><code>Activity.isChangingConfigurations()</code> &ndash; Often times you don&rsquo;t need to do quite as much saving of state if all that&rsquo;s happening is the configuration is changing.</p></li>
+<li><p><code>SearchRecentSuggestionsProvider</code> &ndash; A quick and easy way to create a recents suggestion provider.</p></li>
+<li><p><code>ViewTreeObserver</code> &ndash; This is an amazing utility; it can be grabbed from any View and used to monitor the state of the View hierarchy. My most often use for it is to determine when Views have been measured (usually for animation purposes).</p></li>
+<li><p><code>org.gradle.daemon=true</code> &ndash; Helps reduce the startup time of of Gradle builds. Only really applies to command-line builds as Android Studio already tries to use the daemon.</p></li>
+<li><p><code>DatabaseUtils</code> &ndash; A variety of useful tools for database operations.</p></li>
+<li><p><code>android:weightSum</code> (LinearLayout) &ndash; Want to use layout weights, but don&rsquo;t want them to fill the entire LinearLayout? That&rsquo;s what weightSum can do by defining the total weight.</p></li>
+<li><p><code>android:duplicateParentState</code> (View) &ndash; Makes the child duplicate the state of the parent &ndash; for example, if you&rsquo;ve got a ViewGroup that is clickable, then you can use this to make its children change state when it is clicked.</p></li>
+<li><p><code>android:clipChildren</code> (ViewGroup) &ndash; If disabled, this lets the children of a ViewGroup draw outside their parent&rsquo;s bounds. Great for animations.</p></li>
+<li><p><code>android:fillViewport</code> (ScrollView) &ndash; Best explained in this post, this helps solve a problem with ScrollViews that may not always have enough content to actually fill the height of the screen.</p></li>
+<li><p><code>android:tileMode</code> (BitmapDrawable) &ndash; Lets you create repeated patterns with images.</p></li>
+<li><p><code>android:enterFadeDuration/android:exitFadeDuration</code> (Drawables) &ndash; For Drawables that have multiple states, this lets you define a fade before/after the drawable shows.</p></li>
+<li><p><code>android:scaleType</code> (ImageView) &ndash; Defines how to scale/crop a drawable within an ImageView. &ldquo;centerCrop&rdquo; and &ldquo;centerInside&rdquo; are regular settings for me.</p></li>
+<li><p><code>&lt;merge&gt;</code> &ndash; Lets you include a layout in another without creating a duplicate ViewGroup (more info). Also good for custom ViewGroups; you can inflate a layout with <merge> inside the constructor to define its children automatically.</p></li>
+<li><p><code>AtomicFile</code> &ndash; Manipulates a file atomically by using a backup file. I&rsquo;ve written this myself before, it&rsquo;s good to have an official (and better-written) version of it.</p></li>
+</ul>
+
+
+<h3 id="part5">Part V</h3>
+
+
+<ul>
+<li><p><code>ViewDragHelper</code> &ndash; Dragging Views is a complex problem and this class helps a lot. If you want an example, DrawerLayout uses it for swiping. Flavient Laurent also wrote an excellent article about it.</p></li>
+<li><p><code>PopupWindow</code> &ndash; Used all around Android without you even realizing it (action bars, autocomplete, edittext errors), this class is the primary method for creating floating content.</p></li>
+<li><p><code>ActionBar.getThemedContext()</code> &ndash; ActionBar theming is surprisingly complex (and can be different from the theming of the rest of the Activity). This gets you a Context so if you create your own Views they will be properly themed.</p></li>
+<li><p><code>ThumbnailUtils</code> &ndash; Helps create thumbnails; in general I&rsquo;d just use whatever image library was already in place (e.g. Picasso or Volley), but it can also create video thumbnails!</p></li>
+<li><p><code>Context.getExternalFilesDir()</code> &ndash; While you do have permission to write anywhere on the SD card if you ask for it, it&rsquo;s much more polite to write your data in the correct designated folder. That way it gets cleaned up and users get a common experience. Additionally, as of Kit Kat you can write to this folder without permission, and each user has their own external files dir.</p></li>
+<li><p><code>SparseArray</code> &ndash; A more efficient version of Map&lt;Integer, Object>. Be sure to check out sister classes SparseBooleanArray, SparseIntArray and SparseLongArray as well.</p></li>
+<li><p><code>PackageManager.setComponentEnabledSetting()</code> &ndash; Lets you enable/disable components in your app&rsquo;s manifest. What&rsquo;s nice here is being able to shut off unnecessary functionality &ndash; for example, a BroadcastReceiver that is unnecessary due to the current app configuration.</p></li>
+<li><p><code>SQLiteDatabase.yieldIfContendedSafely()</code> &ndash; Lets you temporarily stop a db transaction so you don&rsquo;t tie up too much of the system.</p></li>
+<li><p><code>Environment.getExternalStoragePublicDirectory()</code> &ndash; Again, users like a consistent experience with their SD card; using this method will grab the correct directory for placing typed files (music, pictures, etc.) on their drive.</p></li>
+<li><p><code>View.generateViewId()</code> &ndash; Every once in a while I&rsquo;ve wanted to dynamically generate view IDs. The problem is ensuring you aren&rsquo;t clobbering existing IDs (or other generated ones).</p></li>
+<li><p><code>ActivityManager.clearApplicationUserData()</code> &ndash; A reset button for your app. Perhaps the easiest way to log out a user, ever.</p></li>
+<li><p><code>Context.createConfigurationContext()</code> &ndash; Customize your configuration context. Common problem I&rsquo;ve run into: forcing part of an app to render in a particular locale (not that I normally condone this sort of behavior, but you never know). This would make it a lot easier to do so.</p></li>
+<li><p><code>ActivityOptions</code> &ndash; Nice custom animations when moving between Activities. ActivityOptionsCompat is good for backwards compatible functionality.</p></li>
+<li><p><code>AdapterViewFlipper.fyiWillBeAdvancedByHostKThx()</code> &ndash; Because it&rsquo;s funny and for no other reason. There are other amusing tidbits in AOSP (like GRAVITY_DEATH_STAR_I) but unlike those this one is actually useful.</p></li>
+<li><p><code>ViewParent.requestDisallowInterceptTouchEvent()</code> &ndash; The Android touch event system defaults handle what you want most of the time, but sometimes you need this method to wrest event control from parents. (By the way, if you want to know about the touch system, this talk is amazing.)</p></li>
+</ul>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[理解OAuth2.0]]></title>
+    <link href="http://Solarex.github.io/blog/2014/10/18/oauth-2-dot-0/"/>
+    <updated>2014-10-18T15:38:00+08:00</updated>
+    <id>http://Solarex.github.io/blog/2014/10/18/oauth-2-dot-0</id>
+    <content type="html"><![CDATA[<p><center><img src="http://Solarex.github.io/images/oauth.png"/></center></p>
+
+
+<p><a href="http://en.wikipedia.org/wiki/OAuth">OAuth</a>是一个关于授权（authorization）的开放网络标准，在全世界得到广泛应用，目前的版本是2.0版。本文对OAuth 2.0的设计思路和运行流程，做一个简明通俗的解释，主要参考材料为<a href="http://www.rfcreader.com/#rfc6749">RFC 6749</a>。</p>
+
+<h2>应用场景</h2>
+
+<p>为了理解OAuth的适用场合，让我举一个假设的例子。有一个"云冲印"的网站，可以将用户储存在Google的照片，冲印出来。用户为了使用该服务，必须让"云冲印"读取自己储存在Google上的照片。</p>
+
+<p><center><img src="http://Solarex.github.io/images/google-print.png"/></center></p>
+
+
+<p>问题是只有得到用户的授权，Google才会同意"云冲印"读取这些照片。那么，"云冲印"怎样获得用户的授权呢？传统方法是，用户将自己的Google用户名和密码，告诉"云冲印"，后者就可以读取用户的照片了。这样的做法有以下几个严重的缺点。</p>
+
+<pre><code>（1）"云冲印"为了后续的服务，会保存用户的密码，这样很不安全。
+（2）Google不得不部署密码登录，而我们知道，单纯的密码登录并不安全。
+（3）"云冲印"拥有了获取用户储存在Google所有资料的权力，用户没法限制"云冲印"获得授权的范围和有效期。
+（4）用户只有修改密码，才能收回赋予"云冲印"的权力。但是这样做，会使得其他所有获得用户授权的第三方应用程序全部失效。
+（5）只要有一个第三方应用程序被破解，就会导致用户密码泄漏，以及所有被密码保护的数据泄漏。
+</code></pre>
+
+<p>OAuth就是为了解决上面这些问题而诞生的。</p>
+
+<!-- more -->
+
+
+<h2>名词定义</h2>
+
+<p>在详细讲解OAuth 2.0之前，需要了解几个专用名词。它们对读懂后面的讲解，尤其是几张图，至关重要。</p>
+
+<pre><code>（1） Third-party application：第三方应用程序，本文中又称"客户端"（client），即上一节例子中的"云冲印"。
+（2）HTTP service：HTTP服务提供商，本文中简称"服务提供商"，即上一节例子中的Google。
+（3）Resource Owner：资源所有者，本文中又称"用户"（user）。
+（4）User Agent：用户代理，本文中就是指浏览器。
+（5）Authorization server：认证服务器，即服务提供商专门用来处理认证的服务器。
+（6）Resource server：资源服务器，即服务提供商存放用户生成的资源的服务器。它与认证服务器，可以是同一台服务器，也可以是不同的服务器。
+</code></pre>
+
+<p>知道了上面这些名词，就不难理解，OAuth的作用就是让"客户端"安全可控地获取"用户"的授权，与"服务商提供商"进行互动。</p>
+
+<h2>OAuth的思路</h2>
+
+<p>OAuth在"客户端"与"服务提供商"之间，设置了一个授权层（authorization layer）。"客户端"不能直接登录"服务提供商"，只能登录授权层，以此将用户与客户端区分开来。"客户端"登录授权层所用的令牌（token），与用户的密码不同。用户可以在登录的时候，指定授权层令牌的权限范围和有效期。"客户端"登录授权层以后，"服务提供商"根据令牌的权限范围和有效期，向"客户端"开放用户储存的资料。</p>
+
+<h2>运行流程</h2>
+
+<p>OAuth 2.0的运行流程如下图，摘自RFC 6749。</p>
+
+<p><center><img src="http://Solarex.github.io/images/oauth-flow.png"/></center></p>
+
+
+<pre><code>（A）用户打开客户端以后，客户端要求用户给予授权。
+（B）用户同意给予客户端授权。
+（C）客户端使用上一步获得的授权，向认证服务器申请令牌。
+（D）认证服务器对客户端进行认证以后，确认无误，同意发放令牌。
+（E）客户端使用令牌，向资源服务器申请获取资源。
+（F）资源服务器确认令牌无误，同意向客户端开放资源。
+</code></pre>
+
+<p>不难看出来，上面六个步骤之中，B是关键，即用户怎样才能给于客户端授权。有了这个授权以后，客户端就可以获取令牌，进而凭令牌获取资源。下面一一讲解客户端获取授权的四种模式。</p>
+
+<h2>客户端的授权模式</h2>
+
+<p>客户端必须得到用户的授权（authorization grant），才能获得令牌（access token）。OAuth 2.0定义了四种授权方式。</p>
+
+<ul>
+<li>授权码模式（authorization code）</li>
+<li>简化模式（implicit）</li>
+<li>密码模式（resource owner password credentials）</li>
+<li>客户端模式（client credentials）</li>
+</ul>
+
+
+<h3>授权码模式</h3>
+
+<p>授权码模式（authorization code）是功能最完整、流程最严密的授权模式。它的特点就是通过客户端的后台服务器，与"服务提供商"的认证服务器进行互动。</p>
+
+<p><center><img src="http://Solarex.github.io/images/auth-code.png"/></center></p>
+
+
+<p>它的步骤如下：</p>
+
+<pre><code>（A）用户访问客户端，后者将前者导向认证服务器。
+（B）用户选择是否给予客户端授权。
+（C）假设用户给予授权，认证服务器将用户导向客户端事先指定的"重定向URI"（redirection URI），同时附上一个授权码。
+（D）客户端收到授权码，附上早先的"重定向URI"，向认证服务器申请令牌。这一步是在客户端的后台的服务器上完成的，对用户不可见。
+（E）认证服务器核对了授权码和重定向URI，确认无误后，向客户端发送访问令牌（access token）和更新令牌（refresh token）。
+</code></pre>
+
+<p>下面是上面这些步骤所需要的参数。A步骤中，客户端申请认证的URI，包含以下参数：</p>
+
+<ul>
+<li>response_type：表示授权类型，必选项，此处的值固定为"code"</li>
+<li>client_id：表示客户端的ID，必选项</li>
+<li>redirect_uri：表示重定向URI，可选项</li>
+<li>scope：表示申请的权限范围，可选项</li>
+<li>state：表示客户端的当前状态，可以指定任意值，认证服务器会原封不动地返回这个值。</li>
+</ul>
+
+
+<p>下面是一个例子。</p>
+
+<p>```
+GET /authorize?response_type=code&amp;client_id=s6BhdRkqt3&amp;state=xyz</p>
+
+<pre><code>    &amp;redirect_uri=https%3A%2F%2Fclient%2Eexample%2Ecom%2Fcb HTTP/1.1
+</code></pre>
+
+<p>Host: server.example.com
+```</p>
+
+<p>C步骤中，服务器回应客户端的URI，包含以下参数：</p>
+
+<ul>
+<li>code：表示授权码，必选项。该码的有效期应该很短，通常设为10分钟，客户端只能使用该码一次，否则会被授权服务器拒绝。该码与客户端ID和重定向URI，是一一对应关系。</li>
+<li>state：如果客户端的请求中包含这个参数，认证服务器的回应也必须一模一样包含这个参数。</li>
+</ul>
+
+
+<p>下面是一个例子。</p>
+
+<p>```
+HTTP/1.1 302 Found
+Location: <a href="https://client.example.com/cb?code=SplxlOBeZQQYbYS6WxSbIA">https://client.example.com/cb?code=SplxlOBeZQQYbYS6WxSbIA</a></p>
+
+<pre><code>      &amp;state=xyz
+</code></pre>
+
+<p>```</p>
+
+<p>D步骤中，客户端向认证服务器申请令牌的HTTP请求，包含以下参数：</p>
+
+<ul>
+<li>grant_type：表示使用的授权模式，必选项，此处的值固定为"authorization_code"。</li>
+<li>code：表示上一步获得的授权码，必选项。</li>
+<li>redirect_uri：表示重定向URI，必选项，且必须与A步骤中的该参数值保持一致。</li>
+<li>client_id：表示客户端ID，必选项。</li>
+</ul>
+
+
+<p>下面是一个例子。</p>
+
+<p>```
+POST /token HTTP/1.1
+Host: server.example.com
+Authorization: Basic czZCaGRSa3F0MzpnWDFmQmF0M2JW
+Content-Type: application/x-www-form-urlencoded</p>
+
+<p>grant_type=authorization_code&amp;code=SplxlOBeZQQYbYS6WxSbIA
+&amp;redirect_uri=https%3A%2F%2Fclient%2Eexample%2Ecom%2Fcb
+```</p>
+
+<p>E步骤中，认证服务器发送的HTTP回复，包含以下参数：</p>
+
+<ul>
+<li>access_token：表示访问令牌，必选项。</li>
+<li>token_type：表示令牌类型，该值大小写不敏感，必选项，可以是bearer类型或mac类型。</li>
+<li>expires_in：表示过期时间，单位为秒。如果省略该参数，必须其他方式设置过期时间。</li>
+<li>refresh_token：表示更新令牌，用来获取下一次的访问令牌，可选项。</li>
+<li>scope：表示权限范围，如果与客户端申请的范围一致，此项可省略。</li>
+</ul>
+
+
+<p>下面是一个例子。</p>
+
+<p>```
+HTTP/1.1 200 OK
+Content-Type: application/json;charset=UTF-8
+Cache-Control: no-store
+Pragma: no-cache</p>
+
+<p>{</p>
+
+<pre><code>"access_token":"2YotnFZFEjr1zCsicMWpAA",
+"token_type":"example",
+"expires_in":3600,
+"refresh_token":"tGzv3JOkF0XG5Qx2TlKWIA",
+"example_parameter":"example_value"
+</code></pre>
+
+<p>}
+```</p>
+
+<p>从上面代码可以看到，相关参数使用JSON格式发送（Content-Type: application/json）。此外，HTTP头信息中明确指定不得缓存。</p>
+
+<h3>简化模式</h3>
+
+<p>简化模式（implicit grant type）不通过第三方应用程序的服务器，直接在浏览器中向认证服务器申请令牌，跳过了"授权码"这个步骤，因此得名。所有步骤在浏览器中完成，令牌对访问者是可见的，且客户端不需要认证。</p>
+
+<p><center><img src="http://Solarex.github.io/images/implicit-grant-code.png"/></center></p>
+
+
+<p>它的步骤如下：</p>
+
+<pre><code>（A）客户端将用户导向认证服务器。
+（B）用户决定是否给于客户端授权。
+（C）假设用户给予授权，认证服务器将用户导向客户端指定的"重定向URI"，并在URI的Hash部分包含了访问令牌。
+（D）浏览器向资源服务器发出请求，其中不包括上一步收到的Hash值。
+（E）资源服务器返回一个网页，其中包含的代码可以获取Hash值中的令牌。
+（F）浏览器执行上一步获得的脚本，提取出令牌。
+（G）浏览器将令牌发给客户端。
+</code></pre>
+
+<p>下面是上面这些步骤所需要的参数。</p>
+
+<p>A步骤中，客户端发出的HTTP请求，包含以下参数：</p>
+
+<ul>
+<li>response_type：表示授权类型，此处的值固定为"token"，必选项。</li>
+<li>client_id：表示客户端的ID，必选项。</li>
+<li>redirect_uri：表示重定向的URI，可选项。</li>
+<li>scope：表示权限范围，可选项。</li>
+<li>state：表示客户端的当前状态，可以指定任意值，认证服务器会原封不动地返回这个值。
+下面是一个例子。</li>
+</ul>
+
+
+<p>```
+GET /authorize?response_type=token&amp;client_id=s6BhdRkqt3&amp;state=xyz</p>
+
+<pre><code>    &amp;redirect_uri=https%3A%2F%2Fclient%2Eexample%2Ecom%2Fcb HTTP/1.1
+</code></pre>
+
+<p>Host: server.example.com
+```</p>
+
+<p>C步骤中，认证服务器回应客户端的URI，包含以下参数：</p>
+
+<ul>
+<li>access_token：表示访问令牌，必选项。</li>
+<li>token_type：表示令牌类型，该值大小写不敏感，必选项。</li>
+<li>expires_in：表示过期时间，单位为秒。如果省略该参数，必须其他方式设置过期时间。</li>
+<li>scope：表示权限范围，如果与客户端申请的范围一致，此项可省略。</li>
+<li>state：如果客户端的请求中包含这个参数，认证服务器的回应也必须一模一样包含这个参数。</li>
+</ul>
+
+
+<p>下面是一个例子。</p>
+
+<p>```
+HTTP/1.1 302 Found
+Location: <a href="http://example.com/cb#access_token=2YotnFZFEjr1zCsicMWpAA">http://example.com/cb#access_token=2YotnFZFEjr1zCsicMWpAA</a></p>
+
+<pre><code>      &amp;state=xyz&amp;token_type=example&amp;expires_in=3600
+</code></pre>
+
+<p>```</p>
+
+<p>在上面的例子中，认证服务器用HTTP头信息的Location栏，指定浏览器重定向的网址。注意，在这个网址的Hash部分包含了令牌。根据上面的D步骤，下一步浏览器会访问Location指定的网址，但是Hash部分不会发送。接下来的E步骤，服务提供商的资源服务器发送过来的代码，会提取出Hash中的令牌。</p>
+
+<h3>密码模式</h3>
+
+<p>密码模式（Resource Owner Password Credentials Grant）中，用户向客户端提供自己的用户名和密码。客户端使用这些信息，向"服务商提供商"索要授权。在这种模式中，用户必须把自己的密码给客户端，但是客户端不得储存密码。这通常用在用户对客户端高度信任的情况下，比如客户端是操作系统的一部分，或者由一个著名公司出品。而认证服务器只有在其他授权模式无法执行的情况下，才能考虑使用这种模式。</p>
+
+<p><center><img src="http://Solarex.github.io/images/resource-code.png"/></center></p>
+
+
+<p>它的步骤如下：</p>
+
+<pre><code>（A）用户向客户端提供用户名和密码。
+（B）客户端将用户名和密码发给认证服务器，向后者请求令牌。
+（C）认证服务器确认无误后，向客户端提供访问令牌。
+</code></pre>
+
+<p>B步骤中，客户端发出的HTTP请求，包含以下参数：</p>
+
+<ul>
+<li>grant_type：表示授权类型，此处的值固定为"password"，必选项。</li>
+<li>username：表示用户名，必选项。</li>
+<li>password：表示用户的密码，必选项。</li>
+<li>scope：表示权限范围，可选项。</li>
+</ul>
+
+
+<p>下面是一个例子。</p>
+
+<p>```
+POST /token HTTP/1.1
+Host: server.example.com
+Authorization: Basic czZCaGRSa3F0MzpnWDFmQmF0M2JW
+Content-Type: application/x-www-form-urlencoded</p>
+
+<p>grant_type=password&amp;username=johndoe&amp;password=A3ddj3w
+```</p>
+
+<p>C步骤中，认证服务器向客户端发送访问令牌，下面是一个例子。</p>
+
+<p>```
+HTTP/1.1 200 OK
+Content-Type: application/json;charset=UTF-8
+Cache-Control: no-store
+Pragma: no-cache</p>
+
+<p>{</p>
+
+<pre><code>"access_token":"2YotnFZFEjr1zCsicMWpAA",
+"token_type":"example",
+"expires_in":3600,
+"refresh_token":"tGzv3JOkF0XG5Qx2TlKWIA",
+"example_parameter":"example_value"
+</code></pre>
+
+<p>}
+```</p>
+
+<p>上面代码中，各个参数的含义参见《授权码模式》一节。整个过程中，客户端不得保存用户的密码。</p>
+
+<h3>客户端模式</h3>
+
+<p>客户端模式（Client Credentials Grant）指客户端以自己的名义，而不是以用户的名义，向"服务提供商"进行认证。严格地说，客户端模式并不属于OAuth框架所要解决的问题。在这种模式中，用户直接向客户端注册，客户端以自己的名义要求"服务提供商"提供服务，其实不存在授权问题。</p>
+
+<p><center><img src="http://Solarex.github.io/images/client-grant.png"/></center></p>
+
+
+<p>它的步骤如下：</p>
+
+<pre><code>（A）客户端向认证服务器进行身份认证，并要求一个访问令牌。
+（B）认证服务器确认无误后，向客户端提供访问令牌。
+</code></pre>
+
+<p>A步骤中，客户端发出的HTTP请求，包含以下参数：</p>
+
+<ul>
+<li>granttype：表示授权类型，此处的值固定为"clientcredentials"，必选项。</li>
+<li>scope：表示权限范围，可选项。</li>
+</ul>
+
+
+<p>```
+POST /token HTTP/1.1
+Host: server.example.com
+Authorization: Basic czZCaGRSa3F0MzpnWDFmQmF0M2JW
+Content-Type: application/x-www-form-urlencoded</p>
+
+<p>grant_type=client_credentials
+```</p>
+
+<p>认证服务器必须以某种方式，验证客户端身份。
+B步骤中，认证服务器向客户端发送访问令牌，下面是一个例子。</p>
+
+<p>```
+HTTP/1.1 200 OK
+Content-Type: application/json;charset=UTF-8
+Cache-Control: no-store
+Pragma: no-cache</p>
+
+<p>{</p>
+
+<pre><code>"access_token":"2YotnFZFEjr1zCsicMWpAA",
+"token_type":"example",
+"expires_in":3600,
+"example_parameter":"example_value"
+</code></pre>
+
+<p>}
+```</p>
+
+<p>上面代码中，各个参数的含义参见《授权码模式》一节。</p>
+
+<h3>更新令牌</h3>
+
+<p>如果用户访问的时候，客户端的"访问令牌"已经过期，则需要使用"更新令牌"申请一个新的访问令牌。
+客户端发出更新令牌的HTTP请求，包含以下参数：</p>
+
+<ul>
+<li>granttype：表示使用的授权模式，此处的值固定为"refreshtoken"，必选项。</li>
+<li>refresh_token：表示早前收到的更新令牌，必选项。</li>
+<li>scope：表示申请的授权范围，不可以超出上一次申请的范围，如果省略该参数，则表示与上一次一致。
+下面是一个例子。</li>
+</ul>
+
+
+<p>```
+POST /token HTTP/1.1
+Host: server.example.com
+Authorization: Basic czZCaGRSa3F0MzpnWDFmQmF0M2JW
+Content-Type: application/x-www-form-urlencoded</p>
+
+<p>grant_type=refresh_token&amp;refresh_token=tGzv3JOkF0XG5Qx2TlKWIA
+```</p>
+
+<p>REF:<a href="http://www.ruanyifeng.com/blog/2014/05/oauth_2_0.html">理解OAuth 2.0</a></p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[深入浅出单实例Singleton设计模式]]></title>
+    <link href="http://Solarex.github.io/blog/2014/10/17/java-singleton/"/>
+    <updated>2014-10-17T10:07:00+08:00</updated>
+    <id>http://Solarex.github.io/blog/2014/10/17/java-singleton</id>
+    <content type="html"><![CDATA[<p><center><img src="http://Solarex.github.io/images/java-singleton.png"/></center></p>
+
+
+<h3>前序</h3>
+
+<p>单实例Singleton设计模式可能是被讨论和使用的最广泛的一个设计模式了，这可能也是面试中问得最多的一个设计模式了。这个设计模式主要目的是想在整个系统中只能出现一个类的实例。这样做当然是有必然的，比如你的软件的全局配置信息，或者是一个Factory，或是一个主控类，等等。你希望这个类在整个系统中只能出现一个实例。当然，作为一个技术负责人的你，你当然有权利通过使用非技术的手段来达到你的目的。比如：你在团队内部明文规定，“XX类只能有一个全局实例，如果某人使用两次以上，那么该人将被处于2000元的罚款！”（呵呵），你当然有权这么做。但是如果你的设计的是东西是一个类库，或是一个需要提供给用户使用的API，恐怕你的这项规定将会失效。因为，你无权要求别人会那么做。所以，这就是为什么，我们希望通过使用技术的手段来达成这样一个目的的原因。</p>
+
+<p>本文会带着你深入整个Singleton的世界，当然，我会放弃使用C++语言而改用Java语言，因为使用Java这个语言可能更容易让我说明一些事情。</p>
+
+<!-- more -->
+
+
+<h3>Singleton的教学版本</h3>
+
+<p>这里，我将直接给出一个Singleton的简单实现，因为我相信你已经有这方面的一些基础了。我们姑且把这具版本叫做1.0版</p>
+
+<p>```java
+// version 1.0
+public class Singleton
+{</p>
+
+<pre><code>private static final Singleton singleton = null;
+
+private Singleton()
+{
+}
+public static Singleton getInstance()
+{
+    if (singleton== null)
+    {
+        singleton= new Singleton();
+    }
+    return singleton;
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<p>在上面的实例中，我想说明下面几个Singleton的特点：（下面这些东西可能是尽人皆知的，没有什么新鲜的）</p>
+
+<ul>
+<li>私有（private）的构造函数，表明这个类是不可能形成实例了。这主要是怕这个类会有多个实例。</li>
+<li>即然这个类是不可能形成实例，那么，我们需要一个静态的方式让其形成实例：<code>getInstance()</code>。注意这个方法是在new自己，因为其可以访问私有的构造函数，所以他是可以保证实例被创建出来的。</li>
+<li>在<code>getInstance()</code>中，先做判断是否已形成实例，如果已形成则直接返回，否则创建实例。</li>
+<li>所形成的实例保存在自己类中的私有成员中。</li>
+<li>我们取实例时，只需要使用<code>Singleton.getInstance()</code>就行了。</li>
+</ul>
+
+
+<p>当然，如果你觉得知道了上面这些事情后就学成了，那我给你当头棒喝一下了，事情远远没有那么简单。</p>
+
+<h3>Singleton的实际版本</h3>
+
+<p>上面的这个程序存在比较严重的问题，因为是全局性的实例，所以，在多线程情况下，所有的全局共享的东西都会变得非常的危险，这个也一样，在多线程情况下，如果多个线程同时调用<code>getInstance()</code>的话，那么，可能会有多个进程同时通过 (<code>singleton== null</code>)的条件检查，于是，多个实例就创建出来，并且很可能造成内存泄露问题。嗯，熟悉多线程的你一定会说——“我们需要线程互斥或同步”，没错，我们需要这个事情，于是我们的Singleton升级成1.1版，如下所示：</p>
+
+<p>```java
+// version 1.1
+public class Singleton
+{</p>
+
+<pre><code>private static final Singleton singleton = null;
+
+private Singleton()
+{
+}
+public static Singleton getInstance()
+{
+    if (singleton== null)
+    {
+        synchronized (Singleton.class) {
+            singleton= new Singleton();
+        }
+    }
+    return singleton;
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<p>嗯，使用了Java的<code>synchronized</code>方法，看起来不错哦。应该没有问题了吧？！错！这还是有问题！为什么呢？前面已经说过，如果有多个线程同时通过(<code>singleton== null</code>)的条件检查（因为他们并行运行），虽然我们的synchronized方法会帮助我们<strong>同步所有的线程，让我们并行线程变成串行</strong>的一个一个去new，那不还是一样的吗？同样会出现很多实例。嗯，确实如此！看来，还得把那个判断(<code>singleton== null</code>)条件也同步起来。于是，我们的Singleton再次升级成1.2版本，如下所示：</p>
+
+<p>```java
+// version 1.2
+public class Singleton
+{</p>
+
+<pre><code>private static final Singleton singleton = null;
+
+private Singleton()
+{
+}
+public static Singleton getInstance()
+{
+    synchronized (Singleton.class) 
+    {
+        if (singleton== null)
+        {
+            singleton= new Singleton();
+        }
+    }
+    return singleton;
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<p>不错不错，看似很不错了。在多线程下应该没有什么问题了，不是吗？的确是这样的，1.2版的Singleton在多线程下的确没有问题了，因为我们同步了所有的线程。只不过嘛……，什么？！还不行？！是的，还是有点小问题，我们本来只是想让new这个操作并行就可以了，现在，只要是进入getInstance()的线程都得同步啊，注意，创建对象的动作只有一次，后面的动作全是读取那个成员变量，这些读取的动作不需要线程同步啊。这样的作法感觉非常极端啊，为了一个初始化的创建动作，居然让我们搭上了所有的读操作，严重影响后续的性能啊！</p>
+
+<p>还得改！嗯，看来，在线程同步前还得加一个(<code>singleton== null</code>)的条件判断，如果对象已经创建了，那么就不需要线程的同步了。OK，下面是1.3版的Singleton。</p>
+
+<p>```java
+// version 1.3
+public class Singleton
+{</p>
+
+<pre><code>private static final Singleton singleton = null;
+
+private Singleton()
+{
+}
+public static Singleton getInstance()
+{
+    if (singleton== null)
+    {
+        synchronized (Singleton.class) 
+        {
+            if (singleton== null)
+            {
+                singleton= new Singleton();
+            }
+        }
+    }
+    return singleton;
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<p>感觉代码开始变得有点罗嗦和复杂了，不过，这可能是最不错的一个版本了，这个版本又叫“双重检查”Double-Check。下面是说明：</p>
+
+<p>第一个条件是说，如果实例创建了，那就不需要同步了，直接返回就好了。
+不然，我们就开始同步线程。
+第二个条件是说，如果被同步的线程中，有一个线程创建了对象，那么别的线程就不用再创建了。
+相当不错啊，干得非常漂亮！请大家为我们的1.3版起立鼓掌！</p>
+
+<h3>Singleton的其它问题</h3>
+
+<p>怎么？还有问题？！当然还有，请记住下面这条规则——“无论你的代码写得有多好，其只能在特定的范围内工作，超出这个范围就要出Bug了”，这是“陈式第一定理”，呵呵。你能想一想还有什么情况会让这个我们上面的代码出问题吗？</p>
+
+<p>在C++下，我不是很好举例，但是在Java的环境下，嘿嘿，还是让我们来看看下面的一些反例和一些别的事情的讨论（当然，有些反例可能属于钻牛角尖，可能有点学院派，不过也不排除其实际可能性，就算是提个醒吧）：</p>
+
+<p>其一、<code>Class Loader</code>。不知道你对Java的Class Loader熟悉吗？“类装载器”？！C++可没有这个东西啊。这是Java动态性的核心。顾名思义，类装载器是用来把类(class)装载进JVM的。JVM规范定义了两种类型的类装载器：启动内装载器(bootstrap)和用户自定义装载器(user-defined class loader)。 在一个JVM中可能存在多个ClassLoader，每个ClassLoader拥有自己的NameSpace。一个ClassLoader只能拥有一个class对象类型的实例，但是不同的ClassLoader可能拥有相同的class对象实例，这时可能产生致命的问题。如ClassLoaderA，装载了类A的类型实例A1，而ClassLoaderB，也装载了类A的对象实例A2。逻辑上讲A1=A2，但是由于A1和A2来自于不同的ClassLoader，它们实际上是完全不同的，如果A中定义了一个静态变量c，则c在不同的ClassLoader中的值是不同的。</p>
+
+<p>于是，如果咱们的Singleton 1.3版本如果面对着多个Class Loader会怎么样？呵呵，多个实例同样会被多个Class Loader创建出来，当然，这个有点牵强，不过他确实存在。难道我们还要整出个1.4版吗？可是，我们怎么可能在我的Singleton类中操作Class Loader啊？是的，你根本不可能。在这种情况下，你能做的只有是——“保证多个Class Loader不会装载同一个Singleton”。</p>
+
+<p>其二、序例化。如果我们的这个Singleton类是一个关于我们程序配置信息的类。我们需要它有序列化的功能，那么，当反序列化的时候，我们将无法控制别人不多次反序列化。不过，我们可以利用一下Serializable接口的<code>readResolve()</code>方法，比如：</p>
+
+<p>```java
+public class Singleton implements Serializable
+{</p>
+
+<pre><code>......
+......
+protected Object readResolve()
+{
+    return getInstance();
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<p>其三、多个Java虚拟机。如果我们的程序运行在多个Java的虚拟机中。什么？多个虚拟机？这是一种什么样的情况啊。嗯，这种情况是有点极端，不过还是可能出现，比如EJB或RMI之流的东西。要在这种环境下避免多实例，看来只能通过良好的设计或非技术来解决了。</p>
+
+<p>其四，volatile变量。关于volatile这个关键字所声明的变量可以被看作是一种 “程度较轻的同步synchronized”；与 synchronized 块相比，volatile 变量所需的编码较少，并且运行时开销也较少，但是它所能实现的功能也仅是synchronized的一部分。当然，如前面所述，我们需要的Singleton只是在创建的时候线程同步，而后面的读取则不需要同步。所以，volatile变量并不能帮助我们即能解决问题，又有好的性能。而且，这种变量只能在JDK 1.5+版后才能使用。</p>
+
+<p>其五、关于继承。是的，继承于Singleton后的子类也有可能造成多实例的问题。不过，因为我们早把Singleton的构造函数声明成了私有的，所以也就杜绝了继承这种事情。</p>
+
+<p>其六，关于代码重用。也话我们的系统中有很多个类需要用到这个模式，如果我们在每一个类都中有这样的代码，那么就显得有点傻了。那么，我们是否可以使用一种方法，把这具模式抽象出去？在C++下这是很容易的，因为有模板和友元，还支持栈上分配内存，所以比较容易一些（程序如下所示），Java下可能比较复杂一些，聪明的你知道怎么做吗？</p>
+
+<p>```cpp
+template<class t=""> class Singleton
+{</p>
+
+<pre><code>public:
+    static T&amp; Instance()
+    {
+        static T theSingleInstance; //假设T有一个protected默认构造函数
+        return theSingleInstance;
+    }
+</code></pre>
+
+<p>};</p>
+
+<p>class OnlyOne : public Singleton<onlyone>
+{</p>
+
+<pre><code>friend class Singleton&lt;onlyone&gt;;
+int example_data;
+
+public:
+    int GetExampleData() const {return example_data;}
+protected: 
+    OnlyOne(): example_data(42) {}   // 默认构造函数
+    OnlyOne(OnlyOne&amp;) {}
+</code></pre>
+
+<p>};</p>
+
+<p>int main( )
+{</p>
+
+<pre><code>cout &lt;&lt; OnlyOne::Instance().GetExampleData()&lt;&lt; endl;
+return 0;
+</code></pre>
+
+<p>}
+```</p>
+
+<p>REF:</p>
+
+<ul>
+<li><a href="http://coolshell.cn/articles/265.html">深入浅出单实例Singleton设计模式</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Singleton_pattern">Singleton pattern</a></li>
+</ul>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Android Context]]></title>
@@ -244,1975 +1067,6 @@ Infalting layouts是一个容易被忽略的问题，如果你读过这篇文章
 <p>很多情况下，你可以在一个组件内部使用Context对象，你可以很安全的持有Context的引用，前提就是你的对象生命周期小于Context的生命周期。如果你的对象需要持有一个比Context生命周期要长的Context引用时，即使你的对象也是一个临时对象，也请你考虑保存Application Context 的引用！</p>
 
 <p>REF:<a href="http://www.doubleencore.com/2013/06/context/">Context</a></p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Java thread tutorial]]></title>
-    <link href="http://Solarex.github.io/blog/2014/10/14/java-thread-tutorial/"/>
-    <updated>2014-10-14T08:49:00+08:00</updated>
-    <id>http://Solarex.github.io/blog/2014/10/14/java-thread-tutorial</id>
-    <content type="html"><![CDATA[<center><p><img src="http://Solarex.github.io/images/java-thread-tutorial.png" ></p></center>
-
-
-<ul>
-<li><a href="#overview">Java Thread and Multithreading Tutorial</a>
-
-<ul>
-<li><a href="#example">Java Thread Example</a></li>
-<li><a href="#sleep">Java Thread Sleep</a></li>
-<li><a href="#join">Java Thread Join</a></li>
-<li><a href="#states">Java Thread States</a></li>
-<li><a href="#wait">Java Thread wait, notify and notifyAll</a></li>
-<li><a href="#safety">Java Thread Safety and Java Synchronization</a></li>
-<li><a href="#exception">Java Exception in thread main</a></li>
-<li><a href="#singleton">Thread Safety in Singleton Class</a></li>
-<li><a href="#daemon">Java Daemon Thread</a></li>
-<li><a href="#threadlocal">Java Thread Local</a></li>
-<li><a href="#dump">Java Thread Dump</a></li>
-<li><a href="#deadlock">How to Analyze Deadlock and avoid it in Java</a></li>
-<li><a href="#timer">Java Timer Thread</a></li>
-<li><a href="#producer">Java Producer Consumer Problem</a></li>
-<li><a href="#pool">Java Thread Pool</a></li>
-<li><a href="#future">Java Callable Future</a></li>
-<li><a href="#futuretask">Java FutureTask Example</a></li>
-</ul>
-</li>
-</ul>
-
-
-<h2 id="overview">Java Thread and Multithreading Tutorial</h2>
-
-
-<p>There are two types of threads in an application – <code>user thread</code> and <code>daemon thread</code>. When we start an application, main is the first user thread created and we can create multiple user threads as well as daemon threads. When all the user threads are executed, JVM terminates the program.</p>
-
-<p>We can set different priorities to different Threads but it doesn’t guarantee that higher priority thread will execute first than lower priority thread. Thread scheduler is the part of Operating System implementation and when a Thread is started, it’s execution is controlled by Thread Scheduler and JVM doesn’t have any control on it’s execution.</p>
-
-<!-- more -->
-
-
-
-
-<h3 id="example">Java Thread Example</h3>
-
-
-<p>Every java application has at least one thread – main thread. Although there are so many other threads running in background like memory management, system management, signal processing etc. But from application point of view – main is the first thread and we can create multiple threads from it.</p>
-
-<p>Multithreading refers to two or more threads executing concurrently in a single program. A computer single core processor can execute only one thread at a time and time slicing is the OS feature to share processor time between different processes and threads.</p>
-
-<p>Benefits of Threads</p>
-
-<ul>
-<li>Threads are lightweight compared to processes, it takes less time and resource to create a thread.</li>
-<li>Threads share their parent process data and code</li>
-<li>Context switching between threads is usually less expensive than between processes.</li>
-<li>Thread intercommunication is relatively easy than process communication.</li>
-</ul>
-
-
-<p>Java provides two ways to create a thread programmatically.</p>
-
-<ul>
-<li>Implementing the <code>java.lang.Runnable</code> interface.</li>
-<li>Extending the <code>java.lang.Thread</code> class.</li>
-</ul>
-
-
-<p><strong>Once we start any thread, it’s execution depends on the OS implementation of time slicing and we can’t control their execution. However we can set threads priority but even then it doesn’t guarantee that higher priority thread will be executed first.</strong></p>
-
-<p>As you have noticed that thread doesn’t return any value but what if we want our thread to do some processing and then return the result to our client program, check our <a href="#future">Java Callable Future</a>.</p>
-
-<h3 id="sleep">Java Thread Sleep</h3>
-
-
-<p><code>java.lang.Thread sleep()</code> method can be used to pause the execution of current thread for specified time in milliseconds. The argument value for milliseconds can’t be negative, else it throws <code>IllegalArgumentException</code>.</p>
-
-<p>There is another method <code>sleep(long millis, int nanos)</code> that can be used to pause the execution of current thread for specified milliseconds and nanoseconds. The allowed nano second value is between 0 and 999999.</p>
-
-<p>Thread Sleep important points</p>
-
-<ul>
-<li>It always pause the current thread execution.</li>
-<li>The actual time thread sleeps before waking up and start execution depends on system timers and schedulers. For a quiet system, the actual time for sleep is near to the specified sleep time but for a busy system it will be little bit more.</li>
-<li>Thread sleep doesn’t lose any monitors or locks current thread has acquired.</li>
-<li>Any other thread can interrupt the current thread in sleep, in that case <code>InterruptedException</code> is thrown.</li>
-</ul>
-
-
-<p>How Thread Sleep Works</p>
-
-<p><code>Thread.sleep()</code> interacts with the thread scheduler to put the current thread in wait state for specified period of time. Once the wait time is over, thread state is changed to runnable state and wait for the CPU for further execution. So the actual time that current thread sleep depends on the thread scheduler that is part of operating system.</p>
-
-<h3 id="join">Java Thread Join</h3>
-
-
-<p>Java Thread <code>join</code> method can be used to pause the current thread execution until unless the specified thread is dead. There are three overloaded join functions.</p>
-
-<ul>
-<li><p><code>public final void join()</code>: This method puts the current thread on wait until the thread on which it’s called is dead. If the thread is interrupted, it throws <code>InterruptedException</code>.</p></li>
-<li><p><code>public final synchronized void join(long millis)</code>: This method is used to wait for the thread on which it’s called to be dead or wait for specified milliseconds. Since thread execution depends on OS implementation, it doesn’t guarantee that the current thread will wait only for given time.</p></li>
-<li><p><code>public final synchronized void join(long millis, int nanos)</code>: This method is used to wait for thread to die for given milliseconds plus nanoseconds.</p></li>
-</ul>
-
-
-<p>```java
-package org.solarex.threadtest;</p>
-
-<p>public class ThreadJoinExample {</p>
-
-<pre><code>public static void main(String[] args) {
-    Thread t1 = new Thread(new MyRunnable(), "t1");
-    Thread t2 = new Thread(new MyRunnable(), "t2");
-    Thread t3 = new Thread(new MyRunnable(), "t3");
-
-    t1.start();
-
-    //start second thread after waiting for 2 seconds or if it's dead
-    try {
-        t1.join(2000);
-    } catch (InterruptedException e) {
-        e.printStackTrace();
-    }
-
-    t2.start();
-
-    //start third thread only when first thread is dead
-    try {
-        t1.join();
-    } catch (InterruptedException e) {
-        e.printStackTrace();
-    }
-
-    t3.start();
-
-    //let all threads finish execution before finishing main thread
-    try {
-        t1.join();
-        t2.join();
-        t3.join();
-    } catch (InterruptedException e) {
-        e.printStackTrace();
-    }
-
-    System.out.println("All threads are dead, exiting main thread");
-}
-</code></pre>
-
-<p>}</p>
-
-<p>class MyRunnable implements Runnable{</p>
-
-<pre><code>@Override
-public void run() {
-    System.out.println("Thread started:::"+Thread.currentThread().getName()+"@"+System.currentTimeMillis());
-    try {
-        Thread.sleep(4000);
-    } catch (InterruptedException e) {
-        e.printStackTrace();
-    }
-    System.out.println("Thread ended:::"+Thread.currentThread().getName()+"@"+System.currentTimeMillis());
-}
-</code></pre>
-
-<p>}</p>
-
-<hr />
-
-<p>// output begin
-hrh@Solarex:Java$ java org.solarex.threadtest.ThreadJoinExample
-Thread started:::t1@1413344304212
-Thread started:::t2@1413344306213
-Thread ended:::t1@1413344308213
-Thread started:::t3@1413344308214
-Thread ended:::t2@1413344310213
-Thread ended:::t3@1413344312214
-All threads are dead, exiting main thread
-// output end
-```</p>
-
-<h3 id="states">Java Thread States</h3>
-
-
-<p>Thread States</p>
-
-<p>Below diagram shows different states of thread in java, note that we can create a thread in java and start it but how the thread states change from Runnable to Running to Blocked depends on the OS implementation of thread scheduler and java doesn’t have full control on that.</p>
-
-<center><p><img src="http://Solarex.github.io/images/thread-lifecycle-states.png"></p></center>
-
-
-<ul>
-<li><p><code>New</code>:When we create a new Thread object using new operator, thread state is New Thread. At this point, thread is not alive and it’s a state internal to Java programming.</p></li>
-<li><p><code>Runnable</code>:When we call <code>start()</code> function on <code>Thread</code> object, it’s state is changed to <code>Runnable</code> and the control is given to <strong>Thread scheduler</strong> to finish it’s execution. Whether to run this thread instantly or keep it in runnable thread pool before running it depends on the OS implementation of thread scheduler.</p></li>
-<li><p><code>Running</code>:When thread is executing, it’s state is changed to <code>Running</code>. Thread scheduler picks one of the thread from the runnable thread pool and change it’s state to Running and CPU starts executing this thread. A thread can change state to Runnable, Dead or Blocked from running state depends on time slicing, thread completion of run() method or waiting for some resources.</p></li>
-<li><p><code>Blocked/Waiting</code>:A thread can be waiting for other thread to finish using thread <code>join</code> or it can be waiting for some resources to available, for example producer consumer problem or waiter notifier implementation or IO resources, then it’s state is changed to Waiting. Once the thread wait state is over, it’s state is changed to Runnable and it’s moved back to runnable thread pool.</p></li>
-<li><p><code>Dead</code>:Once the thread finished executing, it’s state is changed to Dead and it’s considered to be not alive.</p></li>
-</ul>
-
-
-<h3 id="wait">Java Thread wait,notifyand notifyAll</h3>
-
-
-<ul>
-<li><p><strong>wait</strong>:Object <code>wait</code> methods has three variance, one which waits indefinitely for any other thread to call notify or notifyAll method on the object to wake up the current thread. Other two variances puts the current thread in wait for specific amount of time before they wake up.</p></li>
-<li><p><strong>notify</strong>:<code>notify</code> method wakes up only one thread waiting on the object and that thread starts execution. So if there are multiple threads waiting for an object, this method will wake up only one of them. The choice of the thread to wake depends on the OS implementation of thread management.</p></li>
-<li><p><strong>notifyAll</strong>:<code>notifyAll</code> method wakes up all the threads waiting on the object, although which one will process first depends on the OS implementation.</p></li>
-</ul>
-
-
-<p>```java
-//Message.java
-package org.solarex.threadtest;</p>
-
-<p>public class Message{</p>
-
-<pre><code>private String msg;
-
-public Message(String str){
-    this.msg = str;
-}
-
-public String getMsg(){
-    return msg;
-}
-
-public void setMsg(String str){
-    this.msg = str;
-}
-</code></pre>
-
-<p>}
-//Waiter.java
-package org.solarex.threadtest;</p>
-
-<p>public class Waiter implements Runnable{</p>
-
-<pre><code>private Message msg;
-public Waiter(Message m){
-    this.msg = m;
-}
-@Override
-public void run(){
-    String name = Thread.currentThread().getName();
-    synchronized(msg){
-        try{
-            System.out.println(name+" waiting to get notified @ " + System.currentTimeMillis());
-            msg.wait();
-        }catch(InterruptedException e){
-            e.printStackTrace();
-        }
-        System.out.println(name+" waiter thread got notified @ " + System.currentTimeMillis());
-        System.out.println(name+" proccessed: " + msg.getMsg());
-    }
-}
-</code></pre>
-
-<p>}
-//Notifier.java
-package org.solarex.threadtest;
-public class Notifier implements Runnable{</p>
-
-<pre><code>private Message msg;
-public Notifier(Message msg){
-    this.msg = msg;
-}
-
-@Override
-public void run(){
-    String name = Thread.currentThread().getName();
-    System.out.println(name+" started");
-    try{
-        Thread.sleep(1000);
-        synchronized(msg){
-            msg.setMsg(name+" notifier work done");
-            // msg.notify();
-            msg.notifyAll();
-        }
-    }catch (InterruptedException e){
-        e.printStackTrace();
-    }
-}
-</code></pre>
-
-<p>}
-//WaitNotifierTest.java
-package org.solarex.threadtest;
-public class WaitNotifyTest {</p>
-
-<pre><code>public static void main(String[] args){
-    Message msg = new Message("Hi");
-    Waiter waiter0 = new Waiter(msg);
-    new Thread(waiter0, "waiter0").start();
-
-    Waiter waiter1 = new Waiter(msg);
-    new Thread(waiter1, "waiter1").start();
-
-    Notifier notifier = new Notifier(msg);
-    new Thread(notifier, "notifier").start();
-
-    System.out.println("main thread exit");
-}
-</code></pre>
-
-<p>}</p>
-
-<p>// javac -d . Message.java Waiter.java Notifier.java WaitNotifierTest.java
-// java org.solarex.threadtest.WaitNotifierTest
-// &mdash;&mdash;&mdash;&mdash;begin output&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;
-hrh@Solarex:Java$ java org.solarex.threadtest.WaitNotifyTest
-waiter0 waiting to get notified @ 1413423213359
-waiter1 waiting to get notified @ 1413423213360
-main thread exit
-notifier started
-waiter1 waiter thread got notified @ 1413423214362
-waiter1 proccessed: notifier notifier work done
-waiter0 waiter thread got notified @ 1413423214362
-waiter0 proccessed: notifier notifier work done
-// &mdash;&mdash;&mdash;&mdash;end output&mdash;&mdash;&mdash;&mdash;&mdash;
-```</p>
-
-<h3 id="safety">Java Thread Safety and Java Synchronization</h3>
-
-
-<p>Thread safety is the process to make our program safe to use in multithreaded environment, there are different ways through which we can make our program thread safe.</p>
-
-<ul>
-<li>Synchronization is the easiest and most widely used tool for thread safety in java.</li>
-<li>Use of Atomic Wrapper classes from <code>java.util.concurrent.atomic</code> package. For example <code>AtomicInteger</code></li>
-<li>Use of locks from <code>java.util.concurrent.locks</code> package.</li>
-<li>Using thread safe collection classes, check this post for usage of <code>ConcurrentHashMap</code> for thread safety.</li>
-<li>Using volatile keyword with variables to make every thread read the data from memory, not read from thread cache.</li>
-</ul>
-
-
-<p>Synchronization is the tool using which we can achieve thread safety, JVM guarantees that synchronized code will be executed by only one thread at a time. java keyword synchronized is used to create synchronized code and internally it uses locks on Object or Class to make sure only one thread is executing the synchronized code.
-+ Java synchronization works on locking and unlocking of resource, before any thread enters into synchronized code, it has to acquire lock on the Object and when code execution ends, it unlocks the resource that can be locked by other threads. In the mean time other threads are in wait state to lock the synchronized resource.
-+ We can use synchronized keyword in two ways, one is to make a complete method synchronized and other way is to create synchronized block.可以创建synchronized方法或者synchronized代码块
-+ When a method is synchronized, it locks the Object, if method is static it locks the Class, so it’s always best practice to use synchronized block to lock the only sections of method that needs synchronization.
-+ While creating synchronized block, we need to provide the resource on which lock will be acquired, it can be XYZ.class or any Object field of the class.
-+ <code>synchronized(this)</code> will lock the Object before entering into the synchronized block.
-+ You should use the lowest level of locking, for example if there are multiple synchronized block in a class and one of them is locking the Object, then other synchronized blocks will also be not available for execution by other threads. When we lock an Object, it acquires lock on all the fields of the Object.
-+ Java Synchronization provides data integrity on the cost of performance, so it should be used only when it’s absolutely necessary.
-+ Java Synchronization works only in the same JVM, so if you need to lock some resource in multiple JVM environment, it will not work and you might have to look after some global locking mechanism.
-+ Java Synchronization could result in deadlocks, check this post about <a href="#deadlock">deadlock in java and how to avoid them</a>.
-+ Java synchronized keyword cannot be used for constructors and variables.
-+ It is preferable to create a dummy private Object to use for synchronized block, so that it’s reference can’t be changed by any other code. For example if you have a setter method for Object on which you are synchronizing, it’s reference can be changed by some other code leads to parallel execution of the synchronized block.
-+ We should not use any object that is maintained in a constant pool, for example String should not be used for synchronization because if any other code is also locking on same String, it will try to acquire lock on the same reference object from String pool and even though both the codes are unrelated, they will lock each other.</p>
-
-<p>```java
-//dummy object variable for synchronization
-private Object mutex=new Object();
-&hellip;
-//using synchronized block to read, increment and update count value synchronously
-synchronized (mutex) {</p>
-
-<pre><code>    count++;
-</code></pre>
-
-<p>}
-```</p>
-
-<p>```java
-public class MyObject {</p>
-
-<p>  // Locks on the object&rsquo;s monitor
-  public synchronized void doSomething() {</p>
-
-<pre><code>// ...
-</code></pre>
-
-<p>  }
-}</p>
-
-<p>// Hackers code
-MyObject myObject = new MyObject();
-synchronized (myObject) {
-  while (true) {</p>
-
-<pre><code>// Indefinitely delay myObject
-Thread.sleep(Integer.MAX_VALUE); 
-</code></pre>
-
-<p>  }
-}
-```</p>
-
-<p>Notice that hacker’s code is trying to lock the myObject instance and once it gets the lock, it’s never releasing it causing <code>doSomething()</code> method to block on waiting for the lock, this will cause system to go on deadlock and cause Denial of Service (DoS).</p>
-
-<p>```java
-public class MyObject {
-  public Object lock = new Object();</p>
-
-<p>  public void doSomething() {</p>
-
-<pre><code>synchronized (lock) {
-  // ...
-}
-</code></pre>
-
-<p>  }
-}</p>
-
-<p>//untrusted code</p>
-
-<p>MyObject myObject = new MyObject();
-//change the lock Object reference
-myObject.lock = new Object();
-```</p>
-
-<p>Notice that lock Object is public and by changing it’s reference, we can execute synchronized block parallel in multiple threads. Similar case is true if you have private Object but have setter method to change it’s reference.</p>
-
-<p>```java
-public class MyObject {
-  //locks on the class object&rsquo;s monitor
-  public static synchronized void doSomething() {</p>
-
-<pre><code>// ...
-</code></pre>
-
-<p>  }
-}</p>
-
-<p>// hackers code
-synchronized (MyObject.class) {
-  while (true) {</p>
-
-<pre><code>Thread.sleep(Integer.MAX_VALUE); // Indefinitely delay MyObject
-</code></pre>
-
-<p>  }
-}
-```</p>
-
-<p>Notice that hacker code is getting lock on class monitor and not releasing it, it will cause deadlock and DoS in the system.</p>
-
-<h3 id="exception">Java Exception in thread main</h3>
-
-
-<p>These are some of the common java exceptions in thread main, whenever you face any one of these check following:</p>
-
-<ul>
-<li>Same JRE version is used to compile and run the java program</li>
-<li>You are running java class from the classes directory and package is provided as directory.</li>
-<li>Your java classpath is set properly to include all the dependency classes</li>
-<li>You are using only file name without .class extension while running a java program</li>
-<li>Java class main method syntax is correct</li>
-</ul>
-
-
-<h3 id="singleton">Thread Safety in Singleton Class</h3>
-
-
-<p><strong>Singleton</strong> is one of the most widely used creational design pattern to restrict the object creation by applications. In real world applications, resources like Database connections or Enterprise Information Systems (EIS) are limited and should be used wisely to avoid any resource crunch. To achieve this, we can implement Singleton design pattern to create a wrapper class around the resource and limit the number of object created at runtime to one.</p>
-
-<p>In general we follow below steps to create a singleton class:</p>
-
-<ul>
-<li>Override the private constructor to avoid any new object creation with new operator.</li>
-<li>Declare a private static instance of the same class</li>
-<li><p>Provide a public static method that will return the singleton class instance variable. If the variable is not initialized then initialize it or else simply return the instance variable.</p></li>
-<li><p>Create the instance variable at the time of class loading:</p></li>
-<li><strong>Pros</strong>:Thread safety without synchronization,Easy to implement</li>
-<li><p><strong>Cons</strong>:Early creation of resource that might not be used in the application,The client application can’t pass any argument, so we can’t reuse it. For example, having a generic singleton class for database connection where client application supplies database server properties.</p></li>
-<li><p>Synchronize the <code>getInstance()</code> method:</p></li>
-<li><strong>Pros</strong>:Thread safety is guaranteed,Client application can pass parameters,Lazy initialization achieved</li>
-<li><p><strong>Cons</strong>:Slow performance because of locking overhead,Unnecessary synchronization that is not required once the instance variable is initialized.</p></li>
-<li><p>Use synchronized block inside the if loop:</p></li>
-<li><strong>Pros</strong>:Thread safety is guaranteed,Client application can pass arguments,Lazy initialization achieved,Synchronization overhead is minimal and applicable only for first few threads when the variable is null.</li>
-<li><strong>Cons</strong>:Extra if condition</li>
-</ul>
-
-
-<p>```java
-public class ASingleton{</p>
-
-<pre><code>private static ASingleton instance= null;
-private static Object mutex= new Object();
-private ASingleton(){
-}
-
-public static ASingleton getInstance(){
-    if(instance==null){
-        synchronized (mutex){
-            if(instance==null) instance= new ASingleton();
-        }
-    }
-    return instance;
-}
-</code></pre>
-
-<p>}
-```</p>
-
-<h3 id="daemon">Java Daemon Thread</h3>
-
-
-<p>When we create a Thread in java, by default it’s a user thread and if it’s running JVM will not terminate the program. When a thread is marked as daemon thread, JVM doesn’t wait it to finish and as soon as all the user threads are finished, it terminates the program as well as all the associated daemon threads</p>
-
-<p>```java
-package org.solarex.threadtest;
-public class JavaDaemonThread{</p>
-
-<pre><code>public static void main(String[] args) throws InterruptedException{
-    Thread dt = new Thread(new DaemonThread(), "dt");
-    dt.setDaemon(true);
-    dt.start();
-    Thread.sleep(30000);
-    System.out.println("main thread exit");
-}
-</code></pre>
-
-<p>}
-class DaemonThread implements Runnable{</p>
-
-<pre><code>@Override
-public void run(){
-    while(true){
-        processSth();
-    }
-}
-
-private void processSth(){
-    try{
-        System.out.println("process @ " + System.currentTimeMillis());
-        Thread.sleep(5000);
-    }catch(Exception e){
-        e.printStackTrace();
-    }
-}
-</code></pre>
-
-<p>}</p>
-
-<p>//&mdash;&mdash;&mdash;&mdash;&mdash;begin output&mdash;&mdash;&mdash;&mdash;&mdash;&ndash;
-hrh@Solarex:Java$ java org.solarex.threadtest.JavaDaemonThread
-process @ 1413426032024
-process @ 1413426037024
-process @ 1413426042024
-process @ 1413426047025
-process @ 1413426052025
-process @ 1413426057025
-main thread exit
-//&mdash;&mdash;&mdash;&mdash;&mdash;end output&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&ndash;
-```</p>
-
-<p>If we don’t set the thread to be run as daemon thread, the program will never terminate even after main thread is finished it’s execution. Usually we create a daemon thread for functionalities that are not critical to system, for example logging thread or monitoring thread to capture the system resource details and their state.</p>
-
-<h3 id="threadlocal">Java Thread Local</h3>
-
-
-<p>Java <code>ThreadLocal</code> is used to create thread-local variables. We know that all threads of an Object share it’s variables, so if the variable is not thread safe, we can use synchronization but if we want to avoid synchronization, we can use ThreadLocal variables.Every thread has it’s own <code>ThreadLocal</code> variable and they can use it’s <code>get()</code> and <code>set()</code> methods to get the default value or change it’s value local to Thread. <code>ThreadLocal</code> instances are typically private static fields in classes that wish to associate state with a thread.</p>
-
-<p>```java
-package org.solarex.threadtest;</p>
-
-<p>import java.text.SimpleDateFormat;
-import java.util.Random;</p>
-
-<p>public class ThreadLocalExample implements Runnable{</p>
-
-<pre><code>// SimpleDateFormat is not thread-safe, so give one to each thread
-private static final ThreadLocal&lt;SimpleDateFormat&gt; formatter = new ThreadLocal&lt;SimpleDateFormat&gt;(){
-    @Override
-    protected SimpleDateFormat initialValue()
-    {
-        return new SimpleDateFormat("yyyyMMdd HHmm");
-    }
-};
-
-public static void main(String[] args) throws InterruptedException {
-    ThreadLocalExample obj = new ThreadLocalExample();
-    for(int i=0 ; i&lt;10; i++){
-        Thread t = new Thread(obj, ""+i);
-        Thread.sleep(new Random().nextInt(1000));
-        t.start();
-    }
-}
-
-@Override
-public void run() {
-    System.out.println("Thread Name= "+Thread.currentThread().getName()+" default Formatter = "+formatter.get().toPattern());
-    try {
-        Thread.sleep(new Random().nextInt(1000));
-    } catch (InterruptedException e) {
-        e.printStackTrace();
-    }
-
-    formatter.set(new SimpleDateFormat());
-
-    System.out.println("Thread Name= "+Thread.currentThread().getName()+" formatter = "+formatter.get().toPattern());
-}
-</code></pre>
-
-<p>}
-//&mdash;&mdash;&mdash;begin output&mdash;&mdash;&mdash;&mdash;&mdash;
-hrh@Solarex:Java$ java org.solarex.threadtest.ThreadLocalExample
-Thread Name= 0 default Formatter = yyyyMMdd HHmm
-Thread Name= 1 default Formatter = yyyyMMdd HHmm
-Thread Name= 1 formatter = M/d/yy h:mm a
-Thread Name= 0 formatter = M/d/yy h:mm a
-Thread Name= 2 default Formatter = yyyyMMdd HHmm
-Thread Name= 3 default Formatter = yyyyMMdd HHmm
-Thread Name= 2 formatter = M/d/yy h:mm a
-Thread Name= 4 default Formatter = yyyyMMdd HHmm
-Thread Name= 3 formatter = M/d/yy h:mm a
-Thread Name= 4 formatter = M/d/yy h:mm a
-Thread Name= 5 default Formatter = yyyyMMdd HHmm
-Thread Name= 6 default Formatter = yyyyMMdd HHmm
-Thread Name= 5 formatter = M/d/yy h:mm a
-Thread Name= 7 default Formatter = yyyyMMdd HHmm
-Thread Name= 8 default Formatter = yyyyMMdd HHmm
-Thread Name= 7 formatter = M/d/yy h:mm a
-Thread Name= 6 formatter = M/d/yy h:mm a
-Thread Name= 8 formatter = M/d/yy h:mm a
-Thread Name= 9 default Formatter = yyyyMMdd HHmm
-Thread Name= 9 formatter = M/d/yy h:mm a
-//&mdash;&mdash;&mdash;end output&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;
-```</p>
-
-<p>As you can see from the output that Thread-0 has changed the value of formatter but still thread-2 default formatter is same as the initialized value.</p>
-
-<h3 id="dump">Java Thread Dump</h3>
-
-
-<p>Java comes with <code>jstack</code> tool through which we can generate thread dump for a java process. This is a two step process.</p>
-
-<ul>
-<li>Find out the PID of the java process using <code>ps -eaf | grep java</code> command</li>
-<li>Run <code>jstack</code> tool as <code>jstack PID</code> to generate the thread dump output to console, you can append thread dump output to file using command <code>jstack PID &gt;&gt; mydumps.tdump</code></li>
-</ul>
-
-
-<h3 id="deadlock">How to Analytize Deadlock and avoid it in Java</h3>
-
-
-<p>Deadlock is a programming situation where two or more threads are blocked forever, this situation arises with at least two threads and two or more resources.</p>
-
-<p>```java
-package org.solarex.threadtest;</p>
-
-<p>public class ThreadDeadlock {</p>
-
-<pre><code>public static void main(String[] args) throws InterruptedException {
-    Object obj1 = new Object();
-    Object obj2 = new Object();
-    Object obj3 = new Object();
-
-    Thread t1 = new Thread(new SyncThread(obj1, obj2), "t1");
-    Thread t2 = new Thread(new SyncThread(obj2, obj3), "t2");
-    Thread t3 = new Thread(new SyncThread(obj3, obj1), "t3");
-
-    t1.start();
-    Thread.sleep(5000);
-    t2.start();
-    Thread.sleep(5000);
-    t3.start();
-
-}
-</code></pre>
-
-<p>}</p>
-
-<p>class SyncThread implements Runnable{</p>
-
-<pre><code>private Object obj1;
-private Object obj2;
-
-public SyncThread(Object o1, Object o2){
-    this.obj1=o1;
-    this.obj2=o2;
-}
-@Override
-public void run() {
-    String name = Thread.currentThread().getName();
-    System.out.println(name + " acquiring lock on "+obj1);
-    synchronized (obj1) {
-     System.out.println(name + " acquired lock on "+obj1);
-     work();
-     System.out.println(name + " acquiring lock on "+obj2);
-     synchronized (obj2) {
-        System.out.println(name + " acquired lock on "+obj2);
-        work();
-    }
-     System.out.println(name + " released lock on "+obj2);
-    }
-    System.out.println(name + " released lock on "+obj1);
-    System.out.println(name + " finished execution.");
-}
-private void work() {
-    try {
-        Thread.sleep(30000);
-    } catch (InterruptedException e) {
-        e.printStackTrace();
-    }
-}
-</code></pre>
-
-<p>}
-```</p>
-
-<p>For analyzing deadlock, we need to look out for the threads with state as <code>BLOCKED</code> and then the resources it’s waiting to lock, every resource has a unique ID using which we can find which thread is already holding the lock on the object.</p>
-
-<p>These are some of the guidelines using which we can avoid most of the deadlock situations.</p>
-
-<ul>
-<li><strong>Avoid Nested Locks</strong>: This is the most common reason for deadlocks, avoid locking another resource if you already hold one. It’s almost impossible to get deadlock situation if you are working with only one object lock.</li>
-<li><strong>Lock Only What is Required</strong>: You should acquire lock only on the resources you have to work on, for example in above program I am locking the complete Object resource but if we are only interested in one of it’s fields, then we should lock only that specific field not complete object.</li>
-<li><strong>Avoid waiting indefinitely</strong>: You can get deadlock if two threads are waiting for each other to finish indefinitely using thread join. If your thread has to wait for another thread to finish, it’s always best to use join with maximum time you want to wait for thread to finish.</li>
-</ul>
-
-
-<h3 id="timer">Java Timer Thread</h3>
-
-
-<p><code>java.util.Timer</code> is a utility class that can be used to schedule a thread to be executed at certain time in future. Java <code>Timer</code> class can be used to schedule a task to be run one-time or to be run at regular intervals.<code>java.util.TimerTask</code> is an abstract class that implements <code>Runnable</code> interface and we need to extend this class to create our own <code>TimerTask</code> that can be scheduled using java <code>Timer</code> class.Timer class is thread safe and multiple threads can share a single Timer object without need for external synchronization. Timer class uses <code>java.util.TaskQueue</code> to add tasks at given regular interval and at any time there can be only one thread running the <code>TimerTask</code>, for example if you are creating a Timer to run every 10 seconds but single thread execution takes 20 seconds, then Timer object will keep adding tasks to the queue and as soon as one thread is finished, it will notify the queue and another thread will start executing.</p>
-
-<p>Timer class uses Object <strong>wait and notify</strong> methods to schedule the tasks.</p>
-
-<p>```java
-package org.solarex.threadtest;</p>
-
-<p>import java.util.Date;
-import java.util.Timer;
-import java.util.TimerTask;</p>
-
-<p>public class MyTimerTask extends TimerTask {</p>
-
-<pre><code>@Override
-public void run() {
-    System.out.println("Timer task started at:"+new Date());
-    completeTask();
-    System.out.println("Timer task finished at:"+new Date());
-}
-
-private void completeTask() {
-    try {
-        //assuming it takes 20 secs to complete the task
-        Thread.sleep(20000);
-    } catch (InterruptedException e) {
-        e.printStackTrace();
-    }
-}
-
-public static void main(String args[]){
-    TimerTask timerTask = new MyTimerTask();
-    //running timer task as daemon thread
-    Timer timer = new Timer(true);
-    timer.scheduleAtFixedRate(timerTask, 0, 10*1000);
-    System.out.println("TimerTask started");
-    //cancel after sometime
-    try {
-        Thread.sleep(120000);
-    } catch (InterruptedException e) {
-        e.printStackTrace();
-    }
-    timer.cancel();
-    System.out.println("TimerTask cancelled");
-    try {
-        Thread.sleep(30000);
-    } catch (InterruptedException e) {
-        e.printStackTrace();
-    }
-}
-</code></pre>
-
-<p>}</p>
-
-<p>//&mdash;&mdash;&mdash;begin output&mdash;&mdash;&mdash;&mdash;&mdash;&ndash;
-hrh@Solarex:Java$ java org.solarex.threadtest.MyTimerTask
-TimerTask started
-Timer task started at:Thu Oct 16 13:55:16 CST 2014
-Timer task finished at:Thu Oct 16 13:55:36 CST 2014
-Timer task started at:Thu Oct 16 13:55:36 CST 2014
-Timer task finished at:Thu Oct 16 13:55:56 CST 2014
-Timer task started at:Thu Oct 16 13:55:56 CST 2014
-Timer task finished at:Thu Oct 16 13:56:16 CST 2014
-Timer task started at:Thu Oct 16 13:56:16 CST 2014
-Timer task finished at:Thu Oct 16 13:56:36 CST 2014
-Timer task started at:Thu Oct 16 13:56:36 CST 2014
-Timer task finished at:Thu Oct 16 13:56:56 CST 2014
-Timer task started at:Thu Oct 16 13:56:56 CST 2014
-TimerTask cancelled
-Timer task finished at:Thu Oct 16 13:57:16 CST 2014
-//&mdash;&mdash;&mdash;end output&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;
-```</p>
-
-<p>The output confirms that if a task is already executing, Timer will <strong>wait for it to finish and once finished</strong>, it will start again the next task from the queue.</p>
-
-<p>Timer object can be created to run the associated tasks as a daemon thread. Timer <code>cancel()</code> method is used to terminate the timer and discard any scheduled tasks, however it doesn’t interfere with the currently executing task and let it finish. If the timer is run as daemon thread, whether we cancel it or not, it will terminate as soon as all the user threads are finished executing.</p>
-
-<p>Timer class contains several <code>schedule()</code> methods to schedule a task to run once at given date or after some delay. There are several <code>scheduleAtFixedRate()</code> methods to run a task periodically with certain interval.</p>
-
-<p>While scheduling tasks using Timer, you should make sure that time interval is more than normal thread execution, otherwise tasks queue size will keep growing and eventually task will be executing always.</p>
-
-<h3 id="producer">Java Producer Consumer Problem</h3>
-
-
-<p><code>java.util.concurrent.BlockingQueue</code> is a Queue that supports operations that wait for the queue to become non-empty when retrieving and removing an element, and wait for space to become available in the queue when adding an element.</p>
-
-<p><code>BlockingQueue</code> doesn’t accept null values and throw <code>NullPointerException</code> if you try to store null value in the queue.<code>BlockingQueue</code> implementations are thread-safe. All queuing methods are atomic in nature and use internal locks or other forms of concurrency control.</p>
-
-<p><code>BlockingQueue</code> interface is part of java collections framework and it’s primarily used for implementing producer consumer problem. We don’t need to worry about waiting for the space to be available for producer or object to be available for consumer in <code>BlockingQueue</code> as it’s handled by implementation classes of <code>BlockingQueue</code>.Java provides several <code>BlockingQueue</code> implementations such as <code>ArrayBlockingQueue</code>, <code>LinkedBlockingQueue</code>, <code>PriorityBlockingQueue</code>, <code>SynchronousQueue</code> etc.</p>
-
-<p>While implementing producer consumer problem, we will use <code>ArrayBlockingQueue</code> implementation and following methods are important to know.</p>
-
-<ul>
-<li><code>put(E e)</code>: This method is used to insert elements to the queue, if the queue is full it waits for the space to be available.</li>
-<li><code>E take()</code>: This method retrieves and remove the element from the head of the queue, if queue is empty it waits for the element to be available.</li>
-</ul>
-
-
-<p>```java
-//Message.java
-public class Message {</p>
-
-<pre><code>private String msg;
-
-public Message(String str){
-    this.msg=str;
-}
-
-public String getMsg() {
-    return msg;
-}
-</code></pre>
-
-<p>}</p>
-
-<p>//Producer.java
-import java.util.concurrent.BlockingQueue;</p>
-
-<p>public class Producer implements Runnable {</p>
-
-<pre><code>private BlockingQueue&lt;Message&gt; queue;
-
-public Producer(BlockingQueue&lt;Message&gt; q){
-    this.queue=q;
-}
-@Override
-public void run() {
-    //produce messages
-    for(int i=0; i&lt;100; i++){
-        Message msg = new Message(""+i);
-        try {
-            Thread.sleep(i);
-            queue.put(msg);
-            System.out.println("Produced "+msg.getMsg());
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-    }
-    //adding exit message
-    Message msg = new Message("exit");
-    try {
-        queue.put(msg);
-    } catch (InterruptedException e) {
-        e.printStackTrace();
-    }
-}
-</code></pre>
-
-<p>}</p>
-
-<p>//Consumer.java
-import java.util.concurrent.BlockingQueue;</p>
-
-<p>public class Consumer implements Runnable{</p>
-
-<p>private BlockingQueue<Message> queue;</p>
-
-<pre><code>public Consumer(BlockingQueue&lt;Message&gt; q){
-    this.queue=q;
-}
-
-@Override
-public void run() {
-    try{
-        Message msg;
-        //consuming messages until exit message is received
-        while((msg = queue.take()).getMsg() !="exit"){
-        Thread.sleep(10);
-        System.out.println("Consumed "+msg.getMsg());
-        }
-    }catch(InterruptedException e) {
-        e.printStackTrace();
-    }
-}
-</code></pre>
-
-<p>}</p>
-
-<p>//ProducerConsumerService.java
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;</p>
-
-<p>public class ProducerConsumerService {</p>
-
-<pre><code>public static void main(String[] args) {
-    //Creating BlockingQueue of size 10
-    BlockingQueue&lt;Message&gt; queue = new ArrayBlockingQueue&lt;&gt;(10);
-    Producer producer = new Producer(queue);
-    Consumer consumer = new Consumer(queue);
-    //starting producer to produce messages in queue
-    new Thread(producer).start();
-    //starting consumer to consume messages from queue
-    new Thread(consumer).start();
-    System.out.println("Producer and Consumer has been started");
-}
-</code></pre>
-
-<p>}
-```</p>
-
-<h3 id="pool">Java Thread Pool</h3>
-
-
-<p>A thread pool manages the pool of worker threads, it contains a queue that keeps tasks waiting to get executed.</p>
-
-<p>A thread pool manages the collection of <code>Runnable</code> threads and worker threads execute Runnable from the queue.</p>
-
-<p><code>java.util.concurrent.Executors</code> provide implementation of <code>java.util.concurrent.Executor</code> interface to create the thread pool in java.</p>
-
-<p>```java
-// WorkerThread.java
-public class WorkerThread implements Runnable {</p>
-
-<pre><code>private String command;
-
-public WorkerThread(String s){
-    this.command=s;
-}
-
-@Override
-public void run() {
-    System.out.println(Thread.currentThread().getName()+" Start. Command = "+command);
-    processCommand();
-    System.out.println(Thread.currentThread().getName()+" End.");
-}
-
-private void processCommand() {
-    try {
-        Thread.sleep(5000);
-    } catch (InterruptedException e) {
-        e.printStackTrace();
-    }
-}
-
-@Override
-public String toString(){
-    return this.command;
-}
-</code></pre>
-
-<p>}</p>
-
-<p>//SimpleThreadPool.java
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;</p>
-
-<p>public class SimpleThreadPool {</p>
-
-<pre><code>public static void main(String[] args) {
-    ExecutorService executor = Executors.newFixedThreadPool(5);
-    for (int i = 0; i &lt; 10; i++) {
-        Runnable worker = new WorkerThread("" + i);
-        executor.execute(worker);
-      }
-    executor.shutdown();
-    while (!executor.isTerminated()) {
-    }
-    System.out.println("Finished all threads");
-}
-</code></pre>
-
-<p>}
-```</p>
-
-<p>Executors class provide simple implementation of <code>ExecutorService</code> using <code>ThreadPoolExecutor</code> but <code>ThreadPoolExecutor</code> provides much more feature than that. We can specify the number of threads that will be alive when we create <code>ThreadPoolExecutor</code> instance and we can limit the size of thread pool and create our own <code>RejectedExecutionHandler</code> implementation to handle the jobs that can’t fit in the worker queue.</p>
-
-<p>```java
-// RejectedExecutionHandlerImpl.java
-import java.util.concurrent.RejectedExecutionHandler;
-import java.util.concurrent.ThreadPoolExecutor;</p>
-
-<p>public class RejectedExecutionHandlerImpl implements RejectedExecutionHandler {</p>
-
-<pre><code>@Override
-public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
-    System.out.println(r.toString() + " is rejected");
-}
-</code></pre>
-
-<p>}</p>
-
-<p>// MyMonitorThread.java
-import java.util.concurrent.ThreadPoolExecutor;</p>
-
-<p>public class MyMonitorThread implements Runnable
-{</p>
-
-<pre><code>private ThreadPoolExecutor executor;
-
-private int seconds;
-
-private boolean run=true;
-
-public MyMonitorThread(ThreadPoolExecutor executor, int delay)
-{
-    this.executor = executor;
-    this.seconds=delay;
-}
-
-public void shutdown(){
-    this.run=false;
-}
-
-@Override
-public void run()
-{
-    while(run){
-            System.out.println(
-                String.format("[monitor] [%d/%d] Active: %d, Completed: %d, Task: %d, isShutdown: %s, isTerminated: %s",
-                    this.executor.getPoolSize(),
-                    this.executor.getCorePoolSize(),
-                    this.executor.getActiveCount(),
-                    this.executor.getCompletedTaskCount(),
-                    this.executor.getTaskCount(),
-                    this.executor.isShutdown(),
-                    this.executor.isTerminated()));
-            try {
-                Thread.sleep(seconds*1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-    }
-
-}
-</code></pre>
-
-<p>}</p>
-
-<p>// WorkerPool.java
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;</p>
-
-<p>public class WorkerPool {</p>
-
-<pre><code>public static void main(String args[]) throws InterruptedException{
-    //RejectedExecutionHandler implementation
-    RejectedExecutionHandlerImpl rejectionHandler = new RejectedExecutionHandlerImpl();
-    //Get the ThreadFactory implementation to use
-    ThreadFactory threadFactory = Executors.defaultThreadFactory();
-    //creating the ThreadPoolExecutor
-    ThreadPoolExecutor executorPool = new ThreadPoolExecutor(2, 4, 10, TimeUnit.SECONDS, new ArrayBlockingQueue&lt;Runnable&gt;(2), threadFactory, rejectionHandler);
-    //start the monitoring thread
-    MyMonitorThread monitor = new MyMonitorThread(executorPool, 3);
-    Thread monitorThread = new Thread(monitor);
-    monitorThread.start();
-    //submit work to the thread pool
-    for(int i=0; i&lt;10; i++){
-        executorPool.execute(new WorkerThread("cmd"+i));
-    }
-
-    Thread.sleep(30000);
-    //shut down the pool
-    executorPool.shutdown();
-    //shut down the monitor thread
-    Thread.sleep(5000);
-    monitor.shutdown();
-
-}
-</code></pre>
-
-<p>}</p>
-
-<p>Notice that while initializing the ThreadPoolExecutor, we are keeping initial pool size as 2, maximum pool size to 4 and work queue size as 2. So if there are 4 running tasks and more tasks are submitted, the work queue will hold only 2 of them and rest of them will be handled by RejectedExecutionHandlerImpl.</p>
-
-<p>Notice the change in active, completed and total completed task count of the executor. We can invoke <code>shutdown()</code> method to finish execution of all the submitted tasks and terminate the thread pool.
-```</p>
-
-<h3 id="future">Java Callable Future</h3>
-
-
-<p>In last few posts, we learned a lot about java threads but sometimes we wish that <strong>a thread could return some value that we can use</strong>. Java 5 introduced <code>java.util.concurrent.Callable</code> interface in concurrency package that is similar to Runnable interface but it can return any Object and able to throw Exception.</p>
-
-<p>Callable interface use Generic to define the return type of Object. <code>Executors</code> class provide useful methods to execute <code>Callable</code> in a thread pool. Since callable tasks run in parallel, we have to wait for the returned Object. Callable tasks return <code>java.util.concurrent.Future</code> object. Using Future we can find out the status of the Callable task and get the returned Object. It provides <code>get()</code> method that can wait for the Callable to finish and then return the result.</p>
-
-<p>Future provides <code>cancel()</code> method to cancel the associated <code>Callable</code> task. There is an overloaded version of <code>get()</code> method where we can specify the time to wait for the result, it’s useful to avoid current thread getting blocked for longer time. There are <code>isDone()</code> and <code>isCancelled()</code> methods to find out the current status of associated <code>Callable</code> task.</p>
-
-<p>```java
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;</p>
-
-<p>public class MyCallable implements Callable<String> {</p>
-
-<pre><code>@Override
-public String call() throws Exception {
-    Thread.sleep(1000);
-    //return the thread name executing this callable task
-    return Thread.currentThread().getName();
-}
-
-public static void main(String args[]){
-    //Get ExecutorService from Executors utility class, thread pool size is 10
-    ExecutorService executor = Executors.newFixedThreadPool(10);
-    //create a list to hold the Future object associated with Callable
-    List&lt;Future&lt;String&gt;&gt; list = new ArrayList&lt;Future&lt;String&gt;&gt;();
-    //Create MyCallable instance
-    Callable&lt;String&gt; callable = new MyCallable();
-    for(int i=0; i&lt; 100; i++){
-        //submit Callable tasks to be executed by thread pool
-        Future&lt;String&gt; future = executor.submit(callable);
-        //add Future to the list, we can get return value using Future
-        list.add(future);
-    }
-    for(Future&lt;String&gt; fut : list){
-        try {
-            //print the return value of Future, notice the output delay in console
-            // because Future.get() waits for task to get completed
-            System.out.println(new Date()+ "::"+fut.get());
-        } catch (InterruptedException | ExecutionException e) {
-            e.printStackTrace();
-        }
-    }
-    //shut down the executor service now
-    executor.shutdown();
-}
-</code></pre>
-
-<p>}
-```</p>
-
-<h3 id="futuretask">Java FutureTask Example</h3>
-
-
-<p><code>FutureTask</code> is base concrete implementation of <code>Future</code> interface and provides asynchronous processing. It contains the methods to start and cancel a task and also methods that can return the state of the <code>FutureTask</code> as whether it’s completed or cancelled. We need a callable object to create a future task and then we can use Java Thread Pool Executor to process these asynchronously.</p>
-
-<p>```java
-// MyCallable.java
-import java.util.concurrent.Callable;</p>
-
-<p>public class MyCallable implements Callable<String> {</p>
-
-<pre><code>private long waitTime;
-
-public MyCallable(int timeInMillis){
-    this.waitTime=timeInMillis;
-}
-@Override
-public String call() throws Exception {
-    Thread.sleep(waitTime);
-    //return the thread name executing this callable task
-    return Thread.currentThread().getName();
-}
-</code></pre>
-
-<p>}</p>
-
-<p>// FutureTaskExample.java
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.FutureTask;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;</p>
-
-<p>public class FutureTaskExample {</p>
-
-<pre><code>public static void main(String[] args) {
-    MyCallable callable1 = new MyCallable(1000);
-    MyCallable callable2 = new MyCallable(2000);
-
-    FutureTask&lt;String&gt; futureTask1 = new FutureTask&lt;String&gt;(callable1);
-    FutureTask&lt;String&gt; futureTask2 = new FutureTask&lt;String&gt;(callable2);
-
-    ExecutorService executor = Executors.newFixedThreadPool(2);
-    executor.execute(futureTask1);
-    executor.execute(futureTask2);
-
-    while (true) {
-        try {
-            if(futureTask1.isDone() &amp;&amp; futureTask2.isDone()){
-                System.out.println("Done");
-                //shut down executor service
-                executor.shutdown();
-                return;
-            }
-
-            if(!futureTask1.isDone()){
-            //wait indefinitely for future task to complete
-            System.out.println("FutureTask1 output="+futureTask1.get());
-            }
-
-            System.out.println("Waiting for FutureTask2 to complete");
-            String s = futureTask2.get(200L, TimeUnit.MILLISECONDS);
-            if(s !=null){
-                System.out.println("FutureTask2 output="+s);
-            }
-        } catch (InterruptedException | ExecutionException e) {
-            e.printStackTrace();
-        }catch(TimeoutException e){
-            //do nothing
-        }
-    }
-
-}
-</code></pre>
-
-<p>}
-```</p>
-
-<p>When we run above program, you will notice that it doesn’t print anything for sometime because <code>get()</code> method of <code>FutureTask</code> waits for the task to get completed and then returns the output object. There is an overloaded method also to wait for only specified amount of time and we are using it for futureTask2. Also notice the use of <code>isDone()</code> method to make sure program gets terminated once all the tasks are executed.</p>
-
-<p>Ref:</p>
-
-<ul>
-<li><a href="http://www.journaldev.com/1079/java-thread-tutorial">Java Thread and Multithreading Tutorial</a></li>
-<li><a href="http://docs.oracle.com/javase/tutorial/essential/concurrency/">Concurrency</a></li>
-</ul>
-
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[A journey on the Android Main Thread]]></title>
-    <link href="http://Solarex.github.io/blog/2014/10/13/android-main-thread/"/>
-    <updated>2014-10-13T16:51:00+08:00</updated>
-    <id>http://Solarex.github.io/blog/2014/10/13/android-main-thread</id>
-    <content type="html"><![CDATA[<p>When facing bugs that were related to how we interact with the main thread, I decided to get a closer look at what the main thread really is.</p>
-
-<p>```java
-public class BigBang {
-  public static void main(String&hellip; args) {</p>
-
-<pre><code>// The Java universe starts here.
-</code></pre>
-
-<p>  }
-}
-```</p>
-
-<p>All Java programs start with a call to a <code>public static void main()</code> method. This is true for Java Desktop programs, JEE servlet containers, and Android applications.</p>
-
-<p>When the Android system boots, it starts a Linux process called <code>ZygoteInit</code>. This process is a Dalvik VM that loads the <a href="https://android.googlesource.com/platform/frameworks/base/+/refs/heads/master/preloaded-classes">most common classes</a> of the Android SDK on a thread, and then waits.</p>
-
-<!-- more -->
-
-
-<p>When starting a new Android application, the Android system forks the <code>ZygoteInit</code> process. The thread in the child fork stops waiting, and calls <code>ActivityThread.main()</code>.</p>
-
-<h2>Loopers</h2>
-
-<p>Before going any further, we need to look at the <code>Looper</code> class.</p>
-
-<p>Using a looper is a good way to dedicate one thread to process messages serially.</p>
-
-<p>Each looper has a queue of <code>Message</code> objects (a <code>MessageQueue</code>).</p>
-
-<p>A looper has a <code>loop()</code> method that will process each message in the queue, and block when the queue is empty.</p>
-
-<p>The <code>Looper.loop()</code> method code is similar to this:</p>
-
-<p>```java
-void loop() {
-  while(true) {</p>
-
-<pre><code>Message message = queue.next(); // blocks if empty.
-dispatchMessage(message);
-message.recycle();
-</code></pre>
-
-<p>  }
-}
-```</p>
-
-<p>Each looper is associated with one thread. To create a new looper and associate it to the current thread, you must call <code>Looper.prepare()</code>. The loopers are stored in a static <code>ThreadLocal</code> in the <code>Looper</code> class. You can retrieve the <code>Looper</code> associated to the current thread by calling <code>Looper.myLooper()</code>.</p>
-
-<p>The <code>HandlerThread</code> class does everything for you:</p>
-
-<p><code>java
-HandlerThread thread = new HandlerThread("SquareHandlerThread");
-thread.start(); // starts the thread.
-Looper looper = thread.getLooper();
-</code></p>
-
-<p>Its code is similar to this:</p>
-
-<p>```java
-class HandlerThread extends Thread {
-  Looper looper;
-  public void run() {</p>
-
-<pre><code>Looper.prepare(); // Create a Looper and store it in a ThreadLocal.
-looper = Looper.myLooper(); // Retrieve the looper instance from the ThreadLocal, for later use.
-Looper.loop(); // Loop forever.
-</code></pre>
-
-<p>  }
-}
-```</p>
-
-<h2>Handlers</h2>
-
-<p>A handler is the natural companion to a looper.</p>
-
-<p>A handler has two purposes:</p>
-
-<ul>
-<li>Send messages to a looper message queue from any thread.</li>
-<li>Hndle messages dequeued by a looper on the thread associated to that looper.</li>
-</ul>
-
-
-<p>```java
-// Each handler is associated to one looper.
-Handler handler = new Handler(looper) {
-  public void handleMessage(Message message) {</p>
-
-<pre><code>// Handle the message on the thread associated to the given looper.
-if (message.what == DO_SOMETHING) {
-  // do something
-}
-</code></pre>
-
-<p>  }
-};</p>
-
-<p>// Create a new message associated to that handler.
-Message message = handler.obtainMessage(DO_SOMETHING);</p>
-
-<p>// Add the message to the looper queue.
-// Can be called from any thread.
-handler.sendMessage(message);
-```</p>
-
-<p>You can associate multiple handlers to one looper. The looper delivers the message to <code>message.target</code>.</p>
-
-<p>A popular and simpler way to use a handler is to post a <code>Runnable</code>:</p>
-
-<p>```java
-// Create a message containing a reference to the runnable and add it to the looper queue
-handler.post(new Runnable() {
-  public void run() {</p>
-
-<pre><code>// Runs on the thread associated to the looper associated to that handler.
-</code></pre>
-
-<p>  }
-});
-```</p>
-
-<p>A handler can also be created without providing any looper:</p>
-
-<p><code>java
-// DON'T DO THIS
-Handler handler = new Handler();
-</code></p>
-
-<p>The handler no argument constructor calls <code>Looper.myLooper()</code> and retrieves the looper associated with the current thread. This may or may not be the thread you actually want the handler to be associated with.</p>
-
-<p>Most of the time, you just want to create a handler to post on the main thread:</p>
-
-<p><code>java
-Handler handler = new Handler(Looper.getMainLooper());
-</code></p>
-
-<p>Back to PSVM
-Let&rsquo;s look at <code>ActivityThread.main()</code> again. Here is what it is essentially doing:</p>
-
-<p>```java
-public class ActivityThread {
-  public static void main(String&hellip; args) {</p>
-
-<pre><code>Looper.prepare();
-
-// You can now retrieve the main looper at any time by calling Looper.getMainLooper().
-Looper.setMainLooper(Looper.myLooper());
-
-// Post the first messages to the looper.
-// { ... }
-
-Looper.loop();
-</code></pre>
-
-<p>  }
-}
-```</p>
-
-<p>Now you know why this thread is called the main thread :) .</p>
-
-<p>Note: As you would expect, one of the first things that the main thread will do is create the <code>Application</code> and call <code>Application.onCreate()</code>.</p>
-
-<h2>Activities love orientation changes</h2>
-
-<p>Let&rsquo;s start with the activity lifecycle and the magic behind the handling of configuration changes.</p>
-
-<h3>Why it matters</h3>
-
-<p>This article was inspired by a real crash that occurred in Square Register.
-A simplified version of the code is:</p>
-
-<p>```java
-public class MyActivity extends Activity {
-  protected void onCreate(Bundle savedInstanceState) {</p>
-
-<pre><code>super.onCreate(savedInstanceState);
-Handler handler = new Handler(Looper.getMainLooper());
-handler.post(new Runnable() {
-  public void run() {
-    doSomething();
-  }
-});
-</code></pre>
-
-<p>  }</p>
-
-<p>  void doSomething() {</p>
-
-<pre><code>// Uses the activity instance
-</code></pre>
-
-<p>  }
-}
-```</p>
-
-<p>As we will see, <code>doSomething()</code> can be called after the activity <code>onDestroy()</code> method has been called due to a configuration change. At that point, you should not use the activity instance anymore.</p>
-
-<h3>A refresher on orientation changes</h3>
-
-<p>The device orientation can change at any time. We will simulate an orientation change while the activity is being created using <code>Activity#setRequestedOrientation(int)</code>.</p>
-
-<p>Can you predict the log output when starting this activity in portrait?</p>
-
-<p>```java
-public class MyActivity extends Activity {
-  protected void onCreate(Bundle savedInstanceState) {</p>
-
-<pre><code>super.onCreate(savedInstanceState);
-Log.d("Square", "onCreate()");
-if (savedInstanceState == null) {
-  Log.d("Square", "Requesting orientation change");
-  setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
-}
-</code></pre>
-
-<p>  }</p>
-
-<p>  protected void onResume() {</p>
-
-<pre><code>super.onResume();
-Log.d("Square", "onResume()");
-</code></pre>
-
-<p>  }</p>
-
-<p>  protected void onPause() {</p>
-
-<pre><code>super.onPause();
-Log.d("Square", "onPause()");
-</code></pre>
-
-<p>  }</p>
-
-<p>  protected void onDestroy() {</p>
-
-<pre><code>super.onDestroy();
-Log.d("Square", "onDestroy()");
-</code></pre>
-
-<p>  }
-}
-```</p>
-
-<p>If you know the Android lifecycle, you probably predicted this:</p>
-
-<p><code>java
-onCreate()
-Requesting orientation change
-onResume()
-onPause()
-onDestroy()
-onCreate()
-onResume()
-</code></p>
-
-<p>The Android Lifecycle goes on normally, the activity is created, resumed, and then the orientation change is taken into account and the activity is paused, destroyed, and a new activity is created and resumed.</p>
-
-<h3>Orientation changes and the main thread</h3>
-
-<p>Here is an important detail to remember: an orientation change leads to recreating the activity via a simple post of a message to the main thread looper queue.</p>
-
-<p>Let&rsquo;s look at that by writing a spy that will read the content of the looper queue via reflection:</p>
-
-<p>```java
-public class MainLooperSpy {
-  private final Field messagesField;
-  private final Field nextField;
-  private final MessageQueue mainMessageQueue;</p>
-
-<p>  public MainLooperSpy() {</p>
-
-<pre><code>try {
-  Field queueField = Looper.class.getDeclaredField("mQueue");
-  queueField.setAccessible(true);
-  messagesField = MessageQueue.class.getDeclaredField("mMessages");
-  messagesField.setAccessible(true);
-  nextField = Message.class.getDeclaredField("next");
-  nextField.setAccessible(true);
-  Looper mainLooper = Looper.getMainLooper();
-  mainMessageQueue = (MessageQueue) queueField.get(mainLooper);
-} catch (Exception e) {
-  throw new RuntimeException(e);
-}
-</code></pre>
-
-<p>  }</p>
-
-<p>  public void dumpQueue() {</p>
-
-<pre><code>try {
-  Message nextMessage = (Message) messagesField.get(mainMessageQueue);
-  Log.d("MainLooperSpy", "Begin dumping queue");
-  dumpMessages(nextMessage);
-  Log.d("MainLooperSpy", "End dumping queue");
-} catch (IllegalAccessException e) {
-  throw new RuntimeException(e);
-}
-</code></pre>
-
-<p>  }</p>
-
-<p>  public void dumpMessages(Message message) throws IllegalAccessException {</p>
-
-<pre><code>if (message != null) {
-  Log.d("MainLooperSpy", message.toString());
-  Message next = (Message) nextField.get(message);
-  dumpMessages(next);
-}
-</code></pre>
-
-<p>  }
-}
-```</p>
-
-<p>As you can see, the message queue is merely a linked list where each message has a reference to the next message.</p>
-
-<p>We log the content of the queue right after the orientation change:</p>
-
-<p>```java
-public class MyActivity extends Activity {
-  private final MainLooperSpy mainLooperSpy = new MainLooperSpy();</p>
-
-<p>  protected void onCreate(Bundle savedInstanceState) {</p>
-
-<pre><code>super.onCreate(savedInstanceState);
-Log.d("Square", "onCreate()");
-if (savedInstanceState == null) {
-  Log.d("Square", "Requesting orientation change");
-  setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
-  mainLooperSpy.dumpQueue();
-}
-</code></pre>
-
-<p>  }
-}
-```</p>
-
-<p>Here is the output:</p>
-
-<p><code>java
-onCreate()
-Requesting orientation change
-Begin dumping queue
-{ what=118 when=-94ms obj={1.0 208mcc15mnc en_US ldltr sw360dp w598dp h335dp 320dpi nrml land finger -keyb/v/h -nav/h s.44?spn} }
-{ what=126 when=-32ms obj=ActivityRecord{41fd2b48 token=android.os.BinderProxy@41fcce50 no component name} }
-End dumping queue
-</code></p>
-
-<p>A quick look at the <code>ActivityThread</code> class tells us what those 118 and 126 messages are:</p>
-
-<p>```java
-public final class ActivityThread {
-  private class H extends Handler {</p>
-
-<pre><code>public static final int CONFIGURATION_CHANGED   = 118;
-public static final int RELAUNCH_ACTIVITY       = 126;
-</code></pre>
-
-<p>  }
-}
-```</p>
-
-<p>Requesting an orientation change added <code>CONFIGURATION_CHANGED</code> and a <code>RELAUNCH_ACTIVITY</code> message to the main thread looper queue.</p>
-
-<p>Let&rsquo;s take a step back and think about what&rsquo;s going on:</p>
-
-<p>When the activity starts for the first time, the queue is empty. The message currently being executed is <code>LAUNCH_ACTIVITY</code>, which creates the activity instance, calls <code>onCreate()</code> and then <code>onResume()</code> in a row. Then only the main looper processes the next message in the queue.</p>
-
-<p>When a device orientation change is detected, a <code>RELAUNCH_ACTIVITY</code> is posted to the queue.</p>
-
-<p>When that message is processed, it:</p>
-
-<ul>
-<li>calls <code>onSaveInstanceState()</code>, <code>onPause()</code>, <code>onDestroy()</code> on the old activity instance,</li>
-<li>creates a new activity instance,</li>
-<li>calls <code>onCreate()</code> and <code>onResume()</code> on that new activity instance.</li>
-</ul>
-
-
-<p>All that in one message handling. Any message you post in the meantime will be handled after <code>onResume()</code> has been called.</p>
-
-<h3>Tying it all together</h3>
-
-<p>What could happen if you post to a handler in <code>onCreate()</code> during an orientation change? Let&rsquo;s look at the two cases, right before and right after the orientation change:</p>
-
-<p>```java
-public class MyActivity extends Activity {
-  private final MainLooperSpy mainLooperSpy = new MainLooperSpy();</p>
-
-<p>  protected void onCreate(Bundle savedInstanceState) {</p>
-
-<pre><code>super.onCreate(savedInstanceState);
-Log.d("Square", "onCreate()");
-if (savedInstanceState == null) {
-  Handler handler = new Handler(Looper.getMainLooper());
-  handler.post(new Runnable() {
-    public void run() {
-      Log.d("Square", "Posted before requesting orientation change");
-    }
-  });
-  Log.d("Square", "Requesting orientation change");
-  setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
-  handler.post(new Runnable() {
-    public void run() {
-      Log.d("Square", "Posted after requesting orientation change");
-    }
-  });
-  mainLooperSpy.dumpQueue();
-}
-</code></pre>
-
-<p>  }</p>
-
-<p>  protected void onResume() {</p>
-
-<pre><code>super.onResume();
-Log.d("Square", "onResume()");
-</code></pre>
-
-<p>  }</p>
-
-<p>  protected void onPause() {</p>
-
-<pre><code>super.onPause();
-Log.d("Square", "onPause()");
-</code></pre>
-
-<p>  }</p>
-
-<p>  protected void onDestroy() {</p>
-
-<pre><code>super.onDestroy();
-Log.d("Square", "onDestroy()");
-</code></pre>
-
-<p>  }
-}
-```</p>
-
-<p>Here is the output:</p>
-
-<p><code>java
-onCreate()
-Requesting orientation change
-Begin dumping queue
-{ what=0 when=-129ms }
-{ what=118 when=-96ms obj={1.0 208mcc15mnc en_US ldltr sw360dp w598dp h335dp 320dpi nrml land finger -keyb/v/h -nav/h s.46?spn} }
-{ what=126 when=-69ms obj=ActivityRecord{41fd6b68 token=android.os.BinderProxy@41fd0ae0 no component name} }
-{ what=0 when=-6ms }
-End dumping queue
-onResume()
-Posted before requesting orientation change
-onPause()
-onDestroy()
-onCreate()
-onResume()
-Posted after requesting orientation change
-</code></p>
-
-<p>To sum things up: at the end on <code>onCreate()</code>, the queue contained four messages. The first was the post before the orientation change, then the two messages related to the orientation change, and then only the post after the orientation change. The logs show that these were executed in order.</p>
-
-<p>Therefore, any message posted before the orientation change will be handled before <code>onPause()</code> of the leaving activity, and any message posted after the orientation change will be handled after <code>onResume()</code> of the incoming activity.</p>
-
-<p>The practical implication is that when you post a message, you have no guarantee that the activity instance that existed at the time it was sent will still be running when the message is handled (even if you post from <code>onCreate()</code> or <code>onResume()</code>). If your message holds a reference to a view or an activity, the activity won&rsquo;t be garbage collected until the message is handled.</p>
-
-<h3>What could you do?</h3>
-
-<h4>The real fix</h4>
-
-<p>Stop calling <code>handler.post()</code> when you are already on the main thread. In most cases, <code>handler.post()</code> is used as a quick fix to ordering problems. Fix your architecture instead of messing it up with random <code>handler.post()</code> calls.</p>
-
-<h4>If you have a good reason to post</h4>
-
-<p>Make sure your message does not hold a reference to an activity, as you would do for a background operation.</p>
-
-<h4>If you really need that activity reference</h4>
-
-<p>Remove the message from the queue with <code>handler.removeCallbacks()</code> in the activity <code>onPause()</code>.</p>
-
-<h4>If you want to get fired</h4>
-
-<p>Use <code>handler.postAtFrontOfQueue()</code> to make sure a message posted before <code>onPause()</code> is always handled before <code>onPause()</code>. Your code will become really hard to read and understand. Seriously, don&rsquo;t.</p>
-
-<h4>A word on <code>runOnUiThread()</code></h4>
-
-<p>Did you notice that we created a handler and used <code>handler.post()</code> instead of directly calling <code>Activity.runOnUiThread()</code>?</p>
-
-<p>Here is why:</p>
-
-<p>```java
-public class Activity {
-  public final void runOnUiThread(Runnable action) {</p>
-
-<pre><code>if (Thread.currentThread() != mUiThread) {
-  mHandler.post(action);
-} else {
-  action.run();
-}
-</code></pre>
-
-<p>  }
-}
-```</p>
-
-<p>Unlike <code>handler.post()</code>, <code>runOnUiThread()</code> does not post the runnable if the current thread is already the main thread. Instead, it calls <code>run()</code> synchronously.</p>
-
-<h2>Services</h2>
-
-<p>There is a common misconception that needs to die: a service does not run on a background thread.</p>
-
-<p>All service lifecycle methods (<code>onCreate()</code>, <code>onStartCommand()</code>, etc) run on the main thread (the very same thread that&rsquo;s used to play funky animations in your activities).</p>
-
-<p>Whether you are in a service or an activity, long tasks must be executed in a dedicated background thread. This background thread can live as long as the process of your app lives, even when your activities are long gone.</p>
-
-<p>However, at any time the Android system can decide to kill the app process. A service is a way to ask the system to let us live if possible and be polite by letting the service know before killing the process.</p>
-
-<p>Side note: When an <code>IBinder</code> returned from <code>onBind()</code> receives a call from another process, the method will be executed in a background thread.</p>
-
-<p>Take the time to read the Service documentation &mdash; it&rsquo;s pretty good.</p>
-
-<h2>IntentService</h2>
-
-<p>IntentService provides a simple way to serially process a queue of intents on a background thread.</p>
-
-<p>```java
-public class MyService extends IntentService {
-  public MyService() {</p>
-
-<pre><code>super("MyService");
-</code></pre>
-
-<p>  }</p>
-
-<p>  protected void onHandleIntent(Intent intent) {</p>
-
-<pre><code>// This is called on a background thread.
-</code></pre>
-
-<p>  }
-}
-```</p>
-
-<p>Internally, it uses a <code>Looper</code> to handle the intents on a dedicated <code>HandlerThread</code>. When the service is destroyed, the looper lets you finish handling the current intent, and then the background thread terminates.</p>
-
-<h2>Conclusion</h2>
-
-<p>Most Android lifecycle methods are called on the main thread. Think of these callbacks as simple messages sent to a looper queue.</p>
-
-<p>This article wouldn&rsquo;t be complete without the reminder that goes into almost every Android dev article: Do not block the main thread.</p>
-
-<p>REF:<a href="http://corner.squareup.com/2013/10/android-main-thread-1.html">A journey on the Android Main Thread</a>,<a href="http://corner.squareup.com/2013/12/android-main-thread-2.html">A journey on the Android Main Thread &ndash; Lifecycle bits</a></p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Intro to Android Loopers and Handlers]]></title>
-    <link href="http://Solarex.github.io/blog/2014/10/13/android-looper-handler/"/>
-    <updated>2014-10-13T11:24:00+08:00</updated>
-    <id>http://Solarex.github.io/blog/2014/10/13/android-looper-handler</id>
-    <content type="html"><![CDATA[<p>What can you do with <code>Loopers</code> and <code>Handlers</code>? Basically, they implement a common concurrency pattern that I call the <code>Pipeline Thread</code>. Here’s how it works:</p>
-
-<ul>
-<li>The Pipeline Thread holds a queue of tasks which are just some units of work that can be executed or processed.</li>
-<li>Other threads can safely push new tasks into the Pipeline Thread’s queue at any time.</li>
-<li>The Pipeline Thread processes the queued tasks one after another. If there are no tasks queued, it blocks until a task appears in the queue.</li>
-<li>Sometimes tasks can called messages and other names.</li>
-</ul>
-
-
-<!-- more -->
-
-
-<p>我们能用<code>Loopers</code>和<code>Handlers</code>来干什么？这两个类实现了一种通用的并发模型，我把它叫做：Pipeline 线程。它是这样工作的：
-+ Pipeline 线程持有一个任务队列，这些任务就是一些可以执行的工作单元
-+ 其他线程可以自由的将任务加到Pipeline线程的任务队列中去
-+ Pipeline线程就按次序一个一个执行任务，如果任务队列中没有任务了，它就会自动阻塞直到有任务到来
-+ 有些时候，任务可以叫做消息（messages）或者其他名字</p>
-
-<p><code>Looper</code> is a class that turns a thread into a <code>Pipeline Thread</code> and <code>Handler</code> gives you a mechanism to push tasks into it from any other threads.The <code>Looper</code> is named so because it implements the loop – takes the next task, executes it, then takes the next one and so on. The <code>Handler</code> is called a handler because someone could not invent a better name.</p>
-
-<p>Looper类可以将一个线程转换成Pipeline线程，而Handler提供了一种机制，你可以通过它将任务添加到Pipeline线程中。Looper之所以这么命名是因为它实现了循环——取一个task执行，然后再取下一个task执行，如此循环；Handler如此命名是因为他们无法想出一个更好的名字了~</p>
-
-<p>Here’s what you should put into a Thread&rsquo;s <code>run()</code> method to turn it into a Pipeline Thread and to create a <code>Handler</code> so that other threads can assign tasks to it:</p>
-
-<p>下面就是你需要添加到Thread类的run方法中的代码来创建一个你自己的Pipeline线程，并创建一个<code>Handler</code>以便其他线程可以将任务分发到此Pipeline线程中。</p>
-
-<p>```java
-@Override
-public void run() {
-  try {</p>
-
-<pre><code>// preparing a looper on current thread
-// the current thread is being detected implicitly
-Looper.prepare();
-
-// now, the handler will automatically bind to the
-// Looper that is attached to the current thread
-// You don't need to specify the Looper explicitly
-handler = new Handler();
-
-// After the following line the thread will start
-// running the message loop and will not normally
-// exit the loop unless a problem happens or you
-// quit() the looper (see below)
-Looper.loop();
-</code></pre>
-
-<p>  } catch (Throwable t) {</p>
-
-<pre><code>Log.e(TAG, "halted due to an error", t);
-</code></pre>
-
-<p>  }
-}
-```</p>
-
-<p>After that, you can just pass the handler to any other thread. It has a thread-safe interface that includes many operations, but the most straightforward ones are <code>postMessage()</code> and its relatives.</p>
-
-<p>然后，你只要将这个handler对象传到其他任何线程中去，它有一个线程安全的接口，包括了很多操作，但是最主要的操作就是postMessage()以及相关的方法了。</p>
-
-<p>For example, imagine another thread has a reference to the handler that was created in our Pipeline Thread. Here’s how that other thread can schedule an operation to be executed in the Pipeline Thread:</p>
-
-<p>想象一下，一个线程A持有了handler对象的引用，此handler是在Pipeline线程中创建的，下面代码就可以让这个线程A在Pipeline线程中执行操作了：</p>
-
-<p>```java
-handler.post(new Runnable() {
-  @Override
-  public void run() {</p>
-
-<pre><code>// this will be done in the Pipeline Thread
-</code></pre>
-
-<p>  }
-});
-```</p>
-
-<p>By the way, the UI thread has a <code>Looper</code> created for it implicitly, so you can just create a <code>Handler</code> in activity&rsquo;s <code>onCreate()</code> and it will work fine:</p>
-
-<p>UI线程拥有一个Looper（可以通过<code>Looper.getMainLooper()</code>方法获取，判断一个线程是否为主线程可以使用<code>Looper.getLooper() == Looper.getMainLooper()</code>来判断）。所以，你可以在<code>Activity</code>的<code>onCreate()</code>方法中直接新建一个handler对象：</p>
-
-<p>```java
-@Override
-public void onCreate(Bundle savedInstanceState) {</p>
-
-<pre><code>super.onCreate(savedInstanceState);
-setContentView(R.layout.main);
-
-// Create the Handler. It will implicitly bind to the Looper
-// that is internally created for this thread (since it is the UI thread)
-handler = new Handler();
-</code></pre>
-
-<p>}
-```</p>
-
-<p>什么时候使用多线程:
-1. 耗时操作使用多线程, 耗时操作放在UI线程中会导致用户的操作无法得到响应.
-2. 阻塞操作使用多线程, 理由同上.
-3. 多核CPU的设备使用多线程, 可以有效提高CPU的利用率.
-4. 并行操作使用多线程.</p>
-
-<p>android中的多线程模型主要涉及的类有:Looper, Handler, MessageQueue, Message等.</p>
-
-<p>Looper类用来创建消息队列. 每个线程最多只能有一个消息队列, android中UI线程默认具有消息队列, 但非UI线程在默认情况下是不具备消息队列的. 如果需要在非UI线程中开启消息队列, 需要调用<code>Looper.prepare()</code>方法, 在该方法的执行过程中会创建一个<code>Looper</code>对象, 而<code>Looper</code>的构造函数中会创建一个<code>MessageQueue</code> instance(Looper的构造函数是私有的, 在Looper类之外无法创建其对象).  此后再为该线程绑定一个Handler instance, 然后调用Looper.loop()方法, 就可以不断的从消息队列中取出消息和处理消息了. <code>Looper.myLooper()</code>方法可以得到线程的Looper对象, 如果为null, 说明此时该线程尚未开启消息队列.</p>
-
-<p>Handler类用于处理消息. 该类具有四个构造函数:
-1. <code>public Handler()</code>. 创建好的<code>Handler</code> instance将绑定在代码所在的线程的消息队列上, 因此一定要确定该线程开启了消息队列, 否则程序将发生错误. 使用这个构造函数创建<code>Handler</code> instance, 一般来说, 我们需要重写<code>Hanler</code>类的<code>handleMessage()</code>方法, 以便在之后的消息处理时调用.
-2. <code>public Handler(Callback callback)</code>. <code>Callback</code>是<code>Handler</code>内部定义的一个接口, 因此想要使用这个构造函数创建<code>Handler</code>对象, 需要自定义一个类实现<code>Callback</code>接口, 并重写接口中定义的<code>handleMessage()</code>方法. 这个构造函数其实与无参的构造函数类似, 也要确保代码所在的线程开启了消息队列. 不同的是在之后处理消息时, 将调用<code>callback</code>的<code>handleMessage()</code>方法, 而不是<code>Handler</code>对象的<code>handleMssage()</code>方法.
-3. <code>public Handler(Looper looper)</code>. 这个构造函数表示创建一个<code>Handler</code> instance, 并将其绑定在looper所在的线程上. 此时looper不能为null. 此时一般也需要重写<code>Hanler</code>类的<code>handleMessage()</code>方法
-4. <code>public Handler(Looper looper, Callback callback)</code>. 可以结合2和3理解.</p>
-
-<p><code>MessageQueue</code>类用于表示消息队列. 队列中的每一个Message都有一个when字段, 这个字段用来决定Message应该何时出对处理. 消息队列中的每一个Message根据when字段的大小由小到大排列, 排在最前面的消息会首先得到处理, 因此可以说消息队列并不是一个严格的先进先出的队列.</p>
-
-<p><code>Message</code>类用于表示消息. <code>Message</code>对象可以通过arg1, arg2, obj字段和<code>setData()</code>携带数据, 此外还具有很多字段. when字段决定Message应该何时处理, target字段用来表示将由哪个Handler对象处理这个消息, next字段表示在消息队列中排在这个Message之后的下一个Message, callback字段如果不为null表示这个Message包装了一个runnable对象, what字段表示code, 即这个消息具体是什么类型的消息. 每个what都在其handler的namespace中, 我们只需要确保将由同一个handler处理的消息的what属性不重复就可以.</p>
-
-<p>将消息压入消息队列: <code>Message</code>对象的<code>target</code>字段关联了哪个线程的消息队列, 这个消息就会被压入哪个线程的消息队列中.
-1. 调用<code>Handler</code>类中以<code>send</code>开头的方法可以将<code>Message</code>对象压入消息队列中, 调用Handler类中以post开头的方法可以将一个runnable对象包装在一个Message对象中, 然后再压入消息队列, 此时入队的Message其callback字段不为null, 值就是这个runnable对象. 调用<code>Handler</code>对象的这些方法入队的<code>Message</code>, 其target属性会被赋值为这个handler对象.
-2. 调用<code>Message</code>对象的<code>sendToTarget()</code>方法可以将其本身压入与其target字段(即handler对象)所关联的消息队列中.</p>
-
-<p>将未来得及处理的消息从消息队列中删除:调用Handler对象中以remove开头的方法就可以.</p>
-
-<p>从消息队列中取出消息并处理消息: 所有在消息队列中的消息, 都具有target字段. 消息是在target所关联的线程上被取出和处理的.
-1. 如果取出的<code>Message</code>对象的callback字段不为null, 那么就调用<code>callback</code>字段的<code>run()</code>方法(callback字段的类型是runnable). 注意此时并不开启一个新的线程运行run()方法, 而是直接在handler对象(即<code>Message</code>的target字段)所关联的线程上运行.
-2. 如果取出的Message对象的callback字段为null, 且<code>Handler</code>对象中的callback字段也为null, 那么这个消息将由<code>Handler</code>对象的<code>handleMessage(msg)</code>方法处理. 注意Message对象的callback字段是Runnable类型的而Handler对象的callback字段是Callback类型的, Handler对象的callback字段是在创建Handler instance的时候指定的, 如果没有指定则这个字段为null, 详见Handler类的四个构造方法.
-3. 如果取出的<code>Message</code>对象的callback字段为null, 且Handler对象中的callback字段不为null, 那么这个消息将由<code>Handler</code>对象中的callback字段的handleMessage方法处理.</p>
-
-<p>线程间通信: 有了以上的叙述, 线程间的通信也就好理解了. 假如一个handler关联了A线程上的消息队列, 那么我们可以在B线程上调用handler的相关方法向A线程上的消息队列压入一个Message, 这个Message将在A线程上得到处理.</p>
-
-<p>REF:<a href="http://mindtherobot.com/blog/159/android-guts-intro-to-loopers-and-handlers/">Android Guts: Intro to Loopers and Handlers</a></p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Android反编译]]></title>
-    <link href="http://Solarex.github.io/blog/2014/10/12/android-decompile/"/>
-    <updated>2014-10-12T09:21:00+08:00</updated>
-    <id>http://Solarex.github.io/blog/2014/10/12/android-decompile</id>
-    <content type="html"><![CDATA[<p>有时候在Google Play Store看到一些有趣的应用，或者对有些应用的资源图片之类的很感兴趣，这时候就需要用到Android反编译APK的一些工具了。</p>
-
-<!-- more -->
-
-
-<p>在Google Play上安装应用默认安装完成后是不保留应用apk文件的，要下载apk文件，可以从<a href="http://apkleecher.com/">Online APK Downloader</a>或<a href="http://apps.evozi.com/apk-downloader/">Apk Downloader</a>下载。</p>
-
-<p>其实反编译APK主要用到3个工具，<a href="https://code.google.com/p/android-apktool/">apktool</a>用来获取资源文件，<a href="https://code.google.com/p/dex2jar/">dex2jar</a>用来将dex文件转换为jar文件格式，<a href="http://jd.benow.ca/">jd-gui</a>用来查看jar文件中源码。</p>
-
-<ul>
-<li>获取资源文件<code>java -jar apktool.jar d example.apk</code></li>
-<li>获取jar文件</li>
-</ul>
-
-
-<p><code>bash
-mv example.apk example.zip
-unzip example.zip
-dex2jar.sh classes.dex
-</code></p>
-
-<ul>
-<li>使用jd-dui查看jar文件<code>jd-gui classes.jar</code></li>
-</ul>
-
-
-<p>上述工具在linux平台下的我已经打包了，可以在<a href="http://Solarex.github.io/downloads/files/decompile.tgz">这里</a>下载。</p>
 ]]></content>
   </entry>
   

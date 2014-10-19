@@ -285,6 +285,7 @@ Thread safety is the process to make our program safe to use in multithreaded en
 + Using volatile keyword with variables to make every thread read the data from memory, not read from thread cache.
 
 Synchronization is the tool using which we can achieve thread safety, JVM guarantees that synchronized code will be executed by only one thread at a time. java keyword synchronized is used to create synchronized code and internally it uses locks on Object or Class to make sure only one thread is executing the synchronized code.
+
 + Java synchronization works on locking and unlocking of resource, before any thread enters into synchronized code, it has to acquire lock on the Object and when code execution ends, it unlocks the resource that can be locked by other threads. In the mean time other threads are in wait state to lock the synchronized resource.
 + We can use synchronized keyword in two ways, one is to make a complete method synchronized and other way is to create synchronized block.可以创建synchronized方法或者synchronized代码块
 + When a method is synchronized, it locks the Object, if method is static it locks the Class, so it’s always best practice to use synchronized block to lock the only sections of method that needs synchronization.

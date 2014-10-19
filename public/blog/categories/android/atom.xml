@@ -4,7 +4,7 @@
   <title><![CDATA[Category: android | Solarex's Blog]]></title>
   <link href="http://Solarex.github.io/blog/categories/android/atom.xml" rel="self"/>
   <link href="http://Solarex.github.io/"/>
-  <updated>2014-10-16T14:45:04+08:00</updated>
+  <updated>2014-10-19T19:22:22+08:00</updated>
   <id>http://Solarex.github.io/</id>
   <author>
     <name><![CDATA[Solarex]]></name>
@@ -12,6 +12,201 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[The Hidden Pitfalls of AsyncTask]]></title>
+    <link href="http://Solarex.github.io/blog/2014/10/19/android-asynctask-pitfalls/"/>
+    <updated>2014-10-19T15:56:00+08:00</updated>
+    <id>http://Solarex.github.io/blog/2014/10/19/android-asynctask-pitfalls</id>
+    <content type="html"><![CDATA[<p><center><img src="http://Solarex.github.io/images/android_logo.jpg"/></center></p>
+
+
+<p>I originally wrote this article when I was (foolishly) still using AsyncTasks. Nowadays I simply consider it a mistake in all cases. As you&rsquo;ll see from the original article, there are a lot of problems with it &ndash; and there are much better solutions.</p>
+
+<p>My preferred alternative these days are combining <a href="https://github.com/Netflix/RxJava">RxJava</a> with schedulers. You get the same effect as an <code>AsyncTask</code> with none of the problems, plus you get an awesome framework in addition. I know, recommending a library to solve a problem is irritating, but RxJava is worth looking at for many reasons.</p>
+
+<p>When <code>AsyncTask</code> was introduced to Android, it was labeled as “<a href="http://android-developers.blogspot.com/2009/05/painless-threading.html">Painless Threading</a>.” Its goal was to make background Threads which could interact with the UI thread easier. It was successful on that count, but it’s not exactly painless – there are a number of cases where <code>AsyncTask</code> is not a silver bullet. It is easy to blindly use <code>AsyncTask</code> without realizing what can go wrong if not handled with care. Below are some of the problems that can arise when using <code>AsyncTask</code> without fully understanding it.</p>
+
+<!-- more -->
+
+
+<h2>AsyncTask and Rotation</h2>
+
+<p>AsyncTask’s primary goal is to make it easy to run a Thread in the background that can later interact with the UI thread. Therefore the most common use case is to have an <code>AsyncTask</code> run a time-consuming operation that updates a portion of the UI when it’s completed (in <code>AsyncTask.onPostExecute()</code>).</p>
+
+<p>This works great… until you rotate the screen. <strong>When an app is rotated, the entire <code>Activity</code> is destroyed and recreated. When the Activity is restarted, your AsyncTask’s reference to the <code>Activity</code> is invalid, so <code>onPostExecute()</code> will have no effect on the new Activity.</strong> This can be confusing if you are implicitly referencing the current Activity by having AsyncTask as an inner class of the Activity.</p>
+
+<p>The usual solution to this problem is to hold onto a reference to AsyncTask that lasts between configuration changes, which updates the target Activity as it restarts. There are a variety of ways to do this, though they either boil down to using a global holder (such as in the <code>Application</code> object) or passing it through <code>Activity.onRetainNonConfigurationInstance()</code>. For a Fragment-based system, you could use a retained Fragment (via <code>Fragment.setRetainedInstance(true)</code>) to store running AsyncTasks.</p>
+
+<h2>AsyncTasks and the Lifecycle</h2>
+
+<p>Along the same lines as above, it is a misconception to think that just because the Activity that originally spawned the <code>AsyncTask</code> is dead, the <code>AsyncTask</code> is as well. It will continue running on its merry way even if you exit the entire application. <strong>The only way that an <code>AsyncTask</code> finishes early is if it is canceled via <code>AsyncTask.cancel()</code>.</strong></p>
+
+<p>This means that you have to manage the cancellation of AsyncTasks yourself; otherwise you run the risk of bogging down your app with unnecessary background tasks, or of leaking memory. When you know you will no longer need an <code>AsyncTask</code>, be sure to cancel it so that it doesn’t cause any headaches later in the execution of your app.</p>
+
+<h2>Cancelling AsyncTasks</h2>
+
+<p>Suppose you’ve got a search query that runs in an <code>AsyncTask</code>. The user may be able to change the search parameters while the <code>AsyncTask</code> is running, so you call <code>AsyncTask.cancel()</code> and then fire up a new <code>AsyncTask</code> for the next query. <strong>This seems to work… until you check the logs and realize that your <code>AsyncTask</code>s all ran till completion, regardless of whether you called <code>cancel()</code> or not!</strong> This even happens if you pass mayInterruptIfRunning as true – what’s going on?</p>
+
+<p>The problem is that there’s a misconception about what <code>AsyncTask.cancel()</code> actually does. It does not kill the Thread with no regard for the consequences! All it does is set the <code>AsyncTask</code> to a “cancelled” state. <strong>It’s up to you to check whether the AsyncTask has been canceled so that you can halt your operation</strong>. As for mayInterruptIfRunning – all it does is send an <code>interrupt()</code> to the running Thread. In the case that your Thread is uninterruptible, then it won’t stop the Thread at all.There are two simple solutions that cover most situations: Either check <code>AsyncTask.isCancelled()</code> on a regular basis during your long-running operation, or keep your Thread interruptible. Either way, when you call <code>AsyncTask.cancel()</code> these methods should prevent your operation from running longer than necessary.</p>
+
+<p>This advice doesn’t always work, though – what if you’re calling a long-running method that is uninterruptible (such as <code>BitmapFactory.decodeStream()</code>)? The only success I’ve had in this situation is to create a situation which causes an Exception to be thrown (in this case, prematurely closing the stream that BitmapFactory was using). This meant that <code>cancel()</code> alone wouldn’t solve the problem – outside intervention was required.</p>
+
+<h2>Limitations on Concurrent AsyncTasks</h2>
+
+<p>I’m not encouraging people to start hundreds of threads in the background; however, it is worth noting that there are some limitations on the number of <code>AsyncTask</code>s that you can start. The modern <code>AsyncTask</code> is limited to 128 concurrent tasks, with an additional queue of 10 tasks (if supporting Android 1.5, it’s a limit of ten tasks at a time, with a maximum queue of 10 tasks). That means that if you queue up more than 138 tasks before they can complete, your app will crash. Most often I see this problem when people use <code>AsyncTask</code>s to load Bitmaps from the net.</p>
+
+<p>If you are finding yourself running up against these limits, you should start by rethinking your design that calls for so many background threads. Alternatively, you could setup a more intelligent queue for your tasks so that you’re not starting them all at once. If you’re desperate, you can grab a copy of <code>AsyncTask</code> and adjust the pool sizes in the code itself.</p>
+
+<ul>
+<li><a href="http://blog.danlew.net/2014/06/21/the-hidden-pitfalls-of-asynctask/">The Hidden Pitfalls of AsyncTask</a></li>
+</ul>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Android Tips]]></title>
+    <link href="http://Solarex.github.io/blog/2014/10/19/android-tips/"/>
+    <updated>2014-10-19T13:00:00+08:00</updated>
+    <id>http://Solarex.github.io/blog/2014/10/19/android-tips</id>
+    <content type="html"><![CDATA[<p><center><img src="http://Solarex.github.io/images/android_training.jpg"/></center></p>
+
+
+<ul>
+<li><a href="#overview">Android Tips and Tricks</a>
+
+<ul>
+<li><a href="#part1">Part I</a></li>
+<li><a href="#part2">Part II</a></li>
+<li><a href="#part3">Part III</a></li>
+<li><a href="#part4">Part IV</a></li>
+<li><a href="#part5">Part V</a></li>
+</ul>
+</li>
+</ul>
+
+
+<h2 id="overview">Android Tips and Tricks</h2>
+
+
+
+
+<h3 id="part1">Part I</h3>
+
+
+<ul>
+<li><p><code>Activity.startActivities()</code> &ndash; Nice for launching to the middle of an app flow.</p></li>
+<li><p><code>TextUtils.isEmpty()</code> &ndash; Simple utility I use everywhere.</p></li>
+<li><p><code>Html.fromHtml()</code> &ndash; Quick method for formatting Html. It&rsquo;s not particularly fast so I wouldn&rsquo;t use it constantly (e.g., don&rsquo;t use it just to bold part of a string &ndash; construct the Spannable manually instead), but it&rsquo;s fine for rendering text obtained from the web.</p></li>
+<li><p><code>TextView.setError()</code> &ndash; Nice UI when validating user input.</p></li>
+<li><p><code>Build.VERSION_CODES</code> &ndash; Not only is it handy for routing code, it&rsquo;s also summarizes behavioral differences between each version of Android.</p></li>
+</ul>
+
+
+<!-- more -->
+
+
+<ul>
+<li><p><code>Log.getStackTraceString()</code> &ndash; Convenience utility for logging.</p></li>
+<li><p><code>LayoutInflater.from()</code> &ndash; Wraps the long-winded getSystemService() call in a simple utility.</p></li>
+<li><p><code>ViewConfiguration.getScaledTouchSlop()</code> &ndash; Using the values provided in ViewConfiguration ensures all touch interaction feels consistent across the OS.</p></li>
+<li><p><code>PhoneNumberUtils.convertKeypadLettersToDigits</code> &ndash; Makes handling phone number data a snap, as some companies provide them as letters.</p></li>
+<li><p><code>Context.getCacheDir()</code> &ndash; Use the cache dir for caching data. Simple enough but some don&rsquo;t know it exists.</p></li>
+<li><p><code>ArgbEvaluator</code> &ndash; Transition from one color to another. As was pointed out by Chris Banes, this class creates a lot of autoboxing churn so it&rsquo;d be better to just rip out the logic and run it yourself.</p></li>
+<li><p><code>ContextThemeWrapper</code> &ndash; Nice class for changing the theme of a Context on the fly.</p></li>
+<li><p><code>Space</code> &ndash; Lightweight View which skips drawing. Great for any situation that might require a placeholder.</p></li>
+<li><p><code>ValueAnimator.reverse()</code> &ndash; I love this for canceling animations smoothly.</p></li>
+</ul>
+
+
+<h3 id="part2">Part II</h3>
+
+
+<ul>
+<li><p><code>DateUtils.formatDateTime()</code> &ndash; One-stop shop for localized date/time strings.</p></li>
+<li><p><code>AlarmManager.setInexactRepeating</code> &ndash; Saves on battery life by grouping multiple alarms together. Even if you&rsquo;re only calling a single alarm this is better (just make sure to call AlarmManager.cancel() when done).</p></li>
+<li><p><code>Formatter.formatFileSize()</code> &ndash; A localized file size formatter.</p></li>
+<li><p><code>ActionBar.hide()/.show()</code> &ndash; Animates the action bar hiding/showing. Lets you switch to full-screen gracefully.</p></li>
+<li><p><code>Linkify.addLinks()</code> &ndash; If you need to control how links are added to text.</p></li>
+<li><p><code>StaticLayout</code> &ndash; Useful for measuring text that you&rsquo;re about to render into a custom View.</p></li>
+<li><p><code>Activity.onBackPressed()</code> &ndash; Easy way to manage the back button. While I wouldn&rsquo;t normally hijack back, sometimes it&rsquo;s necessary to make a flow work.</p></li>
+<li><p><code>GestureDetector</code> &ndash; Listens to motion events and fires listener events for common actions (like clicks, scrolls and flings). So much easier than implementing your own motion event system.</p></li>
+<li><p><code>DrawFilter</code> &ndash; Lets you manipulate a Canvas even if you&rsquo;re not calling the draw commands. For example, you could create a custom View which sets a DrawFilter which anti-aliases the draws of the parent View.</p></li>
+<li><p><code>ActivityManager.getMemoryClass()</code> &ndash; Gives you an idea of how much memory the device has. Great for figuring out how large to make your caches.</p></li>
+<li><p><code>SystemClock.sleep()</code> &ndash; Convenience method which guarantees sleeping the amount of time entered. I use it for debugging and simulating network delays.</p></li>
+<li><p><code>ViewStub</code> &ndash; A View that initially does nothing, but can later inflate a layout. This is a great placeholder for lazy-loading Views. Its only drawback is that it doesn&rsquo;t support <merge> tags, so it can create unnecessary nesting in the hierarchy if you&rsquo;re not careful.</p></li>
+<li><p><code>DisplayMetrics.density</code> &ndash; You can get the density of the screen this way. Most of the time you&rsquo;ll be better off letting the system scale dimensions automatically, but occasionally it&rsquo;s useful to have more control (especially with custom Views).</p></li>
+<li><p><code>Pair.create()</code> &ndash; Handy class, handy creator method.</p></li>
+</ul>
+
+
+<h3 id="part3">Part III</h3>
+
+
+<ul>
+<li><p><code>UrlQuerySanitizer</code> &ndash; Sanitize URLs with this handy utility.</p></li>
+<li><p><code>Fragment.setArguments</code> &ndash; Since you can&rsquo;t use a Fragment constructor w/ parameters this is the second best thing. Arguments set before creation last throughout the entire Fragment&rsquo;s lifecycle (even if it&rsquo;s destroyed/recreated due to a configuration change).</p></li>
+<li><p><code>DialogFragment.setShowsDialog()</code> &ndash; Neat trick &ndash; DialogFragments can act like normal Fragments! That way you can have the same Fragment do double-duty. I usually create a third View generation method that both onCreateView() and onCreateDialog() call into when creating a dual-purpose Fragment.</p></li>
+<li><p><code>FragmentManager.enableDebugLogging()</code> &ndash; Help when you need it when figuring out Fragments.</p></li>
+<li><p><code>LocalBroadcastManager</code> &ndash; Safer than global broadcasts. Simple and quick. Event buses like otto may make more sense for your use case though.</p></li>
+<li><p><code>PhoneNumberUtils.formatNumber()</code> &ndash; Let someone else figure out this problem for you.</p></li>
+<li><p><code>Region.op()</code> &ndash; I found this useful for comparing two generic areas before rendering. If I&rsquo;ve got two Paths, do they overlap? I can figure that out with this method.</p></li>
+<li><p><code>Application.registerActivityLifecycleCallbacks</code> &ndash; Though lacking documentation I feel this is self-evident. Just a handy tool.</p></li>
+<li><p><code>versionNameSuffix</code> &ndash; This gradle setting lets you modify the versionName field in your manifest based on different build types. For example, I would setup my debug build type to end in &ldquo;-SNAPSHOT&rdquo;; that way you can easily tell if you&rsquo;re on a debug build or release build.</p></li>
+<li><p><code>CursorJoiner</code> &ndash; If you&rsquo;re using a single database then a join in SQL is the natural solution, but what if you&rsquo;ve received data from two separate ContentProviders? In that case CursorJoiner can be helpful.</p></li>
+<li><p><code>Genymotion</code> &ndash; A much faster Android emulator. I use it all day.</p></li>
+<li><p><code>-nodpi</code> &ndash; Most qualifiers (-mdpi, -hdpi, -xhdpi, etc.) automatically scale assets/dimensions if you&rsquo;re on a device that isn&rsquo;t explicitly defined. Sometimes you just want something consistent though; in that case use -nodpi.</p></li>
+<li><p><code>BroadcastRecevier.setDebugUnregister()</code> &ndash; Another handy debugging tool.</p></li>
+<li><p><code>Activity.recreate()</code> &ndash; Forces an Activity to recreate itself for whatever reason.</p></li>
+<li><p><code>PackageManager.checkSignatures()</code> &ndash; You can use this to find out if two apps (presumably your own) are installed at the same time. Without checking signatures someone could imitate your app easily by just using the same package name.</p></li>
+</ul>
+
+
+<h3 id="part4">Part IV</h3>
+
+
+<ul>
+<li><p><code>Activity.isChangingConfigurations()</code> &ndash; Often times you don&rsquo;t need to do quite as much saving of state if all that&rsquo;s happening is the configuration is changing.</p></li>
+<li><p><code>SearchRecentSuggestionsProvider</code> &ndash; A quick and easy way to create a recents suggestion provider.</p></li>
+<li><p><code>ViewTreeObserver</code> &ndash; This is an amazing utility; it can be grabbed from any View and used to monitor the state of the View hierarchy. My most often use for it is to determine when Views have been measured (usually for animation purposes).</p></li>
+<li><p><code>org.gradle.daemon=true</code> &ndash; Helps reduce the startup time of of Gradle builds. Only really applies to command-line builds as Android Studio already tries to use the daemon.</p></li>
+<li><p><code>DatabaseUtils</code> &ndash; A variety of useful tools for database operations.</p></li>
+<li><p><code>android:weightSum</code> (LinearLayout) &ndash; Want to use layout weights, but don&rsquo;t want them to fill the entire LinearLayout? That&rsquo;s what weightSum can do by defining the total weight.</p></li>
+<li><p><code>android:duplicateParentState</code> (View) &ndash; Makes the child duplicate the state of the parent &ndash; for example, if you&rsquo;ve got a ViewGroup that is clickable, then you can use this to make its children change state when it is clicked.</p></li>
+<li><p><code>android:clipChildren</code> (ViewGroup) &ndash; If disabled, this lets the children of a ViewGroup draw outside their parent&rsquo;s bounds. Great for animations.</p></li>
+<li><p><code>android:fillViewport</code> (ScrollView) &ndash; Best explained in this post, this helps solve a problem with ScrollViews that may not always have enough content to actually fill the height of the screen.</p></li>
+<li><p><code>android:tileMode</code> (BitmapDrawable) &ndash; Lets you create repeated patterns with images.</p></li>
+<li><p><code>android:enterFadeDuration/android:exitFadeDuration</code> (Drawables) &ndash; For Drawables that have multiple states, this lets you define a fade before/after the drawable shows.</p></li>
+<li><p><code>android:scaleType</code> (ImageView) &ndash; Defines how to scale/crop a drawable within an ImageView. &ldquo;centerCrop&rdquo; and &ldquo;centerInside&rdquo; are regular settings for me.</p></li>
+<li><p><code>&lt;merge&gt;</code> &ndash; Lets you include a layout in another without creating a duplicate ViewGroup (more info). Also good for custom ViewGroups; you can inflate a layout with <merge> inside the constructor to define its children automatically.</p></li>
+<li><p><code>AtomicFile</code> &ndash; Manipulates a file atomically by using a backup file. I&rsquo;ve written this myself before, it&rsquo;s good to have an official (and better-written) version of it.</p></li>
+</ul>
+
+
+<h3 id="part5">Part V</h3>
+
+
+<ul>
+<li><p><code>ViewDragHelper</code> &ndash; Dragging Views is a complex problem and this class helps a lot. If you want an example, DrawerLayout uses it for swiping. Flavient Laurent also wrote an excellent article about it.</p></li>
+<li><p><code>PopupWindow</code> &ndash; Used all around Android without you even realizing it (action bars, autocomplete, edittext errors), this class is the primary method for creating floating content.</p></li>
+<li><p><code>ActionBar.getThemedContext()</code> &ndash; ActionBar theming is surprisingly complex (and can be different from the theming of the rest of the Activity). This gets you a Context so if you create your own Views they will be properly themed.</p></li>
+<li><p><code>ThumbnailUtils</code> &ndash; Helps create thumbnails; in general I&rsquo;d just use whatever image library was already in place (e.g. Picasso or Volley), but it can also create video thumbnails!</p></li>
+<li><p><code>Context.getExternalFilesDir()</code> &ndash; While you do have permission to write anywhere on the SD card if you ask for it, it&rsquo;s much more polite to write your data in the correct designated folder. That way it gets cleaned up and users get a common experience. Additionally, as of Kit Kat you can write to this folder without permission, and each user has their own external files dir.</p></li>
+<li><p><code>SparseArray</code> &ndash; A more efficient version of Map&lt;Integer, Object>. Be sure to check out sister classes SparseBooleanArray, SparseIntArray and SparseLongArray as well.</p></li>
+<li><p><code>PackageManager.setComponentEnabledSetting()</code> &ndash; Lets you enable/disable components in your app&rsquo;s manifest. What&rsquo;s nice here is being able to shut off unnecessary functionality &ndash; for example, a BroadcastReceiver that is unnecessary due to the current app configuration.</p></li>
+<li><p><code>SQLiteDatabase.yieldIfContendedSafely()</code> &ndash; Lets you temporarily stop a db transaction so you don&rsquo;t tie up too much of the system.</p></li>
+<li><p><code>Environment.getExternalStoragePublicDirectory()</code> &ndash; Again, users like a consistent experience with their SD card; using this method will grab the correct directory for placing typed files (music, pictures, etc.) on their drive.</p></li>
+<li><p><code>View.generateViewId()</code> &ndash; Every once in a while I&rsquo;ve wanted to dynamically generate view IDs. The problem is ensuring you aren&rsquo;t clobbering existing IDs (or other generated ones).</p></li>
+<li><p><code>ActivityManager.clearApplicationUserData()</code> &ndash; A reset button for your app. Perhaps the easiest way to log out a user, ever.</p></li>
+<li><p><code>Context.createConfigurationContext()</code> &ndash; Customize your configuration context. Common problem I&rsquo;ve run into: forcing part of an app to render in a particular locale (not that I normally condone this sort of behavior, but you never know). This would make it a lot easier to do so.</p></li>
+<li><p><code>ActivityOptions</code> &ndash; Nice custom animations when moving between Activities. ActivityOptionsCompat is good for backwards compatible functionality.</p></li>
+<li><p><code>AdapterViewFlipper.fyiWillBeAdvancedByHostKThx()</code> &ndash; Because it&rsquo;s funny and for no other reason. There are other amusing tidbits in AOSP (like GRAVITY_DEATH_STAR_I) but unlike those this one is actually useful.</p></li>
+<li><p><code>ViewParent.requestDisallowInterceptTouchEvent()</code> &ndash; The Android touch event system defaults handle what you want most of the time, but sometimes you need this method to wrest event control from parents. (By the way, if you want to know about the touch system, this talk is amazing.)</p></li>
+</ul>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Android Context]]></title>
@@ -943,58 +1138,6 @@ handler = new Handler();
 <p>线程间通信: 有了以上的叙述, 线程间的通信也就好理解了. 假如一个handler关联了A线程上的消息队列, 那么我们可以在B线程上调用handler的相关方法向A线程上的消息队列压入一个Message, 这个Message将在A线程上得到处理.</p>
 
 <p>REF:<a href="http://mindtherobot.com/blog/159/android-guts-intro-to-loopers-and-handlers/">Android Guts: Intro to Loopers and Handlers</a></p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Android反编译]]></title>
-    <link href="http://Solarex.github.io/blog/2014/10/12/android-decompile/"/>
-    <updated>2014-10-12T09:21:00+08:00</updated>
-    <id>http://Solarex.github.io/blog/2014/10/12/android-decompile</id>
-    <content type="html"><![CDATA[<p>有时候在Google Play Store看到一些有趣的应用，或者对有些应用的资源图片之类的很感兴趣，这时候就需要用到Android反编译APK的一些工具了。</p>
-
-<!-- more -->
-
-
-<p>在Google Play上安装应用默认安装完成后是不保留应用apk文件的，要下载apk文件，可以从<a href="http://apkleecher.com/">Online APK Downloader</a>或<a href="http://apps.evozi.com/apk-downloader/">Apk Downloader</a>下载。</p>
-
-<p>其实反编译APK主要用到3个工具，<a href="https://code.google.com/p/android-apktool/">apktool</a>用来获取资源文件，<a href="https://code.google.com/p/dex2jar/">dex2jar</a>用来将dex文件转换为jar文件格式，<a href="http://jd.benow.ca/">jd-gui</a>用来查看jar文件中源码。</p>
-
-<ul>
-<li>获取资源文件<code>java -jar apktool.jar d example.apk</code></li>
-<li>获取jar文件</li>
-</ul>
-
-
-<p><code>bash
-mv example.apk example.zip
-unzip example.zip
-dex2jar.sh classes.dex
-</code></p>
-
-<ul>
-<li>使用jd-dui查看jar文件<code>jd-gui classes.jar</code></li>
-</ul>
-
-
-<p>上述工具在linux平台下的我已经打包了，可以在<a href="http://Solarex.github.io/downloads/files/decompile.tgz">这里</a>下载。</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[[Guides]Animation and Graphics]]></title>
-    <link href="http://Solarex.github.io/blog/2014/09/28/android-guide-animation-and-graphics/"/>
-    <updated>2014-09-28T06:21:00+08:00</updated>
-    <id>http://Solarex.github.io/blog/2014/09/28/android-guide-animation-and-graphics</id>
-    <content type="html"><![CDATA[<center><p><img src="http://Solarex.github.io/images/android_robot.png" width="255" height="300"></p></center>
-
-
-<p>Android provides a variety of powerful APIs for applying animation to UI elements and drawing custom 2D and 3D graphics.</p>
-
-<!-- more -->
-
-
-<p>// todo</p>
 ]]></content>
   </entry>
   

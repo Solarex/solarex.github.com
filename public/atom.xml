@@ -4,7 +4,7 @@
   <title><![CDATA[Solarex's Blog]]></title>
   <link href="http://Solarex.github.io/atom.xml" rel="self"/>
   <link href="http://Solarex.github.io/"/>
-  <updated>2014-10-16T14:45:04+08:00</updated>
+  <updated>2014-10-19T19:22:22+08:00</updated>
   <id>http://Solarex.github.io/</id>
   <author>
     <name><![CDATA[Solarex]]></name>
@@ -12,6 +12,964 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[The Hidden Pitfalls of AsyncTask]]></title>
+    <link href="http://Solarex.github.io/blog/2014/10/19/android-asynctask-pitfalls/"/>
+    <updated>2014-10-19T15:56:00+08:00</updated>
+    <id>http://Solarex.github.io/blog/2014/10/19/android-asynctask-pitfalls</id>
+    <content type="html"><![CDATA[<p><center><img src="http://Solarex.github.io/images/android_logo.jpg"/></center></p>
+
+
+<p>I originally wrote this article when I was (foolishly) still using AsyncTasks. Nowadays I simply consider it a mistake in all cases. As you&rsquo;ll see from the original article, there are a lot of problems with it &ndash; and there are much better solutions.</p>
+
+<p>My preferred alternative these days are combining <a href="https://github.com/Netflix/RxJava">RxJava</a> with schedulers. You get the same effect as an <code>AsyncTask</code> with none of the problems, plus you get an awesome framework in addition. I know, recommending a library to solve a problem is irritating, but RxJava is worth looking at for many reasons.</p>
+
+<p>When <code>AsyncTask</code> was introduced to Android, it was labeled as “<a href="http://android-developers.blogspot.com/2009/05/painless-threading.html">Painless Threading</a>.” Its goal was to make background Threads which could interact with the UI thread easier. It was successful on that count, but it’s not exactly painless – there are a number of cases where <code>AsyncTask</code> is not a silver bullet. It is easy to blindly use <code>AsyncTask</code> without realizing what can go wrong if not handled with care. Below are some of the problems that can arise when using <code>AsyncTask</code> without fully understanding it.</p>
+
+<!-- more -->
+
+
+<h2>AsyncTask and Rotation</h2>
+
+<p>AsyncTask’s primary goal is to make it easy to run a Thread in the background that can later interact with the UI thread. Therefore the most common use case is to have an <code>AsyncTask</code> run a time-consuming operation that updates a portion of the UI when it’s completed (in <code>AsyncTask.onPostExecute()</code>).</p>
+
+<p>This works great… until you rotate the screen. <strong>When an app is rotated, the entire <code>Activity</code> is destroyed and recreated. When the Activity is restarted, your AsyncTask’s reference to the <code>Activity</code> is invalid, so <code>onPostExecute()</code> will have no effect on the new Activity.</strong> This can be confusing if you are implicitly referencing the current Activity by having AsyncTask as an inner class of the Activity.</p>
+
+<p>The usual solution to this problem is to hold onto a reference to AsyncTask that lasts between configuration changes, which updates the target Activity as it restarts. There are a variety of ways to do this, though they either boil down to using a global holder (such as in the <code>Application</code> object) or passing it through <code>Activity.onRetainNonConfigurationInstance()</code>. For a Fragment-based system, you could use a retained Fragment (via <code>Fragment.setRetainedInstance(true)</code>) to store running AsyncTasks.</p>
+
+<h2>AsyncTasks and the Lifecycle</h2>
+
+<p>Along the same lines as above, it is a misconception to think that just because the Activity that originally spawned the <code>AsyncTask</code> is dead, the <code>AsyncTask</code> is as well. It will continue running on its merry way even if you exit the entire application. <strong>The only way that an <code>AsyncTask</code> finishes early is if it is canceled via <code>AsyncTask.cancel()</code>.</strong></p>
+
+<p>This means that you have to manage the cancellation of AsyncTasks yourself; otherwise you run the risk of bogging down your app with unnecessary background tasks, or of leaking memory. When you know you will no longer need an <code>AsyncTask</code>, be sure to cancel it so that it doesn’t cause any headaches later in the execution of your app.</p>
+
+<h2>Cancelling AsyncTasks</h2>
+
+<p>Suppose you’ve got a search query that runs in an <code>AsyncTask</code>. The user may be able to change the search parameters while the <code>AsyncTask</code> is running, so you call <code>AsyncTask.cancel()</code> and then fire up a new <code>AsyncTask</code> for the next query. <strong>This seems to work… until you check the logs and realize that your <code>AsyncTask</code>s all ran till completion, regardless of whether you called <code>cancel()</code> or not!</strong> This even happens if you pass mayInterruptIfRunning as true – what’s going on?</p>
+
+<p>The problem is that there’s a misconception about what <code>AsyncTask.cancel()</code> actually does. It does not kill the Thread with no regard for the consequences! All it does is set the <code>AsyncTask</code> to a “cancelled” state. <strong>It’s up to you to check whether the AsyncTask has been canceled so that you can halt your operation</strong>. As for mayInterruptIfRunning – all it does is send an <code>interrupt()</code> to the running Thread. In the case that your Thread is uninterruptible, then it won’t stop the Thread at all.There are two simple solutions that cover most situations: Either check <code>AsyncTask.isCancelled()</code> on a regular basis during your long-running operation, or keep your Thread interruptible. Either way, when you call <code>AsyncTask.cancel()</code> these methods should prevent your operation from running longer than necessary.</p>
+
+<p>This advice doesn’t always work, though – what if you’re calling a long-running method that is uninterruptible (such as <code>BitmapFactory.decodeStream()</code>)? The only success I’ve had in this situation is to create a situation which causes an Exception to be thrown (in this case, prematurely closing the stream that BitmapFactory was using). This meant that <code>cancel()</code> alone wouldn’t solve the problem – outside intervention was required.</p>
+
+<h2>Limitations on Concurrent AsyncTasks</h2>
+
+<p>I’m not encouraging people to start hundreds of threads in the background; however, it is worth noting that there are some limitations on the number of <code>AsyncTask</code>s that you can start. The modern <code>AsyncTask</code> is limited to 128 concurrent tasks, with an additional queue of 10 tasks (if supporting Android 1.5, it’s a limit of ten tasks at a time, with a maximum queue of 10 tasks). That means that if you queue up more than 138 tasks before they can complete, your app will crash. Most often I see this problem when people use <code>AsyncTask</code>s to load Bitmaps from the net.</p>
+
+<p>If you are finding yourself running up against these limits, you should start by rethinking your design that calls for so many background threads. Alternatively, you could setup a more intelligent queue for your tasks so that you’re not starting them all at once. If you’re desperate, you can grab a copy of <code>AsyncTask</code> and adjust the pool sizes in the code itself.</p>
+
+<ul>
+<li><a href="http://blog.danlew.net/2014/06/21/the-hidden-pitfalls-of-asynctask/">The Hidden Pitfalls of AsyncTask</a></li>
+</ul>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Android Tips]]></title>
+    <link href="http://Solarex.github.io/blog/2014/10/19/android-tips/"/>
+    <updated>2014-10-19T13:00:00+08:00</updated>
+    <id>http://Solarex.github.io/blog/2014/10/19/android-tips</id>
+    <content type="html"><![CDATA[<p><center><img src="http://Solarex.github.io/images/android_training.jpg"/></center></p>
+
+
+<ul>
+<li><a href="#overview">Android Tips and Tricks</a>
+
+<ul>
+<li><a href="#part1">Part I</a></li>
+<li><a href="#part2">Part II</a></li>
+<li><a href="#part3">Part III</a></li>
+<li><a href="#part4">Part IV</a></li>
+<li><a href="#part5">Part V</a></li>
+</ul>
+</li>
+</ul>
+
+
+<h2 id="overview">Android Tips and Tricks</h2>
+
+
+
+
+<h3 id="part1">Part I</h3>
+
+
+<ul>
+<li><p><code>Activity.startActivities()</code> &ndash; Nice for launching to the middle of an app flow.</p></li>
+<li><p><code>TextUtils.isEmpty()</code> &ndash; Simple utility I use everywhere.</p></li>
+<li><p><code>Html.fromHtml()</code> &ndash; Quick method for formatting Html. It&rsquo;s not particularly fast so I wouldn&rsquo;t use it constantly (e.g., don&rsquo;t use it just to bold part of a string &ndash; construct the Spannable manually instead), but it&rsquo;s fine for rendering text obtained from the web.</p></li>
+<li><p><code>TextView.setError()</code> &ndash; Nice UI when validating user input.</p></li>
+<li><p><code>Build.VERSION_CODES</code> &ndash; Not only is it handy for routing code, it&rsquo;s also summarizes behavioral differences between each version of Android.</p></li>
+</ul>
+
+
+<!-- more -->
+
+
+<ul>
+<li><p><code>Log.getStackTraceString()</code> &ndash; Convenience utility for logging.</p></li>
+<li><p><code>LayoutInflater.from()</code> &ndash; Wraps the long-winded getSystemService() call in a simple utility.</p></li>
+<li><p><code>ViewConfiguration.getScaledTouchSlop()</code> &ndash; Using the values provided in ViewConfiguration ensures all touch interaction feels consistent across the OS.</p></li>
+<li><p><code>PhoneNumberUtils.convertKeypadLettersToDigits</code> &ndash; Makes handling phone number data a snap, as some companies provide them as letters.</p></li>
+<li><p><code>Context.getCacheDir()</code> &ndash; Use the cache dir for caching data. Simple enough but some don&rsquo;t know it exists.</p></li>
+<li><p><code>ArgbEvaluator</code> &ndash; Transition from one color to another. As was pointed out by Chris Banes, this class creates a lot of autoboxing churn so it&rsquo;d be better to just rip out the logic and run it yourself.</p></li>
+<li><p><code>ContextThemeWrapper</code> &ndash; Nice class for changing the theme of a Context on the fly.</p></li>
+<li><p><code>Space</code> &ndash; Lightweight View which skips drawing. Great for any situation that might require a placeholder.</p></li>
+<li><p><code>ValueAnimator.reverse()</code> &ndash; I love this for canceling animations smoothly.</p></li>
+</ul>
+
+
+<h3 id="part2">Part II</h3>
+
+
+<ul>
+<li><p><code>DateUtils.formatDateTime()</code> &ndash; One-stop shop for localized date/time strings.</p></li>
+<li><p><code>AlarmManager.setInexactRepeating</code> &ndash; Saves on battery life by grouping multiple alarms together. Even if you&rsquo;re only calling a single alarm this is better (just make sure to call AlarmManager.cancel() when done).</p></li>
+<li><p><code>Formatter.formatFileSize()</code> &ndash; A localized file size formatter.</p></li>
+<li><p><code>ActionBar.hide()/.show()</code> &ndash; Animates the action bar hiding/showing. Lets you switch to full-screen gracefully.</p></li>
+<li><p><code>Linkify.addLinks()</code> &ndash; If you need to control how links are added to text.</p></li>
+<li><p><code>StaticLayout</code> &ndash; Useful for measuring text that you&rsquo;re about to render into a custom View.</p></li>
+<li><p><code>Activity.onBackPressed()</code> &ndash; Easy way to manage the back button. While I wouldn&rsquo;t normally hijack back, sometimes it&rsquo;s necessary to make a flow work.</p></li>
+<li><p><code>GestureDetector</code> &ndash; Listens to motion events and fires listener events for common actions (like clicks, scrolls and flings). So much easier than implementing your own motion event system.</p></li>
+<li><p><code>DrawFilter</code> &ndash; Lets you manipulate a Canvas even if you&rsquo;re not calling the draw commands. For example, you could create a custom View which sets a DrawFilter which anti-aliases the draws of the parent View.</p></li>
+<li><p><code>ActivityManager.getMemoryClass()</code> &ndash; Gives you an idea of how much memory the device has. Great for figuring out how large to make your caches.</p></li>
+<li><p><code>SystemClock.sleep()</code> &ndash; Convenience method which guarantees sleeping the amount of time entered. I use it for debugging and simulating network delays.</p></li>
+<li><p><code>ViewStub</code> &ndash; A View that initially does nothing, but can later inflate a layout. This is a great placeholder for lazy-loading Views. Its only drawback is that it doesn&rsquo;t support <merge> tags, so it can create unnecessary nesting in the hierarchy if you&rsquo;re not careful.</p></li>
+<li><p><code>DisplayMetrics.density</code> &ndash; You can get the density of the screen this way. Most of the time you&rsquo;ll be better off letting the system scale dimensions automatically, but occasionally it&rsquo;s useful to have more control (especially with custom Views).</p></li>
+<li><p><code>Pair.create()</code> &ndash; Handy class, handy creator method.</p></li>
+</ul>
+
+
+<h3 id="part3">Part III</h3>
+
+
+<ul>
+<li><p><code>UrlQuerySanitizer</code> &ndash; Sanitize URLs with this handy utility.</p></li>
+<li><p><code>Fragment.setArguments</code> &ndash; Since you can&rsquo;t use a Fragment constructor w/ parameters this is the second best thing. Arguments set before creation last throughout the entire Fragment&rsquo;s lifecycle (even if it&rsquo;s destroyed/recreated due to a configuration change).</p></li>
+<li><p><code>DialogFragment.setShowsDialog()</code> &ndash; Neat trick &ndash; DialogFragments can act like normal Fragments! That way you can have the same Fragment do double-duty. I usually create a third View generation method that both onCreateView() and onCreateDialog() call into when creating a dual-purpose Fragment.</p></li>
+<li><p><code>FragmentManager.enableDebugLogging()</code> &ndash; Help when you need it when figuring out Fragments.</p></li>
+<li><p><code>LocalBroadcastManager</code> &ndash; Safer than global broadcasts. Simple and quick. Event buses like otto may make more sense for your use case though.</p></li>
+<li><p><code>PhoneNumberUtils.formatNumber()</code> &ndash; Let someone else figure out this problem for you.</p></li>
+<li><p><code>Region.op()</code> &ndash; I found this useful for comparing two generic areas before rendering. If I&rsquo;ve got two Paths, do they overlap? I can figure that out with this method.</p></li>
+<li><p><code>Application.registerActivityLifecycleCallbacks</code> &ndash; Though lacking documentation I feel this is self-evident. Just a handy tool.</p></li>
+<li><p><code>versionNameSuffix</code> &ndash; This gradle setting lets you modify the versionName field in your manifest based on different build types. For example, I would setup my debug build type to end in &ldquo;-SNAPSHOT&rdquo;; that way you can easily tell if you&rsquo;re on a debug build or release build.</p></li>
+<li><p><code>CursorJoiner</code> &ndash; If you&rsquo;re using a single database then a join in SQL is the natural solution, but what if you&rsquo;ve received data from two separate ContentProviders? In that case CursorJoiner can be helpful.</p></li>
+<li><p><code>Genymotion</code> &ndash; A much faster Android emulator. I use it all day.</p></li>
+<li><p><code>-nodpi</code> &ndash; Most qualifiers (-mdpi, -hdpi, -xhdpi, etc.) automatically scale assets/dimensions if you&rsquo;re on a device that isn&rsquo;t explicitly defined. Sometimes you just want something consistent though; in that case use -nodpi.</p></li>
+<li><p><code>BroadcastRecevier.setDebugUnregister()</code> &ndash; Another handy debugging tool.</p></li>
+<li><p><code>Activity.recreate()</code> &ndash; Forces an Activity to recreate itself for whatever reason.</p></li>
+<li><p><code>PackageManager.checkSignatures()</code> &ndash; You can use this to find out if two apps (presumably your own) are installed at the same time. Without checking signatures someone could imitate your app easily by just using the same package name.</p></li>
+</ul>
+
+
+<h3 id="part4">Part IV</h3>
+
+
+<ul>
+<li><p><code>Activity.isChangingConfigurations()</code> &ndash; Often times you don&rsquo;t need to do quite as much saving of state if all that&rsquo;s happening is the configuration is changing.</p></li>
+<li><p><code>SearchRecentSuggestionsProvider</code> &ndash; A quick and easy way to create a recents suggestion provider.</p></li>
+<li><p><code>ViewTreeObserver</code> &ndash; This is an amazing utility; it can be grabbed from any View and used to monitor the state of the View hierarchy. My most often use for it is to determine when Views have been measured (usually for animation purposes).</p></li>
+<li><p><code>org.gradle.daemon=true</code> &ndash; Helps reduce the startup time of of Gradle builds. Only really applies to command-line builds as Android Studio already tries to use the daemon.</p></li>
+<li><p><code>DatabaseUtils</code> &ndash; A variety of useful tools for database operations.</p></li>
+<li><p><code>android:weightSum</code> (LinearLayout) &ndash; Want to use layout weights, but don&rsquo;t want them to fill the entire LinearLayout? That&rsquo;s what weightSum can do by defining the total weight.</p></li>
+<li><p><code>android:duplicateParentState</code> (View) &ndash; Makes the child duplicate the state of the parent &ndash; for example, if you&rsquo;ve got a ViewGroup that is clickable, then you can use this to make its children change state when it is clicked.</p></li>
+<li><p><code>android:clipChildren</code> (ViewGroup) &ndash; If disabled, this lets the children of a ViewGroup draw outside their parent&rsquo;s bounds. Great for animations.</p></li>
+<li><p><code>android:fillViewport</code> (ScrollView) &ndash; Best explained in this post, this helps solve a problem with ScrollViews that may not always have enough content to actually fill the height of the screen.</p></li>
+<li><p><code>android:tileMode</code> (BitmapDrawable) &ndash; Lets you create repeated patterns with images.</p></li>
+<li><p><code>android:enterFadeDuration/android:exitFadeDuration</code> (Drawables) &ndash; For Drawables that have multiple states, this lets you define a fade before/after the drawable shows.</p></li>
+<li><p><code>android:scaleType</code> (ImageView) &ndash; Defines how to scale/crop a drawable within an ImageView. &ldquo;centerCrop&rdquo; and &ldquo;centerInside&rdquo; are regular settings for me.</p></li>
+<li><p><code>&lt;merge&gt;</code> &ndash; Lets you include a layout in another without creating a duplicate ViewGroup (more info). Also good for custom ViewGroups; you can inflate a layout with <merge> inside the constructor to define its children automatically.</p></li>
+<li><p><code>AtomicFile</code> &ndash; Manipulates a file atomically by using a backup file. I&rsquo;ve written this myself before, it&rsquo;s good to have an official (and better-written) version of it.</p></li>
+</ul>
+
+
+<h3 id="part5">Part V</h3>
+
+
+<ul>
+<li><p><code>ViewDragHelper</code> &ndash; Dragging Views is a complex problem and this class helps a lot. If you want an example, DrawerLayout uses it for swiping. Flavient Laurent also wrote an excellent article about it.</p></li>
+<li><p><code>PopupWindow</code> &ndash; Used all around Android without you even realizing it (action bars, autocomplete, edittext errors), this class is the primary method for creating floating content.</p></li>
+<li><p><code>ActionBar.getThemedContext()</code> &ndash; ActionBar theming is surprisingly complex (and can be different from the theming of the rest of the Activity). This gets you a Context so if you create your own Views they will be properly themed.</p></li>
+<li><p><code>ThumbnailUtils</code> &ndash; Helps create thumbnails; in general I&rsquo;d just use whatever image library was already in place (e.g. Picasso or Volley), but it can also create video thumbnails!</p></li>
+<li><p><code>Context.getExternalFilesDir()</code> &ndash; While you do have permission to write anywhere on the SD card if you ask for it, it&rsquo;s much more polite to write your data in the correct designated folder. That way it gets cleaned up and users get a common experience. Additionally, as of Kit Kat you can write to this folder without permission, and each user has their own external files dir.</p></li>
+<li><p><code>SparseArray</code> &ndash; A more efficient version of Map&lt;Integer, Object>. Be sure to check out sister classes SparseBooleanArray, SparseIntArray and SparseLongArray as well.</p></li>
+<li><p><code>PackageManager.setComponentEnabledSetting()</code> &ndash; Lets you enable/disable components in your app&rsquo;s manifest. What&rsquo;s nice here is being able to shut off unnecessary functionality &ndash; for example, a BroadcastReceiver that is unnecessary due to the current app configuration.</p></li>
+<li><p><code>SQLiteDatabase.yieldIfContendedSafely()</code> &ndash; Lets you temporarily stop a db transaction so you don&rsquo;t tie up too much of the system.</p></li>
+<li><p><code>Environment.getExternalStoragePublicDirectory()</code> &ndash; Again, users like a consistent experience with their SD card; using this method will grab the correct directory for placing typed files (music, pictures, etc.) on their drive.</p></li>
+<li><p><code>View.generateViewId()</code> &ndash; Every once in a while I&rsquo;ve wanted to dynamically generate view IDs. The problem is ensuring you aren&rsquo;t clobbering existing IDs (or other generated ones).</p></li>
+<li><p><code>ActivityManager.clearApplicationUserData()</code> &ndash; A reset button for your app. Perhaps the easiest way to log out a user, ever.</p></li>
+<li><p><code>Context.createConfigurationContext()</code> &ndash; Customize your configuration context. Common problem I&rsquo;ve run into: forcing part of an app to render in a particular locale (not that I normally condone this sort of behavior, but you never know). This would make it a lot easier to do so.</p></li>
+<li><p><code>ActivityOptions</code> &ndash; Nice custom animations when moving between Activities. ActivityOptionsCompat is good for backwards compatible functionality.</p></li>
+<li><p><code>AdapterViewFlipper.fyiWillBeAdvancedByHostKThx()</code> &ndash; Because it&rsquo;s funny and for no other reason. There are other amusing tidbits in AOSP (like GRAVITY_DEATH_STAR_I) but unlike those this one is actually useful.</p></li>
+<li><p><code>ViewParent.requestDisallowInterceptTouchEvent()</code> &ndash; The Android touch event system defaults handle what you want most of the time, but sometimes you need this method to wrest event control from parents. (By the way, if you want to know about the touch system, this talk is amazing.)</p></li>
+</ul>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[理解OAuth2.0]]></title>
+    <link href="http://Solarex.github.io/blog/2014/10/18/oauth-2-dot-0/"/>
+    <updated>2014-10-18T15:38:00+08:00</updated>
+    <id>http://Solarex.github.io/blog/2014/10/18/oauth-2-dot-0</id>
+    <content type="html"><![CDATA[<p><center><img src="http://Solarex.github.io/images/oauth.png"/></center></p>
+
+
+<p><a href="http://en.wikipedia.org/wiki/OAuth">OAuth</a>是一个关于授权（authorization）的开放网络标准，在全世界得到广泛应用，目前的版本是2.0版。本文对OAuth 2.0的设计思路和运行流程，做一个简明通俗的解释，主要参考材料为<a href="http://www.rfcreader.com/#rfc6749">RFC 6749</a>。</p>
+
+<h2>应用场景</h2>
+
+<p>为了理解OAuth的适用场合，让我举一个假设的例子。有一个&#8221;云冲印&#8221;的网站，可以将用户储存在Google的照片，冲印出来。用户为了使用该服务，必须让&#8221;云冲印&#8221;读取自己储存在Google上的照片。</p>
+
+<p><center><img src="http://Solarex.github.io/images/google-print.png"/></center></p>
+
+
+<p>问题是只有得到用户的授权，Google才会同意&#8221;云冲印&#8221;读取这些照片。那么，&#8221;云冲印&#8221;怎样获得用户的授权呢？传统方法是，用户将自己的Google用户名和密码，告诉&#8221;云冲印&#8221;，后者就可以读取用户的照片了。这样的做法有以下几个严重的缺点。</p>
+
+<pre><code>（1）"云冲印"为了后续的服务，会保存用户的密码，这样很不安全。
+（2）Google不得不部署密码登录，而我们知道，单纯的密码登录并不安全。
+（3）"云冲印"拥有了获取用户储存在Google所有资料的权力，用户没法限制"云冲印"获得授权的范围和有效期。
+（4）用户只有修改密码，才能收回赋予"云冲印"的权力。但是这样做，会使得其他所有获得用户授权的第三方应用程序全部失效。
+（5）只要有一个第三方应用程序被破解，就会导致用户密码泄漏，以及所有被密码保护的数据泄漏。
+</code></pre>
+
+<p>OAuth就是为了解决上面这些问题而诞生的。</p>
+
+<!-- more -->
+
+
+<h2>名词定义</h2>
+
+<p>在详细讲解OAuth 2.0之前，需要了解几个专用名词。它们对读懂后面的讲解，尤其是几张图，至关重要。</p>
+
+<pre><code>（1） Third-party application：第三方应用程序，本文中又称"客户端"（client），即上一节例子中的"云冲印"。
+（2）HTTP service：HTTP服务提供商，本文中简称"服务提供商"，即上一节例子中的Google。
+（3）Resource Owner：资源所有者，本文中又称"用户"（user）。
+（4）User Agent：用户代理，本文中就是指浏览器。
+（5）Authorization server：认证服务器，即服务提供商专门用来处理认证的服务器。
+（6）Resource server：资源服务器，即服务提供商存放用户生成的资源的服务器。它与认证服务器，可以是同一台服务器，也可以是不同的服务器。
+</code></pre>
+
+<p>知道了上面这些名词，就不难理解，OAuth的作用就是让&#8221;客户端&#8221;安全可控地获取&#8221;用户&#8221;的授权，与&#8221;服务商提供商&#8221;进行互动。</p>
+
+<h2>OAuth的思路</h2>
+
+<p>OAuth在&#8221;客户端&#8221;与&#8221;服务提供商&#8221;之间，设置了一个授权层（authorization layer）。&#8221;客户端&#8221;不能直接登录&#8221;服务提供商&#8221;，只能登录授权层，以此将用户与客户端区分开来。&#8221;客户端&#8221;登录授权层所用的令牌（token），与用户的密码不同。用户可以在登录的时候，指定授权层令牌的权限范围和有效期。&#8221;客户端&#8221;登录授权层以后，&#8221;服务提供商&#8221;根据令牌的权限范围和有效期，向&#8221;客户端&#8221;开放用户储存的资料。</p>
+
+<h2>运行流程</h2>
+
+<p>OAuth 2.0的运行流程如下图，摘自RFC 6749。</p>
+
+<p><center><img src="http://Solarex.github.io/images/oauth-flow.png"/></center></p>
+
+
+<pre><code>（A）用户打开客户端以后，客户端要求用户给予授权。
+（B）用户同意给予客户端授权。
+（C）客户端使用上一步获得的授权，向认证服务器申请令牌。
+（D）认证服务器对客户端进行认证以后，确认无误，同意发放令牌。
+（E）客户端使用令牌，向资源服务器申请获取资源。
+（F）资源服务器确认令牌无误，同意向客户端开放资源。
+</code></pre>
+
+<p>不难看出来，上面六个步骤之中，B是关键，即用户怎样才能给于客户端授权。有了这个授权以后，客户端就可以获取令牌，进而凭令牌获取资源。下面一一讲解客户端获取授权的四种模式。</p>
+
+<h2>客户端的授权模式</h2>
+
+<p>客户端必须得到用户的授权（authorization grant），才能获得令牌（access token）。OAuth 2.0定义了四种授权方式。</p>
+
+<ul>
+<li>授权码模式（authorization code）</li>
+<li>简化模式（implicit）</li>
+<li>密码模式（resource owner password credentials）</li>
+<li>客户端模式（client credentials）</li>
+</ul>
+
+
+<h3>授权码模式</h3>
+
+<p>授权码模式（authorization code）是功能最完整、流程最严密的授权模式。它的特点就是通过客户端的后台服务器，与&#8221;服务提供商&#8221;的认证服务器进行互动。</p>
+
+<p><center><img src="http://Solarex.github.io/images/auth-code.png"/></center></p>
+
+
+<p>它的步骤如下：</p>
+
+<pre><code>（A）用户访问客户端，后者将前者导向认证服务器。
+（B）用户选择是否给予客户端授权。
+（C）假设用户给予授权，认证服务器将用户导向客户端事先指定的"重定向URI"（redirection URI），同时附上一个授权码。
+（D）客户端收到授权码，附上早先的"重定向URI"，向认证服务器申请令牌。这一步是在客户端的后台的服务器上完成的，对用户不可见。
+（E）认证服务器核对了授权码和重定向URI，确认无误后，向客户端发送访问令牌（access token）和更新令牌（refresh token）。
+</code></pre>
+
+<p>下面是上面这些步骤所需要的参数。A步骤中，客户端申请认证的URI，包含以下参数：</p>
+
+<ul>
+<li>response_type：表示授权类型，必选项，此处的值固定为&#8221;code&#8221;</li>
+<li>client_id：表示客户端的ID，必选项</li>
+<li>redirect_uri：表示重定向URI，可选项</li>
+<li>scope：表示申请的权限范围，可选项</li>
+<li>state：表示客户端的当前状态，可以指定任意值，认证服务器会原封不动地返回这个值。</li>
+</ul>
+
+
+<p>下面是一个例子。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>GET /authorize?response_type=code&client_id=s6BhdRkqt3&state=xyz
+</span><span class='line'>        &redirect_uri=https%3A%2F%2Fclient%2Eexample%2Ecom%2Fcb HTTP/1.1
+</span><span class='line'>Host: server.example.com</span></code></pre></td></tr></table></div></figure>
+
+
+<p>C步骤中，服务器回应客户端的URI，包含以下参数：</p>
+
+<ul>
+<li>code：表示授权码，必选项。该码的有效期应该很短，通常设为10分钟，客户端只能使用该码一次，否则会被授权服务器拒绝。该码与客户端ID和重定向URI，是一一对应关系。</li>
+<li>state：如果客户端的请求中包含这个参数，认证服务器的回应也必须一模一样包含这个参数。</li>
+</ul>
+
+
+<p>下面是一个例子。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>HTTP/1.1 302 Found
+</span><span class='line'>Location: https://client.example.com/cb?code=SplxlOBeZQQYbYS6WxSbIA
+</span><span class='line'>          &state=xyz</span></code></pre></td></tr></table></div></figure>
+
+
+<p>D步骤中，客户端向认证服务器申请令牌的HTTP请求，包含以下参数：</p>
+
+<ul>
+<li>grant_type：表示使用的授权模式，必选项，此处的值固定为&#8221;authorization_code&#8221;。</li>
+<li>code：表示上一步获得的授权码，必选项。</li>
+<li>redirect_uri：表示重定向URI，必选项，且必须与A步骤中的该参数值保持一致。</li>
+<li>client_id：表示客户端ID，必选项。</li>
+</ul>
+
+
+<p>下面是一个例子。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>POST /token HTTP/1.1
+</span><span class='line'>Host: server.example.com
+</span><span class='line'>Authorization: Basic czZCaGRSa3F0MzpnWDFmQmF0M2JW
+</span><span class='line'>Content-Type: application/x-www-form-urlencoded
+</span><span class='line'>
+</span><span class='line'>grant_type=authorization_code&code=SplxlOBeZQQYbYS6WxSbIA
+</span><span class='line'>&redirect_uri=https%3A%2F%2Fclient%2Eexample%2Ecom%2Fcb</span></code></pre></td></tr></table></div></figure>
+
+
+<p>E步骤中，认证服务器发送的HTTP回复，包含以下参数：</p>
+
+<ul>
+<li>access_token：表示访问令牌，必选项。</li>
+<li>token_type：表示令牌类型，该值大小写不敏感，必选项，可以是bearer类型或mac类型。</li>
+<li>expires_in：表示过期时间，单位为秒。如果省略该参数，必须其他方式设置过期时间。</li>
+<li>refresh_token：表示更新令牌，用来获取下一次的访问令牌，可选项。</li>
+<li>scope：表示权限范围，如果与客户端申请的范围一致，此项可省略。</li>
+</ul>
+
+
+<p>下面是一个例子。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>HTTP/1.1 200 OK
+</span><span class='line'>Content-Type: application/json;charset=UTF-8
+</span><span class='line'>Cache-Control: no-store
+</span><span class='line'>Pragma: no-cache
+</span><span class='line'>
+</span><span class='line'>{
+</span><span class='line'>    "access_token":"2YotnFZFEjr1zCsicMWpAA",
+</span><span class='line'>    "token_type":"example",
+</span><span class='line'>    "expires_in":3600,
+</span><span class='line'>    "refresh_token":"tGzv3JOkF0XG5Qx2TlKWIA",
+</span><span class='line'>    "example_parameter":"example_value"
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>从上面代码可以看到，相关参数使用JSON格式发送（Content-Type: application/json）。此外，HTTP头信息中明确指定不得缓存。</p>
+
+<h3>简化模式</h3>
+
+<p>简化模式（implicit grant type）不通过第三方应用程序的服务器，直接在浏览器中向认证服务器申请令牌，跳过了&#8221;授权码&#8221;这个步骤，因此得名。所有步骤在浏览器中完成，令牌对访问者是可见的，且客户端不需要认证。</p>
+
+<p><center><img src="http://Solarex.github.io/images/implicit-grant-code.png"/></center></p>
+
+
+<p>它的步骤如下：</p>
+
+<pre><code>（A）客户端将用户导向认证服务器。
+（B）用户决定是否给于客户端授权。
+（C）假设用户给予授权，认证服务器将用户导向客户端指定的"重定向URI"，并在URI的Hash部分包含了访问令牌。
+（D）浏览器向资源服务器发出请求，其中不包括上一步收到的Hash值。
+（E）资源服务器返回一个网页，其中包含的代码可以获取Hash值中的令牌。
+（F）浏览器执行上一步获得的脚本，提取出令牌。
+（G）浏览器将令牌发给客户端。
+</code></pre>
+
+<p>下面是上面这些步骤所需要的参数。</p>
+
+<p>A步骤中，客户端发出的HTTP请求，包含以下参数：</p>
+
+<ul>
+<li>response_type：表示授权类型，此处的值固定为&#8221;token&#8221;，必选项。</li>
+<li>client_id：表示客户端的ID，必选项。</li>
+<li>redirect_uri：表示重定向的URI，可选项。</li>
+<li>scope：表示权限范围，可选项。</li>
+<li>state：表示客户端的当前状态，可以指定任意值，认证服务器会原封不动地返回这个值。
+下面是一个例子。</li>
+</ul>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>GET /authorize?response_type=token&client_id=s6BhdRkqt3&state=xyz
+</span><span class='line'>        &redirect_uri=https%3A%2F%2Fclient%2Eexample%2Ecom%2Fcb HTTP/1.1
+</span><span class='line'>Host: server.example.com</span></code></pre></td></tr></table></div></figure>
+
+
+<p>C步骤中，认证服务器回应客户端的URI，包含以下参数：</p>
+
+<ul>
+<li>access_token：表示访问令牌，必选项。</li>
+<li>token_type：表示令牌类型，该值大小写不敏感，必选项。</li>
+<li>expires_in：表示过期时间，单位为秒。如果省略该参数，必须其他方式设置过期时间。</li>
+<li>scope：表示权限范围，如果与客户端申请的范围一致，此项可省略。</li>
+<li>state：如果客户端的请求中包含这个参数，认证服务器的回应也必须一模一样包含这个参数。</li>
+</ul>
+
+
+<p>下面是一个例子。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>HTTP/1.1 302 Found
+</span><span class='line'>Location: http://example.com/cb#access_token=2YotnFZFEjr1zCsicMWpAA
+</span><span class='line'>            &state=xyz&token_type=example&expires_in=3600</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在上面的例子中，认证服务器用HTTP头信息的Location栏，指定浏览器重定向的网址。注意，在这个网址的Hash部分包含了令牌。根据上面的D步骤，下一步浏览器会访问Location指定的网址，但是Hash部分不会发送。接下来的E步骤，服务提供商的资源服务器发送过来的代码，会提取出Hash中的令牌。</p>
+
+<h3>密码模式</h3>
+
+<p>密码模式（Resource Owner Password Credentials Grant）中，用户向客户端提供自己的用户名和密码。客户端使用这些信息，向&#8221;服务商提供商&#8221;索要授权。在这种模式中，用户必须把自己的密码给客户端，但是客户端不得储存密码。这通常用在用户对客户端高度信任的情况下，比如客户端是操作系统的一部分，或者由一个著名公司出品。而认证服务器只有在其他授权模式无法执行的情况下，才能考虑使用这种模式。</p>
+
+<p><center><img src="http://Solarex.github.io/images/resource-code.png"/></center></p>
+
+
+<p>它的步骤如下：</p>
+
+<pre><code>（A）用户向客户端提供用户名和密码。
+（B）客户端将用户名和密码发给认证服务器，向后者请求令牌。
+（C）认证服务器确认无误后，向客户端提供访问令牌。
+</code></pre>
+
+<p>B步骤中，客户端发出的HTTP请求，包含以下参数：</p>
+
+<ul>
+<li>grant_type：表示授权类型，此处的值固定为&#8221;password&#8221;，必选项。</li>
+<li>username：表示用户名，必选项。</li>
+<li>password：表示用户的密码，必选项。</li>
+<li>scope：表示权限范围，可选项。</li>
+</ul>
+
+
+<p>下面是一个例子。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>POST /token HTTP/1.1
+</span><span class='line'>Host: server.example.com
+</span><span class='line'>Authorization: Basic czZCaGRSa3F0MzpnWDFmQmF0M2JW
+</span><span class='line'>Content-Type: application/x-www-form-urlencoded
+</span><span class='line'>
+</span><span class='line'>grant_type=password&username=johndoe&password=A3ddj3w</span></code></pre></td></tr></table></div></figure>
+
+
+<p>C步骤中，认证服务器向客户端发送访问令牌，下面是一个例子。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>HTTP/1.1 200 OK
+</span><span class='line'>Content-Type: application/json;charset=UTF-8
+</span><span class='line'>Cache-Control: no-store
+</span><span class='line'>Pragma: no-cache
+</span><span class='line'>
+</span><span class='line'>{
+</span><span class='line'>    "access_token":"2YotnFZFEjr1zCsicMWpAA",
+</span><span class='line'>    "token_type":"example",
+</span><span class='line'>    "expires_in":3600,
+</span><span class='line'>    "refresh_token":"tGzv3JOkF0XG5Qx2TlKWIA",
+</span><span class='line'>    "example_parameter":"example_value"
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>上面代码中，各个参数的含义参见《授权码模式》一节。整个过程中，客户端不得保存用户的密码。</p>
+
+<h3>客户端模式</h3>
+
+<p>客户端模式（Client Credentials Grant）指客户端以自己的名义，而不是以用户的名义，向&#8221;服务提供商&#8221;进行认证。严格地说，客户端模式并不属于OAuth框架所要解决的问题。在这种模式中，用户直接向客户端注册，客户端以自己的名义要求&#8221;服务提供商&#8221;提供服务，其实不存在授权问题。</p>
+
+<p><center><img src="http://Solarex.github.io/images/client-grant.png"/></center></p>
+
+
+<p>它的步骤如下：</p>
+
+<pre><code>（A）客户端向认证服务器进行身份认证，并要求一个访问令牌。
+（B）认证服务器确认无误后，向客户端提供访问令牌。
+</code></pre>
+
+<p>A步骤中，客户端发出的HTTP请求，包含以下参数：</p>
+
+<ul>
+<li>granttype：表示授权类型，此处的值固定为&#8221;clientcredentials&#8221;，必选项。</li>
+<li>scope：表示权限范围，可选项。</li>
+</ul>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>POST /token HTTP/1.1
+</span><span class='line'>Host: server.example.com
+</span><span class='line'>Authorization: Basic czZCaGRSa3F0MzpnWDFmQmF0M2JW
+</span><span class='line'>Content-Type: application/x-www-form-urlencoded
+</span><span class='line'>
+</span><span class='line'>grant_type=client_credentials</span></code></pre></td></tr></table></div></figure>
+
+
+<p>认证服务器必须以某种方式，验证客户端身份。
+B步骤中，认证服务器向客户端发送访问令牌，下面是一个例子。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>HTTP/1.1 200 OK
+</span><span class='line'>Content-Type: application/json;charset=UTF-8
+</span><span class='line'>Cache-Control: no-store
+</span><span class='line'>Pragma: no-cache
+</span><span class='line'>
+</span><span class='line'>{
+</span><span class='line'>    "access_token":"2YotnFZFEjr1zCsicMWpAA",
+</span><span class='line'>    "token_type":"example",
+</span><span class='line'>    "expires_in":3600,
+</span><span class='line'>    "example_parameter":"example_value"
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>上面代码中，各个参数的含义参见《授权码模式》一节。</p>
+
+<h3>更新令牌</h3>
+
+<p>如果用户访问的时候，客户端的&#8221;访问令牌&#8221;已经过期，则需要使用&#8221;更新令牌&#8221;申请一个新的访问令牌。
+客户端发出更新令牌的HTTP请求，包含以下参数：</p>
+
+<ul>
+<li>granttype：表示使用的授权模式，此处的值固定为&#8221;refreshtoken&#8221;，必选项。</li>
+<li>refresh_token：表示早前收到的更新令牌，必选项。</li>
+<li>scope：表示申请的授权范围，不可以超出上一次申请的范围，如果省略该参数，则表示与上一次一致。
+下面是一个例子。</li>
+</ul>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>POST /token HTTP/1.1
+</span><span class='line'>Host: server.example.com
+</span><span class='line'>Authorization: Basic czZCaGRSa3F0MzpnWDFmQmF0M2JW
+</span><span class='line'>Content-Type: application/x-www-form-urlencoded
+</span><span class='line'>
+</span><span class='line'>grant_type=refresh_token&refresh_token=tGzv3JOkF0XG5Qx2TlKWIA</span></code></pre></td></tr></table></div></figure>
+
+
+<p>REF:<a href="http://www.ruanyifeng.com/blog/2014/05/oauth_2_0.html">理解OAuth 2.0</a></p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[深入浅出单实例Singleton设计模式]]></title>
+    <link href="http://Solarex.github.io/blog/2014/10/17/java-singleton/"/>
+    <updated>2014-10-17T10:07:00+08:00</updated>
+    <id>http://Solarex.github.io/blog/2014/10/17/java-singleton</id>
+    <content type="html"><![CDATA[<p><center><img src="http://Solarex.github.io/images/java-singleton.png"/></center></p>
+
+
+<h3>前序</h3>
+
+<p>单实例Singleton设计模式可能是被讨论和使用的最广泛的一个设计模式了，这可能也是面试中问得最多的一个设计模式了。这个设计模式主要目的是想在整个系统中只能出现一个类的实例。这样做当然是有必然的，比如你的软件的全局配置信息，或者是一个Factory，或是一个主控类，等等。你希望这个类在整个系统中只能出现一个实例。当然，作为一个技术负责人的你，你当然有权利通过使用非技术的手段来达到你的目的。比如：你在团队内部明文规定，“XX类只能有一个全局实例，如果某人使用两次以上，那么该人将被处于2000元的罚款！”（呵呵），你当然有权这么做。但是如果你的设计的是东西是一个类库，或是一个需要提供给用户使用的API，恐怕你的这项规定将会失效。因为，你无权要求别人会那么做。所以，这就是为什么，我们希望通过使用技术的手段来达成这样一个目的的原因。</p>
+
+<p>本文会带着你深入整个Singleton的世界，当然，我会放弃使用C++语言而改用Java语言，因为使用Java这个语言可能更容易让我说明一些事情。</p>
+
+<!-- more -->
+
+
+<h3>Singleton的教学版本</h3>
+
+<p>这里，我将直接给出一个Singleton的简单实现，因为我相信你已经有这方面的一些基础了。我们姑且把这具版本叫做1.0版</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="c1">// version 1.0</span>
+</span><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">Singleton</span>
+</span><span class='line'><span class="o">{</span>
+</span><span class='line'>    <span class="kd">private</span> <span class="kd">static</span> <span class="kd">final</span> <span class="n">Singleton</span> <span class="n">singleton</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="kd">private</span> <span class="nf">Singleton</span><span class="o">()</span>
+</span><span class='line'>    <span class="o">{</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="kd">static</span> <span class="n">Singleton</span> <span class="nf">getInstance</span><span class="o">()</span>
+</span><span class='line'>    <span class="o">{</span>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(</span><span class="n">singleton</span><span class="o">==</span> <span class="kc">null</span><span class="o">)</span>
+</span><span class='line'>        <span class="o">{</span>
+</span><span class='line'>            <span class="n">singleton</span><span class="o">=</span> <span class="k">new</span> <span class="n">Singleton</span><span class="o">();</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">singleton</span><span class="o">;</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在上面的实例中，我想说明下面几个Singleton的特点：（下面这些东西可能是尽人皆知的，没有什么新鲜的）</p>
+
+<ul>
+<li>私有（private）的构造函数，表明这个类是不可能形成实例了。这主要是怕这个类会有多个实例。</li>
+<li>即然这个类是不可能形成实例，那么，我们需要一个静态的方式让其形成实例：<code>getInstance()</code>。注意这个方法是在new自己，因为其可以访问私有的构造函数，所以他是可以保证实例被创建出来的。</li>
+<li>在<code>getInstance()</code>中，先做判断是否已形成实例，如果已形成则直接返回，否则创建实例。</li>
+<li>所形成的实例保存在自己类中的私有成员中。</li>
+<li>我们取实例时，只需要使用<code>Singleton.getInstance()</code>就行了。</li>
+</ul>
+
+
+<p>当然，如果你觉得知道了上面这些事情后就学成了，那我给你当头棒喝一下了，事情远远没有那么简单。</p>
+
+<h3>Singleton的实际版本</h3>
+
+<p>上面的这个程序存在比较严重的问题，因为是全局性的实例，所以，在多线程情况下，所有的全局共享的东西都会变得非常的危险，这个也一样，在多线程情况下，如果多个线程同时调用<code>getInstance()</code>的话，那么，可能会有多个进程同时通过 (<code>singleton== null</code>)的条件检查，于是，多个实例就创建出来，并且很可能造成内存泄露问题。嗯，熟悉多线程的你一定会说——“我们需要线程互斥或同步”，没错，我们需要这个事情，于是我们的Singleton升级成1.1版，如下所示：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="c1">// version 1.1</span>
+</span><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">Singleton</span>
+</span><span class='line'><span class="o">{</span>
+</span><span class='line'>    <span class="kd">private</span> <span class="kd">static</span> <span class="kd">final</span> <span class="n">Singleton</span> <span class="n">singleton</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="kd">private</span> <span class="nf">Singleton</span><span class="o">()</span>
+</span><span class='line'>    <span class="o">{</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="kd">static</span> <span class="n">Singleton</span> <span class="nf">getInstance</span><span class="o">()</span>
+</span><span class='line'>    <span class="o">{</span>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(</span><span class="n">singleton</span><span class="o">==</span> <span class="kc">null</span><span class="o">)</span>
+</span><span class='line'>        <span class="o">{</span>
+</span><span class='line'>            <span class="kd">synchronized</span> <span class="o">(</span><span class="n">Singleton</span><span class="o">.</span><span class="na">class</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>              <span class="n">singleton</span><span class="o">=</span> <span class="k">new</span> <span class="n">Singleton</span><span class="o">();</span>
+</span><span class='line'>          <span class="o">}</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">singleton</span><span class="o">;</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>嗯，使用了Java的<code>synchronized</code>方法，看起来不错哦。应该没有问题了吧？！错！这还是有问题！为什么呢？前面已经说过，如果有多个线程同时通过(<code>singleton== null</code>)的条件检查（因为他们并行运行），虽然我们的synchronized方法会帮助我们<strong>同步所有的线程，让我们并行线程变成串行</strong>的一个一个去new，那不还是一样的吗？同样会出现很多实例。嗯，确实如此！看来，还得把那个判断(<code>singleton== null</code>)条件也同步起来。于是，我们的Singleton再次升级成1.2版本，如下所示：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="c1">// version 1.2</span>
+</span><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">Singleton</span>
+</span><span class='line'><span class="o">{</span>
+</span><span class='line'>    <span class="kd">private</span> <span class="kd">static</span> <span class="kd">final</span> <span class="n">Singleton</span> <span class="n">singleton</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="kd">private</span> <span class="nf">Singleton</span><span class="o">()</span>
+</span><span class='line'>    <span class="o">{</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="kd">static</span> <span class="n">Singleton</span> <span class="nf">getInstance</span><span class="o">()</span>
+</span><span class='line'>    <span class="o">{</span>
+</span><span class='line'>        <span class="kd">synchronized</span> <span class="o">(</span><span class="n">Singleton</span><span class="o">.</span><span class="na">class</span><span class="o">)</span>
+</span><span class='line'>        <span class="o">{</span>
+</span><span class='line'>            <span class="k">if</span> <span class="o">(</span><span class="n">singleton</span><span class="o">==</span> <span class="kc">null</span><span class="o">)</span>
+</span><span class='line'>            <span class="o">{</span>
+</span><span class='line'>              <span class="n">singleton</span><span class="o">=</span> <span class="k">new</span> <span class="n">Singleton</span><span class="o">();</span>
+</span><span class='line'>          <span class="o">}</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">singleton</span><span class="o">;</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>不错不错，看似很不错了。在多线程下应该没有什么问题了，不是吗？的确是这样的，1.2版的Singleton在多线程下的确没有问题了，因为我们同步了所有的线程。只不过嘛……，什么？！还不行？！是的，还是有点小问题，我们本来只是想让new这个操作并行就可以了，现在，只要是进入getInstance()的线程都得同步啊，注意，创建对象的动作只有一次，后面的动作全是读取那个成员变量，这些读取的动作不需要线程同步啊。这样的作法感觉非常极端啊，为了一个初始化的创建动作，居然让我们搭上了所有的读操作，严重影响后续的性能啊！</p>
+
+<p>还得改！嗯，看来，在线程同步前还得加一个(<code>singleton== null</code>)的条件判断，如果对象已经创建了，那么就不需要线程的同步了。OK，下面是1.3版的Singleton。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="c1">// version 1.3</span>
+</span><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">Singleton</span>
+</span><span class='line'><span class="o">{</span>
+</span><span class='line'>    <span class="kd">private</span> <span class="kd">static</span> <span class="kd">final</span> <span class="n">Singleton</span> <span class="n">singleton</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="kd">private</span> <span class="nf">Singleton</span><span class="o">()</span>
+</span><span class='line'>    <span class="o">{</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="kd">static</span> <span class="n">Singleton</span> <span class="nf">getInstance</span><span class="o">()</span>
+</span><span class='line'>    <span class="o">{</span>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(</span><span class="n">singleton</span><span class="o">==</span> <span class="kc">null</span><span class="o">)</span>
+</span><span class='line'>        <span class="o">{</span>
+</span><span class='line'>            <span class="kd">synchronized</span> <span class="o">(</span><span class="n">Singleton</span><span class="o">.</span><span class="na">class</span><span class="o">)</span>
+</span><span class='line'>            <span class="o">{</span>
+</span><span class='line'>                <span class="k">if</span> <span class="o">(</span><span class="n">singleton</span><span class="o">==</span> <span class="kc">null</span><span class="o">)</span>
+</span><span class='line'>                <span class="o">{</span>
+</span><span class='line'>                    <span class="n">singleton</span><span class="o">=</span> <span class="k">new</span> <span class="n">Singleton</span><span class="o">();</span>
+</span><span class='line'>                <span class="o">}</span>
+</span><span class='line'>            <span class="o">}</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">singleton</span><span class="o">;</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>感觉代码开始变得有点罗嗦和复杂了，不过，这可能是最不错的一个版本了，这个版本又叫“双重检查”Double-Check。下面是说明：</p>
+
+<p>第一个条件是说，如果实例创建了，那就不需要同步了，直接返回就好了。
+不然，我们就开始同步线程。
+第二个条件是说，如果被同步的线程中，有一个线程创建了对象，那么别的线程就不用再创建了。
+相当不错啊，干得非常漂亮！请大家为我们的1.3版起立鼓掌！</p>
+
+<h3>Singleton的其它问题</h3>
+
+<p>怎么？还有问题？！当然还有，请记住下面这条规则——“无论你的代码写得有多好，其只能在特定的范围内工作，超出这个范围就要出Bug了”，这是“陈式第一定理”，呵呵。你能想一想还有什么情况会让这个我们上面的代码出问题吗？</p>
+
+<p>在C++下，我不是很好举例，但是在Java的环境下，嘿嘿，还是让我们来看看下面的一些反例和一些别的事情的讨论（当然，有些反例可能属于钻牛角尖，可能有点学院派，不过也不排除其实际可能性，就算是提个醒吧）：</p>
+
+<p>其一、<code>Class Loader</code>。不知道你对Java的Class Loader熟悉吗？“类装载器”？！C++可没有这个东西啊。这是Java动态性的核心。顾名思义，类装载器是用来把类(class)装载进JVM的。JVM规范定义了两种类型的类装载器：启动内装载器(bootstrap)和用户自定义装载器(user-defined class loader)。 在一个JVM中可能存在多个ClassLoader，每个ClassLoader拥有自己的NameSpace。一个ClassLoader只能拥有一个class对象类型的实例，但是不同的ClassLoader可能拥有相同的class对象实例，这时可能产生致命的问题。如ClassLoaderA，装载了类A的类型实例A1，而ClassLoaderB，也装载了类A的对象实例A2。逻辑上讲A1=A2，但是由于A1和A2来自于不同的ClassLoader，它们实际上是完全不同的，如果A中定义了一个静态变量c，则c在不同的ClassLoader中的值是不同的。</p>
+
+<p>于是，如果咱们的Singleton 1.3版本如果面对着多个Class Loader会怎么样？呵呵，多个实例同样会被多个Class Loader创建出来，当然，这个有点牵强，不过他确实存在。难道我们还要整出个1.4版吗？可是，我们怎么可能在我的Singleton类中操作Class Loader啊？是的，你根本不可能。在这种情况下，你能做的只有是——“保证多个Class Loader不会装载同一个Singleton”。</p>
+
+<p>其二、序例化。如果我们的这个Singleton类是一个关于我们程序配置信息的类。我们需要它有序列化的功能，那么，当反序列化的时候，我们将无法控制别人不多次反序列化。不过，我们可以利用一下Serializable接口的<code>readResolve()</code>方法，比如：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">Singleton</span> <span class="kd">implements</span> <span class="n">Serializable</span>
+</span><span class='line'><span class="o">{</span>
+</span><span class='line'>    <span class="o">......</span>
+</span><span class='line'>    <span class="o">......</span>
+</span><span class='line'>    <span class="kd">protected</span> <span class="n">Object</span> <span class="nf">readResolve</span><span class="o">()</span>
+</span><span class='line'>    <span class="o">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="nf">getInstance</span><span class="o">();</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>其三、多个Java虚拟机。如果我们的程序运行在多个Java的虚拟机中。什么？多个虚拟机？这是一种什么样的情况啊。嗯，这种情况是有点极端，不过还是可能出现，比如EJB或RMI之流的东西。要在这种环境下避免多实例，看来只能通过良好的设计或非技术来解决了。</p>
+
+<p>其四，volatile变量。关于volatile这个关键字所声明的变量可以被看作是一种 “程度较轻的同步synchronized”；与 synchronized 块相比，volatile 变量所需的编码较少，并且运行时开销也较少，但是它所能实现的功能也仅是synchronized的一部分。当然，如前面所述，我们需要的Singleton只是在创建的时候线程同步，而后面的读取则不需要同步。所以，volatile变量并不能帮助我们即能解决问题，又有好的性能。而且，这种变量只能在JDK 1.5+版后才能使用。</p>
+
+<p>其五、关于继承。是的，继承于Singleton后的子类也有可能造成多实例的问题。不过，因为我们早把Singleton的构造函数声明成了私有的，所以也就杜绝了继承这种事情。</p>
+
+<p>其六，关于代码重用。也话我们的系统中有很多个类需要用到这个模式，如果我们在每一个类都中有这样的代码，那么就显得有点傻了。那么，我们是否可以使用一种方法，把这具模式抽象出去？在C++下这是很容易的，因为有模板和友元，还支持栈上分配内存，所以比较容易一些（程序如下所示），Java下可能比较复杂一些，聪明的你知道怎么做吗？</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+</pre></td><td class='code'><pre><code class='cpp'><span class='line'><span class="k">template</span><span class="o">&lt;</span><span class="k">class</span> <span class="nc">t</span><span class="o">=</span><span class="s">&quot;&quot;</span><span class="o">&gt;</span> <span class="k">class</span> <span class="nc">Singleton</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="k">public</span><span class="o">:</span>
+</span><span class='line'>        <span class="k">static</span> <span class="n">T</span><span class="o">&amp;</span> <span class="n">Instance</span><span class="p">()</span>
+</span><span class='line'>        <span class="p">{</span>
+</span><span class='line'>            <span class="k">static</span> <span class="n">T</span> <span class="n">theSingleInstance</span><span class="p">;</span> <span class="c1">//假设T有一个protected默认构造函数</span>
+</span><span class='line'>            <span class="k">return</span> <span class="n">theSingleInstance</span><span class="p">;</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'><span class="p">};</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">class</span> <span class="nc">OnlyOne</span> <span class="o">:</span> <span class="k">public</span> <span class="n">Singleton</span><span class="o">&lt;</span><span class="n">onlyone</span><span class="o">&gt;</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="k">friend</span> <span class="k">class</span> <span class="nc">Singleton</span><span class="o">&lt;</span><span class="n">onlyone</span><span class="o">&gt;</span><span class="p">;</span>
+</span><span class='line'>    <span class="kt">int</span> <span class="n">example_data</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span><span class="o">:</span>
+</span><span class='line'>        <span class="kt">int</span> <span class="n">GetExampleData</span><span class="p">()</span> <span class="k">const</span> <span class="p">{</span><span class="k">return</span> <span class="n">example_data</span><span class="p">;}</span>
+</span><span class='line'>    <span class="k">protected</span><span class="o">:</span>
+</span><span class='line'>        <span class="n">OnlyOne</span><span class="p">()</span><span class="o">:</span> <span class="n">example_data</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span> <span class="p">{}</span>   <span class="c1">// 默认构造函数</span>
+</span><span class='line'>        <span class="n">OnlyOne</span><span class="p">(</span><span class="n">OnlyOne</span><span class="o">&amp;</span><span class="p">)</span> <span class="p">{}</span>
+</span><span class='line'><span class="p">};</span>
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'><span class="kt">int</span> <span class="n">main</span><span class="p">(</span> <span class="p">)</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="n">OnlyOne</span><span class="o">::</span><span class="n">Instance</span><span class="p">().</span><span class="n">GetExampleData</span><span class="p">()</span><span class="o">&lt;&lt;</span> <span class="n">endl</span><span class="p">;</span>
+</span><span class='line'>  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>REF:</p>
+
+<ul>
+<li><a href="http://coolshell.cn/articles/265.html">深入浅出单实例Singleton设计模式</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Singleton_pattern">Singleton pattern</a></li>
+</ul>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Android Context]]></title>
@@ -765,19 +1723,23 @@ Infalting layouts是一个容易被忽略的问题，如果你读过这篇文章
 </ul>
 
 
-<p>Synchronization is the tool using which we can achieve thread safety, JVM guarantees that synchronized code will be executed by only one thread at a time. java keyword synchronized is used to create synchronized code and internally it uses locks on Object or Class to make sure only one thread is executing the synchronized code.
-+ Java synchronization works on locking and unlocking of resource, before any thread enters into synchronized code, it has to acquire lock on the Object and when code execution ends, it unlocks the resource that can be locked by other threads. In the mean time other threads are in wait state to lock the synchronized resource.
-+ We can use synchronized keyword in two ways, one is to make a complete method synchronized and other way is to create synchronized block.可以创建synchronized方法或者synchronized代码块
-+ When a method is synchronized, it locks the Object, if method is static it locks the Class, so it’s always best practice to use synchronized block to lock the only sections of method that needs synchronization.
-+ While creating synchronized block, we need to provide the resource on which lock will be acquired, it can be XYZ.class or any Object field of the class.
-+ <code>synchronized(this)</code> will lock the Object before entering into the synchronized block.
-+ You should use the lowest level of locking, for example if there are multiple synchronized block in a class and one of them is locking the Object, then other synchronized blocks will also be not available for execution by other threads. When we lock an Object, it acquires lock on all the fields of the Object.
-+ Java Synchronization provides data integrity on the cost of performance, so it should be used only when it’s absolutely necessary.
-+ Java Synchronization works only in the same JVM, so if you need to lock some resource in multiple JVM environment, it will not work and you might have to look after some global locking mechanism.
-+ Java Synchronization could result in deadlocks, check this post about <a href="#deadlock">deadlock in java and how to avoid them</a>.
-+ Java synchronized keyword cannot be used for constructors and variables.
-+ It is preferable to create a dummy private Object to use for synchronized block, so that it’s reference can’t be changed by any other code. For example if you have a setter method for Object on which you are synchronizing, it’s reference can be changed by some other code leads to parallel execution of the synchronized block.
-+ We should not use any object that is maintained in a constant pool, for example String should not be used for synchronization because if any other code is also locking on same String, it will try to acquire lock on the same reference object from String pool and even though both the codes are unrelated, they will lock each other.</p>
+<p>Synchronization is the tool using which we can achieve thread safety, JVM guarantees that synchronized code will be executed by only one thread at a time. java keyword synchronized is used to create synchronized code and internally it uses locks on Object or Class to make sure only one thread is executing the synchronized code.</p>
+
+<ul>
+<li>Java synchronization works on locking and unlocking of resource, before any thread enters into synchronized code, it has to acquire lock on the Object and when code execution ends, it unlocks the resource that can be locked by other threads. In the mean time other threads are in wait state to lock the synchronized resource.</li>
+<li>We can use synchronized keyword in two ways, one is to make a complete method synchronized and other way is to create synchronized block.可以创建synchronized方法或者synchronized代码块</li>
+<li>When a method is synchronized, it locks the Object, if method is static it locks the Class, so it’s always best practice to use synchronized block to lock the only sections of method that needs synchronization.</li>
+<li>While creating synchronized block, we need to provide the resource on which lock will be acquired, it can be XYZ.class or any Object field of the class.</li>
+<li><code>synchronized(this)</code> will lock the Object before entering into the synchronized block.</li>
+<li>You should use the lowest level of locking, for example if there are multiple synchronized block in a class and one of them is locking the Object, then other synchronized blocks will also be not available for execution by other threads. When we lock an Object, it acquires lock on all the fields of the Object.</li>
+<li>Java Synchronization provides data integrity on the cost of performance, so it should be used only when it’s absolutely necessary.</li>
+<li>Java Synchronization works only in the same JVM, so if you need to lock some resource in multiple JVM environment, it will not work and you might have to look after some global locking mechanism.</li>
+<li>Java Synchronization could result in deadlocks, check this post about <a href="#deadlock">deadlock in java and how to avoid them</a>.</li>
+<li>Java synchronized keyword cannot be used for constructors and variables.</li>
+<li>It is preferable to create a dummy private Object to use for synchronized block, so that it’s reference can’t be changed by any other code. For example if you have a setter method for Object on which you are synchronizing, it’s reference can be changed by some other code leads to parallel execution of the synchronized block.</li>
+<li>We should not use any object that is maintained in a constant pool, for example String should not be used for synchronization because if any other code is also locking on same String, it will try to acquire lock on the same reference object from String pool and even though both the codes are unrelated, they will lock each other.</li>
+</ul>
+
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -8452,254 +9414,6 @@ loaders are used:</p>
 <p>这样以后使用AccountA时可以<code>git clone git@github-a.com:user/repos.git local_dir</code>这样操作，clone下来后可以<code>cd local_dir</code>对<code>user.name</code>和<code>user.email</code>来进行config来覆盖global config，剩下的就和平时没有什么区别了，使用AccountB时相似操作就可以了。</p>
 
 <script src="https://gist.github.com/flyfire/ecdf3b6d623923d73c07.js"></script>
-
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Checking Intent Availability]]></title>
-    <link href="http://Solarex.github.io/blog/2014/06/02/checking-intent-availability/"/>
-    <updated>2014-06-02T11:41:00+08:00</updated>
-    <id>http://Solarex.github.io/blog/2014/06/02/checking-intent-availability</id>
-    <content type="html"><![CDATA[<p>Intents are probably Android’s most powerful tool. They tie together loosely coupled components and make it possible to start Activities that are not part of your own app. Using intents you can delegate to the Contacts app to select a contact or you can start the browser, share data and so on.</p>
-
-<p>The receiving apps declare intent filters which describe the intents its component react to. If you know which intent filters the app provides and if the components are publicly available you can start any Activity of any app on the users device.</p>
-
-<p>The problem is: How do you know if the app is installed – if you can use the Intent?</p>
-
-<p>The solution is to create the Intent and check if it is available:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kd">static</span> <span class="kt">boolean</span> <span class="nf">isIntentAvailable</span><span class="o">(</span><span class="n">Context</span> <span class="n">ctx</span><span class="o">,</span> <span class="n">Intent</span> <span class="n">intent</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'>   <span class="kd">final</span> <span class="n">PackageManager</span> <span class="n">mgr</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="na">getPackageManager</span><span class="o">();</span>
-</span><span class='line'>   <span class="n">List</span><span class="o">&lt;</span><span class="n">ResolveInfo</span><span class="o">&gt;</span> <span class="n">list</span> <span class="o">=</span>
-</span><span class='line'>      <span class="n">mgr</span><span class="o">.</span><span class="na">queryIntentActivities</span><span class="o">(</span><span class="n">intent</span><span class="o">,</span>
-</span><span class='line'>         <span class="n">PackageManager</span><span class="o">.</span><span class="na">MATCH_DEFAULT_ONLY</span><span class="o">);</span>
-</span><span class='line'>   <span class="k">return</span> <span class="n">list</span><span class="o">.</span><span class="na">size</span><span class="o">()</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="o">;</span>
-</span><span class='line'><span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>And we can use it this way:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kt">boolean</span> <span class="nf">onPrepareOptionsMenu</span><span class="o">(</span><span class="n">Menu</span> <span class="n">menu</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'>    <span class="kd">final</span> <span class="kt">boolean</span> <span class="n">scanAvailable</span> <span class="o">=</span> <span class="n">isIntentAvailable</span><span class="o">(</span><span class="k">this</span><span class="o">,</span>
-</span><span class='line'>        <span class="s">&quot;com.google.zxing.client.android.SCAN&quot;</span><span class="o">);</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="n">MenuItem</span> <span class="n">item</span><span class="o">;</span>
-</span><span class='line'>    <span class="n">item</span> <span class="o">=</span> <span class="n">menu</span><span class="o">.</span><span class="na">findItem</span><span class="o">(</span><span class="n">R</span><span class="o">.</span><span class="na">id</span><span class="o">.</span><span class="na">menu_item_add</span><span class="o">);</span>
-</span><span class='line'>    <span class="n">item</span><span class="o">.</span><span class="na">setEnabled</span><span class="o">(</span><span class="n">scanAvailable</span><span class="o">);</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">return</span> <span class="kd">super</span><span class="o">.</span><span class="na">onPrepareOptionsMenu</span><span class="o">(</span><span class="n">menu</span><span class="o">);</span>
-</span><span class='line'><span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>If you wanna check this before <code>startActivity</code> in case not caught by <code>ActivityNotFoundException</code>,here is another way:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="k">if</span> <span class="o">(</span><span class="n">intent</span><span class="o">.</span><span class="na">resolveActivity</span><span class="o">(</span><span class="n">ctx</span><span class="o">.</span><span class="na">getPackageManager</span><span class="o">())</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'>    <span class="n">ctx</span><span class="o">.</span><span class="na">startActivity</span><span class="o">(</span><span class="n">intent</span><span class="o">);</span>
-</span><span class='line'><span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
-</span><span class='line'>    <span class="n">log</span><span class="o">(</span><span class="s">&quot;No component can react to this intent = &quot;</span> <span class="o">+</span> <span class="n">intent</span><span class="o">);</span>
-</span><span class='line'><span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[近阶段总结]]></title>
-    <link href="http://Solarex.github.io/blog/2013/12/24/recent-summary/"/>
-    <updated>2013-12-24T22:06:00+08:00</updated>
-    <id>http://Solarex.github.io/blog/2013/12/24/recent-summary</id>
-    <content type="html"><![CDATA[<p>没有什么比漫无目的的徘徊更让人心烦意乱，消磨意志的了，最近就处于这样一种状态。Android开发基础已经基本上掌握了，但是高级点的技巧依然无从下手，一个Service如何长时间运行不被杀，流量监控后台运行的机制是什么都不了解。为什么无从下手，因为不知道优秀的应用是如何实现的，借鉴都不知道从哪抄。要打破这种状态，不仅仅需要巩固基础知识，更重要的是要学习高级技巧。</p>
-
-<ul>
-<li><p>巩固基础知识，Android开发基础知识总结，Android Guides，Android Training必须看完，做好笔记。Java基础知识巩固复习，设计模式学习总结，Android框架采用了许多设计模式，把Java基础知识打牢固才能更好的为下一步学习Android框架打好基础。 书籍/资料：Pro Android 4 / Java 编程思想 / Head First 设计模式 / 大话设计模式 / 设计模式视频</p></li>
-<li><p>借鉴优秀应用，Google原生应用，Android SDK Sample，优秀开源应用，学习这些优秀的开源应用如何处理后台Service，如何处理多线程，如何进行网络连接尽可能地少消耗流量。。。如果有时间，可以看下Google I/O开发者大会和Google Developer Blog来跟随大师脚步学习大师的开发技巧。</p></li>
-<li><p>工具的学习使用，总结开发工具使用技巧，Vim，Git，Source Insight，自动构建工具Ant，Maven，build.xml，pom.xml文件编写规则。调教好Vim插件，为以后学习框架时打log，看框架打好基础。学会高效使用Git，Github，利用Github Wiki来做笔记，作总结。 书籍/资料：Ant 视频 / Maven in action</p></li>
-<li><p>为学习框架和Android系统做准备，Linux系统编程，操作系统原理，Linux网络编程这些都要大致过一遍，不用太细致深入，有个概念就可以了。 书籍：Android内核剖析 / LKD / MOS / UNP / APUE / CSAPP</p></li>
-</ul>
-
-
-<p>计划</p>
-
-<ul>
-<li>年前必须搞定基础知识复习总结。Android开发基础知识，Java基础知识总结。Android Guides/Android Training，Pro Android 4总结学习。Sundy教学视频。</li>
-<li>看Google 原生Settings应用。</li>
-<li>调教好Vim，Git。</li>
-</ul>
-
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Git配置(持续更新)]]></title>
-    <link href="http://Solarex.github.io/blog/2013/11/29/git-basic-config/"/>
-    <updated>2013-11-29T23:14:00+08:00</updated>
-    <id>http://Solarex.github.io/blog/2013/11/29/git-basic-config</id>
-    <content type="html"><![CDATA[<center><p><img src="http://Solarex.github.io/images/git-logo-black.png" width="182" height="76" alt="git"></p></center>
-
-
-<p>用git大概有2年多了吧，不过大都停留在<code>add</code>，<code>commit</code>，<code>clone</code>，<code>push</code>这些简单的操作上，最近看了git-scm网站的维护者，Pro.Git的作者的一个演讲，准备好好研究下git。以下是笔记，会不间断更新。</p>
-
-<p>最基础的git config莫过于<code>user.name</code>和<code>user.email</code>了吧。</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>git config --global user.name Solarex
-</span><span class='line'>git config --global user.email i@solarex.name
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>git <code>commit</code>的时候有时会发现在comment中需要换行，在命令行直接输入的话非常不方便，其实可以在自己喜欢的编辑器里面操作。</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>git config --global core.editor vim
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>这样git在执行<code>commit</code>操作时就会打开vim，就可以像编辑文本一样写comment了。</p>
-
-<p>在打印git log的时候，如果有色彩区分会好看很多。</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>git config --global color.ui auto
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>看一些视频的时候，经常会看到他们输入一些非常短的命令就执行了相应的操作，其实，这些可以通过<code>alias</code>实现。</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>git config --global alias.st <span class="s2">&quot;status&quot;</span>
-</span><span class='line'>git config --global alias.ci <span class="s2">&quot;commit -a -v&quot;</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>另外强烈推荐<code>tig</code>来查看git log，非常方便。Ubuntu下通过命令<code>sudo apt-get install tig</code>，Mac下通过<code>brew install tig</code>均可直接安装。</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[MacBook Pro 2011中安装Ubuntu 13.04]]></title>
-    <link href="http://Solarex.github.io/blog/2013/11/21/install-ubuntu-13-dot-04-on-macbook-pro-2011/"/>
-    <updated>2013-11-21T22:55:00+08:00</updated>
-    <id>http://Solarex.github.io/blog/2013/11/21/install-ubuntu-13-dot-04-on-macbook-pro-2011</id>
-    <content type="html"><![CDATA[<center><p><img src="http://Solarex.github.io/images/logoubuntu.png" width="200" height="200" alt="ubuntu"></p></center>
-
-
-<p>之前已经在MacBook上装过Ubuntu了，不知怎么搞的，最近Ubuntu更新后，分辨率一直保持在1024×768，屏幕惨不忍睹，网上搜了好多，都是使用<a href="https://wiki.ubuntu.com/X/Config/Resolution">xrandr</a>之类的，但是执行<code>xrandr</code>的时候老是报错，搜了下，貌似是一个bug。不管了，重装一下吧。</p>
-
-<p>首先在MacBook下用<code>Disk Utility</code>分区，Ubuntu需要一个swap分区，一个<code>/</code>分区，用U盘安装的话有这两个就够了。但是我没有U盘，就又划分了一个2G的分区，把Ubuntu的镜像写进去，这样也便于以后恢复。分区全部使用FAT32格式。</p>
-
-<p>分好区后就是写Ubuntu的镜像文件了，注意要从Ubuntu官方网站上面下载针对Mac特定版本的iso文件，下载下来后，校验下如果没错的话，就可以用<code>UNetbooin</code>来烧Ubuntu的镜像了，可以烧到U盘中也可以像我一样烧到一个专门的分区中。分区的编号可以通过命令<code>diskutil list</code>来查看。</p>
-
-<!-- more -->
-
-
-<p>然后下载<a href="http://refit.sourceforge.net/">rEFIt</a>并安装，重启，按下option键直到出现Windows启动项，选择进入，就可以看到<code>UNetbootin</code>生成的菜单了。选择<code>Install Ubuntu</code>剩下的就和平常安装Ubuntu没什么两样了。需要注意的是Ubuntu选择安装分区的时候，要把<code>bootloader</code>安装在Ubuntu将要安装的磁盘分区上，也就是在Mac下分区时创建的那个分配给<code>/</code>的那个分区。剩下的就没什么了，Ubuntu安装很快，稍等一会就可以重启了。</p>
-
-<p>重启后会看到有企鹅的图标，点进去，运气好的话就可以直接进Ubuntu了，但是我点进去的时候提示<code>Missing Operating System</code>，嗯，MBR貌似没有同步，没关系，重启，进Mac。安装<a href="" title="http://sourceforge.net/projects/gptfdisk/">GPT fdisk</a>，在终端中敲入<code>sudo gdisk /dev/disk0</code>进入GPT fdisk菜单，按下<code>b</code>，会提示输入备份当前<code>mbr</code>的文件名称，输入并备份。现在需要更改<code>mbr</code>了，按下<code>r</code>再按下<code>p</code>，会打印出当前的分区信息，记住Mac和Ubuntu安装分区的编号，比如我的是2和6，现在按下<code>h</code>，会提示你输入分区编号，输入2 6回车，接下来会问是否把efi分区放在最前面，按下<code>y</code>，然后会让你输入每个分区的<code>mbr hex code</code>，mac的是AF，Windows的是07，Linux的是83，我的情况是2号分区安装mac，6号分区安装ubuntu，所以在提示输入2号分区的时候输入AF，接着提示设置boot flag时输入<code>n</code>，提示输入6号分区的时候输入83，接着提示输入设置boot flag时输入<code>n</code>，后面可能会提示发现free partition，是否使用其加密，<code>n</code>吧，如果使用加密的话启动时会卡在显示Mac和企鹅图标之前，必须按下Option键才能进入启动的选项菜单，太麻烦，还是直接否掉吧。OK，现在设置完了mbr，输入<code>w</code>保存覆盖掉旧的mbr文件。重启，选择企鹅图标，进入Ubuntu系统，Over，搞定了。</p>
-
-<p>接下来就是Ubuntu下的操作了。</p>
-
-<ul>
-<li>更换软件源，使用163的镜像。</li>
-</ul>
-
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>deb http://mirrors.163.com/ubuntu/ raring main restricted
-</span><span class='line'>deb http://mirrors.163.com/ubuntu/ raring-updates main restricted
-</span><span class='line'>deb http://mirrors.163.com/ubuntu/ raring universe
-</span><span class='line'>deb http://mirrors.163.com/ubuntu/ raring-updates universe
-</span><span class='line'>deb http://mirrors.163.com/ubuntu/ raring multiverse
-</span><span class='line'>deb http://mirrors.163.com/ubuntu/ raring-updates multiverse
-</span><span class='line'>deb http://mirrors.163.com/ubuntu/ raring-backports main restricted universe multiverse
-</span><span class='line'>deb http://mirrors.163.com/ubuntu/ raring-security main restricted
-</span><span class='line'>deb http://mirrors.163.com/ubuntu/ raring-security universe
-</span><span class='line'>deb http://mirrors.163.com/ubuntu/ raring-security multiverse
-</span><span class='line'>deb http://archive.canonical.com/ubuntu precise partner
-</span><span class='line'>deb-src http://archive.canonical.com/ubuntu precise partner
-</span><span class='line'>deb http://cz.archive.ubuntu.com/ubuntu trusty main universe
-</span></code></pre></td></tr></table></div></figure>
-
-
-<ul>
-<li>添加ppa</li>
-</ul>
-
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo add-apt-repository ppa:fcitx-team/nightly
-</span><span class='line'>sudo add-apt-repository ppa:indicator-multiload/stable-daily
-</span><span class='line'>sudo add-apt-repository ppa:ubuntu-wine/ppa
-</span><span class='line'>sudo add-apt-repository ppa:synapse-core/ppa
-</span><span class='line'>sudo add-apt-repository ppa:fossfreedom/byzanz
-</span><span class='line'>sudo apt-get update <span class="o">&amp;&amp;</span> sudo apt-get upgrade
-</span><span class='line'>sudo apt-get install fcitx fcitx-config-gtk fcitx-sunpinyin fcitx-googlepinyin fcitx-module-cloudpinyin  fcitx-sogoupinyin fcitx-table-all indicator-multiload wine synapse byzanz mtp-tools mtpfs
-</span></code></pre></td></tr></table></div></figure>
-
-
-<ul>
-<li>安装卸载软件</li>
-</ul>
-
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo apt-get update <span class="o">&amp;&amp;</span> sudo apt-get upgrade
-</span><span class='line'>sudo apt-get install python3-dev python3-openssl libxss1 flashplugin-installer mplayer vim git-core tig xclip zathura unrar p7zip-full  p7zip-rar zip unzip rar chmsee bleachbit preload goldendict goldendict-wordnet tcpdump mtr curl nscd ack-grep meld
-</span><span class='line'>sudo apt-get purge ibus ibus-gtk ibus-gtk3 ibus-pinyin ibus-pinyin-db-android ibus-table
-</span><span class='line'>sudo apt-get autoremove unity-lens-music unity-lens-photos unity-lens-gwibber unity-lens-shopping unity-lens-video
-</span></code></pre></td></tr></table></div></figure>
-
-
-<ul>
-<li>sublime_text配置文件在<code>$HOME/.config/sublime_text_3/</code></li>
-</ul>
 
 ]]></content>
   </entry>
