@@ -840,6 +840,54 @@ Here is a quick overview of how ``AsyncTask`` works:
 
 A central design point of the Android security architecture is that no application, by default, has permission to perform any operations that would adversely impact other applications, the operating system, or the user. This includes reading or writing the user's private data (such as contacts or e-mails), reading or writing another application's files, performing network access, keeping the device awake, etc.Android安全架构设计思想是默认没有应用有权限来做对其他应用程序，对系统或者其他用户有影响的操作。
 
+All Android applications (.apk files) must be signed with a certificate whose private key is held by their developer. 
+
+At install time, Android gives each package a distinct Linux user ID. Because security enforcement happens at the process level, the code of any two packages can not normally run in the same process, since they need to run as different Linux users. You can use the ``sharedUserId`` attribute in the AndroidManifest.xml's manifest tag of each package to have them assigned the same user ID. By doing this, for purposes of security the two packages are then treated as being the same application, with the same user ID and file permissions. Note that in order to retain security, only two applications signed with the same signature (and requesting the same sharedUserId) will be given the same user ID.
+
+A basic Android application has no permissions associated with it by default, meaning it can not do anything that would adversely impact the user experience or any data on the device. To make use of protected features of the device, you must include in your AndroidManifest.xml one or more ``<uses-permission>`` tags declaring the permissions that your application needs.默认情况下APP不具有任何权限,如果想要获取设备上的数据或其他必须在安装APP时声明这些权限.
+
+The permissions provided by the Android system can be found at ``Manifest.permission``. Any application may also define and enforce its own permissions, so this is not a comprehensive list of all possible permissions.Android系统提供的权限可以在``Manifest.permission``中找到,APP也可以自己定义自己的权限.
+
+A particular permission may be enforced at a number of places during your program's operation:
+
++ At the time of a call into the system, to prevent an application from executing certain functions.
++ When starting an activity, to prevent applications from launching activities of other applications.
++ Both sending and receiving broadcasts, to control who can receive your broadcast or who can send a broadcast to you.
++ When accessing and operating on a content provider.
++ Binding to or starting a service.
+ 
+Android makes the decision as to whether an app might need the permission based on the value provided for the ``targetSdkVersion`` attribute. If the value is lower than the version in which the permission was added, then Android adds the permission.For example, the ``WRITE_EXTERNAL_STORAGE`` permission was added in API level 4 to restrict access to the shared storage space. If your ``targetSdkVersion`` is 3 or lower, this permission is added to your app on newer versions of Android.
+
+```xml
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.me.app.myapp" >
+    <permission android:name="com.me.app.myapp.permission.DEADLY_ACTIVITY"
+        android:label="@string/permlab_deadlyActivity"
+        android:description="@string/permdesc_deadlyActivity"
+        android:permissionGroup="android.permission-group.COST_MONEY"
+        android:protectionLevel="dangerous" />
+    ...
+</manifest>
+```
+
+``adb shell pm list permissions``,``adb shell pm list permissions -s``
+
+Activity permissions (applied to the ``<activity>`` tag) restrict who can start the associated activity. The permission is checked during ``Context.startActivity()`` and ``Activity.startActivityForResult()``; if the caller does not have the required permission then ``SecurityException`` is thrown from the call.
+
+Service permissions (applied to the ``<service>`` tag) restrict who can start or bind to the associated service. The permission is checked during ``Context.startService()``, ``Context.stopService()`` and ``Context.bindService()``; if the caller does not have the required permission then SecurityException is thrown from the call.
+
+BroadcastReceiver permissions (applied to the ``<receiver>`` tag) restrict who can send broadcasts to the associated receiver. The permission is checked after ``Context.sendBroadcast()`` returns, as the system tries to deliver the submitted broadcast to the given receiver. As a result, a permission failure will not result in an exception being thrown back to the caller; it will just not deliver the intent. In the same way, a permission can be supplied to ``Context.registerReceiver()`` to control who can broadcast to a programmatically registered receiver. Going the other way, a permission can be supplied when calling ``Context.sendBroadcast()`` to restrict which BroadcastReceiver objects are allowed to receive the broadcast (see below).
+
+ContentProvider permissions (applied to the ``<provider>`` tag) restrict who can access the data in a ``ContentProvider``. (Content providers have an important additional security facility available to them called URI permissions which is described later.) Unlike the other components, there are two separate permission attributes you can set: ``android:readPermission`` restricts who can read from the provider, and ``android:writePermission`` restricts who can write to it. Note that if a provider is protected with both a read and write permission, holding only the write permission does not mean you can read from a provider. The permissions are checked when you first retrieve a provider (if you don't have either permission, a ``SecurityException`` will be thrown), and as you perform operations on the provider. Using ``ContentResolver.query()`` requires holding the read permission; using ``ContentResolver.insert()``, ``ContentResolver.update()``, ``ContentResolver.delete()`` requires the write permission. In all of these cases, not holding the required permission results in a ``SecurityException`` being thrown from the call.
+
+Note that both a receiver and a broadcaster can require a permission. When this happens, both permission checks must pass for the Intent to be delivered to the associated target.
+
+The standard permission system described so far is often not sufficient when used with content providers. A content provider may want to protect itself with read and write permissions, while its direct clients also need to hand specific URIs to other applications for them to operate on. A typical example is attachments in a mail application. Access to the mail should be protected by permissions, since this is sensitive user data. However, if a URI to an image attachment is given to an image viewer, that image viewer will not have permission to open the attachment since it has no reason to hold a permission to access all e-mail.
+
+The solution to this problem is ``per-URI permissions``: when starting an activity or returning a result to an activity, the caller can set ``Intent.FLAG_GRANT_READ_URI_PERMISSION`` and/or ``Intent.FLAG_GRANT_WRITE_URI_PERMISSION``. This grants the receiving activity permission access the specific data URI in the Intent, regardless of whether it has any permission to access data in the content provider corresponding to the Intent.
+
+The granting of fine-grained URI permissions does, however, require some cooperation with the content provider holding those URIs. It is strongly recommended that content providers implement this facility, and declare that they support it through the ``android:grantUriPermissions`` attribute or ``<grant-uri-permissions>`` tag.
+
 ## App Widgets
 
 ## Android Manifest

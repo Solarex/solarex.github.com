@@ -24,3 +24,9 @@ categories:
 <script src="https://gist.github.com/flyfire/90a2d6b78f0273f7d395.js"></script>
 
 <script src="https://gist.github.com/flyfire/7112ce9e1d66d85a2500.js"></script>
+
+```java
+// show fullscreen
+requestWindowFeature(Window.FEATURE_NO_TITLE);
+getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+```
