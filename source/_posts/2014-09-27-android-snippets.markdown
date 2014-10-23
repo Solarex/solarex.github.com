@@ -30,3 +30,7 @@ categories:
 requestWindowFeature(Window.FEATURE_NO_TITLE);
 getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
 ```
+
+<script src="https://gist.github.com/flyfire/2b5c7836f54d0fed56ac.js"></script>
+
+<script src="https://gist.github.com/flyfire/7149f493c1d357748535.js"></script>

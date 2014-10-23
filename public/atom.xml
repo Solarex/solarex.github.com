@@ -4,7 +4,7 @@
   <title><![CDATA[Solarex's Blog]]></title>
   <link href="http://Solarex.github.io/atom.xml" rel="self"/>
   <link href="http://Solarex.github.io/"/>
-  <updated>2014-10-19T19:22:22+08:00</updated>
+  <updated>2014-10-20T13:33:08+08:00</updated>
   <id>http://Solarex.github.io/</id>
   <author>
     <name><![CDATA[Solarex]]></name>
@@ -4239,6 +4239,17 @@ A simplified version of the code is:</p>
 
 <script src="https://gist.github.com/flyfire/7112ce9e1d66d85a2500.js"></script>
 
+
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="c1">// show fullscreen</span>
+</span><span class='line'><span class="n">requestWindowFeature</span><span class="o">(</span><span class="n">Window</span><span class="o">.</span><span class="na">FEATURE_NO_TITLE</span><span class="o">);</span>
+</span><span class='line'><span class="n">getWindow</span><span class="o">().</span><span class="na">setFlags</span><span class="o">(</span><span class="n">WindowManager</span><span class="o">.</span><span class="na">LayoutParams</span><span class="o">.</span><span class="na">FLAG_FULLSCREEN</span><span class="o">,</span> <span class="n">WindowManager</span><span class="o">.</span><span class="na">LayoutParams</span><span class="o">.</span><span class="na">FLAG_FULLSCREEN</span><span class="o">);</span>
+</span></code></pre></td></tr></table></div></figure>
+
 ]]></content>
   </entry>
   
@@ -5441,6 +5452,66 @@ A visible process is considered extremely important and will not be killed unles
 <h2>Permissions</h2>
 
 <p>A central design point of the Android security architecture is that no application, by default, has permission to perform any operations that would adversely impact other applications, the operating system, or the user. This includes reading or writing the user&rsquo;s private data (such as contacts or e-mails), reading or writing another application&rsquo;s files, performing network access, keeping the device awake, etc.Android安全架构设计思想是默认没有应用有权限来做对其他应用程序，对系统或者其他用户有影响的操作。</p>
+
+<p>All Android applications (.apk files) must be signed with a certificate whose private key is held by their developer.</p>
+
+<p>At install time, Android gives each package a distinct Linux user ID. Because security enforcement happens at the process level, the code of any two packages can not normally run in the same process, since they need to run as different Linux users. You can use the <code>sharedUserId</code> attribute in the AndroidManifest.xml&rsquo;s manifest tag of each package to have them assigned the same user ID. By doing this, for purposes of security the two packages are then treated as being the same application, with the same user ID and file permissions. Note that in order to retain security, only two applications signed with the same signature (and requesting the same sharedUserId) will be given the same user ID.</p>
+
+<p>A basic Android application has no permissions associated with it by default, meaning it can not do anything that would adversely impact the user experience or any data on the device. To make use of protected features of the device, you must include in your AndroidManifest.xml one or more <code>&lt;uses-permission&gt;</code> tags declaring the permissions that your application needs.默认情况下APP不具有任何权限,如果想要获取设备上的数据或其他必须在安装APP时声明这些权限.</p>
+
+<p>The permissions provided by the Android system can be found at <code>Manifest.permission</code>. Any application may also define and enforce its own permissions, so this is not a comprehensive list of all possible permissions.Android系统提供的权限可以在<code>Manifest.permission</code>中找到,APP也可以自己定义自己的权限.</p>
+
+<p>A particular permission may be enforced at a number of places during your program&rsquo;s operation:</p>
+
+<ul>
+<li>At the time of a call into the system, to prevent an application from executing certain functions.</li>
+<li>When starting an activity, to prevent applications from launching activities of other applications.</li>
+<li>Both sending and receiving broadcasts, to control who can receive your broadcast or who can send a broadcast to you.</li>
+<li>When accessing and operating on a content provider.</li>
+<li>Binding to or starting a service.</li>
+</ul>
+
+
+<p>Android makes the decision as to whether an app might need the permission based on the value provided for the <code>targetSdkVersion</code> attribute. If the value is lower than the version in which the permission was added, then Android adds the permission.For example, the <code>WRITE_EXTERNAL_STORAGE</code> permission was added in API level 4 to restrict access to the shared storage space. If your <code>targetSdkVersion</code> is 3 or lower, this permission is added to your app on newer versions of Android.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='xml'><span class='line'><span class="nt">&lt;manifest</span> <span class="na">xmlns:android=</span><span class="s">&quot;http://schemas.android.com/apk/res/android&quot;</span>
+</span><span class='line'>    <span class="na">package=</span><span class="s">&quot;com.me.app.myapp&quot;</span> <span class="nt">&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;permission</span> <span class="na">android:name=</span><span class="s">&quot;com.me.app.myapp.permission.DEADLY_ACTIVITY&quot;</span>
+</span><span class='line'>        <span class="na">android:label=</span><span class="s">&quot;@string/permlab_deadlyActivity&quot;</span>
+</span><span class='line'>        <span class="na">android:description=</span><span class="s">&quot;@string/permdesc_deadlyActivity&quot;</span>
+</span><span class='line'>        <span class="na">android:permissionGroup=</span><span class="s">&quot;android.permission-group.COST_MONEY&quot;</span>
+</span><span class='line'>        <span class="na">android:protectionLevel=</span><span class="s">&quot;dangerous&quot;</span> <span class="nt">/&gt;</span>
+</span><span class='line'>    ...
+</span><span class='line'><span class="nt">&lt;/manifest&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><code>adb shell pm list permissions</code>,<code>adb shell pm list permissions -s</code></p>
+
+<p>Activity permissions (applied to the <code>&lt;activity&gt;</code> tag) restrict who can start the associated activity. The permission is checked during <code>Context.startActivity()</code> and <code>Activity.startActivityForResult()</code>; if the caller does not have the required permission then <code>SecurityException</code> is thrown from the call.</p>
+
+<p>Service permissions (applied to the <code>&lt;service&gt;</code> tag) restrict who can start or bind to the associated service. The permission is checked during <code>Context.startService()</code>, <code>Context.stopService()</code> and <code>Context.bindService()</code>; if the caller does not have the required permission then SecurityException is thrown from the call.</p>
+
+<p>BroadcastReceiver permissions (applied to the <code>&lt;receiver&gt;</code> tag) restrict who can send broadcasts to the associated receiver. The permission is checked after <code>Context.sendBroadcast()</code> returns, as the system tries to deliver the submitted broadcast to the given receiver. As a result, a permission failure will not result in an exception being thrown back to the caller; it will just not deliver the intent. In the same way, a permission can be supplied to <code>Context.registerReceiver()</code> to control who can broadcast to a programmatically registered receiver. Going the other way, a permission can be supplied when calling <code>Context.sendBroadcast()</code> to restrict which BroadcastReceiver objects are allowed to receive the broadcast (see below).</p>
+
+<p>ContentProvider permissions (applied to the <code>&lt;provider&gt;</code> tag) restrict who can access the data in a <code>ContentProvider</code>. (Content providers have an important additional security facility available to them called URI permissions which is described later.) Unlike the other components, there are two separate permission attributes you can set: <code>android:readPermission</code> restricts who can read from the provider, and <code>android:writePermission</code> restricts who can write to it. Note that if a provider is protected with both a read and write permission, holding only the write permission does not mean you can read from a provider. The permissions are checked when you first retrieve a provider (if you don&rsquo;t have either permission, a <code>SecurityException</code> will be thrown), and as you perform operations on the provider. Using <code>ContentResolver.query()</code> requires holding the read permission; using <code>ContentResolver.insert()</code>, <code>ContentResolver.update()</code>, <code>ContentResolver.delete()</code> requires the write permission. In all of these cases, not holding the required permission results in a <code>SecurityException</code> being thrown from the call.</p>
+
+<p>Note that both a receiver and a broadcaster can require a permission. When this happens, both permission checks must pass for the Intent to be delivered to the associated target.</p>
+
+<p>The standard permission system described so far is often not sufficient when used with content providers. A content provider may want to protect itself with read and write permissions, while its direct clients also need to hand specific URIs to other applications for them to operate on. A typical example is attachments in a mail application. Access to the mail should be protected by permissions, since this is sensitive user data. However, if a URI to an image attachment is given to an image viewer, that image viewer will not have permission to open the attachment since it has no reason to hold a permission to access all e-mail.</p>
+
+<p>The solution to this problem is <code>per-URI permissions</code>: when starting an activity or returning a result to an activity, the caller can set <code>Intent.FLAG_GRANT_READ_URI_PERMISSION</code> and/or <code>Intent.FLAG_GRANT_WRITE_URI_PERMISSION</code>. This grants the receiving activity permission access the specific data URI in the Intent, regardless of whether it has any permission to access data in the content provider corresponding to the Intent.</p>
+
+<p>The granting of fine-grained URI permissions does, however, require some cooperation with the content provider holding those URIs. It is strongly recommended that content providers implement this facility, and declare that they support it through the <code>android:grantUriPermissions</code> attribute or <code>&lt;grant-uri-permissions&gt;</code> tag.</p>
 
 <h2>App Widgets</h2>
 
