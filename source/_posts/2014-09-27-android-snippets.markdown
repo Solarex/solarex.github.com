@@ -34,3 +34,7 @@ getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.L
 <script src="https://gist.github.com/flyfire/2b5c7836f54d0fed56ac.js"></script>
 
 <script src="https://gist.github.com/flyfire/7149f493c1d357748535.js"></script>
+
+<script src="https://gist.github.com/flyfire/8752caf631e126de99fe.js"></script>
+
+<script src="https://gist.github.com/flyfire/53956718df22613f53dc.js"></script>

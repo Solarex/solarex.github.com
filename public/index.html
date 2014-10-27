@@ -9,7 +9,7 @@
   <meta name="author" content="Solarex">
 
   
-  <meta name="description" content="I originally wrote this article when I was (foolishly) still using AsyncTasks. Nowadays I simply consider it a mistake in all cases. As you&rsquo;ll &hellip;">
+  <meta name="description" content="A common task in Android is to perform some background activity in another thread, meanwhile displaying a ProgressDialog to the user. Example of &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -23,26 +23,16 @@
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/atom.xml" rel="alternate" title="Solarex's Blog" type="application/atom+xml">
   <script src="/javascripts/modernizr-2.0.js"></script>
+  <!--
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  -->
+  <script src="http://libs.baidu.com/jquery/1.9.1/jquery.min.js"></script>
   <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
   <script src="/javascripts/octopress.js" type="text/javascript"></script>
   <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
-<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
-<link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
-<link href='http://fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
-  
-  <script type="text/javascript">
-    var _gaq = _gaq || [];
-    _gaq.push(['_setAccount', 'UA-42746457-1']);
-    _gaq.push(['_trackPageview']);
-
-    (function() {
-      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-      ga.src = ('https:' == document.location.protocol ? 'https://' : 'http://') + 'stats.g.doubleclick.net/dc.js';
-      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-    })();
-  </script>
-
+<link href="http://fonts.useso.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href='http://fonts.useso.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
+<link href='http://fonts.useso.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
 
 </head>
 
@@ -81,6 +71,169 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/10/26/android-dealing-with-asynctask-and-screen-orientation/">Dealing With AsyncTask and Screen Orientation</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-10-26T19:31:00+08:00" pubdate data-updated="true">Oct 26<span>th</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p><center><img src="/images/android_logo.jpg"/></center></p>
+
+
+<p>A common task in Android is to perform some background activity in another thread, meanwhile displaying a ProgressDialog to the user. Example of these tasks include downloading some data from internet, logging into an application, etc. Implementing an AsyncTask is fairly a simple job, the big challenge is how to handle it properly when an orientation change occurs.</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2014/10/26/android-dealing-with-asynctask-and-screen-orientation/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/10/24/android-contentprovider/">Android ContentProvider</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-10-24T12:16:00+08:00" pubdate data-updated="true">Oct 24<span>th</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><center><p><img src="/images/android_logo.jpg"/></p></center>
+
+
+<ul>
+<li><a href="#overview">Android ContentProvider</a>
+
+<ul>
+<li><a href="#basics">Content Provider Basics</a></li>
+<li><a href="#using">Using Content Providers</a></li>
+<li><a href="#writing">Writing your own Content Provider</a></li>
+<li><a href="#performance">Better Performance with ContentProviderOperation</a></li>
+</ul>
+</li>
+</ul>
+
+
+<h2 id="overview">Android ContentProvider</h2>
+
+
+<p>This is a tutorial covering Android&rsquo;s ContentProvider.</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2014/10/24/android-contentprovider/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/10/24/android-loader/">Android Loader</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-10-24T06:34:00+08:00" pubdate data-updated="true">Oct 24<span>th</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p><center><img src="/images/android_logo.jpg"/></center></p>
+
+
+<ul>
+<li><a href="#overview">Android Loader</a>
+
+<ul>
+<li><a href="#before">Life before Loaders</a></li>
+<li><a href="#loadermanager">Understanding the LoaderManager</a></li>
+<li><a href="#implementing">Implementing Loaders</a></li>
+</ul>
+</li>
+</ul>
+
+
+<h2 id="overview">Android Loader</h2>
+
+
+<p>This post gives a brief introduction to Loaders and the LoaderManager. The first section describes how data was loaded prior to the release of Android 3.0, pointing out out some of the flaws of the pre-Honeycomb APIs. The second section defines the purpose of each class and summarizes their powerful ability in asynchronously loading data.</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2014/10/24/android-loader/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
   
   
     <article>
@@ -203,160 +356,6 @@
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2014/10/18/oauth-2-dot-0/">理解OAuth2.0</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-10-18T15:38:00+08:00" pubdate data-updated="true">Oct 18<span>th</span>, 2014</time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p><center><img src="/images/oauth.png"/></center></p>
-
-
-<p><a href="http://en.wikipedia.org/wiki/OAuth">OAuth</a>是一个关于授权（authorization）的开放网络标准，在全世界得到广泛应用，目前的版本是2.0版。本文对OAuth 2.0的设计思路和运行流程，做一个简明通俗的解释，主要参考材料为<a href="http://www.rfcreader.com/#rfc6749">RFC 6749</a>。</p>
-
-<h2>应用场景</h2>
-
-<p>为了理解OAuth的适用场合，让我举一个假设的例子。有一个&#8221;云冲印&#8221;的网站，可以将用户储存在Google的照片，冲印出来。用户为了使用该服务，必须让&#8221;云冲印&#8221;读取自己储存在Google上的照片。</p>
-
-<p><center><img src="/images/google-print.png"/></center></p>
-
-
-<p>问题是只有得到用户的授权，Google才会同意&#8221;云冲印&#8221;读取这些照片。那么，&#8221;云冲印&#8221;怎样获得用户的授权呢？传统方法是，用户将自己的Google用户名和密码，告诉&#8221;云冲印&#8221;，后者就可以读取用户的照片了。这样的做法有以下几个严重的缺点。</p>
-
-<pre><code>（1）"云冲印"为了后续的服务，会保存用户的密码，这样很不安全。
-（2）Google不得不部署密码登录，而我们知道，单纯的密码登录并不安全。
-（3）"云冲印"拥有了获取用户储存在Google所有资料的权力，用户没法限制"云冲印"获得授权的范围和有效期。
-（4）用户只有修改密码，才能收回赋予"云冲印"的权力。但是这样做，会使得其他所有获得用户授权的第三方应用程序全部失效。
-（5）只要有一个第三方应用程序被破解，就会导致用户密码泄漏，以及所有被密码保护的数据泄漏。
-</code></pre>
-
-<p>OAuth就是为了解决上面这些问题而诞生的。</p>
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2014/10/18/oauth-2-dot-0/">Read on &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2014/10/17/java-singleton/">深入浅出单实例Singleton设计模式</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-10-17T10:07:00+08:00" pubdate data-updated="true">Oct 17<span>th</span>, 2014</time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p><center><img src="/images/java-singleton.png"/></center></p>
-
-
-<h3>前序</h3>
-
-<p>单实例Singleton设计模式可能是被讨论和使用的最广泛的一个设计模式了，这可能也是面试中问得最多的一个设计模式了。这个设计模式主要目的是想在整个系统中只能出现一个类的实例。这样做当然是有必然的，比如你的软件的全局配置信息，或者是一个Factory，或是一个主控类，等等。你希望这个类在整个系统中只能出现一个实例。当然，作为一个技术负责人的你，你当然有权利通过使用非技术的手段来达到你的目的。比如：你在团队内部明文规定，“XX类只能有一个全局实例，如果某人使用两次以上，那么该人将被处于2000元的罚款！”（呵呵），你当然有权这么做。但是如果你的设计的是东西是一个类库，或是一个需要提供给用户使用的API，恐怕你的这项规定将会失效。因为，你无权要求别人会那么做。所以，这就是为什么，我们希望通过使用技术的手段来达成这样一个目的的原因。</p>
-
-<p>本文会带着你深入整个Singleton的世界，当然，我会放弃使用C++语言而改用Java语言，因为使用Java这个语言可能更容易让我说明一些事情。</p>
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2014/10/17/java-singleton/">Read on &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2014/10/14/android-context/">Android Context</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-10-14T10:11:00+08:00" pubdate data-updated="true">Oct 14<span>th</span>, 2014</time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><center><p><img src="/images/android_robot.png" width="255" height="300"></p></center>
-
-
-<p>Context is probably the most used element in Android applications…it may also be the most misused.Context objects are so common, and get passed around so frequently, it can be easy to create a situation you didn’t intend.  Loading resources, launching a new Activity, obtaining a system service, getting internal file paths, and creating views all require a Context (and that’s not even getting started on the full list!) to accomplish the task.  What I’d like to do is provide for you some insights on how Context works alongside some tips that will (hopefully) allow you to leverage it more effectively in your applications.</p>
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2014/10/14/android-context/">Read on &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/2/">&larr; Older</a>
@@ -372,23 +371,23 @@
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2014/10/26/android-dealing-with-asynctask-and-screen-orientation/">Dealing with AsyncTask and Screen Orientation</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/10/24/android-contentprovider/">Android ContentProvider</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/10/24/android-loader/">Android Loader</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2014/10/19/android-asynctask-pitfalls/">The Hidden Pitfalls of AsyncTask</a>
       </li>
     
       <li class="post">
         <a href="/blog/2014/10/19/android-tips/">Android Tips</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2014/10/18/oauth-2-dot-0/">理解OAuth2.0</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2014/10/17/java-singleton/">深入浅出单实例Singleton设计模式</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2014/10/14/android-context/">Android Context</a>
       </li>
     
   </ul>
@@ -407,6 +406,13 @@
   Copyright &copy; 2014 - Solarex -
   <span class="credit">Powered by <a href="http://octopress.org">Octopress</a> | Themed with <a href="https://github.com/lucaslew/whitespace">Whitespace</a></span>
 </p>
+
+
+<script type="text/javascript">
+    var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+    document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/h.js%3F2574e8b2c205dfe8ff89e239fa38ca27' type='text/javascript'%3E%3C/script%3E"));
+</script>
+
 
 </footer>
   

@@ -4,7 +4,7 @@
   <title><![CDATA[Category: dev | Solarex's Blog]]></title>
   <link href="http://Solarex.github.io/blog/categories/dev/atom.xml" rel="self"/>
   <link href="http://Solarex.github.io/"/>
-  <updated>2014-10-20T13:33:08+08:00</updated>
+  <updated>2014-10-27T11:28:28+08:00</updated>
   <id>http://Solarex.github.io/</id>
   <author>
     <name><![CDATA[Solarex]]></name>
@@ -12,6 +12,1960 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Dealing with AsyncTask and Screen Orientation]]></title>
+    <link href="http://Solarex.github.io/blog/2014/10/26/android-dealing-with-asynctask-and-screen-orientation/"/>
+    <updated>2014-10-26T19:31:00+08:00</updated>
+    <id>http://Solarex.github.io/blog/2014/10/26/android-dealing-with-asynctask-and-screen-orientation</id>
+    <content type="html"><![CDATA[<p><center><img src="http://Solarex.github.io/images/android_logo.jpg"/></center></p>
+
+
+<p>A common task in Android is to perform some background activity in another thread, meanwhile displaying a ProgressDialog to the user. Example of these tasks include downloading some data from internet, logging into an application, etc. Implementing an AsyncTask is fairly a simple job, the big challenge is how to handle it properly when an orientation change occurs.</p>
+
+<!-- more -->
+
+
+<p>In this article I will walk though a series of potential solutions to address the screen orientation issues when using an AsyncTask.</p>
+
+<p>So, lets create a proof of concept application that makes use of an AsyncTask which does not handle configuration changes yet, and then present a few solutions.</p>
+
+<p>Here’s the AsyncTask implementation that we will be using during the tutorial:</p>
+
+<p><code>java
+public class AsyncTaskExample extends AsyncTask&lt;String, Integer, String&gt; {
+ 
+    private final TaskListener listener;
+ 
+    public AsyncTaskExample(TaskListener listener) {
+        this.listener = listener;
+    }
+ 
+    @Override
+    protected void onPreExecute() {
+        listener.onTaskStarted();
+    }
+ 
+    @Override
+    protected String doInBackground(String... params) {
+        for (int i = 1; i &lt;= 10; i++) {
+            Log.d("GREC", "AsyncTask is working: " + i);
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        return "All Done!";
+    }
+ 
+    @Override
+    protected void onPostExecute(String result) {
+        listener.onTaskFinished(result);
+    }
+}
+</code></p>
+
+<ul>
+<li><code>doInBackground()</code> – this will be called by the AsyncTask on a background thread, and performs all the heavy work. For the sake of this example, I just wrote a simple loop  with a delay of 1 sec between iterations to simulate a task that takes some time.</li>
+<li>The constructor of the class takes a listener as a parameter. The listener will be used to delegate the work of <code>onPreExecute()/onPostExecute()</code> to the calling Activity.</li>
+</ul>
+
+
+<p>This is the interface definition used by AsyncTaskExample:</p>
+
+<p><code>java
+public interface TaskListener {
+    void onTaskStarted();
+ 
+    void onTaskFinished(String result);
+}
+</code></p>
+
+<p>And here’s the usage of AsyncTaskExample (the problematic case):</p>
+
+<p><code>java
+public class MainActivity extends Activity implements TaskListener, OnClickListener {
+ 
+    private ProgressDialog progressDialog;
+ 
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.main);
+        findViewById(R.id.start).setOnClickListener(this);
+    }
+ 
+    @Override
+    public void onClick(View v) {
+        if (v.getId() == R.id.start) {
+            new AsyncTaskExample(this).execute();
+        }
+    }
+ 
+    @Override
+    public void onTaskStarted() {
+        progressDialog = ProgressDialog.show(CopyOfMainActivity.this, "Loading", "Please wait a moment!");
+    }
+ 
+    @Override
+    public void onTaskFinished(String result) {
+        if (progressDialog != null) {
+            progressDialog.dismiss();
+        }
+    }
+}
+</code></p>
+
+<p>The Activity implements the TaskListener interface and provides appropriate implementation for its methods,  displaying the ProgressDialog when the task is started, and dismissing it when the task is finished. The AsyncTask is fired when clicking on a button.</p>
+
+<p>Now, if you run this example without changing the screen orientation, the AsyncTask will start and finish its work normally. Problems begin to appear when the device orientation is changed while the AsyncTask is in the middle of the work. The application will crash, and an exception similar to these ones will be thrown: java.lang.IllegalArgumentException: View not attached to window manager, or Activity has leaked window com.android.internal.policy….</p>
+
+<p>The cause relies in the Activity life cycle. A change in device orientation is interpreted as a configuration change which causes the current activity to be destroyed and then recreated. Android calls onPause(), onStop(), and onDestroy() on currently instance of activity, then a new instance of the same activity is recreated calling onCreate(), onStart(), and onResume(). The reason why Android have to do this, is because depending of screen orientation, portrait or landscape, we may need to load and display different resources, and only through re-creation Android can guarantee that all our resources will be re-requested.</p>
+
+<p>But don’t panic, you are not alone, there are several solutions that will help us to deal with this situation.</p>
+
+<h3>Solution 1 – Think twice if you really need an AsyncTask.</h3>
+
+<p>AsyncTasks are good for performing background work, but they are bound to the Activity which adds some complexity. For things like making HTTP requests to a server perhaps you should consider an IntentService. IntentService used in conjunction with a BroadcastReceiver or ResultReceiver to deliver results, could do a better job than an AsyncTask in certain situations.</p>
+
+<h3>Solution 2 – Put the AsyncTask in a Fragment.</h3>
+
+<p>Using fragments probably is the cleanest way to handle configuration changes. By default, Android destroys and recreates the fragments just like activities, however, fragments have the ability to retain their instances, simply by calling: <code>setRetainInstance(true)</code>, in one of its callback methods, for example in the onCreate().</p>
+
+<p>There’s however one aspect that should be taken in consideration in order to achieve the desired result. Our AsyncTask uses a ProgressDialog to signal when the AsyncTask is started, and dismisses it when the task is done. This complicates a bit the things because even if we are using <code>setRetainInstance(true)</code>, we should close all windows and dialogs when the Activity is destroyed, otherwise we will get an: <code>Activity has leaked window com.android.internal.policy…</code>  exception. This happens when you try to show a dialog after you have exited the Activity.</p>
+
+<p>In order to address this issue, we will add some logic to keep track of AsyncTask status (running/not running). We will dismiss the ProgressDialog when the fragment is detached from activity, and check in <code>onActivityCreated()</code> the status of AsyncTask. If the status is “running”, this means we are returning from a screen orientation and we will just re-create and display the ProgressDialog to show that the AsyncTask is still working.</p>
+
+<p><code>java
+public class ExampleFragment extends Fragment implements TaskListener, OnClickListener {
+ 
+    private ProgressDialog progressDialog;
+    private boolean isTaskRunning = false;
+    private AsyncTaskExample asyncTask;
+ 
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setRetainInstance(true);
+    }
+ 
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        // If we are returning here from a screen orientation
+        // and the AsyncTask is still working, re-create and display the
+        // progress dialog.
+        if (isTaskRunning) {
+            progressDialog = ProgressDialog.show(getActivity(), "Loading", "Please wait a moment!");
+        }
+    }
+ 
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        View view = inflater.inflate(R.layout.fragment_layout, container, false);
+        Button button = (Button) view.findViewById(R.id.start);
+        button.setOnClickListener(this);
+        return view;
+    }
+ 
+    @Override
+    public void onClick(View v) {
+        if (!isTaskRunning) {
+            asyncTask = new AsyncTaskExample(this);
+            asyncTask.execute();
+        }
+    }
+ 
+    @Override
+    public void onTaskStarted() {
+        isTaskRunning = true;
+        progressDialog = ProgressDialog.show(getActivity(), "Loading", "Please wait a moment!");
+    }
+ 
+    @Override
+    public void onTaskFinished(String result) {
+        if (progressDialog != null) {
+            progressDialog.dismiss();
+        }
+        isTaskRunning = false;
+    }
+ 
+    @Override
+    public void onDetach() {
+        // All dialogs should be closed before leaving the activity in order to avoid
+        // the: Activity has leaked window com.android.internal.policy... exception
+        if (progressDialog != null &amp;&amp; progressDialog.isShowing()) {
+            progressDialog.dismiss();
+        }
+        super.onDetach();
+    }
+}
+</code></p>
+
+<h3>Solution 3 – Lock the screen orientation</h3>
+
+<p>You could do this in 2 ways:</p>
+
+<p>a) permanently locking the screen orientation of the activity, specifying the screenOrientation attribute in the AndroidManifest with “portrait” or “landscape” values:</p>
+
+<p><code>xml
+&lt;activity
+   android:screenOrientation="portrait"
+   ...  /&gt;
+</code></p>
+
+<p>b) or, temporarily locking the screen in <code>onPreExecute()</code>, and unlocking it in <code>onPostExecute()</code>, thus preventing any orientation change while the AsyncTask is working:</p>
+
+<p><code>java
+@Override
+public void onTaskStarted() {
+    lockScreenOrientation();
+    progressDialog = ProgressDialog.show(CopyOfCopyOfMainActivity.this, "Loading", "Please wait a moment!");
+}
+ 
+@Override
+public void onTaskFinished(String result) {
+    if (progressDialog != null) {
+        progressDialog.dismiss();
+    }
+    unlockScreenOrientation();
+}
+ 
+private void lockScreenOrientation() {
+    int currentOrientation = getResources().getConfiguration().orientation;
+    if (currentOrientation == Configuration.ORIENTATION_PORTRAIT) {
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+    } else {
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+    }
+}
+ 
+private void unlockScreenOrientation() {
+    setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR);
+}
+</code></p>
+
+<h4>Solution 4 – Prevent the Activity from being recreated.</h4>
+
+<p>This is the easiest way to handle configuration changes, but the less advised. The only thing you need to do is to specify the configChanges attribute followed by a list of values that specifies when the activity should prevent itself from restarting.</p>
+
+<p><code>xml
+&lt;activity
+   android:configChanges="orientation|keyboardHidden"
+   android:name=".MainActivity"
+   .... /&gt;
+</code></p>
+
+<p>Using this approach however, is not recommended, and this is clearly stated in the Android documentation: Using this attribute should be avoided and used only as a last-resort.</p>
+
+<p>You may ask what’s wrong with this approach. Well, if you build the above example against Android 2.2 it will work fine, but if you build it against Android 3.0 and higher, you may notice that the application still crashes on orientation change. This is because starting  with Android 3.0 you need also to handle the <code>screenSize</code>, and <code>smallestScreenSize</code>:</p>
+
+<p><code>xml
+&lt;activity
+   android:configChanges="orientation|keyboardHidden|screenSize|smallestScreenSize"
+   android:name=".MainActivity"
+   .... /&gt;
+</code></p>
+
+<p>As it turns out, not only a screen orientation causes the Activity to recreate, there are also other events which may produce configuration changes and restart the Activity, and there’s a good chance that we won’t handle them all. This is why the use of this technique is discouraged.</p>
+
+<p><embed src="http://player.youku.com/player.php/sid/XODExOTY3MzY0/v.swf" allowFullScreen="true" quality="high" width="480" height="400" align="middle" allowScriptAccess="always" type="application/x-shockwave-flash"></embed></p>
+
+<p><embed src="http://player.youku.com/player.php/sid/XODExOTg2MTgw/v.swf" allowFullScreen="true" quality="high" width="480" height="400" align="middle" allowScriptAccess="always" type="application/x-shockwave-flash"></embed></p>
+
+<p>REF:</p>
+
+<ul>
+<li><a href="http://androidresearch.wordpress.com/2013/05/10/dealing-with-asynctask-and-screen-orientation/">Dealing with AsyncTask and Screen Orientation</a></li>
+</ul>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Android ContentProvider]]></title>
+    <link href="http://Solarex.github.io/blog/2014/10/24/android-contentprovider/"/>
+    <updated>2014-10-24T12:16:00+08:00</updated>
+    <id>http://Solarex.github.io/blog/2014/10/24/android-contentprovider</id>
+    <content type="html"><![CDATA[<center><p><img src="http://Solarex.github.io/images/android_logo.jpg"/></p></center>
+
+
+<ul>
+<li><a href="#overview">Android ContentProvider</a>
+
+<ul>
+<li><a href="#basics">Content Provider Basics</a></li>
+<li><a href="#using">Using Content Providers</a></li>
+<li><a href="#writing">Writing your own Content Provider</a></li>
+<li><a href="#performance">Better Performance with ContentProviderOperation</a></li>
+</ul>
+</li>
+</ul>
+
+
+<h2 id="overview">Android ContentProvider</h2>
+
+
+<p>This is a tutorial covering Android&rsquo;s ContentProvider.</p>
+
+<!-- more -->
+
+
+
+
+<h3 id="basics">ContentProvider Basics</h3>
+
+
+<h4>What are content providers?</h4>
+
+<p>Content providers are Android’s central mechanism that enables you to access data of other applications – mostly information stored in databases or flat files. As such content providers are one of Android’s central component types to support the modular approach common to Android. Without content providers accessing data of other apps would be a mess.</p>
+
+<p>Content providers support the four basic operations, normally called CRUD-operations. CRUD is the acronym for <code>create</code>, <code>read</code>, <code>update</code> and <code>delete</code>. With content providers those objects simply represent data – most often a record (tuple) of a database – but they could also be a photo on your SD-card or a video on the web.Android provides some standard content providers to access contacts, media files, preferences and so on.</p>
+
+<h4>Content URIs</h4>
+
+<p>The most important concept to understand when dealing with content providers is the content URI. Whenever you want to access data from a content provider you have to specify a URI. URIs for content providers look like this:</p>
+
+<p><code>bash
+content://authority/optionalPath/optionalId
+</code></p>
+
+<p>They contain four parts: The scheme to use, an authority, an optional path and an optional id.</p>
+
+<ul>
+<li>The scheme for content providers is always “content”. The colon and double-slash “://” are a fixed part of the URI-RFC and separate the scheme from the authority.</li>
+<li>The next part is the authority for the content provider. Authorities have to be unique for every content provider. Thus the naming conventions should follow the Java package name rules. That is you should use the reversed domain name of your organization plus a qualifier for each and every content provider you publish. The Android documentation recommends to use the fully qualified class name of your ContentProvider-subclass.</li>
+<li>The third part, the optional path, is used to distinguish the kinds of data your content provider offers. The content provider for Android’s mediastore, for example, distinguishes between audio files, video files and images using different paths for each of these types of media. This way a content provider can support different types of data that are nevertheless related. For totally unrelated data though you should use different content providers – and thus different authorities.</li>
+<li>The last element is the optional id, which – if present – must be numeric. The id is used whenever you want to access a single record (e.g. a specific video file).</li>
+</ul>
+
+
+<p>There are two types of URIs: <code>directory-based</code> and <code>id-based</code> URIs. If no id is specified a URI is automatically a directory-based URI.</p>
+
+<ul>
+<li>You use <code>directory-based</code> URIs to access multiple elements of the same type (e.g. all songs of a band). All CRUD-operations are possible with directory-based URIs.</li>
+<li>You use <code>id-based</code> URIs if you want to access a specific element. You cannot create objects using an id-based URI – but reading, updating and deleting is possible.</li>
+</ul>
+
+
+<p>The path of content URIs can contain additional information to limit the scope. The <code>MediaStore</code> content provider for example distinguishes between audio and other types. In addition to this it offers URIs that limit its operations to albums only or others to genres only. Content providers normally have constants for the URIs they support.</p>
+
+<h4>Content Types</h4>
+
+<p>Besides URIs another important concept to understand is the use of content types. Content types also have a standardized format which was first defined in RFC 1049 and refined in RFC 2045.</p>
+
+<p>A content type consist of a media type and a subtype divided by a slash. A typical example is “image/png”. The media type “image” describes the content as an image file which is further specified to be of the Portable Network Graphic variety by the subtype “png”.</p>
+
+<p>As with URIs there is also a standard for content types in Android. Table below lists the only two media types that Android accepts for content providers. As you can see, those two media types match the two types of URIs mentioned above.</p>
+
+<table>
+<caption><center>The media types used for content providers</center></caption>
+<tr>
+<th>Type</th>
+<th>Usage</th>
+<th>Constant</th>
+</tr>
+<tr>
+<td>vnd.android.cursor.item</td>
+<td>Used for single records</td>
+<td>ContentResolver.CURSOR_ITEM_BASE_TYPE</td>
+</tr>
+<tr>
+<td>vnd.android.cursor.dir</td>
+<td>Used for multiple records</td>
+<td>ContentResolver.CURSOR_DIR_BASE_TYPE</td>
+</tr>
+</table>
+
+
+<p>The subtype on the other hand is used for content provider specific details and should differ for all types your content provider supports. The naming convention for subtypes is vnd.yourcompanyname.contenttype. Most content providers support multiple subtypes. In the case of a media player for example you might have subtypes for genre, band, titles, musicians and so on.</p>
+
+<h4>Which standard Content Providers are available?</h4>
+
+<p>A number of content providers are part of Android’s API. All these standard providers are defined in the package <code>android.provider</code>. The following table lists the standard providers and what they are used for.</p>
+
+<table>
+<caption>The standard content providers of Android</caption>
+<tr>
+<th>Provider</th>
+<th>Since&nbsp;&nbsp;&nbsp;&nbsp;</th>
+<th>Usage</th>
+</tr>
+<tr>
+<td>Browser</td>
+<td>SDK 1</td>
+<td>Manages your web-searches, bookmarks and browsing-history.</td>
+</tr>
+<tr>
+<td>CalendarContract</td>
+<td>SDK 14</td>
+<td>Manages the calendars on the user&#8217;s device.</td>
+</tr>
+<tr>
+<td>CallLog</td>
+<td>SDK 1</td>
+<td>Keeps track of your call history.</td>
+</tr>
+<tr>
+<td>Contacts</td>
+<td>SDK 1</td>
+<td>The old and deprecated content provider for managing contacts. You should only use this provider if you need to support an SDK prior to SDK 5!</td>
+</tr>
+<tr>
+<td>ContactsContract</td>
+<td>SDK 5</td>
+<td>Deals with all aspects of contact management. Supersedes the Contacts-content provider.</td>
+</tr>
+<tr>
+<td>MediaStore</td>
+<td>SDK 1</td>
+<td>The content provider responsible for all your media files like music, video and pictures.</td>
+</tr>
+<tr>
+<td>Settings</td>
+<td>SDK 1</td>
+<td>Manages all global settings of your device.</td>
+</tr>
+<tr>
+<td>UserDictionary</td>
+<td>SDK 3</td>
+<td>Keeps track of words you add to the default dictionary.</td>
+</tr>
+</table>
+
+
+<p>Please make use of the standard providers whenever you need data they provide. For example there are apps that ignore the UserDictionary (e.g. Swype). So the user might end up adding the same words in multiple apps – which is pretty annoying. Something like this will not help your rating in Android’s Market.</p>
+
+<p>Of course you should always keep in mind that not all of the standard providers might be present on certain devices. E.g. a tablet might have no CallLog. Thus you should always test for availability. <strong>One way to do so is querying a content provider and checking if the returned cursor is null</strong>. That’s the return value when the provider doesn’t exist. The other CRUD-methods though throw an exception in case you pass in an unknown URI.</p>
+
+<h3 id="using">Using ContentProviders</h3>
+
+
+<h4>ContentResolver</h4>
+
+<p>Whenever you want to use another content provider you first have to access a <code>ContentResolver</code> object. This object is responsible for finding the correct content provider.</p>
+
+<p>The <code>ContentResolver</code> decides which provider to use based on the authority part of the URI. <strong>A content provider must provide its authority within the manifest file.</strong> From these entries Android creates a mapping between the authorities and the corresponding ContentProvider implementations to use.</p>
+
+<p>You always interact with the <code>ContentResolver</code> and never with <code>ContentProvider</code> objects themselves. This supports loose coupling and also guarantees the correct lifecycle of the content provider.</p>
+
+<p>You can get the <code>ContentResolver</code> object by calling <code>getContentResolver()</code> on the <code>Context</code> object. The <code>Context</code> object should always be available since the Activity and Service classes inherit from Context and the other components also provide easy access to it.</p>
+
+<p>Since you only use the class <code>ContentResolver</code> it has to provide all necessary CRUD-methods. Any arguments provided to the methods of the <code>ContentResolver</code> are passed on to the respective methods of the <code>ContentProvider</code> subclass.</p>
+
+<table>
+<caption>The CRUD methods of the ContentResolver object</caption>
+<tr>
+<th>Method</th>
+<th>Usage</th>
+</tr>
+<tr>
+<td>delete</td>
+<td>Deletes the object(s) for the URI provided. The URI can be item- or directory-based</td>
+</tr>
+<tr>
+<td>insert</td>
+<td>Inserts one object. The URI must be directory-based</td>
+</tr>
+<tr>
+<td>query</td>
+<td>Queries for all objects that fit the URI. The URI can be item- or directory-based</td>
+</tr>
+<tr>
+<td>update</td>
+<td>Updates one or all object(s). The URI can be item- or directory-based</td>
+</tr>
+</table>
+
+
+<p>There are also two methods for applying multiple CRUD operations at once as shown in the next table.</p>
+
+<table>
+<caption>ContentResolver methods for dealing with multiple content provider operations</caption>
+<tr>
+<th>Method</th>
+<th>Usage</th>
+</tr>
+<tr>
+<td>applyBatch</td>
+<td>Allows you to execute a list of <code>ContentProviderOperation</code> objects. Each <code>ContentProviderOperation</code> object can take its own URI and type of operation</td>
+</tr>
+<tr>
+<td>bulkInsert</td>
+<td>Allows you to insert an array of <code>ContentValues</code> for a directory-based URI. You can only specify one URI for all objects you want to add</td>
+</tr>
+</table>
+
+
+<h4>Querying for data</h4>
+
+<p>Querying data is probably the operation you will use most often. That’s true for your own providers but also for standard providers which offer some very valuable information.</p>
+
+<table>
+<caption>The arguments of the query method</caption>
+<tr>
+<th>Type</th>
+<th>Name</th>
+<th>Usage</th>
+</tr>
+<tr>
+<td>URI</td>
+<td>uri</td>
+<td>The URI of the object(s) to access. This is the only argument that must not be null</td>
+</tr>
+<tr>
+<td>String[]</td>
+<td>projection</td>
+<td>This String array indicates which columns/attributes of the objects you want to access</td>
+</tr>
+<tr>
+<td>String</td>
+<td>selection</td>
+<td>With this argument you can determine which records to return</td>
+</tr>
+<tr>
+<td>String[]</td>
+<td>selectionArgs</td>
+<td>The binding parameters to the previous selection argument</td>
+</tr>
+<tr>
+<td>String</td>
+<td>sortOrder</td>
+<td>If the result should be ordered you must use this argument to determine the sort order</td>
+</tr>
+</table>
+
+
+<p>The return value of the query method is a <code>Cursor</code> object. The cursor is used to navigate between the rows of the result and to read the columns of the current row. Cursors are important resources that have to be closed whenever you have no more use for them – otherwise you keep valuable resources from being released.</p>
+
+<p>The following code snippet shows how to make use of this provider. I use the <code>CONTENT_URI</code> of <code>UserDictionary.Words</code> to access the dictionary. For this example I am only interested in the IDs of the words and the words itself.</p>
+
+<p>```java
+ContentResolver resolver = getContentResolver();
+String[] projection = new String[]{BaseColumns._ID, UserDictionary.Words.WORD};
+Cursor cursor =</p>
+
+<pre><code>  resolver.query(UserDictionary.Words.CONTENT_URI, 
+        projection, 
+        null, 
+        null, 
+        null);
+</code></pre>
+
+<p>if (cursor.moveToFirst()) {
+   do {</p>
+
+<pre><code>  long id = cursor.getLong(0);
+  String word = cursor.getString(1);
+  // do something meaningful
+</code></pre>
+
+<p>   } while (cursor.moveToNext());
+}
+```</p>
+
+<h4>Inserting new records</h4>
+
+<p>Very often your app needs to insert data. For the built-in content providers of Android this could be because you want to add events to the Calendar provider, people to the Contacts provider, words to the UserDictionary provider and so on.</p>
+
+<p>The correct content URI for inserts can only be a <code>directory-based</code> URI because only these represent a collection of related items.</p>
+
+<p>The values to insert are specified using a <code>ContentValues</code> object.This object is not much more than a collection of key/value pairs. Of course, the keys of your ContentValues object must match columns/attributes of the objects you want to update – otherwise you will get an exception. For all columns of the new object for which no key/value-pair is provided the default value is used – which most often is null.</p>
+
+<table>
+<caption>The arguments of the insert method</caption>
+<tr>
+<th>Type</th>
+<th>Name</th>
+<th>Usage</th>
+</tr>
+<tr>
+<td>URI</td>
+<td>uri</td>
+<td>The directory-based URI to which to add the object. This argument must not be null</td>
+</tr>
+<tr>
+<td>ContentValues</td>
+<td>values</td>
+<td>The values for the object to add. This argument also must not be null</td>
+</tr>
+</table>
+
+
+<p>The following code snippet shows you how to add data using a content provider:</p>
+
+<p><code>java
+ContentValues values = new ContentValues();
+values.put(Words.WORD, "Beeblebrox");
+resolver.insert(UserDictionary.Words.CONTENT_URI, values);
+</code></p>
+
+<p>If you want to add multiple records to the same URI you can use the <code>bulkInsert()</code> method. This method differs from the normal <code>insert()</code> method only in that it takes an array of <code>ContentValue</code> objects instead of just one <code>ContentValues</code> object. So for each record you want to add, there must be an entry within the <code>ContentValues</code> array. If you want to add to different URIs though – or if you want to mix insert, update and delete operations, you should use <code>applyBatch()</code>.</p>
+
+<h4>Updating data</h4>
+
+<p>To update records you basically provide the URI, a <code>ContentValues</code> object and optionally also a where-clause and arguments for this where-clause.</p>
+
+<table>
+<caption>The arguments of the update method</caption>
+<tr>
+<th>Type</th>
+<th>Name</th>
+<th>Usage</th>
+</tr>
+<tr>
+<td>URI</td>
+<td>uri</td>
+<td>The URI of the object(s) to access. This argument must not be null</td>
+</tr>
+<tr>
+<td>ContentValues</td>
+<td>values</td>
+<td>The values to substitute the current data with. This argument also must not be null</td>
+</tr>
+<tr>
+<td>String</td>
+<td>selection</td>
+<td>With this argument you can determine which records to update</td>
+</tr>
+<tr>
+<td>String[]</td>
+<td>selectionArgs</td>
+<td>The binding parameters to the previous selection argument</td>
+</tr>
+</table>
+
+
+<p>In the next snippet I am going to change the word I’ve just added in the previous section.</p>
+
+<p><code>java
+values.clear();
+values.put(Words.WORD, "Zaphod");
+Uri uri = ContentUris.withAppendedId(Words.CONTENT_URI, id);
+long noUpdated = resolver.update(uri, values, null, null);
+</code></p>
+
+<p>Here we use a ContentValues object again. The keys of your ContentValues object must of course match columns/attributes of the objects you want to update – otherwise you would get an exception. The update method changes only those columns for which keys are present in the ContentValues object.</p>
+
+<p>Note the call to <code>ContentUris.withAppendedId()</code>. This is a helper method to create an <code>id-based</code> URI from a directory-based one. You use it all the time since content providers only provide constants for directory-based URIs. So whenever you want to access a specific object you should use this method.</p>
+
+<p>Since I changed only one record, a URI with an appended ID is sufficient. But if you want to update multiple values, you should use the normal URI and a selection clause. You will see an example for the latter when I show you how to delete entries.</p>
+
+<p>There is also the call to <code>values.clear()</code>. This resets the ContentValues object and thus recycles the object. This way you are reducing costly garbage collector operations.</p>
+
+<h4>Deleting data</h4>
+
+<p>The next snippet shows how to delete records. It finally deletes the word. In this code sample you can see how to use the selection and selectionArgs arguments. The array of the selectionArgs argument is used to substitute all question marks found in the selection argument.</p>
+
+<p>```java
+long noDeleted = resolver.delete</p>
+
+<pre><code>  (Words.CONTENT_URI, 
+  Words.WORD + " = ? ", 
+  new String[]{"Zaphod"});
+</code></pre>
+
+<p>```</p>
+
+<p>The delete method takes the same arguments as the update method with the exception being the values argument. Since the record is deleted anyway, substitute values are not needed.</p>
+
+<table>
+<caption>The arguments of the delete method</caption>
+<tr>
+<th>Type</th>
+<th>Name</th>
+<th>Usage</th>
+</tr>
+<tr>
+<td>URI</td>
+<td>uri</td>
+<td>The URI of the object(s) to access. This is the only argument which must not be null</td>
+</tr>
+<tr>
+<td>String</td>
+<td>selection</td>
+<td>With this argument you can determine which records to delete</td>
+</tr>
+<tr>
+<td>String[]</td>
+<td>selectionArgs</td>
+<td>The binding parameters to the previous selection argument</td>
+</tr>
+</table>
+
+
+
+
+<h3 id="writing">Writing your own ContentProvider</h3>
+
+
+<p>Implementing a content provider involves always the following steps:</p>
+
+<ul>
+<li>Create a class that extends <code>ContentProvider</code></li>
+<li>Create a contract class</li>
+<li>Create the <code>UriMatcher</code> definition</li>
+<li>Implement the <code>onCreate()</code> method</li>
+<li>Implement the <code>getType()</code> method</li>
+<li>Implement the CRUD methods</li>
+<li>Add the content provider to your <code>AndroidManifest.xml</code></li>
+</ul>
+
+
+<h4>Create a class that extends ContentProvider</h4>
+
+<p>You start by sub-classing ContentProvider. Since ContentProvider is an abstract class you have to implement the six abstract methods. These methods are explained in detail later on, for now simply use the stubs created by the IDE of your choice.</p>
+
+<table>
+<caption>The abstract methods you have to implement</caption>
+<tr>
+<th>Method</th>
+<th>Usage</th>
+</tr>
+<tr>
+<td>onCreate()</td>
+<td>Prepares the content provider</td>
+</tr>
+<tr>
+<td>getType(Uri)</td>
+<td>Returns the MIME type for this URI</td>
+</tr>
+<tr>
+<td>delete(Uri uri, String selection, String[] selectionArgs)</td>
+<td>Deletes records</td>
+</tr>
+<tr>
+<td>insert(Uri uri, ContentValues values)</td>
+<td>Adds records</td>
+</tr>
+<tr>
+<td>query(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder)</td>
+<td>Return records based on selection criteria</td>
+</tr>
+<tr>
+<td>update(Uri uri, ContentValues values, String selection, String[] selectionArgs)</td>
+<td>Modifies data</td>
+</tr>
+</table>
+
+
+<h4>Create a contract class</h4>
+
+<p>Up to now your code is still missing most of the functionality. But before implementing the CRUD methods you should think about your role as a provider. Content providers by its very definition provide data to clients. Those clients need to know how to access your data. And you should treat your URIs and authority like an API. You basically enter into a contract with your client. And your public API should reflect this.</p>
+
+<p>Thus the official Android documentation recommends to create a contract class. This class defines all publicly available elements, like the authority, the content URIs of your tables, the columns, the content types and also any intents your app offers in addition to your provider.</p>
+
+<p>This class is your public API. What you define here is what clients can use. It’s also the abstraction you provide. You can do behind the scenes whatever you like. The client won’t notice. You can change the data structure without problems – if your contract class remains unchanged.</p>
+
+<p>The downside is: You shouldn’t change the contract in any way that might break existing clients. It’s a contract after all :&ndash;)</p>
+
+<p>If you really think you must get rid of something you provided earlier on, use analytics to find out when a deprecated feature isn’t used anymore.</p>
+
+<p>So here is what a typical contract class looks like:</p>
+
+<p>```java
+public final class LentItemsContract {</p>
+
+<pre><code>/**
+ * The authority of the lentitems provider.
+ */
+public static final String AUTHORITY = 
+      "de.openminds.samples.cpsample.lentitems";
+/**
+ * The content URI for the top-level 
+ * lentitems authority.
+ */
+public static final Uri CONTENT_URI = 
+      Uri.parse("content://" + AUTHORITY);
+
+/**
+ * Constants for the Items table 
+ * of the lentitems provider.
+ */
+public static final class Items 
+      implements CommonColumns { ... }
+
+/**
+ * Constants for the Photos table of the 
+ * lentitems provider. For each item there 
+ * is exactly one photo. You can 
+ * safely call insert with the an already 
+ * existing ITEMS_ID. You won't get constraint 
+ * violations. The content provider takes care 
+ * of this.&lt;br&gt; 
+ * Note: The _ID of the new record in this case
+ * differs from the _ID of the old record.
+ */
+public static final class Photos 
+      implements BaseColumns { ... }
+
+/**
+ * Constants for a joined view of Items and 
+ * Photos. The _id of this joined view is 
+ * the _id of the Items table.
+ */
+public static final class ItemEntities 
+      implements CommonColumns { ...}
+
+/**
+ * This interface defines common columns 
+ * found in multiple tables.
+ */
+public static interface CommonColumns 
+      extends BaseColumns { ... }
+</code></pre>
+
+<p>}
+```</p>
+
+<p>You can see the exported tables Photos, Items and ItemEntities which are separate inner classes of the contract class. There is also the authority of the provider and the root content URI. If your app also exports activities accessible via intents you should document those here as well. And you should document any permissions your provider uses.</p>
+
+<p>One thing in the above snippet is noteworthy: The inner class ItemEntities represents a virtual table that doesn’t exist in the database. In this case I simply use joins in the query method but you could also use views within the database to back up virtual tables. Clients cannot join tables of content providers, thus you should consider offering plausible joins yourself.</p>
+
+<p>The following snippet shows what to do within the inner classes of your contract class:</p>
+
+<p>```java
+/<em>*
+ * Constants for the Items table
+ * of the lentitems provider.
+ </em>/
+public static final class Items</p>
+
+<pre><code>  implements CommonColumns {
+/**
+ * The content URI for this table. 
+ */
+public static final Uri CONTENT_URI =
+      Uri.withAppendedPath(
+            LentItemsContract.CONTENT_URI, 
+            "items");
+/**
+ * The mime type of a directory of items.
+ */
+public static final String CONTENT_TYPE = 
+      ContentResolver.CURSOR_DIR_BASE_TYPE + 
+      "/vnd.de.openminds.lentitems_items";
+/**
+ * The mime type of a single item.
+ */
+public static final String CONTENT_ITEM_TYPE = 
+      ContentResolver.CURSOR_ITEM_BASE_TYPE + 
+      "/vnd.de.openminds.lentitems_items";
+/**
+ * A projection of all columns 
+ * in the items table.
+ */
+public static final String[] PROJECTION_ALL =
+      {_ID, NAME, BORROWER};
+/**
+ * The default sort order for 
+ * queries containing NAME fields.
+ */
+public static final String SORT_ORDER_DEFAULT = 
+      NAME + " ASC";
+</code></pre>
+
+<p>}
+```</p>
+
+<p>As you can see the inner classes are the place for any column definitions, the content URIs and the content types of the respective tables.</p>
+
+<h4>Create the UriMatcher definitions</h4>
+
+<p>To deal with multiple URIs Android provides the helper class UriMatcher. This class eases the parsing of URIs. In the next code sample you can see that you initialize the UriMatcher by adding a set of paths with correspondig int values. Whenever you ask if a URI matches, the UriMatcher returns the corresponding int value to indicate which one matches. It is common practise to use constants for these int values. The code sample shows how to add id based paths as well as dir based paths.</p>
+
+<p>```java
+// helper constants for use with the UriMatcher
+private static final int ITEM_LIST = 1;
+private static final int ITEM_ID = 2;
+private static final int PHOTO_LIST = 5;
+private static final int PHOTO_ID = 6;
+private static final int ENTITY_LIST = 10;
+private static final int ENTITY_ID = 11;
+private static final UriMatcher URI_MATCHER;</p>
+
+<p>// prepare the UriMatcher
+static {</p>
+
+<pre><code>URI_MATCHER = new UriMatcher(UriMatcher.NO_MATCH);
+URI_MATCHER.addURI(LentItemsContract.AUTHORITY, 
+      "items", 
+      ITEM_LIST);
+URI_MATCHER.addURI(LentItemsContract.AUTHORITY, 
+      "items/#", 
+      ITEM_ID);
+URI_MATCHER.addURI(LentItemsContract.AUTHORITY, 
+      "photos", 
+      PHOTO_LIST);
+URI_MATCHER.addURI(LentItemsContract.AUTHORITY, 
+      "photos/#", 
+      PHOTO_ID);
+</code></pre>
+
+<p>   URI_MATCHER.addURI(LentItemsContract.AUTHORITY,</p>
+
+<pre><code>     "entities", 
+     ENTITY_LIST);
+</code></pre>
+
+<p>   URI_MATCHER.addURI(LentItemsContract.AUTHORITY,</p>
+
+<pre><code>     "entities/#", 
+     ENTITY_ID);
+</code></pre>
+
+<p>}
+```</p>
+
+<p>You pass the authority, a path pattern and an int value to the addURI() method. Android returns the int value later on when you try to match patterns.</p>
+
+<p>The patterns of the sample above are the most common patterns. But you are not limited to those. Android’s calendar content provider for examples offers search URIs to find certain instances of events. And the content provider for contacts also offers non standard URIs – for example to provide access to the contact photo. You can take a look at the source of CalendarProvider2 or ContactsProvider2 to see how to use those non-standard URIs with the UriMatcher.</p>
+
+<h4>Implement the onCreate() method</h4>
+
+<p>Back to the actual content provider class. First implement the onCreate() method.</p>
+
+<p>The onCreate() method is a lifecycle method and runs on the UI thread. Thus you should avoid executing any long-lasting tasks in this method. Your content provider is usually created at the start of your app. And you want this to be as fast as possible. So even if your users do not get any “Application Not Responding” error messages, they won’t like anything that delays the perceived starting time of your app. Thus consider to do any long lasting stuff within the CRUD methods.</p>
+
+<p>Normally content providers use a database as the underlying data store. In this case you would create a reference to your SQLiteOpenHelper in onCreate() – but you wouldn’t try to get hold of an SQLiteDatabase object. In the original version of this post, my recommendation has been to get a reference to the database in this method. Please, do not do this!</p>
+
+<p>```java
+public class LentItemsProvider extends ContentProvider {</p>
+
+<pre><code>private LentItemsOpenHelper mHelper = null;
+@Override
+public boolean onCreate() {
+    mHelper = new LentItemsOpenHelper(getContext());
+    return true;
+}
+</code></pre>
+
+<p>   //&hellip;
+}
+```</p>
+
+<h4>Implement the getType() method</h4>
+
+<p>Every content provider must return the content type for its supported URIs. The signature of the method takes a URI and returns a String. The next code sample shows the getType() method of the sample application.</p>
+
+<p>```java
+@Override
+public String getType(Uri uri) {
+   switch (URI_MATCHER.match(uri)) {
+   case ITEM_LIST:</p>
+
+<pre><code>  return Items.CONTENT_TYPE;
+</code></pre>
+
+<p>   case ITEM_ID:</p>
+
+<pre><code>  return Items.CONTENT_ITEM_TYPE;
+</code></pre>
+
+<p>   case PHOTO_ID:</p>
+
+<pre><code>  return Photos.CONTENT_PHOTO_TYPE;
+</code></pre>
+
+<p>   case PHOTO_LIST:</p>
+
+<pre><code>  return Photos.CONTENT_TYPE;
+</code></pre>
+
+<p>   case ENTITY_ID:</p>
+
+<pre><code>  return ItemEntities.CONTENT_ENTITY_TYPE;
+</code></pre>
+
+<p>   case ENTITY_LIST:</p>
+
+<pre><code>  return ItemEntities.CONTENT_TYPE;
+</code></pre>
+
+<p>   default:</p>
+
+<pre><code>  throw new IllegalArgumentException("Unsupported URI: " + uri);
+</code></pre>
+
+<p>   }
+}
+```</p>
+
+<p>As you can see this method is pretty simple. You just have to return the appropriate content type – defined within your contract class – for the URI passed into this method.</p>
+
+<h4>UriMatcher</h4>
+
+<p>The previous code sample shows how to make use of the UriMatcher. The pattern is also repeated within each of the CRUD methods, so let’s digg into it.</p>
+
+<p>When you initialize the UriMatcher you state for each URI which int value belongs to it. Now whenever you need to react diffently depending on the URI you use the UriMatcher. It’s match() method returns the int value used during initialization. And usually you use this within a switch statement. This switch statement has case branches for the constants used during initialization.</p>
+
+<p>You can use a “#” as a placeholder for an arbitrary numeric value and a “*” as a placeholder for arbitrary text. All other parts must be exactly as passed to the addURI() method.</p>
+
+<h4>Adding records using insert()</h4>
+
+<p>As expected this method is used by your clients to insert records into your datastore. The method only makes sense for dir based URIs, thus you first have to check if the right kind of URI is passed to the insert() method. Only then can you actually insert the values into the datastore you use.</p>
+
+<p>The content provider API is record-based – probably since most underlying datastores are record based databases anyway. This makes implementing the insert() method very easy, since it allows you to simply pass the ContentValues object on to the SQLiteDatabase’s insert() method.</p>
+
+<p>```java
+public Uri insert(Uri uri, ContentValues values) {
+   if (URI_MATCHER.match(uri) != ITEM_LIST</p>
+
+<pre><code>     &amp;&amp; URI_MATCHER.match(uri) != PHOTO_LIST) {
+     throw new IllegalArgumentException(
+           "Unsupported URI for insertion: " + uri);
+</code></pre>
+
+<p>   }
+   SQLiteDatabase db = mHelper.getWritableDatabase();
+   if (URI_MATCHER.match(uri) == ITEM_LIST) {</p>
+
+<pre><code>  long id = 
+        db.insert(
+              DBSchema.TBL_ITEMS, 
+              null, 
+              values);
+  return getUriForId(id, uri);
+</code></pre>
+
+<p>   } else {</p>
+
+<pre><code>  // this insertWithOnConflict is a special case; 
+  // CONFLICT_REPLACE means that an existing entry 
+  // which violates the UNIQUE constraint on the 
+  // item_id column gets deleted. In this case this 
+  // INSERT behaves nearly like an UPDATE. Though 
+  // the new row has a new primary key.
+  // See how I mentioned this in the Contract class.
+  long id = 
+        db.insertWithOnConflict(
+              DBSchema.TBL_PHOTOS, 
+              null, 
+              values, 
+              SQLiteDatabase.CONFLICT_REPLACE);
+  return getUriForId(id, uri);
+</code></pre>
+
+<p>   }
+}</p>
+
+<p>private Uri getUriForId(long id, Uri uri) {
+   if (id > 0) {</p>
+
+<pre><code>  Uri itemUri = ContentUris.withAppendedId(uri, id);
+  if (!isInBatchMode()) {
+     // notify all listeners of changes:
+     getContext().
+           getContentResolver().
+                 notifyChange(itemUri, null);
+  }
+  return itemUri;
+</code></pre>
+
+<p>   }
+   // s.th. went wrong:
+   throw new SQLException(</p>
+
+<pre><code>     "Problem while inserting into uri: " + uri);
+</code></pre>
+
+<p>}
+```</p>
+
+<h4>Notifying listeners of dataset changes</h4>
+
+<p>Clients often want to be notified about changes in the underlying datastore of your content provider. So inserting data, as well as deleting or updating data should trigger this notification.</p>
+
+<p>That’s why I used the following line in the code sample above:</p>
+
+<p><code>java
+getContext().getContentResolver().notifyChange(itemUri, null);
+</code></p>
+
+<p>Of course you should only call this method when there really has been a change – that’s why I test if the id is a positive number.</p>
+
+<p>Alas, it is not possible to notify the client of the actual change that has occurred. You can only state which URI has changed. Most often this is enough – though sometimes a client would like to know if this was an addition of a record, a deletion of entries or an update. Sadly, Android offers us no possibility to help those clients</p>
+
+<h4>Querying the content provider for records</h4>
+
+<p>Returning records from your ContentProvider is pretty easy. Android has a helper class, you can use here: The SQLiteQueryBuilder. Within the query() method of a content provider you can use this class as shown below.</p>
+
+<p>```java
+@Override
+public Cursor query(Uri uri, String[] projection,</p>
+
+<pre><code>  String selection, String[] selectionArgs, 
+  String sortOrder) {
+</code></pre>
+
+<p>   SQLiteDatabase db = mHelper.getReadableDatabase();
+   SQLiteQueryBuilder builder = new SQLiteQueryBuilder();
+   boolean useAuthorityUri = false;
+   switch (URI_MATCHER.match(uri)) {
+   case ITEM_LIST:</p>
+
+<pre><code>  builder.setTables(DBSchema.TBL_ITEMS);
+  if (TextUtils.isEmpty(sortOrder)) {
+     sortOrder = Items.SORT_ORDER_DEFAULT;
+  }
+  break;
+</code></pre>
+
+<p>   case ITEM_ID:</p>
+
+<pre><code>  builder.setTables(DBSchema.TBL_ITEMS);
+  // limit query to one row at most:
+  builder.appendWhere(Items._ID + " = " +
+        uri.getLastPathSegment());
+  break;
+</code></pre>
+
+<p>   case PHOTO_LIST:</p>
+
+<pre><code>  builder.setTables(DBSchema.TBL_PHOTOS);
+  break;
+</code></pre>
+
+<p>   case PHOTO_ID:</p>
+
+<pre><code>  builder.setTables(DBSchema.TBL_PHOTOS);
+  // limit query to one row at most:
+  builder.appendWhere(Photos._ID + 
+        " = " + 
+        uri.getLastPathSegment());
+  break;
+</code></pre>
+
+<p>   case ENTITY_LIST:</p>
+
+<pre><code>  builder.setTables(DBSchema.LEFT_OUTER_JOIN_STATEMENT);
+  if (TextUtils.isEmpty(sortOrder)) {
+     sortOrder = ItemEntities.SORT_ORDER_DEFAULT;
+  }
+  useAuthorityUri = true;
+  break;
+</code></pre>
+
+<p>   case ENTITY_ID:</p>
+
+<pre><code>  builder.setTables(DBSchema.LEFT_OUTER_JOIN_STATEMENT);
+  // limit query to one row at most:
+  builder.appendWhere(DBSchema.TBL_ITEMS + 
+        "." + 
+        Items._ID + 
+        " = " +
+        uri.getLastPathSegment());
+  useAuthorityUri = true;
+  break;
+</code></pre>
+
+<p>   default:</p>
+
+<pre><code>  throw new IllegalArgumentException(
+        "Unsupported URI: " + uri);
+</code></pre>
+
+<p>   }
+   Cursor cursor =</p>
+
+<pre><code>     builder.query(
+     db, 
+     projection, 
+     selection, 
+     selectionArgs,
+     null, 
+     null, 
+     sortOrder);
+</code></pre>
+
+<p>   // if we want to be notified of any changes:
+   if (useAuthorityUri) {</p>
+
+<pre><code>  cursor.setNotificationUri(
+        getContext().getContentResolver(), 
+        LentItemsContract.CONTENT_URI);
+</code></pre>
+
+<p>   }
+   else {</p>
+
+<pre><code>  cursor.setNotificationUri(
+        getContext().getContentResolver(), 
+        uri);
+</code></pre>
+
+<p>   }
+   return cursor;
+}
+```</p>
+
+<p>After creating a new object you first define into which table(s) to insert. Then you might want to add a default sort order if none is specified by the caller of your code. Next you have to add a WHERE clause that matches the id for id based queries before you finally pass all arguments on to the builder’s query() method. This method returns a Cursor object which you simply return to your caller.</p>
+
+<p>There is one additional thing though you have to take care of. That is the SQLiteDatabase object you have to pass to the SQLiteQueryBuilder&rsquo;s query() method. I recommend to get access to the SQLiteDatabase object within each CRUD method.</p>
+
+<p>Now you might wonder if I ever close the object. Well, I don’t :&ndash;) But this is no problem. SQLiteOpenHelper keeps just one SQLiteDatabase object per SQLiteSession. This makes accessing the object very efficient. With version checking and all that is happening in the background it wouldn’t work too well otherwise. I will delve into all these details in one of my upcoming posts within my SQLite series. So for now simply believe me: There is no leak here! If you use just one SQLiteOpenHelper object within your app you will only have at most one SQLiteDatabase object at any time – unless you pass this object needlessly around and leak it that way. Finally: Android destroys the content provider when it’s no longer needed and cleans up any ressources. Very convenient!</p>
+
+<h4>Updating and deleting records of your content provider</h4>
+
+<p>The code for updating and deleting records looks pretty much the same. I’m going to show you how to update records and afterwards I will briefly describe the necessary changes for deleting.</p>
+
+<p>```java
+@Override
+public int update(Uri uri, ContentValues values, String selection,</p>
+
+<pre><code>  String[] selectionArgs) {
+</code></pre>
+
+<p>   SQLiteDatabase db = mHelper.getWritableDatabase();
+   int updateCount = 0;
+   switch (URI_MATCHER.match(uri)) {
+   case ITEM_LIST:</p>
+
+<pre><code>  updateCount = db.update(
+        DBSchema.TBL_ITEMS, 
+        values, 
+        selection,
+        selectionArgs);
+  break;
+</code></pre>
+
+<p>   case ITEM_ID:</p>
+
+<pre><code>  String idStr = uri.getLastPathSegment();
+  String where = Items._ID + " = " + idStr;
+  if (!TextUtils.isEmpty(selection)) {
+     where += " AND " + selection;
+  }
+  updateCount = db.update(
+        DBSchema.TBL_ITEMS, 
+        values, 
+        where,
+        selectionArgs);
+  break;
+</code></pre>
+
+<p>   default:</p>
+
+<pre><code>  // no support for updating photos or entities!
+  throw new IllegalArgumentException("Unsupported URI: " + uri);
+</code></pre>
+
+<p>   }
+   // notify all listeners of changes:
+   if (updateCount > 0 &amp;&amp; !isInBatchMode()) {</p>
+
+<pre><code>  getContext().getContentResolver().notifyChange(uri, null);
+</code></pre>
+
+<p>   }
+   return updateCount;
+}
+```</p>
+
+<p>First you once again use your UriMatcher to distinguish between dir based and id based URIs. If you use a dir based URI, you simply pass this call on to the SQLiteDatabase&rsquo;s update() method substituting the URI with the correct table name. In case of an id based URI you have to extract the id from the URI to form a valid WHERE clause. After this call SQLiteDatabase‘s update() method. Finally you return the number of modified records.</p>
+
+<p>The only changes you have to make for your delete() method is to change the method names and to get rid of the ContentValues object. Everthing else is exactly as shown in the update() method’s code sample.</p>
+
+<p>```java
+@Override
+public int delete(Uri uri, String selection, String[] selectionArgs) {
+   SQLiteDatabase db = mHelper.getWritableDatabase();
+   int delCount = 0;
+   switch (URI_MATCHER.match(uri)) {
+   case ITEM_LIST:</p>
+
+<pre><code>  delCount = db.delete(
+        DBSchema.TBL_ITEMS, 
+        selection, 
+        selectionArgs);
+  break;
+</code></pre>
+
+<p>   case ITEM_ID:</p>
+
+<pre><code>  String idStr = uri.getLastPathSegment();
+  String where = Items._ID + " = " + idStr;
+  if (!TextUtils.isEmpty(selection)) {
+     where += " AND " + selection;
+  }
+  delCount = db.delete(
+        DBSchema.TBL_ITEMS, 
+        where, 
+        selectionArgs);
+  break;
+</code></pre>
+
+<p>   default:</p>
+
+<pre><code>  // no support for deleting photos or entities -
+  // photos are deleted by a trigger when the item is deleted
+  throw new IllegalArgumentException("Unsupported URI: " + uri);
+</code></pre>
+
+<p>   }
+   // notify all listeners of changes:
+   if (delCount > 0 &amp;&amp; !isInBatchMode()) {</p>
+
+<pre><code>  getContext().getContentResolver().notifyChange(uri, null);
+</code></pre>
+
+<p>   }
+   return delCount;
+}
+```</p>
+
+<p>Lifecycle</p>
+
+<p>As with all components Android also manages the creation and destruction of a content provider. But a content provider has no visible state and there is also nothing the user has entered that should not be lost. Because of this Android can shut down the content provider whenever it sees fit.</p>
+
+<p>So instead of the many methods you usually have to take care of in your activities or fragments, you have to implement just this one method: onCreate(). Keep this method as fast as possible. It runs on the UI thread when your app starts up. So it has to be fast otherwise the first impression with your app won’t be too impressive.</p>
+
+<p>Normally that’s just it. But there are two other callback methods you might want to react to depending on circumstances:</p>
+
+<ul>
+<li>When your content provider needs to react to changed settings (e.g. the user selected language) you have to implement the onConfigurationChanged() method that takes a Configuration object as parameter.</li>
+<li>When your content provider keeps large amounts of data around (which you should strive to avoid) you should also implement the onLowMemory() method to release these data.</li>
+</ul>
+
+
+<h4>Configuring your content provider</h4>
+
+<p>As with any component in Android you also have to register your content provider within the AndroidManifest.xml file. The next code sample shows the configuration of the sample content provider.</p>
+
+<p><code>xml
+&lt;provider
+   android:name=".provider.LentItemsProvider"
+   android:authorities="de.openminds.samples.cpsample.lentitems"
+   android:exported="true"
+   android:grantUriPermissions="true"
+   android:label="LentItemsProvider"
+   android:readPermission="de.openminds.samples.cpsample.lentitems.READ"
+   android:writePermission="de.openminds.samples.cpsample.lentitems.WRITE" /&gt;
+</code></p>
+
+<p>You use a <provider> element for each content provider you want to register. Of its many attributes you usually will use authorities, name and possibly one of the permission attributes.</p>
+
+<p>The name attribute simply is the fully qualified class name of your ContentProvider subclass. As always it is possible to use a simple “.” for the default-package of your application.</p>
+
+<p>I have explained the rules for authorities in detail in the post about content provider clients. It should be akin to Java’s package naming conventions and must be unique among all content providers on any device it is going to be installed on. So don’t be sloppy with the provider’s authority.</p>
+
+<h4>Think about necessary permissions</h4>
+
+<p>As you have seen above, you can – and probably should – add restrictions to your content provider. By using one of the permission attributes you force clients to be open to their users about the use of your content provider’s data.</p>
+
+<p>If you do not export your content provider this is no issue for you. But if you do, think carefully about what you want clients to be able to do and how to set permissions accordingly.</p>
+
+<h4>When to use content providers</h4>
+
+<p>As described in the introductory post, one reason to use content providers, is to export data. So, should you use content providers only to provide data to external applications? Or when would it be appropriate to prefer them for your own application over directly accessing the database?</p>
+
+<p>I recommend to use a content provider whenever your app needs to react to changes in the underlying data store – even to changes from within your app itself. And this of course is more often true than not. You might for example have a ListView which displays summary information of the data held in your data store. Now if you delete or add an entry and return to your list the list should reflect these changes. This is easily done using a content provider in combination with using Loaders. Using the database directly you would have to trigger a new query on your own.</p>
+
+<p>You must use content providers if you want to use search suggestions. In that case Android leaves you no choice.</p>
+
+<p>Android also demands that you use content providers with sync adapters. But contrary to search suggestions you can work around this requirement with a stub provider. But, well, I like content providers, so I recommend to use a proper one with sync adapters.</p>
+
+<h3 id="performance">Better Performance with ContentProviderOperation</h3>
+
+
+<p>ContentProviders are one of Android’s core building blocks. They represent a relational interface to data – either in databases or (cached) data from the cloud.</p>
+
+<p>Sometimes you want to use them for multiple operations in a row. Like updating different sources and so on. In those cases you could call the respective ContentResolver methods multiple times or you could execute a batch of operations. The latter is the recommended practise.</p>
+
+<p>To create, delete or update a set of data in a batch like fashion you should use the class ContentProviderOperation.</p>
+
+<p>According to Android’s documentation it is recommended to use ContentProviderOperations for multiple reasons:</p>
+
+<ul>
+<li>All operations execute within the same transaction – thus data integrity is assured</li>
+<li>This helps improve performance since starting, running and closing one transaction offers far better performance than opening and committing multiple transactions</li>
+<li>Finally using one batch operation instead of multiple isolated operations reduces the number of context switches between your app and the content provider you are using. This of course also helps to improve the performance of your app – and by using less cpu cycles also reduces the power consumption.</li>
+<li>To create an object of <code>ContentProviderOperation</code> you need to build it using the inner class <code>ContentProviderOperation.Builder</code>. You obtain an object of the Builder class by calling one of the three static methods newInsert, newUpdate or newDelete:</li>
+</ul>
+
+
+<table>
+<caption>Methods to obtain a Builder object</caption>
+<tr>
+<th>Method</th>
+<th>Usage</th>
+</tr>
+<tr>
+<td>newInsert</td>
+<td>Create a Builder object suitable for an insert operation</td>
+</tr>
+<tr>
+<td>newUpdate</td>
+<td>Create a Builder object suitable for an update operation</td>
+</tr>
+<tr>
+<td>newDelete</td>
+<td>Create a Builder object suitable for a delete operation</td>
+</tr>
+</table>
+
+
+<p>The Builder is an example of the Gang of Four Builder pattern. A Builder defines an interface for how to create objects. Concrete instances then create specific objects for the task at hand. In this case we have three different Builders for creating ContentProviderOperation objects. These objects can be used to create, update or delete ContentProvider data sets.</p>
+
+<p>Typically all steps necessary to create a ContentProviderOperation object are done in one round of method chaining. That’s possible because all methods of the Builder class return a Builder object themself. The one exception is the build() method, which instead returns the desired object: Our completely created ContentProviderOperation object. So a typical chain might look like this:</p>
+
+<p>```java
+ArrayList<ContentProviderOperation> ops =
+   new ArrayList<ContentProviderOperation>();
+ops.add(
+   ContentProviderOperation.newInsert(RawContacts.CONTENT_URI)</p>
+
+<pre><code>   .withValue(RawContacts.ACCOUNT_TYPE, "someAccountType")
+   .withValue(RawContacts.ACCOUNT_NAME, "someAccountName")
+   .withYieldAllowed(true)
+   .build());
+</code></pre>
+
+<p>```</p>
+
+<p>Of course you could also use a ContentValues object as usual and use the withValues(values) method instead.</p>
+
+<p>The Builder class has among others these methods you can use to define which objects to delete or how to create or update an object:</p>
+
+<table>
+<caption>Some important methods of the Builder object</caption>
+<tr>
+<th>Method</th>
+<th>Usage</th>
+</tr>
+<tr>
+<td>withSelection (String selection, String[] selectionArgs)</td>
+<td>Specifies on which subset of the existing data set to operate. Only usable with ContentProviderOperation objects used to update or delete data</td>
+</tr>
+<tr>
+<td>withValue (String key, Object value)</td>
+<td>Defines the desired value for one column. Only usable with ContentProviderOperation objects used to create or update data</td>
+</tr>
+<tr>
+<td>withValues (ContentValues values)</td>
+<td>Defines the desired values for multiple columns. Only usable with ContentProviderOperation objects used to create or update data</td>
+</tr>
+</table>
+
+
+<p>As you can see in the code sample I presented above you need an ArrayList of ContentProviderOperation objects. For every ContentProvider-CRUD method you have to use one ContentProviderOperation object and add it to this list. I will explain in a later blog post about the method withValueBackReference() why it has to be an ArrayList and not say a LinkedList.</p>
+
+<p>The list is finally passed to the applyBatch() method of the ContentResolver object:</p>
+
+<p>```java
+try {
+   getContentResolver().</p>
+
+<pre><code>  applyBatch(ContactsContract.AUTHORITY, ops);
+</code></pre>
+
+<p>} catch (RemoteException e) {
+   // do s.th.
+} catch (OperationApplicationException e) {
+   // do s.th.
+}
+```</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Android Loader]]></title>
+    <link href="http://Solarex.github.io/blog/2014/10/24/android-loader/"/>
+    <updated>2014-10-24T06:34:00+08:00</updated>
+    <id>http://Solarex.github.io/blog/2014/10/24/android-loader</id>
+    <content type="html"><![CDATA[<p><center><img src="http://Solarex.github.io/images/android_logo.jpg"/></center></p>
+
+
+<ul>
+<li><a href="#overview">Android Loader</a>
+
+<ul>
+<li><a href="#before">Life before Loaders</a></li>
+<li><a href="#loadermanager">Understanding the LoaderManager</a></li>
+<li><a href="#implementing">Implementing Loaders</a></li>
+</ul>
+</li>
+</ul>
+
+
+<h2 id="overview">Android Loader</h2>
+
+
+<p>This post gives a brief introduction to Loaders and the LoaderManager. The first section describes how data was loaded prior to the release of Android 3.0, pointing out out some of the flaws of the pre-Honeycomb APIs. The second section defines the purpose of each class and summarizes their powerful ability in asynchronously loading data.</p>
+
+<!-- more -->
+
+
+
+
+<h3 id="before">Life before Loaders</h3>
+
+
+<p>Before Android 3.0, many Android applications lacked in responsiveness. UI interactions glitched, transitions between activities lagged, and ANR (Application Not Responding) dialogs rendered apps totally useless. This lack of responsiveness stemmed mostly from the fact that developers were performing queries on the UI thread—a very poor choice for lengthy operations like loading data.</p>
+
+<p>While the <a href="http://developer.android.com/guide/practices/responsiveness.html">documentation</a> has always stressed the importance of instant feedback, the pre-Honeycomb APIs simply did not encourage this behavior. Before Loaders, cursors were primarily managed and queried for with two (now deprecated) Activity methods:</p>
+
+<ul>
+<li><p><code>public void startManagingCursor(Cursor)</code>:Tells the activity to take care of managing the cursor&rsquo;s lifecycle based on the activity&rsquo;s lifecycle. The cursor will automatically be deactivated (<code>deactivate()</code>) when the activity is stopped, and will automatically be closed (<code>close()</code>) when the activity is destroyed. When the activity is stopped and then later restarted, the Cursor is re-queried (<code>requery()</code>) for the most up-to-date data.</p></li>
+<li><p><code>public Cursor managedQuery(Uri, String, String, String, String)</code>:A wrapper around the <code>ContentResolver's query()</code> method. In addition to performing the query, it begins management of the cursor (that is, <code>startManagingCursor(cursor)</code> is called before it is returned).</p></li>
+</ul>
+
+
+<p>While convenient, these methods were deeply flawed in that they performed queries on the UI thread. What&rsquo;s more, the &ldquo;managed cursors&rdquo; did not retain their data across Activity configuration changes. The need to <code>requery()</code> the cursor&rsquo;s data in these situations was unnecessary, inefficient, and made orientation changes clunky and sluggish as a result.</p>
+
+<h4>The Problem with &ldquo;Managed Cursors&rdquo;</h4>
+
+<p>Let&rsquo;s illustrate the problem with &ldquo;managed cursors&rdquo; through a simple code sample. Given below is a ListActivity that loads data using the pre-Honeycomb APIs. The activity makes a query to the ContentProvider and begins management of the returned cursor. The results are then bound to a SimpleCursorAdapter, and are displayed on the screen in a ListView. The code has been condensed for simplicity.</p>
+
+<p>```java
+public class SampleListActivity extends ListActivity {</p>
+
+<p>  private static final String[] PROJECTION = new String[] {&ldquo;_id&rdquo;, &ldquo;text_column&rdquo;};</p>
+
+<p>  @Override
+  protected void onCreate(Bundle savedInstanceState) {</p>
+
+<pre><code>super.onCreate(savedInstanceState);
+
+// Performs a "managed query" to the ContentProvider. The Activity 
+// will handle closing and requerying the cursor.
+//
+// WARNING!! This query (and any subsequent re-queries) will be
+// performed on the UI Thread!!
+Cursor cursor = managedQuery(
+    CONTENT_URI,  // The Uri constant in your ContentProvider class
+    PROJECTION,   // The columns to return for each data row
+    null,         // No where clause
+    null,         // No where clause
+    null);        // No sort order
+
+String[] dataColumns = { "text_column" };
+int[] viewIDs = { R.id.text_view };
+
+// Create the backing adapter for the ListView.
+//
+// WARNING!! While not readily obvious, using this constructor will 
+// tell the CursorAdapter to register a ContentObserver that will
+// monitor the underlying data source. As part of the monitoring
+// process, the ContentObserver will call requery() on the cursor 
+// each time the data is updated. Since Cursor#requery() is performed 
+// on the UI thread, this constructor should be avoided at all costs!
+SimpleCursorAdapter adapter = new SimpleCursorAdapter(
+    this,                // The Activity context
+    R.layout.list_item,  // Points to the XML for a list item
+    cursor,              // Cursor that contains the data to display
+    dataColumns,         // Bind the data in column "text_column"...
+    viewIDs);            // ...to the TextView with id "R.id.text_view"
+
+// Sets the ListView's adapter to be the cursor adapter that was 
+// just created.
+setListAdapter(adapter);
+</code></pre>
+
+<p>  }
+}
+```</p>
+
+<p>There are three problems with the code above. If you have understood this post so far, the first two shouldn&rsquo;t be difficult to spot:</p>
+
+<ul>
+<li>managedQuery performs a query on the main UI thread. This leads to unresponsive apps and should no longer be used.</li>
+<li>As seen in the <a href="http://grepcode.com/file/repository.grepcode.com/java/ext/com.google.android/android/1.5_r4/android/app/Activity.java#Activity.managedQuery%28android.net.Uri%2Cjava.lang.String%5B%5D%2Cjava.lang.String%2Cjava.lang.String%29">Activity.java</a>, the call to <code>managedQuery</code> begins management of the returned cursor with a call to <code>startManagingCursor(cursor)</code>. Having the activity manage the cursor seems convenient at first, as we no longer need to worry about deactivating/closing the cursor ourselves. However, this signals the activity to call <code>requery()</code> on the cursor each time the activity returns from a stopped state, and therefore puts the UI thread at risk. This cost significantly outweighs the convenience of having the activity deactivate/close the cursor for us.</li>
+<li>The <code>SimpleCursorAdapter</code> constructor (line 32) is deprecated and should not be used. The problem with this constructor is that it will have the <code>SimpleCursorAdapter</code> auto-requery its data when changes are made. More specifically, the <code>CursorAdapter</code> will register a <code>ContentObserver</code> that monitors the underlying data source for changes, calling <code>requery()</code> on its bound cursor each time the data is modified. The standard constructor should be used instead (if you intend on loading the adapter&rsquo;s data with a CursorLoader, make sure you pass 0 as the last argument). Don&rsquo;t worry if you couldn&rsquo;t spot this one&hellip; it&rsquo;s a very subtle bug.</li>
+</ul>
+
+
+<p>With the first Android tablet about to be released, something had to be done to encourage UI-friendly development. The larger, 7-10" Honeycomb tablets called for more complicated, interactive, multi-paned layouts. Further, the introduction of the Fragment meant that applications were about to become more dynamic and event-driven. A simple, single-threaded approach to loading data could no longer be encouraged. Thus, the Loader and the LoaderManager were born.</p>
+
+<p>Prior to Honeycomb, it was difficult to manage cursors, synchronize correctly with the UI thread, and ensure all queries occurred on a background thread. Android 3.0 introduced the Loader and LoaderManager classes to help simplify the process. Both classes are available for use in the Android Support Library, which supports all Android platforms back to Android 1.6.</p>
+
+<p>The new Loader API is a huge step forward, and significantly improves the user experience. Loaders ensure that all cursor operations are done asynchronously, thus eliminating the possibility of blocking the UI thread. Further, when managed by the LoaderManager, Loaders retain their existing cursor data across the activity instance (for example, when it is restarted due to a configuration change), thus saving the cursor from unnecessary, potentially expensive re-queries. As an added bonus, Loaders are intelligent enough to monitor the underlying data source for updates, re-querying automatically when the data is changed.</p>
+
+<p>Since the introduction of Loaders in Honeycomb and Compatibility Library, Android applications have changed for the better. Making use of the now deprecated startManagingCursor and managedQuery methods are extremely discouraged; not only do they slow down your app, but they can potentially bring it to a screeching halt. Loaders, on the other hand, significantly speed up the user experience by offloading the work to a separate background thread.</p>
+
+<h3 id="loadermanager">Understanding the LoaderManager</h3>
+
+
+<p>For now, you should think of Loaders as simple, self-contained objects that (1) load data on a separate thread, and (2) monitor the underlying data source for updates, re-querying when changes are detected. This is more than enough to get you through the contents of this post.</p>
+
+<h4>What is the LoaderManager?</h4>
+
+<p>Simply stated, the <code>LoaderManager</code> is responsible for managing one or more Loaders associated with an <code>Activity</code> or <code>Fragment</code>. Each Activity and each Fragment has exactly one LoaderManager instance that is in charge of starting, stopping, retaining, restarting, and destroying its Loaders. These events are sometimes initiated directly by the client, by calling <code>initLoader()</code>, <code>restartLoader()</code>, or <code>destroyLoader()</code>. Just as often, however, these events are triggered by major Activity/Fragment lifecycle events. For example, when an Activity is destroyed, the Activity instructs its LoaderManager to destroy and close its Loaders (as well as any resources associated with them, such as a Cursor).</p>
+
+<p>The <code>LoaderManager</code> does not know how data is loaded, nor does it need to. Rather, the <code>LoaderManager</code> instructs its <code>Loaders</code> when to start/stop/reset their load, retaining their state across configuration changes and providing a simple interface for delivering results back to the client. In this way, the <code>LoaderManager</code> is a much more intelligent and generic implementation of the now-deprecated <code>startManagingCursor</code> method. While both manage data across the twists and turns of the Activity lifecycle, the <code>LoaderManager</code> is far superior for several reasons:</p>
+
+<ul>
+<li><p><code>startManagingCursor</code> manages Cursors, whereas the <code>LoaderManager</code> manages <code>Loader&lt;D&gt;</code> objects. The advantage here is that <code>Loader&lt;D&gt;</code> is generic, where D is the container object that holds the loaded data. In other words, the data source doesn&rsquo;t have to be a <code>Cursor</code>; it could be a <code>List</code>, a <code>JSONArray</code>&hellip; anything. The <code>LoaderManager</code> is independent of the container object that holds the data and is much more flexible as a result.</p></li>
+<li><p>Calling <code>startManagingCursor</code> will make the <code>Activity</code> call <code>requery()</code> on the managed cursor. As mentioned in the previous post, <code>requery()</code> is a potentially expensive operation that is performed on the main UI thread. Subclasses of the <code>Loader&lt;D&gt;</code> class, on the other hand, are expected to load their data asynchronously, so using the <code>LoaderManager</code> will never block the UI thread.</p></li>
+<li><p><code>startManagingCursor</code> does not retain the Cursor&rsquo;s state across configuration changes. Instead, each time the Activity is destroyed due to a configuration change (a simple orientation change, for example), the <code>Cursor</code> is destroyed and must be requeried. The <code>LoaderManager</code> is much more intelligent in that it retains its Loaders' state across configuration changes, and thus doesn&rsquo;t need to requery its data.</p></li>
+<li><p>The <code>LoaderManager</code> provides seamless monitoring of data! Whenever the Loader&rsquo;s data source is modified, the <code>LoaderManager</code> will receive a new asynchronous load from the corresponding Loader, and will return the updated data to the client. (Note: the LoaderManager will only be notified of these changes if the Loader is implemented correctly. ).</p></li>
+</ul>
+
+
+<p>If you feel overwhelmed by the details above, I wouldn&rsquo;t stress over it. The most important thing to take away from this is that the <code>LoaderManager</code> makes your life easy. It initializes, manages, and destroys Loaders for you, reducing both coding complexity and subtle lifecycle-related bugs in your Activitys and Fragments. Further, interacting with the <code>LoaderManager</code> involves implementing three simple callback methods. We discuss the <code>LoaderManager.LoaderCallbacks&lt;D&gt;</code> in the next section.</p>
+
+<h4>Implementing the LoaderManager.LoaderCallbacks<D> Interface</h4>
+
+<p>The <code>LoaderManager.LoaderCallbacks&lt;D&gt;</code> interface is a simple contract that the <code>LoaderManager</code> uses to report data back to the client. Each <code>Loader</code> gets its own callback object that the <code>LoaderManager</code> will interact with. This callback object fills in the gaps of the abstract <code>LoaderManager</code> implementation, telling it how to instantiate the <code>Loader (onCreateLoader)</code> and providing instructions when its load is complete/reset (<code>onLoadFinished</code> and <code>onLoadReset</code>, respectively). Most often you will implement the callbacks as part of the component itself, by having your Activity or Fragment implement the <code>LoaderManager.LoaderCallbacks&lt;D&gt;</code> interface:</p>
+
+<p>```java
+public class SampleActivity extends Activity implements LoaderManager.LoaderCallbacks<D> {</p>
+
+<p>  public Loader<D> onCreateLoader(int id, Bundle args) { &hellip; }</p>
+
+<p>  public void onLoadFinished(Loader<D> loader, D data) { &hellip; }</p>
+
+<p>  public void onLoaderReset(Loader<D> loader) { &hellip; }</p>
+
+<p>  /<em> &hellip; </em>/
+}
+```</p>
+
+<p>Once instantiated, the client passes the callbacks object (&ldquo;this&rdquo;, in this case) as the third argument to the <code>LoaderManager</code>&rsquo;s <code>initLoader</code> method, and will be bound to the <code>Loader</code> as soon as it is created.</p>
+
+<p>Overall, implementing the callbacks is straightforward. Each callback method serves a specific purpose that makes interacting with the <code>LoaderManager</code> easy:</p>
+
+<ul>
+<li><p><code>onCreateLoader</code> is a factory method that simply returns a new <code>Loader</code>. The <code>LoaderManager</code> will call this method when it first creates the <code>Loader</code>.</p></li>
+<li><p><code>onLoadFinished</code> is called automatically when a <code>Loader</code> has finished its load. This method is typically where the client will update the application&rsquo;s UI with the loaded data. The client may (and should) assume that new data will be returned to this method each time new data is made available. Remember that it is the Loader&rsquo;s job to monitor the data source and to perform the actual asynchronous loads. The <code>LoaderManager</code> will receive these loads once they have completed, and then pass the result to the callback object&rsquo;s <code>onLoadFinished</code> method for the client (i.e. the Activity/Fragment) to use.</p></li>
+<li><p>Lastly, <code>onLoadReset</code> is called when the Loader&rsquo;s data is about to be reset. This method gives you the opportunity to remove any references to old data that may no longer be available.</p></li>
+</ul>
+
+
+<h4>Transitioning from Managed Cursors to the LoaderManager</h4>
+
+<p>The code below is similar in behavior to the sample in my previous section. The difference, of course, is that it has been updated to use the <code>LoaderManager</code>. The <code>CursorLoader</code> ensures that all queries are performed asynchronously, thus guaranteeing that we won&rsquo;t block the UI thread. Further, the <code>LoaderManager</code> manages the <code>CursorLoader</code> across the <code>Activity</code> lifecycle, retaining its data on configuration changes and directing each new data load to the callback&rsquo;s <code>onLoadFinished</code> method, where the Activity is finally free to make use of the queried <code>Cursor</code>.</p>
+
+<p>```java
+public class SampleListActivity extends ListActivity implements</p>
+
+<pre><code>LoaderManager.LoaderCallbacks&lt;Cursor&gt; {
+</code></pre>
+
+<p>  private static final String[] PROJECTION = new String[] { &ldquo;_id&rdquo;, &ldquo;text_column&rdquo; };</p>
+
+<p>  // The loader&rsquo;s unique id. Loader ids are specific to the Activity or
+  // Fragment in which they reside.
+  private static final int LOADER_ID = 1;</p>
+
+<p>  // The callbacks through which we will interact with the LoaderManager.
+  private LoaderManager.LoaderCallbacks<Cursor> mCallbacks;</p>
+
+<p>  // The adapter that binds our data to the ListView
+  private SimpleCursorAdapter mAdapter;</p>
+
+<p>  @Override
+  public void onCreate(Bundle savedInstanceState) {</p>
+
+<pre><code>super.onCreate(savedInstanceState);
+
+String[] dataColumns = { "text_column" };
+int[] viewIDs = { R.id.text_view };
+
+// Initialize the adapter. Note that we pass a 'null' Cursor as the
+// third argument. We will pass the adapter a Cursor only when the
+// data has finished loading for the first time (i.e. when the
+// LoaderManager delivers the data to onLoadFinished). Also note
+// that we have passed the '0' flag as the last argument. This
+// prevents the adapter from registering a ContentObserver for the
+// Cursor (the CursorLoader will do this for us!).
+mAdapter = new SimpleCursorAdapter(this, R.layout.list_item,
+    null, dataColumns, viewIDs, 0);
+
+// Associate the (now empty) adapter with the ListView.
+setListAdapter(mAdapter);
+
+// The Activity (which implements the LoaderCallbacks&lt;Cursor&gt;
+// interface) is the callbacks object through which we will interact
+// with the LoaderManager. The LoaderManager uses this object to
+// instantiate the Loader and to notify the client when data is made
+// available/unavailable.
+mCallbacks = this;
+
+// Initialize the Loader with id '1' and callbacks 'mCallbacks'.
+// If the loader doesn't already exist, one is created. Otherwise,
+// the already created Loader is reused. In either case, the
+// LoaderManager will manage the Loader across the Activity/Fragment
+// lifecycle, will receive any new loads once they have completed,
+// and will report this new data back to the 'mCallbacks' object.
+LoaderManager lm = getLoaderManager();
+lm.initLoader(LOADER_ID, null, mCallbacks);
+</code></pre>
+
+<p>  }</p>
+
+<p>  @Override
+  public Loader<Cursor> onCreateLoader(int id, Bundle args) {</p>
+
+<pre><code>// Create a new CursorLoader with the following query parameters.
+return new CursorLoader(SampleListActivity.this, CONTENT_URI,
+    PROJECTION, null, null, null);
+</code></pre>
+
+<p>  }</p>
+
+<p>  @Override
+  public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {</p>
+
+<pre><code>// A switch-case is useful when dealing with multiple Loaders/IDs
+switch (loader.getId()) {
+  case LOADER_ID:
+    // The asynchronous load is complete and the data
+    // is now available for use. Only now can we associate
+    // the queried Cursor with the SimpleCursorAdapter.
+    mAdapter.swapCursor(cursor);
+    break;
+}
+// The listview now displays the queried data.
+</code></pre>
+
+<p>  }</p>
+
+<p>  @Override
+  public void onLoaderReset(Loader<Cursor> loader) {</p>
+
+<pre><code>// For whatever reason, the Loader's data is now unavailable.
+// Remove any references to the old data by replacing it with
+// a null Cursor.
+mAdapter.swapCursor(null);
+</code></pre>
+
+<p>  }
+}
+```</p>
+
+<p>As its name suggests, the <code>LoaderManager</code> is responsible for managing Loaders across the Activity/Fragment lifecycle. The <code>LoaderManager</code> is simple and its implementation usually requires very little code.</p>
+
+<h3 id="implementing">Implementing Loaders</h3>
+
+
+<p>This section introduces the <code>Loader&lt;D&gt;</code> class as well as custom <code>Loader</code> implementations.</p>
+
+<h4>Loader Basics</h4>
+
+<p><code>Loaders</code> are responsible for performing queries on a separate thread, monitoring the data source for changes, and delivering new results to a registered listener (usually the <code>LoaderManager</code>) when changes are detected. These characteristics make <code>Loaders</code> a powerful addition to the Android SDK for several reasons:</p>
+
+<ul>
+<li><p>They encapsulate the actual loading of data. The <code>Activity/Fragment</code> no longer needs to know how to load data. Instead, the <code>Activity/Fragment</code> delegates the task to the <code>Loader</code>, which carries out the request behind the scenes and has its results delivered back to the <code>Activity/Fragment</code>.</p></li>
+<li><p>They abstract out the idea of threads from the client. The Activity/Fragment does not need to worry about offloading queries to a separate thread, as the <code>Loader</code> will do this automatically. This reduces code complexity and eliminates potential thread-related bugs.</p></li>
+<li><p>They are entirely event-driven. <code>Loaders</code> monitor the underlying data source and automatically perform new loads for up-to-date results when changes are detected. This makes working with Loaders easy, as the client can simply trust that the Loader will auto-update its data on its own. All the Activity/Fragment has to do is initialize the <code>Loader</code> and respond to any results that might be delivered. Everything in between is done by the Loader.</p></li>
+</ul>
+
+
+<p>Loaders are a somewhat advanced topic and may take some time getting used to. We begin by analyzing its four defining characteristics in the next section.</p>
+
+<h4>What Makes Up a Loader?</h4>
+
+<p>There are four characteristics which ultimately determine a Loader’s behavior:</p>
+
+<ul>
+<li><p>A task to perform the asynchronous load. To ensure that loads are done on a separate thread, subclasses should extend <code>AsyncTaskLoader&lt;D&gt;</code> as opposed to the <code>Loader&lt;D&gt;</code> class. <code>AsyncTaskLoader&lt;D&gt;</code> is an abstract Loader which provides an <code>AsyncTask</code> to do its work. When subclassed, implementing the asynchronous task is as simple as implementing the abstract <code>loadInBackground()</code> method, which is called on a worker thread to perform the data load.</p></li>
+<li><p>A registered listener to receive the Loader&rsquo;s results when it completes a load. For each of its <code>Loaders</code>, the <code>LoaderManager</code> registers an <code>OnLoadCompleteListener&lt;D&gt;</code> which will forward the Loader’s delivered results to the client with a call to <code>onLoadFinished(Loader&lt;D&gt; loader, D result)</code>. Loaders should deliver results to these registered listeners with a call to <code>Loader#deliverResult(D result)</code>.You don&rsquo;t need to worry about registering a listener for your Loader unless you plan on using it without the <code>LoaderManager</code>. The <code>LoaderManager</code> will act as this &ldquo;listener&rdquo; and will forward any results that the Loader delivers to the <code>LoaderCallbacks#onLoadFinished</code> method.</p></li>
+<li><p>One of three distinct states. Any given Loader will either be in a started, stopped, or reset state:</p>
+
+<ul>
+<li><code>Loaders</code> in a started state execute loads and may deliver their results to the listener at any time. Started Loaders should monitor for changes and perform new loads when changes are detected. Once started, the Loader will remain in a started state until it is either stopped or reset. This is the only state in which <code>onLoadFinished</code> will ever be called.</li>
+<li><code>Loaders</code> in a stopped state continue to monitor for changes but should not deliver results to the client. From a stopped state, the <code>Loader</code> may either be started or reset.</li>
+<li><code>Loaders</code> in a reset state should not execute new loads, should not deliver new results, and should not monitor for changes. When a loader enters a reset state, it should invalidate and free any data associated with it for garbage collection (likewise, the client should make sure they remove any references to this data, since it will no longer be available). More often than not, reset Loaders will never be called again; however, in some cases they may be started, so they should be able to start running properly again if necessary.</li>
+</ul>
+</li>
+<li>An observer to receive notifications when the data source has changed. <code>Loaders</code> should implement an observer of some sort (i.e. a <code>ContentObserver</code>, a <code>BroadcastReceiver</code>, etc.) to monitor the underlying data source for changes. When a change is detected, the observer should call <code>Loader#onContentChanged()</code>, which will either (a) force a new load if the Loader is in a started state or, (b) raise a flag indicating that a change has been made so that if the <code>Loader</code> is ever started again, it will know that it should reload its data.</li>
+</ul>
+
+
+<p>By now you should have a basic understanding of how Loaders work. If not, I suggest you let it sink in for a bit and come back later to read through once more (reading the <a href="http://developer.android.com/reference/android/content/Loader.html">documentation</a> never hurts either!). That being said, let’s get our hands dirty with the actual code!</p>
+
+<h4>Implementing the Loader</h4>
+
+<p>As I stated earlier, there is a lot that you must keep in mind when implementing your own custom Loaders. Subclasses must implement <code>loadInBackground()</code> and should override <code>onStartLoading()</code>, <code>onStopLoading()</code>, <code>onReset()</code>, <code>onCanceled()</code>, and <code>deliverResult(D results)</code> to achieve a fully functioning <code>Loader</code>. Overriding these methods is very important as the <code>LoaderManager</code> will call them regularly depending on the state of the Activity/Fragment lifecycle. For example, when an Activity is first started, the Activity instructs the <code>LoaderManager</code> to start each of its <code>Loaders</code> in <code>Activity#onStart()</code>. If a <code>Loader</code> is not already started, the <code>LoaderManager</code> calls <code>startLoading()</code>, which puts the <code>Loader</code> in a started state and immediately calls the <code>Loader’s</code> <code>onStartLoading()</code> method. In other words, a lot of work that the <code>LoaderManager</code> does behind the scenes relies on the Loader being correctly implemented, so don’t take the task of implementing these methods lightly!</p>
+
+<p>The code below serves as a template of what a <code>Loader</code> implementation typically looks like. The <code>SampleLoader</code> queries a list of <code>SampleItem</code> objects and delivers a <code>List&lt;SampleItem&gt;</code> to the client:</p>
+
+<p>```java
+public class SampleLoader extends AsyncTaskLoader&lt;List<SampleItem>> {</p>
+
+<p>  // We hold a reference to the Loader’s data here.
+  private List<SampleItem> mData;</p>
+
+<p>  public SampleLoader(Context ctx) {</p>
+
+<pre><code>// Loaders may be used across multiple Activitys (assuming they aren't
+// bound to the LoaderManager), so NEVER hold a reference to the context
+// directly. Doing so will cause you to leak an entire Activity's context.
+// The superclass constructor will store a reference to the Application
+// Context instead, and can be retrieved with a call to getContext().
+super(ctx);
+</code></pre>
+
+<p>  }</p>
+
+<p>  /<em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><strong>/
+  /</strong> (1) A task that performs the asynchronous load <strong>/
+  /</strong></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em>/</p>
+
+<p>  @Override
+  public List<SampleItem> loadInBackground() {</p>
+
+<pre><code>// This method is called on a background thread and should generate a
+// new set of data to be delivered back to the client.
+List&lt;SampleItem&gt; data = new ArrayList&lt;SampleItem&gt;();
+
+// TODO: Perform the query here and add the results to 'data'.
+
+return data;
+</code></pre>
+
+<p>  }</p>
+
+<p>  /<em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><strong>/
+  /</strong> (2) Deliver the results to the registered listener <strong>/
+  /</strong></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em>/</p>
+
+<p>  @Override
+  public void deliverResult(List<SampleItem> data) {</p>
+
+<pre><code>if (isReset()) {
+  // The Loader has been reset; ignore the result and invalidate the data.
+  releaseResources(data);
+  return;
+}
+
+// Hold a reference to the old data so it doesn't get garbage collected.
+// We must protect it until the new data has been delivered.
+List&lt;SampleItem&gt; oldData = mData;
+mData = data;
+
+if (isStarted()) {
+  // If the Loader is in a started state, deliver the results to the
+  // client. The superclass method does this for us.
+  super.deliverResult(data);
+}
+
+// Invalidate the old data as we don't need it any more.
+if (oldData != null &amp;&amp; oldData != data) {
+  releaseResources(oldData);
+}
+</code></pre>
+
+<p>  }</p>
+
+<p>  /<em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><strong>/
+  /</strong> (3) Implement the Loader’s state-dependent behavior <strong>/
+  /</strong></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em>/</p>
+
+<p>  @Override
+  protected void onStartLoading() {</p>
+
+<pre><code>if (mData != null) {
+  // Deliver any previously loaded data immediately.
+  deliverResult(mData);
+}
+
+// Begin monitoring the underlying data source.
+if (mObserver == null) {
+  mObserver = new SampleObserver();
+  // TODO: register the observer
+}
+
+if (takeContentChanged() || mData == null) {
+  // When the observer detects a change, it should call onContentChanged()
+  // on the Loader, which will cause the next call to takeContentChanged()
+  // to return true. If this is ever the case (or if the current data is
+  // null), we force a new load.
+  forceLoad();
+}
+</code></pre>
+
+<p>  }</p>
+
+<p>  @Override
+  protected void onStopLoading() {</p>
+
+<pre><code>// The Loader is in a stopped state, so we should attempt to cancel the 
+// current load (if there is one).
+cancelLoad();
+
+// Note that we leave the observer as is. Loaders in a stopped state
+// should still monitor the data source for changes so that the Loader
+// will know to force a new load if it is ever started again.
+</code></pre>
+
+<p>  }</p>
+
+<p>  @Override
+  protected void onReset() {</p>
+
+<pre><code>// Ensure the loader has been stopped.
+onStopLoading();
+
+// At this point we can release the resources associated with 'mData'.
+if (mData != null) {
+  releaseResources(mData);
+  mData = null;
+}
+
+// The Loader is being reset, so we should stop monitoring for changes.
+if (mObserver != null) {
+  // TODO: unregister the observer
+  mObserver = null;
+}
+</code></pre>
+
+<p>  }</p>
+
+<p>  @Override
+  public void onCanceled(List<SampleItem> data) {</p>
+
+<pre><code>// Attempt to cancel the current asynchronous load.
+super.onCanceled(data);
+
+// The load has been canceled, so we should release the resources
+// associated with 'data'.
+releaseResources(data);
+</code></pre>
+
+<p>  }</p>
+
+<p>  private void releaseResources(List<SampleItem> data) {</p>
+
+<pre><code>// For a simple List, there is nothing to do. For something like a Cursor, we 
+// would close it in this method. All resources associated with the Loader
+// should be released here.
+</code></pre>
+
+<p>  }</p>
+
+<p>  /<em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><em><strong>/
+  /</strong> (4) Observer which receives notifications when the data changes <strong>/
+  /</strong></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em></em>/</p>
+
+<p>  // NOTE: Implementing an observer is outside the scope of this post (this example
+  // uses a made-up &ldquo;SampleObserver&rdquo; to illustrate when/where the observer should
+  // be initialized).</p>
+
+<p>  // The observer could be anything so long as it is able to detect content changes
+  // and report them to the loader with a call to onContentChanged(). For example,
+  // if you were writing a Loader which loads a list of all installed applications
+  // on the device, the observer could be a BroadcastReceiver that listens for the
+  // ACTION_PACKAGE_ADDED intent, and calls onContentChanged() on the particular
+  // Loader whenever the receiver detects that a new application has been installed.
+  // Please don’t hesitate to leave a comment if you still find this confusing! :)
+  private SampleObserver mObserver;
+}
+```</p>
+
+<p>REF:</p>
+
+<ul>
+<li><a href="http://www.androiddesignpatterns.com/2012/07/loaders-and-loadermanager-background.html">Life Before Loaders</a></li>
+<li><a href="http://www.androiddesignpatterns.com/2012/07/understanding-loadermanager.html">Understanding the LoaderManager</a></li>
+<li><a href="http://www.androiddesignpatterns.com/2012/08/implementing-loaders.html">Implementing the Loaders</a></li>
+<li><a href="http://www.androiddesignpatterns.com/2012/09/tutorial-loader-loadermanager.html">Tutorial:AppListLoader</a>,<a href="https://github.com/alexjlockwood/AppListLoader">AppListLoader</a></li>
+</ul>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[The Hidden Pitfalls of AsyncTask]]></title>
@@ -205,868 +2159,6 @@
 <li><p><code>ViewParent.requestDisallowInterceptTouchEvent()</code> &ndash; The Android touch event system defaults handle what you want most of the time, but sometimes you need this method to wrest event control from parents. (By the way, if you want to know about the touch system, this talk is amazing.)</p></li>
 </ul>
 
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[理解OAuth2.0]]></title>
-    <link href="http://Solarex.github.io/blog/2014/10/18/oauth-2-dot-0/"/>
-    <updated>2014-10-18T15:38:00+08:00</updated>
-    <id>http://Solarex.github.io/blog/2014/10/18/oauth-2-dot-0</id>
-    <content type="html"><![CDATA[<p><center><img src="http://Solarex.github.io/images/oauth.png"/></center></p>
-
-
-<p><a href="http://en.wikipedia.org/wiki/OAuth">OAuth</a>是一个关于授权（authorization）的开放网络标准，在全世界得到广泛应用，目前的版本是2.0版。本文对OAuth 2.0的设计思路和运行流程，做一个简明通俗的解释，主要参考材料为<a href="http://www.rfcreader.com/#rfc6749">RFC 6749</a>。</p>
-
-<h2>应用场景</h2>
-
-<p>为了理解OAuth的适用场合，让我举一个假设的例子。有一个"云冲印"的网站，可以将用户储存在Google的照片，冲印出来。用户为了使用该服务，必须让"云冲印"读取自己储存在Google上的照片。</p>
-
-<p><center><img src="http://Solarex.github.io/images/google-print.png"/></center></p>
-
-
-<p>问题是只有得到用户的授权，Google才会同意"云冲印"读取这些照片。那么，"云冲印"怎样获得用户的授权呢？传统方法是，用户将自己的Google用户名和密码，告诉"云冲印"，后者就可以读取用户的照片了。这样的做法有以下几个严重的缺点。</p>
-
-<pre><code>（1）"云冲印"为了后续的服务，会保存用户的密码，这样很不安全。
-（2）Google不得不部署密码登录，而我们知道，单纯的密码登录并不安全。
-（3）"云冲印"拥有了获取用户储存在Google所有资料的权力，用户没法限制"云冲印"获得授权的范围和有效期。
-（4）用户只有修改密码，才能收回赋予"云冲印"的权力。但是这样做，会使得其他所有获得用户授权的第三方应用程序全部失效。
-（5）只要有一个第三方应用程序被破解，就会导致用户密码泄漏，以及所有被密码保护的数据泄漏。
-</code></pre>
-
-<p>OAuth就是为了解决上面这些问题而诞生的。</p>
-
-<!-- more -->
-
-
-<h2>名词定义</h2>
-
-<p>在详细讲解OAuth 2.0之前，需要了解几个专用名词。它们对读懂后面的讲解，尤其是几张图，至关重要。</p>
-
-<pre><code>（1） Third-party application：第三方应用程序，本文中又称"客户端"（client），即上一节例子中的"云冲印"。
-（2）HTTP service：HTTP服务提供商，本文中简称"服务提供商"，即上一节例子中的Google。
-（3）Resource Owner：资源所有者，本文中又称"用户"（user）。
-（4）User Agent：用户代理，本文中就是指浏览器。
-（5）Authorization server：认证服务器，即服务提供商专门用来处理认证的服务器。
-（6）Resource server：资源服务器，即服务提供商存放用户生成的资源的服务器。它与认证服务器，可以是同一台服务器，也可以是不同的服务器。
-</code></pre>
-
-<p>知道了上面这些名词，就不难理解，OAuth的作用就是让"客户端"安全可控地获取"用户"的授权，与"服务商提供商"进行互动。</p>
-
-<h2>OAuth的思路</h2>
-
-<p>OAuth在"客户端"与"服务提供商"之间，设置了一个授权层（authorization layer）。"客户端"不能直接登录"服务提供商"，只能登录授权层，以此将用户与客户端区分开来。"客户端"登录授权层所用的令牌（token），与用户的密码不同。用户可以在登录的时候，指定授权层令牌的权限范围和有效期。"客户端"登录授权层以后，"服务提供商"根据令牌的权限范围和有效期，向"客户端"开放用户储存的资料。</p>
-
-<h2>运行流程</h2>
-
-<p>OAuth 2.0的运行流程如下图，摘自RFC 6749。</p>
-
-<p><center><img src="http://Solarex.github.io/images/oauth-flow.png"/></center></p>
-
-
-<pre><code>（A）用户打开客户端以后，客户端要求用户给予授权。
-（B）用户同意给予客户端授权。
-（C）客户端使用上一步获得的授权，向认证服务器申请令牌。
-（D）认证服务器对客户端进行认证以后，确认无误，同意发放令牌。
-（E）客户端使用令牌，向资源服务器申请获取资源。
-（F）资源服务器确认令牌无误，同意向客户端开放资源。
-</code></pre>
-
-<p>不难看出来，上面六个步骤之中，B是关键，即用户怎样才能给于客户端授权。有了这个授权以后，客户端就可以获取令牌，进而凭令牌获取资源。下面一一讲解客户端获取授权的四种模式。</p>
-
-<h2>客户端的授权模式</h2>
-
-<p>客户端必须得到用户的授权（authorization grant），才能获得令牌（access token）。OAuth 2.0定义了四种授权方式。</p>
-
-<ul>
-<li>授权码模式（authorization code）</li>
-<li>简化模式（implicit）</li>
-<li>密码模式（resource owner password credentials）</li>
-<li>客户端模式（client credentials）</li>
-</ul>
-
-
-<h3>授权码模式</h3>
-
-<p>授权码模式（authorization code）是功能最完整、流程最严密的授权模式。它的特点就是通过客户端的后台服务器，与"服务提供商"的认证服务器进行互动。</p>
-
-<p><center><img src="http://Solarex.github.io/images/auth-code.png"/></center></p>
-
-
-<p>它的步骤如下：</p>
-
-<pre><code>（A）用户访问客户端，后者将前者导向认证服务器。
-（B）用户选择是否给予客户端授权。
-（C）假设用户给予授权，认证服务器将用户导向客户端事先指定的"重定向URI"（redirection URI），同时附上一个授权码。
-（D）客户端收到授权码，附上早先的"重定向URI"，向认证服务器申请令牌。这一步是在客户端的后台的服务器上完成的，对用户不可见。
-（E）认证服务器核对了授权码和重定向URI，确认无误后，向客户端发送访问令牌（access token）和更新令牌（refresh token）。
-</code></pre>
-
-<p>下面是上面这些步骤所需要的参数。A步骤中，客户端申请认证的URI，包含以下参数：</p>
-
-<ul>
-<li>response_type：表示授权类型，必选项，此处的值固定为"code"</li>
-<li>client_id：表示客户端的ID，必选项</li>
-<li>redirect_uri：表示重定向URI，可选项</li>
-<li>scope：表示申请的权限范围，可选项</li>
-<li>state：表示客户端的当前状态，可以指定任意值，认证服务器会原封不动地返回这个值。</li>
-</ul>
-
-
-<p>下面是一个例子。</p>
-
-<p>```
-GET /authorize?response_type=code&amp;client_id=s6BhdRkqt3&amp;state=xyz</p>
-
-<pre><code>    &amp;redirect_uri=https%3A%2F%2Fclient%2Eexample%2Ecom%2Fcb HTTP/1.1
-</code></pre>
-
-<p>Host: server.example.com
-```</p>
-
-<p>C步骤中，服务器回应客户端的URI，包含以下参数：</p>
-
-<ul>
-<li>code：表示授权码，必选项。该码的有效期应该很短，通常设为10分钟，客户端只能使用该码一次，否则会被授权服务器拒绝。该码与客户端ID和重定向URI，是一一对应关系。</li>
-<li>state：如果客户端的请求中包含这个参数，认证服务器的回应也必须一模一样包含这个参数。</li>
-</ul>
-
-
-<p>下面是一个例子。</p>
-
-<p>```
-HTTP/1.1 302 Found
-Location: <a href="https://client.example.com/cb?code=SplxlOBeZQQYbYS6WxSbIA">https://client.example.com/cb?code=SplxlOBeZQQYbYS6WxSbIA</a></p>
-
-<pre><code>      &amp;state=xyz
-</code></pre>
-
-<p>```</p>
-
-<p>D步骤中，客户端向认证服务器申请令牌的HTTP请求，包含以下参数：</p>
-
-<ul>
-<li>grant_type：表示使用的授权模式，必选项，此处的值固定为"authorization_code"。</li>
-<li>code：表示上一步获得的授权码，必选项。</li>
-<li>redirect_uri：表示重定向URI，必选项，且必须与A步骤中的该参数值保持一致。</li>
-<li>client_id：表示客户端ID，必选项。</li>
-</ul>
-
-
-<p>下面是一个例子。</p>
-
-<p>```
-POST /token HTTP/1.1
-Host: server.example.com
-Authorization: Basic czZCaGRSa3F0MzpnWDFmQmF0M2JW
-Content-Type: application/x-www-form-urlencoded</p>
-
-<p>grant_type=authorization_code&amp;code=SplxlOBeZQQYbYS6WxSbIA
-&amp;redirect_uri=https%3A%2F%2Fclient%2Eexample%2Ecom%2Fcb
-```</p>
-
-<p>E步骤中，认证服务器发送的HTTP回复，包含以下参数：</p>
-
-<ul>
-<li>access_token：表示访问令牌，必选项。</li>
-<li>token_type：表示令牌类型，该值大小写不敏感，必选项，可以是bearer类型或mac类型。</li>
-<li>expires_in：表示过期时间，单位为秒。如果省略该参数，必须其他方式设置过期时间。</li>
-<li>refresh_token：表示更新令牌，用来获取下一次的访问令牌，可选项。</li>
-<li>scope：表示权限范围，如果与客户端申请的范围一致，此项可省略。</li>
-</ul>
-
-
-<p>下面是一个例子。</p>
-
-<p>```
-HTTP/1.1 200 OK
-Content-Type: application/json;charset=UTF-8
-Cache-Control: no-store
-Pragma: no-cache</p>
-
-<p>{</p>
-
-<pre><code>"access_token":"2YotnFZFEjr1zCsicMWpAA",
-"token_type":"example",
-"expires_in":3600,
-"refresh_token":"tGzv3JOkF0XG5Qx2TlKWIA",
-"example_parameter":"example_value"
-</code></pre>
-
-<p>}
-```</p>
-
-<p>从上面代码可以看到，相关参数使用JSON格式发送（Content-Type: application/json）。此外，HTTP头信息中明确指定不得缓存。</p>
-
-<h3>简化模式</h3>
-
-<p>简化模式（implicit grant type）不通过第三方应用程序的服务器，直接在浏览器中向认证服务器申请令牌，跳过了"授权码"这个步骤，因此得名。所有步骤在浏览器中完成，令牌对访问者是可见的，且客户端不需要认证。</p>
-
-<p><center><img src="http://Solarex.github.io/images/implicit-grant-code.png"/></center></p>
-
-
-<p>它的步骤如下：</p>
-
-<pre><code>（A）客户端将用户导向认证服务器。
-（B）用户决定是否给于客户端授权。
-（C）假设用户给予授权，认证服务器将用户导向客户端指定的"重定向URI"，并在URI的Hash部分包含了访问令牌。
-（D）浏览器向资源服务器发出请求，其中不包括上一步收到的Hash值。
-（E）资源服务器返回一个网页，其中包含的代码可以获取Hash值中的令牌。
-（F）浏览器执行上一步获得的脚本，提取出令牌。
-（G）浏览器将令牌发给客户端。
-</code></pre>
-
-<p>下面是上面这些步骤所需要的参数。</p>
-
-<p>A步骤中，客户端发出的HTTP请求，包含以下参数：</p>
-
-<ul>
-<li>response_type：表示授权类型，此处的值固定为"token"，必选项。</li>
-<li>client_id：表示客户端的ID，必选项。</li>
-<li>redirect_uri：表示重定向的URI，可选项。</li>
-<li>scope：表示权限范围，可选项。</li>
-<li>state：表示客户端的当前状态，可以指定任意值，认证服务器会原封不动地返回这个值。
-下面是一个例子。</li>
-</ul>
-
-
-<p>```
-GET /authorize?response_type=token&amp;client_id=s6BhdRkqt3&amp;state=xyz</p>
-
-<pre><code>    &amp;redirect_uri=https%3A%2F%2Fclient%2Eexample%2Ecom%2Fcb HTTP/1.1
-</code></pre>
-
-<p>Host: server.example.com
-```</p>
-
-<p>C步骤中，认证服务器回应客户端的URI，包含以下参数：</p>
-
-<ul>
-<li>access_token：表示访问令牌，必选项。</li>
-<li>token_type：表示令牌类型，该值大小写不敏感，必选项。</li>
-<li>expires_in：表示过期时间，单位为秒。如果省略该参数，必须其他方式设置过期时间。</li>
-<li>scope：表示权限范围，如果与客户端申请的范围一致，此项可省略。</li>
-<li>state：如果客户端的请求中包含这个参数，认证服务器的回应也必须一模一样包含这个参数。</li>
-</ul>
-
-
-<p>下面是一个例子。</p>
-
-<p>```
-HTTP/1.1 302 Found
-Location: <a href="http://example.com/cb#access_token=2YotnFZFEjr1zCsicMWpAA">http://example.com/cb#access_token=2YotnFZFEjr1zCsicMWpAA</a></p>
-
-<pre><code>      &amp;state=xyz&amp;token_type=example&amp;expires_in=3600
-</code></pre>
-
-<p>```</p>
-
-<p>在上面的例子中，认证服务器用HTTP头信息的Location栏，指定浏览器重定向的网址。注意，在这个网址的Hash部分包含了令牌。根据上面的D步骤，下一步浏览器会访问Location指定的网址，但是Hash部分不会发送。接下来的E步骤，服务提供商的资源服务器发送过来的代码，会提取出Hash中的令牌。</p>
-
-<h3>密码模式</h3>
-
-<p>密码模式（Resource Owner Password Credentials Grant）中，用户向客户端提供自己的用户名和密码。客户端使用这些信息，向"服务商提供商"索要授权。在这种模式中，用户必须把自己的密码给客户端，但是客户端不得储存密码。这通常用在用户对客户端高度信任的情况下，比如客户端是操作系统的一部分，或者由一个著名公司出品。而认证服务器只有在其他授权模式无法执行的情况下，才能考虑使用这种模式。</p>
-
-<p><center><img src="http://Solarex.github.io/images/resource-code.png"/></center></p>
-
-
-<p>它的步骤如下：</p>
-
-<pre><code>（A）用户向客户端提供用户名和密码。
-（B）客户端将用户名和密码发给认证服务器，向后者请求令牌。
-（C）认证服务器确认无误后，向客户端提供访问令牌。
-</code></pre>
-
-<p>B步骤中，客户端发出的HTTP请求，包含以下参数：</p>
-
-<ul>
-<li>grant_type：表示授权类型，此处的值固定为"password"，必选项。</li>
-<li>username：表示用户名，必选项。</li>
-<li>password：表示用户的密码，必选项。</li>
-<li>scope：表示权限范围，可选项。</li>
-</ul>
-
-
-<p>下面是一个例子。</p>
-
-<p>```
-POST /token HTTP/1.1
-Host: server.example.com
-Authorization: Basic czZCaGRSa3F0MzpnWDFmQmF0M2JW
-Content-Type: application/x-www-form-urlencoded</p>
-
-<p>grant_type=password&amp;username=johndoe&amp;password=A3ddj3w
-```</p>
-
-<p>C步骤中，认证服务器向客户端发送访问令牌，下面是一个例子。</p>
-
-<p>```
-HTTP/1.1 200 OK
-Content-Type: application/json;charset=UTF-8
-Cache-Control: no-store
-Pragma: no-cache</p>
-
-<p>{</p>
-
-<pre><code>"access_token":"2YotnFZFEjr1zCsicMWpAA",
-"token_type":"example",
-"expires_in":3600,
-"refresh_token":"tGzv3JOkF0XG5Qx2TlKWIA",
-"example_parameter":"example_value"
-</code></pre>
-
-<p>}
-```</p>
-
-<p>上面代码中，各个参数的含义参见《授权码模式》一节。整个过程中，客户端不得保存用户的密码。</p>
-
-<h3>客户端模式</h3>
-
-<p>客户端模式（Client Credentials Grant）指客户端以自己的名义，而不是以用户的名义，向"服务提供商"进行认证。严格地说，客户端模式并不属于OAuth框架所要解决的问题。在这种模式中，用户直接向客户端注册，客户端以自己的名义要求"服务提供商"提供服务，其实不存在授权问题。</p>
-
-<p><center><img src="http://Solarex.github.io/images/client-grant.png"/></center></p>
-
-
-<p>它的步骤如下：</p>
-
-<pre><code>（A）客户端向认证服务器进行身份认证，并要求一个访问令牌。
-（B）认证服务器确认无误后，向客户端提供访问令牌。
-</code></pre>
-
-<p>A步骤中，客户端发出的HTTP请求，包含以下参数：</p>
-
-<ul>
-<li>granttype：表示授权类型，此处的值固定为"clientcredentials"，必选项。</li>
-<li>scope：表示权限范围，可选项。</li>
-</ul>
-
-
-<p>```
-POST /token HTTP/1.1
-Host: server.example.com
-Authorization: Basic czZCaGRSa3F0MzpnWDFmQmF0M2JW
-Content-Type: application/x-www-form-urlencoded</p>
-
-<p>grant_type=client_credentials
-```</p>
-
-<p>认证服务器必须以某种方式，验证客户端身份。
-B步骤中，认证服务器向客户端发送访问令牌，下面是一个例子。</p>
-
-<p>```
-HTTP/1.1 200 OK
-Content-Type: application/json;charset=UTF-8
-Cache-Control: no-store
-Pragma: no-cache</p>
-
-<p>{</p>
-
-<pre><code>"access_token":"2YotnFZFEjr1zCsicMWpAA",
-"token_type":"example",
-"expires_in":3600,
-"example_parameter":"example_value"
-</code></pre>
-
-<p>}
-```</p>
-
-<p>上面代码中，各个参数的含义参见《授权码模式》一节。</p>
-
-<h3>更新令牌</h3>
-
-<p>如果用户访问的时候，客户端的"访问令牌"已经过期，则需要使用"更新令牌"申请一个新的访问令牌。
-客户端发出更新令牌的HTTP请求，包含以下参数：</p>
-
-<ul>
-<li>granttype：表示使用的授权模式，此处的值固定为"refreshtoken"，必选项。</li>
-<li>refresh_token：表示早前收到的更新令牌，必选项。</li>
-<li>scope：表示申请的授权范围，不可以超出上一次申请的范围，如果省略该参数，则表示与上一次一致。
-下面是一个例子。</li>
-</ul>
-
-
-<p>```
-POST /token HTTP/1.1
-Host: server.example.com
-Authorization: Basic czZCaGRSa3F0MzpnWDFmQmF0M2JW
-Content-Type: application/x-www-form-urlencoded</p>
-
-<p>grant_type=refresh_token&amp;refresh_token=tGzv3JOkF0XG5Qx2TlKWIA
-```</p>
-
-<p>REF:<a href="http://www.ruanyifeng.com/blog/2014/05/oauth_2_0.html">理解OAuth 2.0</a></p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[深入浅出单实例Singleton设计模式]]></title>
-    <link href="http://Solarex.github.io/blog/2014/10/17/java-singleton/"/>
-    <updated>2014-10-17T10:07:00+08:00</updated>
-    <id>http://Solarex.github.io/blog/2014/10/17/java-singleton</id>
-    <content type="html"><![CDATA[<p><center><img src="http://Solarex.github.io/images/java-singleton.png"/></center></p>
-
-
-<h3>前序</h3>
-
-<p>单实例Singleton设计模式可能是被讨论和使用的最广泛的一个设计模式了，这可能也是面试中问得最多的一个设计模式了。这个设计模式主要目的是想在整个系统中只能出现一个类的实例。这样做当然是有必然的，比如你的软件的全局配置信息，或者是一个Factory，或是一个主控类，等等。你希望这个类在整个系统中只能出现一个实例。当然，作为一个技术负责人的你，你当然有权利通过使用非技术的手段来达到你的目的。比如：你在团队内部明文规定，“XX类只能有一个全局实例，如果某人使用两次以上，那么该人将被处于2000元的罚款！”（呵呵），你当然有权这么做。但是如果你的设计的是东西是一个类库，或是一个需要提供给用户使用的API，恐怕你的这项规定将会失效。因为，你无权要求别人会那么做。所以，这就是为什么，我们希望通过使用技术的手段来达成这样一个目的的原因。</p>
-
-<p>本文会带着你深入整个Singleton的世界，当然，我会放弃使用C++语言而改用Java语言，因为使用Java这个语言可能更容易让我说明一些事情。</p>
-
-<!-- more -->
-
-
-<h3>Singleton的教学版本</h3>
-
-<p>这里，我将直接给出一个Singleton的简单实现，因为我相信你已经有这方面的一些基础了。我们姑且把这具版本叫做1.0版</p>
-
-<p>```java
-// version 1.0
-public class Singleton
-{</p>
-
-<pre><code>private static final Singleton singleton = null;
-
-private Singleton()
-{
-}
-public static Singleton getInstance()
-{
-    if (singleton== null)
-    {
-        singleton= new Singleton();
-    }
-    return singleton;
-}
-</code></pre>
-
-<p>}
-```</p>
-
-<p>在上面的实例中，我想说明下面几个Singleton的特点：（下面这些东西可能是尽人皆知的，没有什么新鲜的）</p>
-
-<ul>
-<li>私有（private）的构造函数，表明这个类是不可能形成实例了。这主要是怕这个类会有多个实例。</li>
-<li>即然这个类是不可能形成实例，那么，我们需要一个静态的方式让其形成实例：<code>getInstance()</code>。注意这个方法是在new自己，因为其可以访问私有的构造函数，所以他是可以保证实例被创建出来的。</li>
-<li>在<code>getInstance()</code>中，先做判断是否已形成实例，如果已形成则直接返回，否则创建实例。</li>
-<li>所形成的实例保存在自己类中的私有成员中。</li>
-<li>我们取实例时，只需要使用<code>Singleton.getInstance()</code>就行了。</li>
-</ul>
-
-
-<p>当然，如果你觉得知道了上面这些事情后就学成了，那我给你当头棒喝一下了，事情远远没有那么简单。</p>
-
-<h3>Singleton的实际版本</h3>
-
-<p>上面的这个程序存在比较严重的问题，因为是全局性的实例，所以，在多线程情况下，所有的全局共享的东西都会变得非常的危险，这个也一样，在多线程情况下，如果多个线程同时调用<code>getInstance()</code>的话，那么，可能会有多个进程同时通过 (<code>singleton== null</code>)的条件检查，于是，多个实例就创建出来，并且很可能造成内存泄露问题。嗯，熟悉多线程的你一定会说——“我们需要线程互斥或同步”，没错，我们需要这个事情，于是我们的Singleton升级成1.1版，如下所示：</p>
-
-<p>```java
-// version 1.1
-public class Singleton
-{</p>
-
-<pre><code>private static final Singleton singleton = null;
-
-private Singleton()
-{
-}
-public static Singleton getInstance()
-{
-    if (singleton== null)
-    {
-        synchronized (Singleton.class) {
-            singleton= new Singleton();
-        }
-    }
-    return singleton;
-}
-</code></pre>
-
-<p>}
-```</p>
-
-<p>嗯，使用了Java的<code>synchronized</code>方法，看起来不错哦。应该没有问题了吧？！错！这还是有问题！为什么呢？前面已经说过，如果有多个线程同时通过(<code>singleton== null</code>)的条件检查（因为他们并行运行），虽然我们的synchronized方法会帮助我们<strong>同步所有的线程，让我们并行线程变成串行</strong>的一个一个去new，那不还是一样的吗？同样会出现很多实例。嗯，确实如此！看来，还得把那个判断(<code>singleton== null</code>)条件也同步起来。于是，我们的Singleton再次升级成1.2版本，如下所示：</p>
-
-<p>```java
-// version 1.2
-public class Singleton
-{</p>
-
-<pre><code>private static final Singleton singleton = null;
-
-private Singleton()
-{
-}
-public static Singleton getInstance()
-{
-    synchronized (Singleton.class) 
-    {
-        if (singleton== null)
-        {
-            singleton= new Singleton();
-        }
-    }
-    return singleton;
-}
-</code></pre>
-
-<p>}
-```</p>
-
-<p>不错不错，看似很不错了。在多线程下应该没有什么问题了，不是吗？的确是这样的，1.2版的Singleton在多线程下的确没有问题了，因为我们同步了所有的线程。只不过嘛……，什么？！还不行？！是的，还是有点小问题，我们本来只是想让new这个操作并行就可以了，现在，只要是进入getInstance()的线程都得同步啊，注意，创建对象的动作只有一次，后面的动作全是读取那个成员变量，这些读取的动作不需要线程同步啊。这样的作法感觉非常极端啊，为了一个初始化的创建动作，居然让我们搭上了所有的读操作，严重影响后续的性能啊！</p>
-
-<p>还得改！嗯，看来，在线程同步前还得加一个(<code>singleton== null</code>)的条件判断，如果对象已经创建了，那么就不需要线程的同步了。OK，下面是1.3版的Singleton。</p>
-
-<p>```java
-// version 1.3
-public class Singleton
-{</p>
-
-<pre><code>private static final Singleton singleton = null;
-
-private Singleton()
-{
-}
-public static Singleton getInstance()
-{
-    if (singleton== null)
-    {
-        synchronized (Singleton.class) 
-        {
-            if (singleton== null)
-            {
-                singleton= new Singleton();
-            }
-        }
-    }
-    return singleton;
-}
-</code></pre>
-
-<p>}
-```</p>
-
-<p>感觉代码开始变得有点罗嗦和复杂了，不过，这可能是最不错的一个版本了，这个版本又叫“双重检查”Double-Check。下面是说明：</p>
-
-<p>第一个条件是说，如果实例创建了，那就不需要同步了，直接返回就好了。
-不然，我们就开始同步线程。
-第二个条件是说，如果被同步的线程中，有一个线程创建了对象，那么别的线程就不用再创建了。
-相当不错啊，干得非常漂亮！请大家为我们的1.3版起立鼓掌！</p>
-
-<h3>Singleton的其它问题</h3>
-
-<p>怎么？还有问题？！当然还有，请记住下面这条规则——“无论你的代码写得有多好，其只能在特定的范围内工作，超出这个范围就要出Bug了”，这是“陈式第一定理”，呵呵。你能想一想还有什么情况会让这个我们上面的代码出问题吗？</p>
-
-<p>在C++下，我不是很好举例，但是在Java的环境下，嘿嘿，还是让我们来看看下面的一些反例和一些别的事情的讨论（当然，有些反例可能属于钻牛角尖，可能有点学院派，不过也不排除其实际可能性，就算是提个醒吧）：</p>
-
-<p>其一、<code>Class Loader</code>。不知道你对Java的Class Loader熟悉吗？“类装载器”？！C++可没有这个东西啊。这是Java动态性的核心。顾名思义，类装载器是用来把类(class)装载进JVM的。JVM规范定义了两种类型的类装载器：启动内装载器(bootstrap)和用户自定义装载器(user-defined class loader)。 在一个JVM中可能存在多个ClassLoader，每个ClassLoader拥有自己的NameSpace。一个ClassLoader只能拥有一个class对象类型的实例，但是不同的ClassLoader可能拥有相同的class对象实例，这时可能产生致命的问题。如ClassLoaderA，装载了类A的类型实例A1，而ClassLoaderB，也装载了类A的对象实例A2。逻辑上讲A1=A2，但是由于A1和A2来自于不同的ClassLoader，它们实际上是完全不同的，如果A中定义了一个静态变量c，则c在不同的ClassLoader中的值是不同的。</p>
-
-<p>于是，如果咱们的Singleton 1.3版本如果面对着多个Class Loader会怎么样？呵呵，多个实例同样会被多个Class Loader创建出来，当然，这个有点牵强，不过他确实存在。难道我们还要整出个1.4版吗？可是，我们怎么可能在我的Singleton类中操作Class Loader啊？是的，你根本不可能。在这种情况下，你能做的只有是——“保证多个Class Loader不会装载同一个Singleton”。</p>
-
-<p>其二、序例化。如果我们的这个Singleton类是一个关于我们程序配置信息的类。我们需要它有序列化的功能，那么，当反序列化的时候，我们将无法控制别人不多次反序列化。不过，我们可以利用一下Serializable接口的<code>readResolve()</code>方法，比如：</p>
-
-<p>```java
-public class Singleton implements Serializable
-{</p>
-
-<pre><code>......
-......
-protected Object readResolve()
-{
-    return getInstance();
-}
-</code></pre>
-
-<p>}
-```</p>
-
-<p>其三、多个Java虚拟机。如果我们的程序运行在多个Java的虚拟机中。什么？多个虚拟机？这是一种什么样的情况啊。嗯，这种情况是有点极端，不过还是可能出现，比如EJB或RMI之流的东西。要在这种环境下避免多实例，看来只能通过良好的设计或非技术来解决了。</p>
-
-<p>其四，volatile变量。关于volatile这个关键字所声明的变量可以被看作是一种 “程度较轻的同步synchronized”；与 synchronized 块相比，volatile 变量所需的编码较少，并且运行时开销也较少，但是它所能实现的功能也仅是synchronized的一部分。当然，如前面所述，我们需要的Singleton只是在创建的时候线程同步，而后面的读取则不需要同步。所以，volatile变量并不能帮助我们即能解决问题，又有好的性能。而且，这种变量只能在JDK 1.5+版后才能使用。</p>
-
-<p>其五、关于继承。是的，继承于Singleton后的子类也有可能造成多实例的问题。不过，因为我们早把Singleton的构造函数声明成了私有的，所以也就杜绝了继承这种事情。</p>
-
-<p>其六，关于代码重用。也话我们的系统中有很多个类需要用到这个模式，如果我们在每一个类都中有这样的代码，那么就显得有点傻了。那么，我们是否可以使用一种方法，把这具模式抽象出去？在C++下这是很容易的，因为有模板和友元，还支持栈上分配内存，所以比较容易一些（程序如下所示），Java下可能比较复杂一些，聪明的你知道怎么做吗？</p>
-
-<p>```cpp
-template<class t=""> class Singleton
-{</p>
-
-<pre><code>public:
-    static T&amp; Instance()
-    {
-        static T theSingleInstance; //假设T有一个protected默认构造函数
-        return theSingleInstance;
-    }
-</code></pre>
-
-<p>};</p>
-
-<p>class OnlyOne : public Singleton<onlyone>
-{</p>
-
-<pre><code>friend class Singleton&lt;onlyone&gt;;
-int example_data;
-
-public:
-    int GetExampleData() const {return example_data;}
-protected: 
-    OnlyOne(): example_data(42) {}   // 默认构造函数
-    OnlyOne(OnlyOne&amp;) {}
-</code></pre>
-
-<p>};</p>
-
-<p>int main( )
-{</p>
-
-<pre><code>cout &lt;&lt; OnlyOne::Instance().GetExampleData()&lt;&lt; endl;
-return 0;
-</code></pre>
-
-<p>}
-```</p>
-
-<p>REF:</p>
-
-<ul>
-<li><a href="http://coolshell.cn/articles/265.html">深入浅出单实例Singleton设计模式</a></li>
-<li><a href="https://en.wikipedia.org/wiki/Singleton_pattern">Singleton pattern</a></li>
-</ul>
-
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Android Context]]></title>
-    <link href="http://Solarex.github.io/blog/2014/10/14/android-context/"/>
-    <updated>2014-10-14T10:11:00+08:00</updated>
-    <id>http://Solarex.github.io/blog/2014/10/14/android-context</id>
-    <content type="html"><![CDATA[<center><p><img src="http://Solarex.github.io/images/android_robot.png" width="255" height="300"></p></center>
-
-
-<p>Context is probably the most used element in Android applications…it may also be the most misused.Context objects are so common, and get passed around so frequently, it can be easy to create a situation you didn’t intend.  Loading resources, launching a new Activity, obtaining a system service, getting internal file paths, and creating views all require a Context (and that’s not even getting started on the full list!) to accomplish the task.  What I’d like to do is provide for you some insights on how Context works alongside some tips that will (hopefully) allow you to leverage it more effectively in your applications.</p>
-
-<!-- more -->
-
-
-<h2>Context Types</h2>
-
-<p>Not all Context instances are created equal.  Depending on the Android application component, the Context you have access to varies slightly:</p>
-
-<ul>
-<li><p><strong>Application</strong> – is a singleton instance running in your application process.  It can be accessed via methods like getApplication() from an Activity or Service, and getApplicationContext() from any other object that inherits from Context.  Regardless of where or how it is accessed, you will always receive the same instance from within your process.</p></li>
-<li><p><strong>Activity/Service</strong> – inherit from ContextWrapper which implements the same API, but proxies all of its method calls to a hidden internal Context instance, also known as its base context.  Whenever the framework creates a new Activity or Service instance, it also creates a new ContextImpl instance to do all of the heavy lifting that either component will wrap.  Each Activity or Service, and their corresponding base context, are unique per-instance.</p></li>
-<li><p><strong>BroadcastReceiver</strong> – is not a Context in and of itself, but the framework passes a Context to it in onReceive() each time a new broadcast event comes in.  This instance is a ReceiverRestrictedContext with two main functions disabled; calling registerReceiver() and bindService().  These two functions are not allowed from within an existing BroadcastReceiver.onReceive().  Each time a receiver processes a broadcast, the Context handed to it is a new instance.</p></li>
-<li><p><strong>ContentProvider</strong> – is also not a Context but is given one when created that can be accessed via <code>getContext()</code>.  If the <code>ContentProvider</code> is running local to the caller (i.e. same application process), then this will actually return the same Application singleton.  However, if the two are in separate processes, this will be a newly created instance representing the package the provider is running in.</p></li>
-</ul>
-
-
-<h2>Saved References</h2>
-
-<p>The first issue we need to address comes from saving a reference to a <code>Context</code> in an object or class that has a lifecycle that extends beyond that of the instance you saved.  For example, creating a custom singleton that requires a <code>Context</code> to load resources or access a <code>ContentProvider</code>, and saving a reference to the current <code>Activity</code> or <code>Service</code> in that singleton.</p>
-
-<p>Bad Singleton</p>
-
-<p>```java
-public class CustomManager {</p>
-
-<pre><code>private static CustomManager sInstance;
-
-public static CustomManager getInstance(Context context) {
-    if (sInstance == null) {
-        sInstance = new CustomManager(context);
-    }
-
-    return sInstance;
-}
-
-private Context mContext;
-
-private CustomManager(Context context) {
-    mContext = context;
-}
-</code></pre>
-
-<p>}
-```</p>
-
-<p>The problem here is we don’t know where that <code>Context</code> came from, and it is not safe to hold a reference to the object if it ends up being an <code>Activity</code> or a <code>Service</code>.  This is a problem because a singleton is managed by a single static reference inside the enclosing class.  This means that our object, and ALL the other objects referenced by it, will never be garbage collected.  If this <code>Context</code> were an Activity, we would effectively hold hostage in memory all the views and other potentially large objects associated with it; creating a leak.</p>
-
-<p>To protect against this, we modify the singleton to always reference the application context:</p>
-
-<p>Better Singleton</p>
-
-<p>```java
-public class CustomManager {</p>
-
-<pre><code>private static CustomManager sInstance;
-
-public static CustomManager getInstance(Context context) {
-    if (sInstance == null) {
-        //Always pass in the Application Context
-        sInstance = new CustomManager(context.getApplicationContext());
-    }
-
-    return sInstance;
-}
-
-private Context mContext;
-
-private CustomManager(Context context) {
-    mContext = context;
-}
-</code></pre>
-
-<p>}
-```</p>
-
-<p>Now it doesn’t matter where our <code>Context</code> came from, because the reference we are holding is safe.  The application context is itself a singleton, so we aren’t leaking anything by creating another static reference to it.  Another great example of places where this can crop up is saving references to a <code>Context</code> from inside a running background thread or a pending Handler.</p>
-
-<p>So why can’t we always just reference the application context?  Take the middleman out of the equation, as it were, and never have to worry about creating leaks?  The answer, as I alluded to in the introduction, is because one <code>Context</code> is not equal to another.</p>
-
-<h2>Context Capabilities</h2>
-
-<p>The common actions you can safely take with a given <code>Context</code> object depends on where it came from originally.  Below is a table of the common places an application will receive a <code>Context</code>, and in each case what it is useful for:</p>
-
-<table border="1" width="90%" align="center">
-<thead>
-<tr>
-<th></th>
-<th align="center">Application</th>
-<th align="center">Activity</th>
-<th align="center">Service</th>
-<th align="center">ContentProvider</th>
-<th align="center">BroadcastReceiver</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Show a Dialog</td>
-<td align="center">NO</td>
-<td align="center">YES</td>
-<td align="center">NO</td>
-<td align="center">NO</td>
-<td align="center">NO</td>
-</tr>
-<tr>
-<td>Start an Activity</td>
-<td align="center">NO<sup>1</sup></td>
-<td align="center">YES</td>
-<td align="center">NO<sup>1</sup></td>
-<td align="center">NO<sup>1</sup></td>
-<td align="center">NO<sup>1</sup></td>
-</tr>
-<tr>
-<td>Layout Inflation</td>
-<td align="center">NO<sup>2</sup></td>
-<td align="center">YES</td>
-<td align="center">NO<sup>2</sup></td>
-<td align="center">NO<sup>2</sup></td>
-<td align="center">NO<sup>2</sup></td>
-</tr>
-<tr>
-<td>Start a Service</td>
-<td align="center">YES</td>
-<td align="center">YES</td>
-<td align="center">YES</td>
-<td align="center">YES</td>
-<td align="center">YES</td>
-</tr>
-<tr>
-<td>Bind to a Service</td>
-<td align="center">YES</td>
-<td align="center">YES</td>
-<td align="center">YES</td>
-<td align="center">YES</td>
-<td align="center">NO</td>
-</tr>
-<tr>
-<td>Send a Broadcast</td>
-<td align="center">YES</td>
-<td align="center">YES</td>
-<td align="center">YES</td>
-<td align="center">YES</td>
-<td align="center">YES</td>
-</tr>
-<tr>
-<td>Register BroadcastReceiver</td>
-<td align="center">YES</td>
-<td align="center">YES</td>
-<td align="center">YES</td>
-<td align="center">YES</td>
-<td align="center">NO<sup>3</sup></td>
-</tr>
-<tr>
-<td>Load Resource Values</td>
-<td align="center">YES</td>
-<td align="center">YES</td>
-<td align="center">YES</td>
-<td align="center">YES</td>
-<td align="center">YES</td>
-</tr>
-</tbody>
-</table>
-
-
-<ul>
-<li>An application CAN start an <code>Activity</code> from here, but it requires that a new task be created.  This may fit specific use cases, but can create non-standard back stack behaviors in your application and is generally not recommended or considered good practice.</li>
-<li>This is legal, but inflation will be done with the default theme for the system on which you are running, not what’s defined in your application.</li>
-<li>Allowed if the receiver is null, which is used for obtaining the current value of a sticky broadcast, on Android 4.2 and above.</li>
-</ul>
-
-
-<h2>User Interface</h2>
-
-<p>You can see from looking at the previous table that there are a number of functions the application context is not properly suited to handle; all of them related to working with the UI.  In fact, the only implementation equipped to handle all tasks associated with the UI is <code>Activity</code>; the other instances fare pretty much the same in all categories.</p>
-
-<p>Luckily, these three actions are things an application doesn’t really have any place doing outside the scope of an <code>Activity</code>; it’s almost like the framework was designed that way on purpose.  Attempting to show a Dialog that was created with a reference to the application context, or starting an <code>Activity</code> from the application context will throw an exception and crash your application…a strong indicator something has gone wrong.</p>
-
-<p>The less obvious issue is inflating layouts.  If you read my last piece on layout inflation, you already know that it can be a slightly mysterious process with some hidden behaviors;  using the right <code>Context</code> is linked to another one of those behaviors.  While the framework will not complain and will return a perfectly good view hierarchy from a <code>LayoutInflater</code> created with the application context, the themes and styles from your app will not be considered in the process.  This is because <code>Activity</code> is the only <code>Context</code> on which the themes defined in your manifest are actually attached.  Any other instance will use the system default theme to inflate your views, leading to a display output you probably didn’t expect.</p>
-
-<h2>The Intersection of these Rules</h2>
-
-<p>Invariably, someone will arrive at the conclusion that these two rules conflict.  There is a case in the application’s current design where a long-term reference must be saved and we must save an <code>Activity</code> because the tasks we want to accomplish include manipulation of the UI.  If that is the case, I would urge you to reconsider your design, as this would be a textbook instance of fighting the framework.</p>
-
-<h2>The Rule of Thumb</h2>
-
-<p>In most cases, use the <code>Context</code> directly available to you from the enclosing component you’re working within.  You can safely hold a reference to it as long as that reference does not extend beyond the lifecycle of that component. As soon as you need to save a reference to a <code>Context</code> from an object that lives beyond your <code>Activity</code> or <code>Service</code>, even temporarily, switch that reference you save over to the application context.</p>
-
-<p>Context对象是最常见的对象，经常用于参数传递，因此也会出现一些你意想不到的情况。加载资源文件，启动一个新的Activity，获取一个系统服务，获取内部文件路径和创建view全部（这些仅仅是一部分）都需要一个Context对象来完成这些操作。我们想做的是给你展示Context如何工作，以及提供一些建议会（希望会）让你在开发中更合理的使用Context。</p>
-
-<h2>Context类型</h2>
-
-<p>并不是所有的Context对象都相同，根据Android应用组件的不同，可以分为以下几种：</p>
-
-<ul>
-<li><strong>Application</strong>：它是应用程序的一个单例，它可以通过<code>Activity</code>或<code>Service</code>的<code>getApplication()</code>方法获取，也可以在任何继承<code>Context</code>类的的对象中通过<code>getApplicationContext()</code>来获取。不管它是怎么获取的，这些方法返回的都是App中同一个实例。</li>
-<li><strong>Activity/Service</strong>：它们继承自<code>ContextWrapper</code>，<code>ContextWrapper</code>实现了<code>Context</code>同样的API，但是隐藏了内部<code>Context</code>对象的方法调用，<code>Context</code>也是<code>ContextWrapper</code>的父类。每当系统创建一个<code>Activity</code>或<code>Service</code>对象的时候，它也为它们创建了新的<code>ContextWrapper</code>对象。每个<code>Activity</code>或<code>Service</code>对象，包括他们对应的context对象都是唯一的。</li>
-<li><strong>BroadcastReceiver</strong>：它并不拥有<code>Context</code>对象，但是系统在一个新的广播到来的时候通过<code>onReceiver()</code>方法传入一个<code>Context</code>对象，这是一个<code>ReceiverRestrictedContext</code>，它的两个主要方法，<code>registerReceiver()</code>和<code>bindService()</code>都被禁用了。每一次receiver处理一个广播，传入的<code>Context</code>对象都是一个新的实例。</li>
-<li><strong>ContentProvider</strong>：同样也不是一个<code>Context</code>对象，但是在创建的时候会通过<code>getContext()</code>方法传入一个context对象。如果<code>ContentProvider</code>是在本地调用的话（在同一个进程中），那么这会返回一个应用单例。然而，如果是在不同的进程中调用的话，它会新建一个context对象表示当前provider运行的进程。</li>
-</ul>
-
-
-<h2>Saved References</h2>
-
-<p>第一个问题是，我们想在一个对象中保存一个Context对象的引用，并且这个对象的生命周期超过了你保存的Context对象。比如：创建一个需要一个Context对象的单例来加载文件资源或访问一个<code>ContentProvider</code>，并且在这个单例中保存当前<code>Activity</code>或<code>Service</code>的引用。</p>
-
-<p>Bad Singleton这里的问题在于，我们并不知道Context从哪里来，并且如果单例保存了Activity或Service的引用，如果它们被销毁了，这样是不安全的。这个问题是因为单例在类里面保存了一个静态引用。这就意味着那个对象，以及这个对象引用的所有对象都不会被gc回收。如果Context对象是一个Activity，我们就会始终持有这个Activity的所有View以及其他可能很大的对象，最终导致内存泄露。</p>
-
-<p>为了防止出现这种情况，我们可以修改这个类让它持有Application Context,Better Singleton：现在，不管context对象是从哪里传入的，因为现在单例持有的是Application Context，这个是安全的，因为Application Context 本身就是一个单例，因此不会造成内存泄露。还有一个类似的问题就是在一个后台线程（background thread）或一个延时Handler中持有一个对Context的引用。
-既然Application Context有那么多好处，我们为什么不用Application Context来处理一切呢？这个问题的答案就是，前面提到过的，是因为<strong>这些Context并不都是相同的。</strong></p>
-
-<p>从上文中可以知道，Context有多种来源，而不同来源的Context所具有的通用操作也不一样，下表列出了各种不同Context 的作用域：这几个Context只有Activity的Context是“看的见的”，其他组件的Context都是“看不见的”。因此，如果你想创建一个比如Dialog，Activity等“看的见”的组件就必须要用Activity的Context。比如，你想调用getString或getResource方法获取res文件夹下的资源时，所有的Context对象都可以使用。因为这些东西都是“看不见”的。</p>
-
-<h2>用户界面</h2>
-
-<p>你可以从上面的表格中看到Application Context有很多事情是做不了的，它不能做的事情都与UI有关。事实上，只有Activity才能够处理与UI有关的任务，其他的Context都是非常相似的（不能处理与UI有关的任务）。
-这3个任务（“Show a Dialog”，“Start a Activity”，“Layout Inflation”）似乎就是Android系统就是这么设计的，让Activity来处理这些与UI有关的任务。想要使用Application Context对象来新建一个Dialog或者启动一个Activity系统就会抛出异常，然后程序就会崩溃。
-Infalting layouts是一个容易被忽略的问题，如果你读过这篇文章<a href="http://www.doubleencore.com/2013/05/layout-inflation-as-intended/">layout inflation</a>，你就会明白这里面隐藏着一些坑…使用不同的Context就是会带你走向不同坑。当你使用LayoutInflator，并且使用Application Context后，它会返回一个View，但是这个View的主题和样式就会被忽略。这是因为，Activity 才是系统配置文件中的唯一持有主题和样式的Context。其他所有的Context都会使用系统默认的主题来渲染你的xml来生成View，最终就导致了界面并不是你想要的。</p>
-
-<h2>结论</h2>
-
-<p>很多情况下，你可以在一个组件内部使用Context对象，你可以很安全的持有Context的引用，前提就是你的对象生命周期小于Context的生命周期。如果你的对象需要持有一个比Context生命周期要长的Context引用时，即使你的对象也是一个临时对象，也请你考虑保存Application Context 的引用！</p>
-
-<p>REF:<a href="http://www.doubleencore.com/2013/06/context/">Context</a></p>
 ]]></content>
   </entry>
   
