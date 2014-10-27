@@ -183,5 +183,35 @@ Invariably, someone will arrive at the conclusion that these two rules conflict.
 ##The Rule of Thumb
 In most cases, use the ``Context`` directly available to you from the enclosing component you’re working within.  You can safely hold a reference to it as long as that reference does not extend beyond the lifecycle of that component. As soon as you need to save a reference to a ``Context`` from an object that lives beyond your ``Activity`` or ``Service``, even temporarily, switch that reference you save over to the application context.
 
+Context对象是最常见的对象，经常用于参数传递，因此也会出现一些你意想不到的情况。加载资源文件，启动一个新的Activity，获取一个系统服务，获取内部文件路径和创建view全部（这些仅仅是一部分）都需要一个Context对象来完成这些操作。我们想做的是给你展示Context如何工作，以及提供一些建议会（希望会）让你在开发中更合理的使用Context。
+
+##Context类型
+
+并不是所有的Context对象都相同，根据Android应用组件的不同，可以分为以下几种：
+
++ **Application**：它是应用程序的一个单例，它可以通过``Activity``或``Service``的``getApplication()``方法获取，也可以在任何继承``Context``类的的对象中通过``getApplicationContext()``来获取。不管它是怎么获取的，这些方法返回的都是App中同一个实例。
++ **Activity/Service**：它们继承自``ContextWrapper``，``ContextWrapper``实现了``Context``同样的API，但是隐藏了内部``Context``对象的方法调用，``Context``也是``ContextWrapper``的父类。每当系统创建一个``Activity``或``Service``对象的时候，它也为它们创建了新的``ContextWrapper``对象。每个``Activity``或``Service``对象，包括他们对应的context对象都是唯一的。
++ **BroadcastReceiver**：它并不拥有``Context``对象，但是系统在一个新的广播到来的时候通过``onReceiver()``方法传入一个``Context``对象，这是一个``ReceiverRestrictedContext``，它的两个主要方法，``registerReceiver()``和``bindService()``都被禁用了。每一次receiver处理一个广播，传入的``Context``对象都是一个新的实例。
++ **ContentProvider**：同样也不是一个``Context``对象，但是在创建的时候会通过``getContext()``方法传入一个context对象。如果``ContentProvider``是在本地调用的话（在同一个进程中），那么这会返回一个应用单例。然而，如果是在不同的进程中调用的话，它会新建一个context对象表示当前provider运行的进程。
+
+##Saved References
+
+第一个问题是，我们想在一个对象中保存一个Context对象的引用，并且这个对象的生命周期超过了你保存的Context对象。比如：创建一个需要一个Context对象的单例来加载文件资源或访问一个``ContentProvider``，并且在这个单例中保存当前``Activity``或``Service``的引用。
+
+Bad Singleton这里的问题在于，我们并不知道Context从哪里来，并且如果单例保存了Activity或Service的引用，如果它们被销毁了，这样是不安全的。这个问题是因为单例在类里面保存了一个静态引用。这就意味着那个对象，以及这个对象引用的所有对象都不会被gc回收。如果Context对象是一个Activity，我们就会始终持有这个Activity的所有View以及其他可能很大的对象，最终导致内存泄露。
+
+为了防止出现这种情况，我们可以修改这个类让它持有Application Context,Better Singleton：现在，不管context对象是从哪里传入的，因为现在单例持有的是Application Context，这个是安全的，因为Application Context 本身就是一个单例，因此不会造成内存泄露。还有一个类似的问题就是在一个后台线程（background thread）或一个延时Handler中持有一个对Context的引用。
+既然Application Context有那么多好处，我们为什么不用Application Context来处理一切呢？这个问题的答案就是，前面提到过的，是因为**这些Context并不都是相同的。**
+
+从上文中可以知道，Context有多种来源，而不同来源的Context所具有的通用操作也不一样，下表列出了各种不同Context 的作用域：这几个Context只有Activity的Context是“看的见的”，其他组件的Context都是“看不见的”。因此，如果你想创建一个比如Dialog，Activity等“看的见”的组件就必须要用Activity的Context。比如，你想调用getString或getResource方法获取res文件夹下的资源时，所有的Context对象都可以使用。因为这些东西都是“看不见”的。
+
+##用户界面
+
+你可以从上面的表格中看到Application Context有很多事情是做不了的，它不能做的事情都与UI有关。事实上，只有Activity才能够处理与UI有关的任务，其他的Context都是非常相似的（不能处理与UI有关的任务）。
+这3个任务（“Show a Dialog”，“Start a Activity”，“Layout Inflation”）似乎就是Android系统就是这么设计的，让Activity来处理这些与UI有关的任务。想要使用Application Context对象来新建一个Dialog或者启动一个Activity系统就会抛出异常，然后程序就会崩溃。
+Infalting layouts是一个容易被忽略的问题，如果你读过这篇文章[layout inflation](http://www.doubleencore.com/2013/05/layout-inflation-as-intended/)，你就会明白这里面隐藏着一些坑…使用不同的Context就是会带你走向不同坑。当你使用LayoutInflator，并且使用Application Context后，它会返回一个View，但是这个View的主题和样式就会被忽略。这是因为，Activity 才是系统配置文件中的唯一持有主题和样式的Context。其他所有的Context都会使用系统默认的主题来渲染你的xml来生成View，最终就导致了界面并不是你想要的。
+
+##结论
+很多情况下，你可以在一个组件内部使用Context对象，你可以很安全的持有Context的引用，前提就是你的对象生命周期小于Context的生命周期。如果你的对象需要持有一个比Context生命周期要长的Context引用时，即使你的对象也是一个临时对象，也请你考虑保存Application Context 的引用！
 
 REF:[Context](http://www.doubleencore.com/2013/06/context/)
