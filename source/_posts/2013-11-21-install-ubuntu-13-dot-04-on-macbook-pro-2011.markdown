@@ -22,18 +22,18 @@ categories:
 
 接下来就是Ubuntu下的操作了。
 
-+ 更换软件源，使用163的镜像。
++ 更换软件源，使用aliyun的镜像。
 ```bash
-deb http://mirrors.163.com/ubuntu/ raring main restricted
-deb http://mirrors.163.com/ubuntu/ raring-updates main restricted
-deb http://mirrors.163.com/ubuntu/ raring universe
-deb http://mirrors.163.com/ubuntu/ raring-updates universe
-deb http://mirrors.163.com/ubuntu/ raring multiverse
-deb http://mirrors.163.com/ubuntu/ raring-updates multiverse
-deb http://mirrors.163.com/ubuntu/ raring-backports main restricted universe multiverse
-deb http://mirrors.163.com/ubuntu/ raring-security main restricted
-deb http://mirrors.163.com/ubuntu/ raring-security universe
-deb http://mirrors.163.com/ubuntu/ raring-security multiverse
+deb http://mirrors.aliyun.com/ubuntu/ raring main restricted
+deb http://mirrors.aliyun.com/ubuntu/ raring-updates main restricted
+deb http://mirrors.aliyun.com/ubuntu/ raring universe
+deb http://mirrors.aliyun.com/ubuntu/ raring-updates universe
+deb http://mirrors.aliyun.com/ubuntu/ raring multiverse
+deb http://mirrors.aliyun.com/ubuntu/ raring-updates multiverse
+deb http://mirrors.aliyun.com/ubuntu/ raring-backports main restricted universe multiverse
+deb http://mirrors.aliyun.com/ubuntu/ raring-security main restricted
+deb http://mirrors.aliyun.com/ubuntu/ raring-security universe
+deb http://mirrors.aliyun.com/ubuntu/ raring-security multiverse
 deb http://archive.canonical.com/ubuntu precise partner
 deb-src http://archive.canonical.com/ubuntu precise partner
 deb http://cz.archive.ubuntu.com/ubuntu trusty main universe
@@ -46,16 +46,20 @@ sudo add-apt-repository ppa:indicator-multiload/stable-daily
 sudo add-apt-repository ppa:ubuntu-wine/ppa
 sudo add-apt-repository ppa:synapse-core/ppa
 sudo add-apt-repository ppa:fossfreedom/byzanz
+sudo add-apt-repository ppa:kilian/f.lux
+sudo add-apt-repository ppa:xdlailai/openyoudao
 sudo apt-get update && sudo apt-get upgrade
-sudo apt-get install fcitx fcitx-config-gtk fcitx-sunpinyin fcitx-googlepinyin fcitx-module-cloudpinyin  fcitx-sogoupinyin fcitx-table-all indicator-multiload wine synapse byzanz mtp-tools mtpfs
+sudo apt-get install fcitx fcitx-config-gtk fcitx-sunpinyin fcitx-googlepinyin fcitx-module-cloudpinyin  fcitx-sogoupinyin fcitx-table-all indicator-multiload wine synapse byzanz fluxgui openyoudao mtp-tools mtpfs
 ```
 
 + 安装卸载软件
 ```bash 
 sudo apt-get update && sudo apt-get upgrade
-sudo apt-get install python3-dev python3-openssl libxss1 flashplugin-installer mplayer vim git-core tig xclip zathura unrar p7zip-full  p7zip-rar zip unzip rar chmsee bleachbit preload goldendict goldendict-wordnet tcpdump mtr curl nscd ack-grep meld
+sudo apt-get install python3-dev python3-openssl libxss1 flashplugin-installer mplayer vim git-core tig xclip zathura unrar p7zip-full  p7zip-rar zip unzip rar chmsee bleachbit preload goldendict goldendict-wordnet tcpdump mtr curl nscd ack-grep meld pngquant
 sudo apt-get purge ibus ibus-gtk ibus-gtk3 ibus-pinyin ibus-pinyin-db-android ibus-table
 sudo apt-get autoremove unity-lens-music unity-lens-photos unity-lens-gwibber unity-lens-shopping unity-lens-video
 ```
 
 + sublime_text配置文件在``$HOME/.config/sublime_text_3/``
++ [bashrc](2013-11-21-install-ubuntu-13-dot-04-on-macbook-pro-2011.markdown)
++ [inputrc](2013-11-21-install-ubuntu-13-dot-04-on-macbook-pro-2011.markdown)
