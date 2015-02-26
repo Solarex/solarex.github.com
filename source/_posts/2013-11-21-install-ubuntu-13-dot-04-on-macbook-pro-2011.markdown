@@ -62,3 +62,4 @@ sudo apt-get autoremove unity-lens-music unity-lens-photos unity-lens-gwibber un
 
 + sublime_text配置文件在``$HOME/.config/sublime_text_3/``
 + [bashrc](https://gist.github.com/flyfire/3a9edce243c45b28dadd)
+
