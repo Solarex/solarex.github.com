@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Java学习备忘"
+title: "Java Class Loaded and Initialized"
 date: 2014-09-04 13:05
 comments: true
 categories: 
