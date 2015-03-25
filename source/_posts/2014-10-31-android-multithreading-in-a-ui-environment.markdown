@@ -60,6 +60,8 @@ The result in this case is that the application crashes.
 
 But why?Android UI toolkit, like many other UI environments, is not thread-safe.
 
+<!-- more -->
+
 The solution
 
 + A queue of messages. Each message is a job to be handled.

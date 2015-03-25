@@ -34,6 +34,8 @@ An IntentService has a few limitations:
 
 However, in most cases an IntentService is the preferred way to simple background operations.
 
+<!-- more -->
+
 To create an IntentService component for your app, define a class that extends IntentService, and within it, define a method that overrides ``onHandleIntent()``. For example:
 
 ```java

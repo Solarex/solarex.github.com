@@ -43,5 +43,5 @@ brew install vim --override-system-vi
 brew install macvim --override-system-vim --custom-system-icons
 ```
 
-Originally,the ``--with-default-names`` option was designed to prevent Homebrew from prepending *g*s to the newly installed commands, thus we could use these commands as default ones over the ones shipped by OS X,but when I tried with this argument,it just doesn't work,lol.Alternatively, ``PATH`` tricks works.
+Originally,the ``--with-default-names`` option was designed to prevent homebrew from prepending *g*s to the newly installed commands, thus we could use these commands as default ones over the ones shipped by OS X,but when I tried with this argument,it just didn't work,lol.Alternatively, ``PATH`` tricks works.
 
