@@ -31,7 +31,7 @@ Contact me via <img src="/images/gmail.gif" ></img>
 + [Douban](http://www.douban.com/people/73580003/)
 + [Weibo](http://weibo.com/Solarex)
 + [Zhihu](http://www.zhihu.com/people/solarex/)
-+ [OldBlog](http://flyfire-blog.appspot.com)
++ [OldBlog](https://flyfire-blog.appspot.com/),[OldGallery](https://flyfire-img.appspot.com/),[OldDisc](https://flyfire-disc.appspot.com/)
 + [Stackoverflow](https://stackoverflow.com/users/2573305/user2573305)
 
 --------------------------
