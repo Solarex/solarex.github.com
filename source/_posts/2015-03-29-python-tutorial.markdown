@@ -262,12 +262,224 @@ If you need to modify the sequence you are iterating over while inside the loop 
 
 If you do need to iterate over a sequence of numbers, the built-in function ``range()`` comes in handy. It generates arithmetic progressions.
 
+```python
+range(-10, -100, -30)
+  -10, -40, -70
+```
 
+```python
+>>> print(range(10))
+range(0, 10)
+```
 
+In many ways the object returned by ``range()`` behaves as if it is a list, but in fact it isn’t. It is an object which returns the successive items of the desired sequence when you iterate over it, but it doesn’t really make the list, thus saving space.We say such an object is iterable, that is, suitable as a target for functions and constructs that expect something from which they can obtain successive items until the supply is exhausted.
 
+<h3 id="4.4">break and continue Statements, and else Clauses on Loops</h3>
 
+When used with a loop, the else clause has more in common with the else clause of a try statement than it does that of if statements: **a try statement’s else clause runs when no exception occurs, and a loop’s else clause runs when no break occurs**. 
 
+<h3 id="4.5">pass Statements</h3>
 
+The ``pass`` statement does nothing. It can be used when a statement is required syntactically but the program requires no action. 
+
+```python
+>>> while True:
+...     pass  # Busy-wait for keyboard interrupt (Ctrl+C)
+...
+```
+
+<h3 id="4.6">Defining Functions</h3>
+
+The keyword ``def`` introduces a function definition. It must be followed by the function name and the parenthesized list of formal parameters. The statements that form the body of the function start at the next line, and must be indented.
+
+The execution of a function introduces a new symbol table used for the local variables of the function. More precisely, all variable assignments in a function store the value in the local symbol table; whereas variable references first look in the local symbol table, then in the local symbol tables of enclosing functions, then in the global symbol table, and finally in the table of built-in names. Thus, global variables cannot be directly assigned a value within a function (unless named in a global statement), although they may be referenced.
+
+A function definition introduces the function name in the current symbol table. The value of the function name has a type that is recognized by the interpreter as a user-defined function. This value can be assigned to another name which can then also be used as a function.
+
+In fact, even functions without a return statement do return a value, albeit a rather boring one. This value is called None (it’s a built-in name). Writing the value None is normally suppressed by the interpreter if it would be the only value written. 
+
+<h3 id="4.7">More on Defining Functions</h3>
+
+<h4 id="4.7.1">Default Argument Values</h4>
+
+```python
+def ask_ok(prompt, retries=4, complaint='Yes or no, please!'):
+    while True:
+        ok = input(prompt)
+        if ok in ('y', 'ye', 'yes'):
+            return True
+        if ok in ('n', 'no', 'nop', 'nope'):
+            return False
+        retries = retries - 1
+        if retries < 0:
+            raise OSError('uncooperative user')
+        print(complaint)
+```
+
+The default values are evaluated at the point of function definition in the defining scope, so that
+
+```python
+i = 5
+
+def f(arg=i):
+    print(arg)
+
+i = 6
+f()
+```
+
+**Important warning**: The default value is evaluated only once. This makes a difference when the default is a mutable object such as a list, dictionary, or instances of most classes. For example, the following function accumulates the arguments passed to it on subsequent calls:
+
+```python
+def f(a, L=[]):
+    L.append(a)
+    return L
+
+print(f(1))
+print(f(2))
+print(f(3))
+```
+
+This will print
+
+```python
+[1]
+[1, 2]
+[1, 2, 3]
+```
+
+If you don’t want the default to be shared between subsequent calls, you can write the function like this instead:
+
+```python
+def f(a, L=None):
+    if L is None:
+        L = []
+    L.append(a)
+    return L
+```
+
+<h4 id="4.7.2">Keyword Arguments</h4>
+
+Functions can also be called using keyword arguments of the form kwarg=value. For instance, the following function:
+
+```python
+def parrot(voltage, state='a stiff', action='voom', type='Norwegian Blue'):
+    print("-- This parrot wouldn't", action, end=' ')
+    print("if you put", voltage, "volts through it.")
+    print("-- Lovely plumage, the", type)
+    print("-- It's", state, "!")
+```
+
+accepts one required argument (voltage) and three optional arguments (state, action, and type). This function can be called in any of the following ways:
+
+```python
+parrot(1000)                                          # 1 positional argument
+parrot(voltage=1000)                                  # 1 keyword argument
+parrot(voltage=1000000, action='VOOOOOM')             # 2 keyword arguments
+parrot(action='VOOOOOM', voltage=1000000)             # 2 keyword arguments
+parrot('a million', 'bereft of life', 'jump')         # 3 positional arguments
+parrot('a thousand', state='pushing up the daisies')  # 1 positional, 1 keyword
+```
+
+When a final formal parameter of the form ``**name`` is present, it receives a dictionary containing all keyword arguments except for those corresponding to a formal parameter. This may be combined with a formal parameter of the form ``*name`` (described in the next subsection) which receives a tuple containing the positional arguments beyond the formal parameter list. (``*name`` must occur before ``**name``.) 
+
+<h4 id="4.7.3">Arbitrary Argument Lists</h4>
+
+Finally, the least frequently used option is to specify that a function can be called with an arbitrary number of arguments. These arguments will be wrapped up in a tuple.
+
+<h4 id="4.7.4">Unpacking Argument Lists</h4>
+
+The reverse situation occurs when the arguments are already in a list or tuple but need to be unpacked for a function call requiring separate positional arguments. For instance, the built-in ``range()`` function expects separate start and stop arguments. If they are not available separately, write the function call with the *-operator to unpack the arguments out of a list or tuple:
+
+```python
+>>> list(range(3, 6))            # normal call with separate arguments
+[3, 4, 5]
+>>> args = [3, 6]
+>>> list(range(*args))            # call with arguments unpacked from a list
+[3, 4, 5]
+```
+
+In the same fashion, dictionaries can deliver keyword arguments with the **-operator.
+
+<h4 id="4.7.5">Lambda Expressions</h4>
+
+Small anonymous functions can be created with the lambda keyword. This function returns the sum of its two arguments: lambda a, b: a+b. Lambda functions can be used wherever function objects are required. They are syntactically restricted to a single expression. Semantically, they are just syntactic sugar for a normal function definition. Like nested function definitions, lambda functions can reference variables from the containing scope:
+
+```python
+>>> def make_incrementor(n):
+...     return lambda x: x + n
+...
+>>> f = make_incrementor(42)
+>>> f(0)
+42
+>>> f(1)
+43
+```
+
+The above example uses a lambda expression to return a function. Another use is to pass a small function as an argument(++++++question mark++++++):
+
+```python
+>>> pairs = [(1, 'one'), (2, 'two'), (3, 'three'), (4, 'four')]
+>>> pairs.sort(key=lambda pair: pair[1])
+>>> pairs
+[(4, 'four'), (1, 'one'), (3, 'three'), (2, 'two')]
+```
+
+<h4 id="4.7.6">Documentation Strings</h4>
+<h4 id="4.7.7">Function Annotations</h4>
+
+Annotations are stored in the __annotations__ attribute of the function as a dictionary and have no effect on any other part of the function. Parameter annotations are defined by a colon after the parameter name, followed by an expression evaluating to the value of the annotation. Return annotations are defined by a literal ->, followed by an expression, between the parameter list and the colon denoting the end of the def statement. The following example has a positional argument, a keyword argument, and the return value annotated with nonsense:
+
+```python
+>>> def f(ham: 42, eggs: int = 'spam') -> "Nothing to see here":
+...     print("Annotations:", f.__annotations__)
+...     print("Arguments:", ham, eggs)
+...
+>>> f('wonderful')
+Annotations: {'eggs': <class 'int'>, 'return': 'Nothing to see here', 'ham': 42}
+Arguments: wonderful spam
+```
+
+<h3 id="4.8">Intermezzo: Coding Style</h3>
+
+[PEP8](http://www.python.org/dev/peps/pep-0008)
+
++ Use 4-space indentation, and no tabs.
++ Wrap lines so that they don’t exceed 79 characters.
++ Use blank lines to separate functions and classes, and larger blocks of code inside functions.
++ When possible, put comments on a line of their own.
++ Use docstrings.
++ Use spaces around operators and after commas, but not directly inside bracketing constructs
++ Name your classes and functions consistently; the convention is to use CamelCase for classes and lower_case_with_underscores for functions and methods. Always use self as the name for the first method argument.
+
+<h2 id="5">Data Structures</h2>
+
+<h3 id="5.1">More on Lists</h3>
++ ``list.append(x)``,Equivalent to ``a[len(a):] = [x]``
++ ``list.extend(L)``,Extend the list by appending all the items in the given list. Equivalent to ``a[len(a):] = L``
++ ``list.insert(i, x)``,Insert an item at a given position. The first argument is the index of the element before which to insert, so ``a.insert(0, x)`` inserts at the front of the list, and ``a.insert(len(a), x)`` is equivalent to ``a.append(x)``.
++ ``list.remove(x)``,Remove the first item from the list whose value is x. It is an error if there is no such item.
++ ``list.pop([i])``,the square brackets around i indicates that i is optional,Remove the item at the given position in the list, and return it. If no index is specified, ``a.pop()`` removes and returns the last item in the list.
++ ``list.clear()``,Remove all items from the list. Equivalent to del a[:].
++ ``list.index(x)``,Return the index in the list of the first item whose value is x. It is an error if there is no such item.
++ ``list.count(x)``,Return the number of times x appears in the list.
++ ``list.sort()``,Sort the items of the list in place.
++ ``list.reverse()``,Reverse the elements of the list in place.
++ ``list.copy()``,Return a shallow copy of the list. Equivalent to a[:].
+
+Methods like insert, remove or sort that only modify the list have no return value printed – they return the default None. This is a design principle for all mutable data structures in Python.
+
+<h4 id="5.1.1">Using Lists as Stacks</h4>
+
+``append/pop``
+
+<h4 id="5.1.2">Using Lists as Queues</h4>
+
+```python
+from collections import dequeue
+queue = dequeue(["eric", "john"])
+append/popLeft
+```
 
 
 
