@@ -20,7 +20,7 @@ Reflection is commonly used by programs which require the ability to examine or 
 
 ## Classes
 
-Every object is either a ``reference`` or ``primitive type``. Reference types all inherit from ``java.lang.Object``. ``Classes``, ``enums``, arrays, and interfaces are all reference types. There is a fixed set of primitive types: ``boolean, byte, short, int, long, char, float, and double``. Examples of reference types include ``java.lang.String``, all of the wrapper classes for primitive types such as ``java.lang.Double``, the interface ``java.io.Serializable``, and the enum ``javax.swing.SortOrder``.
+Every object is either a ``reference`` or ``primitive type``. Reference types all inherit from ``java.lang.Object``. ``Classes``, ``enums``, ``arrays``, and ``interfaces`` are all reference types. There is a fixed set of primitive types: ``boolean, byte, short, int, long, char, float, and double``. Examples of reference types include ``java.lang.String``, all of the wrapper classes for primitive types such as ``java.lang.Double``, the interface ``java.io.Serializable``, and the enum ``javax.swing.SortOrder``.
 
 The entry point for all reflection operations is ``java.lang.Class``. With the exception of ``java.lang.reflect.ReflectPermission``, none of the classes in ``java.lang.reflect`` have public constructors. To get to these classes, it is necessary to invoke appropriate methods on Class. There are several ways to get a Class depending on whether the code has access to an object, the name of class, a type, or an existing Class.
 
