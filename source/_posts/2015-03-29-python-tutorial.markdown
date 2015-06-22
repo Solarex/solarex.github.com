@@ -481,6 +481,315 @@ queue = dequeue(["eric", "john"])
 append/popLeft
 ```
 
+<h4 id="5.1.3">List Comprehensions</h4>
+
+```python
+squares = list(map(lambda x: x**2, range(10)))
+squares = [x**2 for x in range(10)]
+>>> [(x, y) for x in [1,2,3] for y in [3,1,4] if x != y]
+[(1, 3), (1, 4), (2, 3), (2, 1), (2, 4), (3, 1), (3, 4)]
+```
+
+A list comprehension consists of brackets containing an expression followed by a for clause, then zero or more for or if clauses. The result will be a new list resulting from evaluating the expression in the context of the for and if clauses which follow it. If the expression is a tuple, it must be parenthesized.
+
+<h4 id="5.1.4">Nested List Comprehensions</h4>
+
+```python
+>>> matrix = [
+...     [1, 2, 3, 4],
+...     [5, 6, 7, 8],
+...     [9, 10, 11, 12],
+... ]
+>>> [[row[i] for row in matrix] for i in range(4)]
+[[1, 5, 9], [2, 6, 10], [3, 7, 11], [4, 8, 12]]
+
+>>> transposed = []
+>>> for i in range(4):
+...     transposed.append([row[i] for row in matrix])
+...
+>>> transposed
+[[1, 5, 9], [2, 6, 10], [3, 7, 11], [4, 8, 12]]
+
+>>> transposed = []
+>>> for i in range(4):
+...     # the following 3 lines implement the nested listcomp
+...     transposed_row = []
+...     for row in matrix:
+...         transposed_row.append(row[i])
+...     transposed.append(transposed_row)
+...
+>>> transposed
+[[1, 5, 9], [2, 6, 10], [3, 7, 11], [4, 8, 12]]
+
+>>> list(zip(*matrix))
+[(1, 5, 9), (2, 6, 10), (3, 7, 11), (4, 8, 12)]
+```
+
+<h3 id="5.2">The del statement</h3>
+
+There is a way to remove an item from a list given its index instead of its value: the ``del`` statement. This differs from the ``pop()`` method which returns a value.del can also be used to delete entire variables:``del a``,Referencing the name a hereafter is an error (at least until another value is assigned to it).
+
+<h3 id="5.3">Tuples and Sequences</h3>
+
+A tuple consists of a number of values separated by commas, tuples may be nested,tuples are immutable.
+
+<h3 id="5.4">Sets</h3>
+
+A set is an unordered collection with no duplicate elements. Basic uses include membership testing and eliminating duplicate entries. Set objects also support mathematical operations like union, intersection, difference, and symmetric difference.Curly braces or the ``set()`` function can be used to create sets. Note: to create an empty set you have to use ``set()``, not ``{}``; the latter creates an empty dictionary.
+
+<h3 id="5.5">Dictionaries</h3>
+
+Dictionaries are sometimes found in other languages as “associative memories” or “associative arrays”. Unlike sequences, which are indexed by a range of numbers, dictionaries are indexed by keys, which can be any immutable type; strings and numbers can always be keys. Tuples can be used as keys if they contain only strings, numbers, or tuples; if a tuple contains any mutable object either directly or indirectly, it cannot be used as a key. You can’t use lists as keys, since lists can be modified in place using index assignments, slice assignments, or methods like append() and extend().It is best to think of a dictionary as an unordered set of key: value pairs, with the requirement that the keys are unique (within one dictionary). A pair of braces creates an empty dictionary: {}. Placing a comma-separated list of key:value pairs within the braces adds initial key:value pairs to the dictionary; this is also the way dictionaries are written on output.The main operations on a dictionary are storing a value with some key and extracting the value given the key. It is also possible to delete a key:value pair with del. If you store using a key that is already in use, the old value associated with that key is forgotten. It is an error to extract a value using a non-existent key.
+
+<h3 id="5.6">Looping Techniques</h3>
+
+When looping through dictionaries, the key and corresponding value can be retrieved at the same time using the ``items()`` method.
+
+When looping through a sequence, the position index and corresponding value can be retrieved at the same time using the ``enumerate()`` function.
+
+To loop over two or more sequences at the same time, the entries can be paired with the zip() function.
+
+```python
+>>> questions = ['name', 'quest', 'favorite color']
+>>> answers = ['lancelot', 'the holy grail', 'blue']
+>>> for q, a in zip(questions, answers):
+...     print('What is your {0}?  It is {1}.'.format(q, a))
+...
+What is your name?  It is lancelot.
+What is your quest?  It is the holy grail.
+What is your favorite color?  It is blue.
+```
+
+To loop over a sequence in reverse, first specify the sequence in a forward direction and then call the ``reversed()`` function.To loop over a sequence in sorted order, use the ``sorted()`` function which returns a new sorted list while leaving the source unaltered.
+
+To change a sequence you are iterating over while inside the loop (for example to duplicate certain items), it is recommended that you first make a copy. Looping over a sequence does not implicitly make a copy. The slice notation makes this especially convenient:
+
+```python
+>>> words = ['cat', 'window', 'defenestrate']
+>>> for w in words[:]:  # Loop over a slice copy of the entire list.
+...     if len(w) > 6:
+...         words.insert(0, w)
+...
+>>> words
+['defenestrate', 'cat', 'window', 'defenestrate']
+```
+
+<h3 id="5.7">More on Conditions</h3>
+
+The conditions used in while and if statements can contain any operators, not just comparisons.
+
+The comparison operators ``in`` and ``not in`` check whether a value occurs (does not occur) in a sequence. The operators ``is`` and ``is not`` compare whether two objects are really the same object; this only matters for mutable objects like lists. All comparison operators have the same priority, which is lower than that of all numerical operators.
+
+Comparisons can be chained. For example, ``a < b == c`` tests whether a is less than b and moreover b equals c.
+
+Comparisons may be combined using the Boolean operators ``and`` and ``or``, and the outcome of a comparison (or of any other Boolean expression) may be negated with ``not``. These have lower priorities than comparison operators; between them, not has the highest priority and or the lowest, so that A and not B or C is equivalent to (A and (not B)) or C. As always, parentheses can be used to express the desired composition.
+
+<h3 id="5.8">Comparing Sequences and Other Types</h3>
+
+Sequence objects may be compared to other objects with the same sequence type. The comparison uses lexicographical ordering: first the first two items are compared, and if they differ this determines the outcome of the comparison; if they are equal, the next two items are compared, and so on, until either sequence is exhausted. If two items to be compared are themselves sequences of the same type, the lexicographical comparison is carried out recursively. If all items of two sequences compare equal, the sequences are considered equal. If one sequence is an initial sub-sequence of the other, the shorter sequence is the smaller (lesser) one. Lexicographical ordering for strings uses the Unicode code point number to order individual characters. 
+
+<h2 id="6">Modules</h2>
+
+Definitions from a module can be imported into other modules or into the main module (the collection of variables that you have access to in a script executed at the top level and in calculator mode).A module is a file containing Python definitions and statements. The file name is the module name with the suffix ``.py`` appended. Within a module, the module’s name (as a string) is available as the value of the global variable ``__name__``.
+
+<h3 id="6.1">More on Modules</h3>
+
+Each module has its own private symbol table, which is used as the global symbol table by all functions defined in the module. Thus, the author of a module can use global variables in the module without worrying about accidental clashes with a user’s global variables. On the other hand, if you know what you are doing you can touch a module’s global variables with the same notation used to refer to its functions, ``modname.itemname``.
+
+Modules can import other modules. It is customary but not required to place all import statements at the beginning of a module (or script, for that matter). The imported module names are placed in the importing module’s global symbol table.There is a variant of the import statement that imports names from a module directly into the importing module’s symbol table. ``from fibo import fib, fib2``,This does not introduce the module name from which the imports are taken in the local symbol table (so in the example, ``fibo`` is not defined).There is even a variant to import all names that a module defines:``from fibo import *``,This imports all names except those beginning with an underscore (``_``). In most cases Python programmers do not use this facility since it introduces an unknown set of names into the interpreter, possibly hiding some things you have already defined.
+
+For efficiency reasons, each module is only imported once per interpreter session. Therefore, if you change your modules, you must restart the interpreter – or, if it’s just one module you want to test interactively, use ``imp.reload()``, e.g. ``import imp; imp.reload(modulename)``.
+
+<h4 id="6.1.1">Executing modules as scripts</h4>
+
+When you run a Python module with ``python fibo.py <arguments>``,the code in the module will be executed, just as if you imported it, but with the ``__name__`` set to ``__main__``. That means that by adding this code at the end of your module:
+
+```python
+if __name__ == "__main__":
+    import sys
+    fib(int(sys.argv[1]))
+```
+
+you can make the file usable as a script as well as an importable module, because the code that parses the command line only runs if the module is executed as the “main” file:``$ python fibo.py 50``.
+
+<h4 id="6.1.2">The Module Search Path</h4>
+
+When a module named spam is imported, the interpreter first searches for a built-in module with that name. If not found, it then searches for a file named ``spam.py`` in a list of directories given by the variable ``sys.path``. ``sys.path`` is initialized from these locations:
+
++ The directory containing the input script (or the current directory when no file is specified).
++ ``PYTHONPATH`` (a list of directory names, with the same syntax as the shell variable PATH).
++ The installation-dependent default.
+
+After initialization, Python programs can modify sys.path. The directory containing the script being run is placed at the beginning of the search path, ahead of the standard library path. This means that scripts in that directory will be loaded instead of modules of the same name in the library directory. This is an error unless the replacement is intended.
+
+<h4 id="6.1.3">“Compiled” Python files</h4>
+
+To speed up loading modules, Python caches the compiled version of each module in the ``__pycache__`` directory under the name ``module.version.pyc``, where the version encodes the format of the compiled file; it generally contains the Python version number. For example, in CPython release 3.3 the compiled version of ``spam.py`` would be cached as ``__pycache__/spam.cpython-33.pyc``. This naming convention allows compiled modules from different releases and different versions of Python to coexist.Python checks the modification date of the source against the compiled version to see if it’s out of date and needs to be recompiled. This is a completely automatic process. Also, the compiled modules are platform-independent, so the same library can be shared among systems with different architectures.
+
+You can use the ``-O`` or ``-OO`` switches on the Python command to reduce the size of a compiled module. The ``-O`` switch removes assert statements, the ``-OO`` switch removes both assert statements and ``__doc__`` strings. Since some programs may rely on having these available, you should only use this option if you know what you’re doing. “Optimized” modules have a .pyo rather than a ``.pyc`` suffix and are usually smaller. Future releases may change the effects of optimization.The module ``compileall`` can create ``.pyc`` files (or ``.pyo`` files when ``-O`` is used) for all modules in a directory.
+
+<h3 id="6.2">Standard Modules</h3>
+
+The variable sys.path is a list of strings that determines the interpreter’s search path for modules. It is initialized to a default path taken from the environment variable ``PYTHONPATH``, or from a built-in default if ``PYTHONPATH`` is not set. You can modify it using standard list operations.
+
+<h3 id="6.3">The ``dir()`` Function</h3>
+
+The built-in function ``dir()`` is used to find out which names a module defines. It returns a sorted list of strings.Without arguments, ``dir()`` lists the names you have defined currently.
+
+```python
+>>> import fibo, sys
+>>> dir(fibo)
+['__name__', 'fib', 'fib2']
+>>> dir(sys)  
+['__displayhook__', '__doc__', '__excepthook__', '__loader__', '__name__',
+ '__package__', '__stderr__', '__stdin__', '__stdout__',
+ '_clear_type_cache', '_current_frames', '_debugmallocstats', '_getframe',
+ '_home', '_mercurial', '_xoptions', 'abiflags', 'api_version', 'argv',
+ 'base_exec_prefix', 'base_prefix', 'builtin_module_names', 'byteorder',
+ 'call_tracing', 'callstats', 'copyright', 'displayhook',
+ 'dont_write_bytecode', 'exc_info', 'excepthook', 'exec_prefix',
+ 'executable', 'exit', 'flags', 'float_info', 'float_repr_style',
+ 'getcheckinterval', 'getdefaultencoding', 'getdlopenflags',
+ 'getfilesystemencoding', 'getobjects', 'getprofile', 'getrecursionlimit',
+ 'getrefcount', 'getsizeof', 'getswitchinterval', 'gettotalrefcount',
+ 'gettrace', 'hash_info', 'hexversion', 'implementation', 'int_info',
+ 'intern', 'maxsize', 'maxunicode', 'meta_path', 'modules', 'path',
+ 'path_hooks', 'path_importer_cache', 'platform', 'prefix', 'ps1',
+ 'setcheckinterval', 'setdlopenflags', 'setprofile', 'setrecursionlimit',
+ 'setswitchinterval', 'settrace', 'stderr', 'stdin', 'stdout',
+ 'thread_info', 'version', 'version_info', 'warnoptions']
+```
+
+Without arguments, ``dir()`` lists the names you have defined currently:
+
+```python
+>>> a = [1, 2, 3, 4, 5]
+>>> import fibo
+>>> fib = fibo.fib
+>>> dir()
+['__builtins__', '__name__', 'a', 'fib', 'fibo', 'sys']
+```
+
+Note that it lists all types of names: variables, modules, functions, etc.
+
+``dir()`` does not list the names of built-in functions and variables. If you want a list of those, they are defined in the standard module ``builtins``.
+
+<h3 id="6.4">Packages</h3>
+
+When importing the package, Python searches through the directories on ``sys.path`` looking for the package subdirectory.The ``__init__.py`` files are required to make Python treat the directories as **containing packages**; this is done to prevent directories with a common name, such as string, from unintentionally hiding valid modules that occur later on the module search path. In the simplest case, ``__init__.py`` can just be an empty file, but it can also execute initialization code for the package or set the ``__all__`` variable.
+
+<h4 id="6.4.1">Importing * From a Package</h4>
+
+Now what happens when the user writes ``from sound.effects import *``? Ideally, one would hope that this somehow goes out to the filesystem, finds which submodules are present in the package, and imports them all. This could take a long time and importing sub-modules might have unwanted side-effects that should only happen when the sub-module is explicitly imported.The only solution is for the package author to provide an explicit index of the package. The import statement uses the following convention: if a package’s ``__init__.py`` code defines a list named ``__all__``, it is taken to be the list of module names that should be imported when ``from package import *`` is encountered. It is up to the package author to keep this list up-to-date when a new version of the package is released. 
+
+<h4 id="6.4.2">Intra-package References</h4>
+<h4 id="6.4.3">Packages in Multiple Directories</h4>
+
+Packages support one more special attribute, ``__path__``. This is initialized to be a list containing the name of the directory holding the package’s ``__init__.py`` before the code in that file is executed. This variable can be modified; doing so affects future searches for modules and subpackages contained in the package.While this feature is not often needed, it can be used to extend the set of modules found in a package.
+
+<h2 id="7">Input and Output</h2>
+<h3 id="7.1">Fancier Output Formatting</h3>
+
+The ``string`` module contains a ``Template`` class which offers yet another way to substitute values into strings.
+
+```python
+>>> print('We are the {} who say "{}!"'.format('knights', 'Ni'))
+We are the knights who say "Ni!"
+```
+
+A number in the brackets can be used to refer to the position of the object passed into the ``str.format()`` method.
+
+```python
+>>> print('{0} and {1}'.format('spam', 'eggs'))
+spam and eggs
+>>> print('{1} and {0}'.format('spam', 'eggs'))
+eggs and spam
+```
+
+If keyword arguments are used in the ``str.format()`` method, their values are referred to by using the name of the argument.
+
+```python
+>>> print('This {food} is {adjective}.'.format(
+...       food='spam', adjective='absolutely horrible'))
+This spam is absolutely horrible.
+```
+
+Positional and keyword arguments can be arbitrarily combined:
+
+```python
+>>> print('The story of {0}, {1}, and {other}.'.format('Bill', 'Manfred',
+                                                       other='Georg'))
+The story of Bill, Manfred, and Georg.
+```
+
+``'!a'`` (apply ``ascii()``), ``'!s'`` (apply ``str()``) and ``'!r'`` (apply ``repr()``) can be used to convert the value before it is formatted:
+
+```python
+>>> import math
+>>> print('The value of PI is approximately {}.'.format(math.pi))
+The value of PI is approximately 3.14159265359.
+>>> print('The value of PI is approximately {!r}.'.format(math.pi))
+The value of PI is approximately 3.141592653589793.
+```
+
+<h4 id="7.1.1">Old string formatting</h4>
+
+The ``%`` operator can also be used for string formatting. It interprets the left argument much like a ``sprintf()``-style format string to be applied to the right argument, and returns the string resulting from this formatting operation. 
+
+```python
+>>> import math
+>>> print('The value of PI is approximately %5.3f.' % math.pi)
+The value of PI is approximately 3.142.
+```
+
+<h3 id="7.2">Reading and Writing Files</h3>
+
+``open()`` returns a file object, and is most commonly used with two arguments: ``open(filename, mode)``.
+
+<h4 id="7.2.1">Methods of File Objects</h4>
+
+To read a file’s contents, call ``f.read(size)``, which reads some quantity of data and returns it as a string or bytes object. size is an optional numeric argument. When size is omitted or negative, the entire contents of the file will be read and returned; it’s your problem if the file is twice as large as your machine’s memory. Otherwise, at most size bytes are read and returned. If the end of the file has been reached, ``f.read()`` will return an empty string ('').
+
+```python
+>>> f.read()
+'This is the entire file.\n'
+>>> f.read()
+''
+```
+
+If you want to read all the lines of a file in a list you can also use ``list(f)`` or ``f.readlines()``.
+
+``f.write(string)`` writes the contents of string to the file, returning the number of characters written.
+
+``f.tell()`` returns an integer giving the file object’s current position in the file represented as number of bytes from the beginning of the file when in binary mode and an opaque number when in text mode.
+
+To change the file object’s position, use ``f.seek(offset, from_what)``. The position is computed from adding offset to a reference point; the reference point is selected by the from_what argument. A from_what value of 0 measures from the beginning of the file, 1 uses the current file position, and 2 uses the end of the file as the reference point. from_what can be omitted and defaults to 0, using the beginning of the file as the reference point.
+
+When you’re done with a file, call ``f.close()`` to close it and free up any system resources taken up by the open file. After calling ``f.close()``, attempts to use the file object will automatically fail.
+
+It is good practice to use the ``with`` keyword when dealing with file objects. This has the advantage that the file is properly closed after its suite finishes, even if an exception is raised on the way. It is also much shorter than writing equivalent ``try-finally`` blocks:
+
+```python
+>>> with open('workfile', 'r') as f:
+...     read_data = f.read()
+>>> f.closed
+True
+```
+
+<h4 id="7.2.2">Saving structured data with json</h4>
+
+Another variant of the ``dumps()`` function, called ``dump()``, simply serializes the object to a **text file**. So if f is a text file object opened for writing, we can do this:``json.dump(x, f)``.To decode the object again, if f is a text file object which has been opened for reading:``x = json.load(f)``
+
+<h2 id="8">Errors and Exceptions</h2>
+
+
+
+
+
+
+
+
+
 
 
 
