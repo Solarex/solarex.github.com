@@ -12,7 +12,6 @@ categories:
 * [ParseJson](#parse-json)
 * [GetLauncherApplication](#get-launcher-applications)
 * [GetSdcardSize](#get-sdcard-size)
-* [DirectoryPath](#directory-path)
 * [AndroidBootupTime](#android-bootup-time)
 * [JsonParser](#json-parser)
 * [FullScreen](#full-screen)
@@ -20,6 +19,8 @@ categories:
 * [StartApplication](#start-application)
 * [StringUtils](#string-utils)
 * [CheckingExternalStorageState](#checking-external-storage-state)
+* [SavingViewAsBitmap](#saving-view-as-bitmap)
+* [ConvertViewToBitmap](#convert-view-to-bitmap)
 
 <h2 id="checking-wifi-connectivity">CheckingWifiConnectivity</h2>
 
@@ -239,10 +240,6 @@ public void getSdSize(String path){
     mAvailSize.setSummary(blockSize * availableBlocks);
 }
 ```
-
-<h2 id="directory-path">DirectoryPath</h2>
-
-<script src="https://gist.github.com/flyfire/9760733.js"></script>
 
 <h2 id="android-bootup-time">AndroidBootupTime</h2>
 
@@ -704,4 +701,44 @@ public boolean isExternalStorageReadable() {
     }
     return false;
 }
+```
+
+<h2 id="saving-view-as-bitmap">SavingViewAsBitmap</h2>
+
+```java
+public Bitmap saveViewBitmap(View v){
+  Bitmap bitmap = Bitmap.createBitmap(v.getWidth(), v.getHeight(), Bitmap.Config.ARGB_8888);
+  Canvas canvas = new Canvas(bitmap);
+  v.draw(canvas);
+  return bitmap;
+}
+```
+
+<h2 id="convert-view-to-bitmap">ConvertViewToBitmap</h2>
+
+```java
+public static Bitmap convertViewToBitmap(View view) {
+    view.destroyDrawingCache();
+    view.measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
+    View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
+    view.layout(0, 0, view.getMeasuredWidth(), view.getMeasuredHeight());
+    view.setDrawingCacheEnabled(true);
+    return view.getDrawingCache(true);
+}
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ```
