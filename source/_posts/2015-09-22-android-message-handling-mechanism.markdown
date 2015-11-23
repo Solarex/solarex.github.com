@@ -8,7 +8,7 @@ categories:
 - android
 ---
 
-<p><center><img src="/images/android_robot.png.jpg" width="255" height="300"></center>
+<p><center><img src="/images/android_robot.png" width="255" height="300"></center>
 
 Android is a message driven, message driven several elements:
 
@@ -31,6 +31,8 @@ Android是消息驱动的，实现消息驱动有几个要素：
 平时我们最常使用的就是Message与Handler了，如果使用过HandlerThread或者自己实现类似HandlerThread的东西可能还会接触到Looper，而MessageQueue是Looper内部使用的，对于标准的SDK，我们是无法实例化并使用的（构造函数是包可见性）。
 
 我们平时接触到的Looper、Message、Handler都是用JAVA实现的，Android做为基于Linux的系统，底层用C、C++实现的，而且还有NDK的存在，消息驱动的模型怎么可能只存在于JAVA层，实际上，在Native层存在与Java层对应的类如Looper、MessageQueue等。
+
+<!-- more -->
 
 <h2 id="init-message-queue">Initialization message queue</h2>
 
