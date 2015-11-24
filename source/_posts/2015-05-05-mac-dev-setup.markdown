@@ -29,6 +29,7 @@ Dock > Automatically hide and show the Dock
 + ``brew doctor``,``brew update``,``brew list``,``brew search wget``,``brew install wget``,``brew outdated``,``brew upgrade``,``brew upgrade wget``,``brew uninstall wget --force``,``brew info wget``,``brew deps wget``,``brew edit wget``,``brew list --versions``,``brew cleanup``
 
 + ``brew install caskroom/cask/brew-cask`` from [caskroom.io](http://caskroom.io/)
++ ``brew cask search thunder``,``brew cask info thunder``,``brew cask edit thunder``,``brew cask uninstall thunder``
 
 ```bash
 $ brew list
@@ -99,7 +100,10 @@ export PIP_RESPECT_VIRTUALENV=true
 + ``mkvirtualenv --no-site-packages test``
 
 <h2 id="java">Java</h2>
-
++ ``brew cask install java``
++ ``brew tap caskroom/versions``,``brew cask install java6``
++ ``/usr/libexec/java_home -V``查看安装了哪些jdk
++ ``JAVA_HOME=`/usr/libexec/java_home -v 1.6``
 + open eclipse prompt to install java
 
 ```bash
@@ -136,10 +140,19 @@ diff
 -XX:MaxPermSize=1024m
 ```
 
+<h2 id="command-line">command line</h2>
++ ``defaults write com.apple.finder AppleShowAllFiles -boolean true ; killall Finder`` 显示隐藏文件，``defaults write com.apple.finder AppleShowAllFiles -boolean false ; killall Finder``，不显示隐藏文件
++ ``defaults write com.apple.dock ResetLaunchPad -bool true; killall Dock``新的应用被安装后，经常会跑到 Launchpad 的第一屏，所以它们的位置跟安装的顺序有关系，而我更希望它们可以按照某种更加稳定的顺序排列，比如按照系统默认的顺序，在默认顺序中，Launchpad 第一屏只有 Apple 自家应用。
++ ``defaults write com.apple.screencapture location ~/Pictures/ScreenShots;killall SystemUIServer``,change default screen capture folder
++ ``sudo scutil --set HostName MacPro``修改hostname
++ ``defaults write com.apple.finder _FXShowPosixPathInTitle -bool TRUE;killall Finder``finder显示路径，``defaults delete com.apple.finder _FXShowPosixPathInTitle;killall Finder``恢复默认不显示
+
 + [mac-dev-setup](https://github.com/nicolashery/mac-dev-setup)
 + [mac-dev](https://github.com/pubyun/macdev)
 + [setup-mac-dev-zh_cn](https://aaaaaashu.gitbooks.io/mac-dev-setup/content/SystemPreferences/index.html),[setup-mac-dev](http://sourabhbajaj.com/mac-setup/)
 + [mac-configurations](https://github.com/solarex/macconfigurations)
++ [Mac keyboard shortcuts](https://support.apple.com/en-us/HT201236)
++ [Mac keyboard shortcuts for accessibility features](https://support.apple.com/en-us/HT204434)
 
 
 
