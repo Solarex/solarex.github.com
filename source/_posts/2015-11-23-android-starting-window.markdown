@@ -6,7 +6,9 @@ comments: true
 categories: 
 ---
 
-<p><center><img src="/images/android_robot.png" /></center></p>
+<p><center><img src="/images/android_robot.png" width="255" height="300" /></center></p>
+
+<!-- more --> 
 
 [android app launching made  gorgeous](http://cyrilmottier.com/2013/01/23/android-app-launching-made-gorgeous/)
 [disable dummy starting window of application](https://stackoverflow.com/questions/16922915/android-disable-dummy-starting-window-of-application)
