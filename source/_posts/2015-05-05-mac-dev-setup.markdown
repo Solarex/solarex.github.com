@@ -5,6 +5,7 @@ date: 2015-05-05 12:04
 comments: true
 categories: 
 - dev
+- tools
 ---
 <p><center><img src="/images/apple_mac_logo.jpg" width=225 height=225/></center></p>
 
@@ -12,10 +13,10 @@ categories:
 
 In Apple Icon > System Preferences:
 
-Trackpad > Tap to click
-Keyboard > Key Repeat > Fast (all the way to the right)
-Keyboard > Delay Until Repeat > Short (all the way to the right)
-Dock > Automatically hide and show the Dock
++ Trackpad > Tap to click
++ Keyboard > Key Repeat > Fast (all the way to the right)
++ Keyboard > Delay Until Repeat > Short (all the way to the right)
++ Dock > Automatically hide and show the Dock
 
 <!-- more -->
 
@@ -146,6 +147,8 @@ diff
 + ``defaults write com.apple.screencapture location ~/Pictures/ScreenShots;killall SystemUIServer``,change default screen capture folder
 + ``sudo scutil --set HostName MacPro``修改hostname
 + ``defaults write com.apple.finder _FXShowPosixPathInTitle -bool TRUE;killall Finder``finder显示路径，``defaults delete com.apple.finder _FXShowPosixPathInTitle;killall Finder``恢复默认不显示
+
+<h2 id="reference">reference</h2>
 
 + [mac-dev-setup](https://github.com/nicolashery/mac-dev-setup)
 + [mac-dev](https://github.com/pubyun/macdev)
