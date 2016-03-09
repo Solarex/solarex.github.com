@@ -21,6 +21,7 @@ categories:
 * [CheckingExternalStorageState](#checking-external-storage-state)
 * [SavingViewAsBitmap](#saving-view-as-bitmap)
 * [ConvertViewToBitmap](#convert-view-to-bitmap)
+* [HideKeyboard](#hide-window-keyboard)
 
 <h2 id="checking-wifi-connectivity">CheckingWifiConnectivity</h2>
 
@@ -727,18 +728,25 @@ public static Bitmap convertViewToBitmap(View view) {
 }
 ```
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+<h2 id="hide-window-keyboard">HideKeyboard</h2>
+```java
+public static void hideKeyboard(Activity context, IBinder windowToken){
+  InputMethodManager imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
+  imm.hideSoftInputFromWindow(windowToken, 0);
+  //usage
+  // hideKeyboard(activity, viewComponent.getWindowToken());
+}
 ```
+
+
+
+
+
+
+
+
+
+
+
+
+
