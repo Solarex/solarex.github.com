@@ -1,0 +1,1039 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>[Training]Best Practices for Background Jobs - Solarex's Blog</title>
+  <meta name="author" content="Solarex">
+
+  
+  <meta name="description" content="Background jobs best practices Running in a background service
+Loading data in the background
+Managing the device awake state Best Practices for &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://Solarex.github.io/blog/2014/10/31/android-best-practices-for-background-jobs">
+  <link href="/favicon.ico" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Solarex's Blog" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <!--
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  -->
+  <script src="http://libs.baidu.com/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.useso.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href='http://fonts.useso.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
+<link href='http://fonts.useso.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+
+</head>
+
+<body   class="collapse-sidebar sidebar-footer" >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Solarex's Blog</a></h1>
+  
+    <h2>Yet Another Blog 4 Solarex</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:Solarex.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+    <li><a href="/">Blog</a></li>
+    <li><a href="/blog/archives">Archives</a></li>
+    <li><a href="/projects">Projects</a></li>
+	<li><a href="https://solarex.github.io/wiki">Wiki</a></li>
+    <li><a href="/about">About</a></li>
+	<li><a href="https://solarex.github.io/resume">Resume</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">[Training]Best Practices for Background Jobs</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-10-31T10:12:00+08:00" pubdate data-updated="true">Oct 31<span>st</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p><p><center><img src="/images/android_training.jpg"></center></p>
+
+<ul>
+<li><a href="#overview">Background jobs best practices</a>
+
+<ul>
+<li><a href="#running">Running in a background service</a></li>
+<li><a href="#loading">Loading data in the background</a></li>
+<li><a href="#managing">Managing the device awake state</a></li>
+</ul>
+</li>
+</ul>
+
+
+<p><h2 id="overview">Best Practices for Background Jobs</h2></p>
+
+<p>These classes show you how to run jobs in the background to boost your application’s performance and minimize its drain on the battery.</p>
+
+<p><h3 id="running">Running in a background service</h3></p>
+
+<p>This class describes how to implement an IntentService, send it work requests, and report its results to other components.</p>
+
+<h4>Creating a background service</h4>
+
+<p>The IntentService class provides a straightforward structure for running an operation on a single background thread. This allows it to handle long-running operations without affecting your user interface’s responsiveness. Also, an IntentService isn’t affected by most user interface lifecycle events, so it continues to run in circumstances that would shut down an AsyncTask.</p>
+
+<p>An IntentService has a few limitations:</p>
+
+<ul>
+<li>It can’t interact directly with your user interface. To put its results in the UI, you have to send them to an Activity.不能直接与UI交互</li>
+<li>Work requests run sequentially. If an operation is running in an IntentService, and you send it another request, the request waits until the first operation is finished.任务顺序执行</li>
+<li>An operation running on an IntentService can’t be interrupted.任务不可被打断</li>
+</ul>
+
+
+<p>However, in most cases an IntentService is the preferred way to simple background operations.</p>
+
+<p><!-- more --></p>
+
+<p>To create an IntentService component for your app, define a class that extends IntentService, and within it, define a method that overrides <code>onHandleIntent()</code>. For example:</p>
+
+<p><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">RSSPullService</span> <span class="kd">extends</span> <span class="n">IntentService</span> <span class="o">{</span>
+</span><span class='line'>    <span class="nd">@Override</span>
+</span><span class='line'>    <span class="kd">protected</span> <span class="kt">void</span> <span class="nf">onHandleIntent</span><span class="o">(</span><span class="n">Intent</span> <span class="n">workIntent</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="c1">// Gets data from the incoming Intent</span>
+</span><span class='line'>        <span class="n">String</span> <span class="n">dataString</span> <span class="o">=</span> <span class="n">workIntent</span><span class="o">.</span><span class="na">getDataString</span><span class="o">();</span>
+</span><span class='line'>        <span class="o">&hellip;</span>
+</span><span class='line'>        <span class="c1">// Do work here, based on the contents of dataString</span>
+</span><span class='line'>        <span class="o">&hellip;</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>Notice that the other callbacks of a regular Service component, such as <code>onStartCommand()</code> are automatically invoked by IntentService. In an IntentService, you should avoid overriding these callbacks.</p>
+
+<h4>Sending work requests to the background service</h4>
+
+<p>This lesson shows you how to trigger the IntentService to run an operation by sending it an Intent. This Intent can optionally contain data for the IntentService to process. You can send an Intent to an IntentService from any point in an Activity or Fragment.</p>
+
+<p>To create a work request and send it to an IntentService, create an explicit Intent, add work request data to it, and send it to IntentService by calling <code>startService()</code>.</p>
+
+<p><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="cm">/<em></span>
+</span><span class='line'><span class="cm"> * Creates a new Intent to start the RSSPullService</span>
+</span><span class='line'><span class="cm"> * IntentService. Passes a URI in the</span>
+</span><span class='line'><span class="cm"> * Intent&#39;s &quot;data&quot; field.</span>
+</span><span class='line'><span class="cm"> </em>/</span>
+</span><span class='line'><span class="n">mServiceIntent</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Intent</span><span class="o">(</span><span class="n">getActivity</span><span class="o">(),</span> <span class="n">RSSPullService</span><span class="o">.</span><span class="na">class</span><span class="o">);</span>
+</span><span class='line'><span class="n">mServiceIntent</span><span class="o">.</span><span class="na">setData</span><span class="o">(</span><span class="n">Uri</span><span class="o">.</span><span class="na">parse</span><span class="o">(</span><span class="n">dataUrl</span><span class="o">));</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">// Starts the IntentService</span>
+</span><span class='line'><span class="n">getActivity</span><span class="o">().</span><span class="na">startService</span><span class="o">(</span><span class="n">mServiceIntent</span><span class="o">);</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>Once you call <code>startService()</code>, the IntentService does the work defined in its <code>onHandleIntent()</code> method, and then stops itself.</p>
+
+<h4>Reporting work status</h4>
+
+<p>This lesson shows you how to report the status of a work request run in a background service to the component that sent the request. This allows you, for example, to report the status of the request in an Activity object’s UI. The recommended way to send and receive status is to use a <code>LocalBroadcastManager</code>, which limits broadcast Intent objects to components in your own app.</p>
+
+<p>To send the status of a work request in an IntentService to other components, first create an Intent that contains the status in its extended data. As an option, you can add an action and data URI to this Intent.</p>
+
+<p>Next, send the Intent by calling <code>LocalBroadcastManager.sendBroadcast()</code>. This sends the Intent to any component in your application that has registered to receive it. To get an instance of <code>LocalBroadcastManager</code>, call <code>getInstance()</code>.</p>
+
+<p><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kd">final</span> <span class="kd">class</span> <span class="nc">Constants</span> <span class="o">{</span>
+</span><span class='line'>    <span class="o">&hellip;</span>
+</span><span class='line'>    <span class="c1">// Defines a custom Intent action</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="kd">static</span> <span class="kd">final</span> <span class="n">String</span> <span class="n">BROADCAST_ACTION</span> <span class="o">=</span>
+</span><span class='line'>        <span class="s">&quot;com.example.android.threadsample.BROADCAST&quot;</span><span class="o">;</span>
+</span><span class='line'>    <span class="o">&hellip;</span>
+</span><span class='line'>    <span class="c1">// Defines the key for the status &quot;extra&quot; in an Intent</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="kd">static</span> <span class="kd">final</span> <span class="n">String</span> <span class="n">EXTENDED_DATA_STATUS</span> <span class="o">=</span>
+</span><span class='line'>        <span class="s">&quot;com.example.android.threadsample.STATUS&quot;</span><span class="o">;</span>
+</span><span class='line'>    <span class="o">&hellip;</span>
+</span><span class='line'><span class="o">}</span>
+</span><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">RSSPullService</span> <span class="kd">extends</span> <span class="n">IntentService</span> <span class="o">{</span>
+</span><span class='line'><span class="o">&hellip;</span>
+</span><span class='line'>    <span class="cm">/<em></span>
+</span><span class='line'><span class="cm">     * Creates a new Intent containing a Uri object</span>
+</span><span class='line'><span class="cm">     * BROADCAST_ACTION is a custom Intent action</span>
+</span><span class='line'><span class="cm">     </em>/</span>
+</span><span class='line'>    <span class="n">Intent</span> <span class="n">localIntent</span> <span class="o">=</span>
+</span><span class='line'>            <span class="k">new</span> <span class="nf">Intent</span><span class="o">(</span><span class="n">Constants</span><span class="o">.</span><span class="na">BROADCAST_ACTION</span><span class="o">)</span>
+</span><span class='line'>            <span class="c1">// Puts the status into the Intent</span>
+</span><span class='line'>            <span class="o">.</span><span class="na">putExtra</span><span class="o">(</span><span class="n">Constants</span><span class="o">.</span><span class="na">EXTENDED_DATA_STATUS</span><span class="o">,</span> <span class="n">status</span><span class="o">);</span>
+</span><span class='line'>    <span class="c1">// Broadcasts the Intent to receivers in this app.</span>
+</span><span class='line'>    <span class="n">LocalBroadcastManager</span><span class="o">.</span><span class="na">getInstance</span><span class="o">(</span><span class="k">this</span><span class="o">).</span><span class="na">sendBroadcast</span><span class="o">(</span><span class="n">localIntent</span><span class="o">);</span>
+</span><span class='line'><span class="o">&hellip;</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>To receive broadcast Intent objects, use a subclass of <code>BroadcastReceiver</code>. In the subclass, implement the <code>BroadcastReceiver.onReceive()</code> callback method, which <code>LocalBroadcastManager</code> invokes when it receives an Intent. <code>LocalBroadcastManager</code> passes the incoming Intent to <code>BroadcastReceiver.onReceive()</code>.</p>
+
+<p><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="c1">// Broadcast receiver for receiving status updates from the IntentService</span>
+</span><span class='line'><span class="kd">private</span> <span class="kd">class</span> <span class="nc">ResponseReceiver</span> <span class="kd">extends</span> <span class="n">BroadcastReceiver</span>
+</span><span class='line'><span class="o">{</span>
+</span><span class='line'>    <span class="c1">// Prevents instantiation</span>
+</span><span class='line'>    <span class="kd">private</span> <span class="nf">DownloadStateReceiver</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>    <span class="c1">// Called when the BroadcastReceiver gets an Intent it&#39;s registered to receive</span>
+</span><span class='line'>    <span class="err">@</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">onReceive</span><span class="o">(</span><span class="n">Context</span> <span class="n">context</span><span class="o">,</span> <span class="n">Intent</span> <span class="n">intent</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="o">&hellip;</span>
+</span><span class='line'>        <span class="cm">/<em></span>
+</span><span class='line'><span class="cm">         * Handle Intents here.</span>
+</span><span class='line'><span class="cm">         </em>/</span>
+</span><span class='line'>        <span class="o">&hellip;</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">// Class that displays photos</span>
+</span><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">DisplayActivity</span> <span class="kd">extends</span> <span class="n">FragmentActivity</span> <span class="o">{</span>
+</span><span class='line'>    <span class="o">&hellip;</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">onCreate</span><span class="o">(</span><span class="n">Bundle</span> <span class="n">stateBundle</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="o">&hellip;</span>
+</span><span class='line'>        <span class="kd">super</span><span class="o">.</span><span class="na">onCreate</span><span class="o">(</span><span class="n">stateBundle</span><span class="o">);</span>
+</span><span class='line'>        <span class="o">&hellip;</span>
+</span><span class='line'>        <span class="c1">// The filter&#39;s action is BROADCAST_ACTION</span>
+</span><span class='line'>        <span class="n">IntentFilter</span> <span class="n">mStatusIntentFilter</span> <span class="o">=</span> <span class="k">new</span> <span class="n">IntentFilter</span><span class="o">(</span>
+</span><span class='line'>                <span class="n">Constants</span><span class="o">.</span><span class="na">BROADCAST_ACTION</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="c1">// Adds a data filter for the HTTP scheme</span>
+</span><span class='line'>        <span class="n">mStatusIntentFilter</span><span class="o">.</span><span class="na">addDataScheme</span><span class="o">(</span><span class="s">&quot;http&quot;</span><span class="o">);</span>
+</span><span class='line'>        <span class="o">&hellip;</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="c1">// Instantiates a new DownloadStateReceiver</span>
+</span><span class='line'>        <span class="n">DownloadStateReceiver</span> <span class="n">mDownloadStateReceiver</span> <span class="o">=</span>
+</span><span class='line'>                <span class="k">new</span> <span class="nf">DownloadStateReceiver</span><span class="o">();</span>
+</span><span class='line'>        <span class="c1">// Registers the DownloadStateReceiver and its intent filters</span>
+</span><span class='line'>        <span class="n">LocalBroadcastManager</span><span class="o">.</span><span class="na">getInstance</span><span class="o">(</span><span class="k">this</span><span class="o">).</span><span class="na">registerReceiver</span><span class="o">(</span>
+</span><span class='line'>                <span class="n">mDownloadStateReceiver</span><span class="o">,</span>
+</span><span class='line'>                <span class="n">mStatusIntentFilter</span><span class="o">);</span>
+</span><span class='line'>        <span class="o">&hellip;</span>
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'>        <span class="cm">/<em></span>
+</span><span class='line'><span class="cm">         * Instantiates a new action filter.</span>
+</span><span class='line'><span class="cm">         * No data filter is needed.</span>
+</span><span class='line'><span class="cm">         </em>/</span>
+</span><span class='line'>        <span class="n">statusIntentFilter</span> <span class="o">=</span> <span class="k">new</span> <span class="n">IntentFilter</span><span class="o">(</span><span class="n">Constants</span><span class="o">.</span><span class="na">ACTION_ZOOM_IMAGE</span><span class="o">);</span>
+</span><span class='line'>        <span class="o">&hellip;</span>
+</span><span class='line'>        <span class="c1">// Registers the receiver with the new filter</span>
+</span><span class='line'>        <span class="n">LocalBroadcastManager</span><span class="o">.</span><span class="na">getInstance</span><span class="o">(</span><span class="n">getActivity</span><span class="o">()).</span><span class="na">registerReceiver</span><span class="o">(</span>
+</span><span class='line'>                <span class="n">mDownloadStateReceiver</span><span class="o">,</span>
+</span><span class='line'>                <span class="n">mIntentFilter</span><span class="o">);</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>Sending an broadcast Intent doesn’t start or resume an Activity. The BroadcastReceiver for an Activity receives and processes Intent objects even when your app is in the background, but doesn’t force your app to the foreground. If you want to notify the user about an event that happened in the background while your app was not visible, use a Notification.</p>
+
+<p><h3 id="loading">Loading data in the background</h3></p>
+
+<p>Besides doing the initial background query, a CursorLoader automatically re-runs the query when data associated with the query changes.This class describes how to use a CursorLoader to run a background query.</p>
+
+<h4>Running a query with the CursorLoader</h4>
+
+<p>A CursorLoader runs an asynchronous query in the background against a ContentProvider, and returns the results to the Activity or FragmentActivity from which it was called. This allows the Activity or FragmentActivity to continue to interact with the user while the query is ongoing.</p>
+
+<p><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">PhotoThumbnailFragment</span> <span class="kd">extends</span> <span class="n">FragmentActivity</span> <span class="kd">implements</span>
+</span><span class='line'>        <span class="n">LoaderManager</span><span class="o">.</span><span class="na">LoaderCallbacks</span><span class="o">&lt;</span><span class="n">Cursor</span><span class="o">&gt;</span> <span class="o">{</span>
+</span><span class='line'><span class="o">&hellip;</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="c1">// Identifies a particular Loader being used in this component</span>
+</span><span class='line'><span class="kd">private</span> <span class="kd">static</span> <span class="kd">final</span> <span class="kt">int</span> <span class="n">URL_LOADER</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span>
+</span><span class='line'><span class="o">&hellip;</span>
+</span><span class='line'><span class="cm">/<em> When the system is ready for the Fragment to appear, this displays</span>
+</span><span class='line'><span class="cm"> * the Fragment&#39;s View</span>
+</span><span class='line'><span class="cm"> </em>/</span>
+</span><span class='line'><span class="kd">public</span> <span class="n">View</span> <span class="nf">onCreateView</span><span class="o">(</span>
+</span><span class='line'>        <span class="n">LayoutInflater</span> <span class="n">inflater</span><span class="o">,</span>
+</span><span class='line'>        <span class="n">ViewGroup</span> <span class="n">viewGroup</span><span class="o">,</span>
+</span><span class='line'>        <span class="n">Bundle</span> <span class="n">bundle</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>    <span class="o">&hellip;</span>
+</span><span class='line'>    <span class="cm">/<em></span>
+</span><span class='line'><span class="cm">     * Initializes the CursorLoader. The URL_LOADER value is eventually passed</span>
+</span><span class='line'><span class="cm">     * to onCreateLoader().</span>
+</span><span class='line'><span class="cm">     </em>/</span>
+</span><span class='line'>    <span class="n">getLoaderManager</span><span class="o">().</span><span class="na">initLoader</span><span class="o">(</span><span class="n">URL_LOADER</span><span class="o">,</span> <span class="kc">null</span><span class="o">,</span> <span class="k">this</span><span class="o">);</span>
+</span><span class='line'>    <span class="o">&hellip;</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="cm">/<em></span>
+</span><span class='line'><span class="cm"></em> Callback that&#39;s invoked when the system has initialized the Loader and</span>
+</span><span class='line'><span class="cm"><em> is ready to start the query. This usually happens when initLoader() is</span>
+</span><span class='line'><span class="cm"></em> called. The loaderID argument contains the ID value passed to the</span>
+</span><span class='line'><span class="cm"><em> initLoader() call.</span>
+</span><span class='line'><span class="cm"></em>/</span>
+</span><span class='line'><span class="nd">@Override</span>
+</span><span class='line'><span class="kd">public</span> <span class="n">Loader</span><span class="o">&lt;</span><span class="n">Cursor</span><span class="o">&gt;</span> <span class="nf">onCreateLoader</span><span class="o">(</span><span class="kt">int</span> <span class="n">loaderID</span><span class="o">,</span> <span class="n">Bundle</span> <span class="n">bundle</span><span class="o">)</span>
+</span><span class='line'><span class="o">{</span>
+</span><span class='line'>    <span class="cm">/<em></span>
+</span><span class='line'><span class="cm">     * Takes action based on the ID of the Loader that&#39;s being created</span>
+</span><span class='line'><span class="cm">     </em>/</span>
+</span><span class='line'>    <span class="k">switch</span> <span class="o">(</span><span class="n">loaderID</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">case</span> <span class="nl">URL_LOADER:</span>
+</span><span class='line'>            <span class="c1">// Returns a new CursorLoader</span>
+</span><span class='line'>            <span class="k">return</span> <span class="k">new</span> <span class="nf">CursorLoader</span><span class="o">(</span>
+</span><span class='line'>                        <span class="n">getActivity</span><span class="o">(),</span>   <span class="c1">// Parent activity context</span>
+</span><span class='line'>                        <span class="n">mDataUrl</span><span class="o">,</span>        <span class="c1">// Table to query</span>
+</span><span class='line'>                        <span class="n">mProjection</span><span class="o">,</span>     <span class="c1">// Projection to return</span>
+</span><span class='line'>                        <span class="kc">null</span><span class="o">,</span>            <span class="c1">// No selection clause</span>
+</span><span class='line'>                        <span class="kc">null</span><span class="o">,</span>            <span class="c1">// No selection arguments</span>
+</span><span class='line'>                        <span class="kc">null</span>             <span class="c1">// Default sort order</span>
+</span><span class='line'>        <span class="o">);</span>
+</span><span class='line'>        <span class="k">default</span><span class="o">:</span>
+</span><span class='line'>            <span class="c1">// An invalid id was passed in</span>
+</span><span class='line'>            <span class="k">return</span> <span class="kc">null</span><span class="o">;</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<h4>Handling the results</h4>
+
+<p>The loader then provides the query results to your Activity or FragmentActivity in your implementation of LoaderCallbacks.onLoadFinished(). One of the incoming arguments to this method is a Cursor containing the query results. You can use this object to update your data display or do further processing.</p>
+
+<p>Besides <code>onCreateLoader()</code> and <code>onLoadFinished()</code>, you also have to implement <code>onLoaderReset()</code>. This method is invoked when CursorLoader detects that data associated with the Cursor has changed. When the data changes, the framework also re-runs the current query.</p>
+
+<p><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="n">String</span><span class="o">[]</span> <span class="n">mFromColumns</span> <span class="o">=</span> <span class="o">{</span>
+</span><span class='line'>    <span class="n">DataProviderContract</span><span class="o">.</span><span class="na">IMAGE_PICTURENAME_COLUMN</span>
+</span><span class='line'><span class="o">};</span>
+</span><span class='line'><span class="kd">public</span> <span class="kt">int</span><span class="o">[]</span> <span class="n">mToFields</span> <span class="o">=</span> <span class="o">{</span>
+</span><span class='line'>    <span class="n">R</span><span class="o">.</span><span class="na">id</span><span class="o">.</span><span class="na">PictureName</span>
+</span><span class='line'><span class="o">};</span>
+</span><span class='line'><span class="c1">// Gets a handle to a List View</span>
+</span><span class='line'><span class="n">ListView</span> <span class="n">mListView</span> <span class="o">=</span> <span class="o">(</span><span class="n">ListView</span><span class="o">)</span> <span class="n">findViewById</span><span class="o">(</span><span class="n">R</span><span class="o">.</span><span class="na">id</span><span class="o">.</span><span class="na">dataList</span><span class="o">);</span>
+</span><span class='line'><span class="cm">/<em></span>
+</span><span class='line'><span class="cm"> * Defines a SimpleCursorAdapter for the ListView</span>
+</span><span class='line'><span class="cm"> </em></span>
+</span><span class='line'><span class="cm"> <em>/</span>
+</span><span class='line'><span class="n">SimpleCursorAdapter</span> <span class="n">mAdapter</span> <span class="o">=</span>
+</span><span class='line'>    <span class="k">new</span> <span class="nf">SimpleCursorAdapter</span><span class="o">(</span>
+</span><span class='line'>            <span class="k">this</span><span class="o">,</span>                <span class="c1">// Current context</span>
+</span><span class='line'>            <span class="n">R</span><span class="o">.</span><span class="na">layout</span><span class="o">.</span><span class="na">list_item</span><span class="o">,</span>  <span class="c1">// Layout for a single row</span>
+</span><span class='line'>            <span class="kc">null</span><span class="o">,</span>                <span class="c1">// No Cursor yet</span>
+</span><span class='line'>            <span class="n">mFromColumns</span><span class="o">,</span>        <span class="c1">// Cursor columns to use</span>
+</span><span class='line'>            <span class="n">mToFields</span><span class="o">,</span>           <span class="c1">// Layout fields to use</span>
+</span><span class='line'>            <span class="mi">0</span>                    <span class="c1">// No flags</span>
+</span><span class='line'>    <span class="o">);</span>
+</span><span class='line'><span class="c1">// Sets the adapter for the view</span>
+</span><span class='line'><span class="n">mListView</span><span class="o">.</span><span class="na">setAdapter</span><span class="o">(</span><span class="n">mAdapter</span><span class="o">);</span>
+</span><span class='line'><span class="o">&hellip;</span>
+</span><span class='line'><span class="cm">/</em></span>
+</span><span class='line'><span class="cm"> * Defines the callback that CursorLoader calls</span>
+</span><span class='line'><span class="cm"> * when it&#39;s finished its query</span>
+</span><span class='line'><span class="cm"> <em>/</span>
+</span><span class='line'><span class="nd">@Override</span>
+</span><span class='line'><span class="kd">public</span> <span class="kt">void</span> <span class="nf">onLoadFinished</span><span class="o">(</span><span class="n">Loader</span><span class="o">&lt;</span><span class="n">Cursor</span><span class="o">&gt;</span> <span class="n">loader</span><span class="o">,</span> <span class="n">Cursor</span> <span class="n">cursor</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>    <span class="o">&hellip;</span>
+</span><span class='line'>    <span class="cm">/</em></span>
+</span><span class='line'><span class="cm">     * Moves the query results into the adapter, causing the</span>
+</span><span class='line'><span class="cm">     * ListView fronting this adapter to re-display</span>
+</span><span class='line'><span class="cm">     <em>/</span>
+</span><span class='line'>    <span class="n">mAdapter</span><span class="o">.</span><span class="na">changeCursor</span><span class="o">(</span><span class="n">cursor</span><span class="o">);</span>
+</span><span class='line'><span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="cm">/</em></span>
+</span><span class='line'><span class="cm"> * Invoked when the CursorLoader is being reset. For example, this is</span>
+</span><span class='line'><span class="cm"> * called if the data in the provider changes and the Cursor becomes stale.</span>
+</span><span class='line'><span class="cm"> <em>/</span>
+</span><span class='line'><span class="nd">@Override</span>
+</span><span class='line'><span class="kd">public</span> <span class="kt">void</span> <span class="nf">onLoaderReset</span><span class="o">(</span><span class="n">Loader</span><span class="o">&lt;</span><span class="n">Cursor</span><span class="o">&gt;</span> <span class="n">loader</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="cm">/</em></span>
+</span><span class='line'><span class="cm">     * Clears out the adapter&#39;s reference to the Cursor.</span>
+</span><span class='line'><span class="cm">     * This prevents memory leaks.</span>
+</span><span class='line'><span class="cm">     */</span>
+</span><span class='line'>    <span class="n">mAdapter</span><span class="o">.</span><span class="na">changeCursor</span><span class="o">(</span><span class="kc">null</span><span class="o">);</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p><h3 id="managing">Managing the device awake state</h3></p>
+
+<p>When an Android device is left idle, it will first dim, then turn off the screen, and ultimately turn off the CPU. This prevents the device’s battery from quickly getting drained. Yet there are times when your application might require a different behavior:</p>
+
+<ul>
+<li>Apps such as games or movie apps may need to keep the screen turned on.</li>
+<li>Other applications may not need the screen to remain on, but they may require the CPU to keep running until a critical operation finishes.</li>
+</ul>
+
+
+<p>This class describes how to keep a device awake when necessary without draining its battery.</p>
+
+<h4>Keeping the Device Awake</h4>
+
+<p><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">MainActivity</span> <span class="kd">extends</span> <span class="n">Activity</span> <span class="o">{</span>
+</span><span class='line'>  <span class="nd">@Override</span>
+</span><span class='line'>  <span class="kd">protected</span> <span class="kt">void</span> <span class="nf">onCreate</span><span class="o">(</span><span class="n">Bundle</span> <span class="n">savedInstanceState</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>    <span class="kd">super</span><span class="o">.</span><span class="na">onCreate</span><span class="o">(</span><span class="n">savedInstanceState</span><span class="o">);</span>
+</span><span class='line'>    <span class="n">setContentView</span><span class="o">(</span><span class="n">R</span><span class="o">.</span><span class="na">layout</span><span class="o">.</span><span class="na">activity_main</span><span class="o">);</span>
+</span><span class='line'>    <span class="n">getWindow</span><span class="o">().</span><span class="na">addFlags</span><span class="o">(</span><span class="n">WindowManager</span><span class="o">.</span><span class="na">LayoutParams</span><span class="o">.</span><span class="na">FLAG_KEEP_SCREEN_ON</span><span class="o">);</span>
+</span><span class='line'>  <span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="o">&lt;</span><span class="n">RelativeLayout</span> <span class="nl">xmlns:</span><span class="n">android</span><span class="o">=</span><span class="s">&quot;<a href="http://schemas.android.com/apk/res/android&amp;quot;">http://schemas.android.com/apk/res/android&amp;quot;</a></span>
+</span><span class='line'>    <span class="nl">android:</span><span class="n">layout_width</span><span class="o">=</span><span class="s">&quot;match_parent&quot;</span>
+</span><span class='line'>    <span class="nl">android:</span><span class="n">layout_height</span><span class="o">=</span><span class="s">&quot;match_parent&quot;</span>
+</span><span class='line'>    <span class="nl">android:</span><span class="n">keepScreenOn</span><span class="o">=</span><span class="s">&quot;true&quot;</span><span class="o">&gt;</span>
+</span><span class='line'>    <span class="o">&hellip;</span>
+</span><span class='line'><span class="o">&lt;/</span><span class="n">RelativeLayout</span><span class="o">&gt;</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>Using <code>android:keepScreenOn="true"</code> is equivalent to using <code>FLAG_KEEP_SCREEN_ON</code>. You can use whichever approach is best for your app. The advantage of setting the flag programmatically in your activity is that it gives you the option of programmatically clearing the flag later and thereby allowing the screen to turn off.</p>
+
+<p>You don’t need to clear the <code>FLAG_KEEP_SCREEN_ON</code> flag unless you no longer want the screen to stay on in your running application (for example, if you want the screen to time out after a certain period of inactivity). The window manager takes care of ensuring that the right things happen when the app goes into the background or returns to the foreground. But if you want to explicitly clear the flag and thereby allow the screen to turn off again, use <code>clearFlags()</code>: <code>getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)</code>.</p>
+
+<p>If you need to keep the CPU running in order to complete some work before the device goes to sleep, you can use a <code>PowerManager</code> system service feature called wake locks. Wake locks allow your application to control the power state of the host device.</p>
+
+<p>Creating and holding wake locks can have a dramatic impact on the host device’s battery life. Thus you should use wake locks only when strictly necessary and hold them for as short a time as possible. For example, you should never need to use a wake lock in an activity. As described above, if you want to keep the screen on in your activity, use <code>FLAG_KEEP_SCREEN_ON</code>.</p>
+
+<p><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">PowerManager</span> <span class="n">powerManager</span> <span class="o">=</span> <span class="o">(</span><span class="n">PowerManager</span><span class="o">)</span> <span class="n">getSystemService</span><span class="o">(</span><span class="n">POWER_SERVICE</span><span class="o">);</span>
+</span><span class='line'><span class="n">Wakelock</span> <span class="n">wakeLock</span> <span class="o">=</span> <span class="n">powerManager</span><span class="o">.</span><span class="na">newWakeLock</span><span class="o">(</span><span class="n">PowerManager</span><span class="o">.</span><span class="na">PARTIAL_WAKE_LOCK</span><span class="o">,</span>
+</span><span class='line'>        <span class="s">&quot;MyWakelockTag&quot;</span><span class="o">);</span>
+</span><span class='line'><span class="n">wakeLock</span><span class="o">.</span><span class="na">acquire</span><span class="o">();</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<h4>Scheduling Repeating Alarms</h4>
+
+<p>Alarms have these characteristics:</p>
+
+<ul>
+<li>They let you fire Intents at set times and/or intervals.</li>
+<li>You can use them in conjunction with broadcast receivers to start services and perform other operations.</li>
+<li>They operate outside of your application, so you can use them to trigger events or actions even when your app is not running, and even if the device itself is asleep.</li>
+<li>They help you to minimize your app’s resource requirements. You can schedule operations without relying on timers or continuously running background services.</li>
+</ul>
+
+
+<p>For timing operations that are guaranteed to occur during the lifetime of your application, instead consider using the Handler class in conjunction with Timer and Thread. This approach gives Android better control over system resources.</p>
+
+<p>Repeating alarms are a good choice for scheduling regular events or data lookups. A repeating alarm has the following characteristics:</p>
+
+<ul>
+<li>A alarm type.</li>
+<li>A trigger time. If the trigger time you specify is in the past, the alarm triggers immediately.</li>
+<li>The alarm’s interval. For example, once a day, every hour, every 5 seconds, and so on.</li>
+<li>A pending intent that fires when the alarm is triggered. When you set a second alarm that uses the same pending intent, it replaces the original alarm.</li>
+</ul>
+
+
+<p>Follow these guidelines as you design your app:</p>
+
+<ul>
+<li>Keep your alarm frequency to a minimum.</li>
+<li>Don’t wake up the device unnecessarily (this behavior is determined by the alarm type, as described in Choose an alarm type).</li>
+<li>Don’t make your alarm’s trigger time any more precise than it has to be:
+
+<ul>
+<li>Use <code>setInexactRepeating()</code> instead of <code>setRepeating()</code> whenever possible. When you use <code>setInexactRepeating()</code>, Android synchronizes multiple inexact repeating alarms and fires them at the same time. This reduces the drain on the battery.</li>
+<li>If your alarm’s behavior is based on an interval (for example, your alarm fires once an hour) rather than a precise trigger time (for example, your alarm fires at 7 a.m. sharp and every 20 minutes after that), use an <code>ELAPSED_REALTIME</code> alarm type.</li>
+</ul>
+</li>
+</ul>
+
+
+<p><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="c1">// Hopefully your alarm will have a lower frequency than this!</span>
+</span><span class='line'><span class="n">alarmMgr</span><span class="o">.</span><span class="na">setInexactRepeating</span><span class="o">(</span><span class="n">AlarmManager</span><span class="o">.</span><span class="na">ELAPSED_REALTIME_WAKEUP</span><span class="o">,</span>
+</span><span class='line'>        <span class="n">AlarmManager</span><span class="o">.</span><span class="na">INTERVAL_HALF_HOUR</span><span class="o">,</span>
+</span><span class='line'>        <span class="n">AlarmManager</span><span class="o">.</span><span class="na">INTERVAL_HALF_HOUR</span><span class="o">,</span> <span class="n">alarmIntent</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'><span class="kd">private</span> <span class="n">AlarmManager</span> <span class="n">alarmMgr</span><span class="o">;</span>
+</span><span class='line'><span class="kd">private</span> <span class="n">PendingIntent</span> <span class="n">alarmIntent</span><span class="o">;</span>
+</span><span class='line'><span class="o">&hellip;</span>
+</span><span class='line'><span class="n">alarmMgr</span> <span class="o">=</span> <span class="o">(</span><span class="n">AlarmManager</span><span class="o">)</span><span class="n">context</span><span class="o">.</span><span class="na">getSystemService</span><span class="o">(</span><span class="n">Context</span><span class="o">.</span><span class="na">ALARM_SERVICE</span><span class="o">);</span>
+</span><span class='line'><span class="n">Intent</span> <span class="n">intent</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Intent</span><span class="o">(</span><span class="n">context</span><span class="o">,</span> <span class="n">AlarmReceiver</span><span class="o">.</span><span class="na">class</span><span class="o">);</span>
+</span><span class='line'><span class="n">alarmIntent</span> <span class="o">=</span> <span class="n">PendingIntent</span><span class="o">.</span><span class="na">getBroadcast</span><span class="o">(</span><span class="n">context</span><span class="o">,</span> <span class="mi">0</span><span class="o">,</span> <span class="n">intent</span><span class="o">,</span> <span class="mi">0</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">alarmMgr</span><span class="o">.</span><span class="na">set</span><span class="o">(</span><span class="n">AlarmManager</span><span class="o">.</span><span class="na">ELAPSED_REALTIME_WAKEUP</span><span class="o">,</span>
+</span><span class='line'>        <span class="n">SystemClock</span><span class="o">.</span><span class="na">elapsedRealtime</span><span class="o">()</span> <span class="o">+</span>
+</span><span class='line'>        <span class="mi">60</span> <span class="o"><em></span> <span class="mi">1000</span><span class="o">,</span> <span class="n">alarmIntent</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">// Set the alarm to start at approximately 2:00 p.m.</span>
+</span><span class='line'><span class="n">Calendar</span> <span class="n">calendar</span> <span class="o">=</span> <span class="n">Calendar</span><span class="o">.</span><span class="na">getInstance</span><span class="o">();</span>
+</span><span class='line'><span class="n">calendar</span><span class="o">.</span><span class="na">setTimeInMillis</span><span class="o">(</span><span class="n">System</span><span class="o">.</span><span class="na">currentTimeMillis</span><span class="o">());</span>
+</span><span class='line'><span class="n">calendar</span><span class="o">.</span><span class="na">set</span><span class="o">(</span><span class="n">Calendar</span><span class="o">.</span><span class="na">HOUR_OF_DAY</span><span class="o">,</span> <span class="mi">14</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">// With setInexactRepeating(), you have to use one of the AlarmManager interval</span>
+</span><span class='line'><span class="c1">// constants&mdash;in this case, AlarmManager.INTERVAL_DAY.</span>
+</span><span class='line'><span class="n">alarmMgr</span><span class="o">.</span><span class="na">setInexactRepeating</span><span class="o">(</span><span class="n">AlarmManager</span><span class="o">.</span><span class="na">RTC_WAKEUP</span><span class="o">,</span> <span class="n">calendar</span><span class="o">.</span><span class="na">getTimeInMillis</span><span class="o">(),</span>
+</span><span class='line'>        <span class="n">AlarmManager</span><span class="o">.</span><span class="na">INTERVAL_DAY</span><span class="o">,</span> <span class="n">alarmIntent</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'><span class="kd">private</span> <span class="n">AlarmManager</span> <span class="n">alarmMgr</span><span class="o">;</span>
+</span><span class='line'><span class="kd">private</span> <span class="n">PendingIntent</span> <span class="n">alarmIntent</span><span class="o">;</span>
+</span><span class='line'><span class="o">&hellip;</span>
+</span><span class='line'><span class="n">alarmMgr</span> <span class="o">=</span> <span class="o">(</span><span class="n">AlarmManager</span><span class="o">)</span><span class="n">context</span><span class="o">.</span><span class="na">getSystemService</span><span class="o">(</span><span class="n">Context</span><span class="o">.</span><span class="na">ALARM_SERVICE</span><span class="o">);</span>
+</span><span class='line'><span class="n">Intent</span> <span class="n">intent</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Intent</span><span class="o">(</span><span class="n">context</span><span class="o">,</span> <span class="n">AlarmReceiver</span><span class="o">.</span><span class="na">class</span><span class="o">);</span>
+</span><span class='line'><span class="n">alarmIntent</span> <span class="o">=</span> <span class="n">PendingIntent</span><span class="o">.</span><span class="na">getBroadcast</span><span class="o">(</span><span class="n">context</span><span class="o">,</span> <span class="mi">0</span><span class="o">,</span> <span class="n">intent</span><span class="o">,</span> <span class="mi">0</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">// Set the alarm to start at 8:30 a.m.</span>
+</span><span class='line'><span class="n">Calendar</span> <span class="n">calendar</span> <span class="o">=</span> <span class="n">Calendar</span><span class="o">.</span><span class="na">getInstance</span><span class="o">();</span>
+</span><span class='line'><span class="n">calendar</span><span class="o">.</span><span class="na">setTimeInMillis</span><span class="o">(</span><span class="n">System</span><span class="o">.</span><span class="na">currentTimeMillis</span><span class="o">());</span>
+</span><span class='line'><span class="n">calendar</span><span class="o">.</span><span class="na">set</span><span class="o">(</span><span class="n">Calendar</span><span class="o">.</span><span class="na">HOUR_OF_DAY</span><span class="o">,</span> <span class="mi">8</span><span class="o">);</span>
+</span><span class='line'><span class="n">calendar</span><span class="o">.</span><span class="na">set</span><span class="o">(</span><span class="n">Calendar</span><span class="o">.</span><span class="na">MINUTE</span><span class="o">,</span> <span class="mi">30</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">// setRepeating() lets you specify a precise custom interval&mdash;in this case,</span>
+</span><span class='line'><span class="c1">// 20 minutes.</span>
+</span><span class='line'><span class="n">alarmMgr</span><span class="o">.</span><span class="na">setRepeating</span><span class="o">(</span><span class="n">AlarmManager</span><span class="o">.</span><span class="na">RTC_WAKEUP</span><span class="o">,</span> <span class="n">calendar</span><span class="o">.</span><span class="na">getTimeInMillis</span><span class="o">(),</span>
+</span><span class='line'>        <span class="mi">1000</span> <span class="o"></em></span> <span class="mi">60</span> <span class="o">*</span> <span class="mi">20</span><span class="o">,</span> <span class="n">alarmIntent</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">// If the alarm has been set, cancel it.</span>
+</span><span class='line'><span class="k">if</span> <span class="o">(</span><span class="n">alarmMgr</span><span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>    <span class="n">alarmMgr</span><span class="o">.</span><span class="na">cancel</span><span class="o">(</span><span class="n">alarmIntent</span><span class="o">);</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<h4>Start an Alarm When the Device Boots</h4>
+
+<ul>
+<li>Set the <code>RECEIVE_BOOT_COMPLETED</code> permission in your application’s manifest. This allows your app to receive the <code>ACTION_BOOT_COMPLETED</code> that is broadcast after the system finishes booting (this only works if the app has already been launched by the user at least once):</li>
+</ul>
+
+
+<p><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='xml'><span class='line'><span class="nt">&lt;uses-permission</span> <span class="na">android:name=</span><span class="s">&quot;android.permission.RECEIVE_BOOT_COMPLETED&quot;</span><span class="nt">/&gt;</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<ul>
+<li>Implement a BroadcastReceiver to receive the broadcast:</li>
+</ul>
+
+
+<p><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">SampleBootReceiver</span> <span class="kd">extends</span> <span class="n">BroadcastReceiver</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="nd">@Override</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">onReceive</span><span class="o">(</span><span class="n">Context</span> <span class="n">context</span><span class="o">,</span> <span class="n">Intent</span> <span class="n">intent</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(</span><span class="n">intent</span><span class="o">.</span><span class="na">getAction</span><span class="o">().</span><span class="na">equals</span><span class="o">(</span><span class="s">&quot;android.intent.action.BOOT_COMPLETED&quot;</span><span class="o">))</span> <span class="o">{</span>
+</span><span class='line'>            <span class="c1">// Set the alarm here.</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<ul>
+<li>Add the receiver to your app’s manifest file with an intent filter that filters on the <code>ACTION_BOOT_COMPLETED</code> action:</li>
+</ul>
+
+
+<p><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='xml'><span class='line'><span class="nt">&lt;receiver</span> <span class="na">android:name=</span><span class="s">&quot;.SampleBootReceiver&quot;</span>
+</span><span class='line'>        <span class="na">android:enabled=</span><span class="s">&quot;false&quot;</span><span class="nt">&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;intent-filter&gt;</span>
+</span><span class='line'>        <span class="nt">&lt;action</span> <span class="na">android:name=</span><span class="s">&quot;android.intent.action.BOOT_COMPLETED&quot;</span><span class="nt">&gt;&lt;/action&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;/intent-filter&gt;</span>
+</span><span class='line'><span class="nt">&lt;/receiver&gt;</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>Notice that in the manifest, the boot receiver is set to <code>android:enabled=“false”</code>. This means that the receiver will not be called unless the application explicitly enables it. This prevents the boot receiver from being called unnecessarily. You can enable a receiver (for example, if the user sets an alarm) as follows:</p>
+
+<p><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">ComponentName</span> <span class="n">receiver</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ComponentName</span><span class="o">(</span><span class="n">context</span><span class="o">,</span> <span class="n">SampleBootReceiver</span><span class="o">.</span><span class="na">class</span><span class="o">);</span>
+</span><span class='line'><span class="n">PackageManager</span> <span class="n">pm</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="na">getPackageManager</span><span class="o">();</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">pm</span><span class="o">.</span><span class="na">setComponentEnabledSetting</span><span class="o">(</span><span class="n">receiver</span><span class="o">,</span>
+</span><span class='line'>        <span class="n">PackageManager</span><span class="o">.</span><span class="na">COMPONENT_ENABLED_STATE_ENABLED</span><span class="o">,</span>
+</span><span class='line'>        <span class="n">PackageManager</span><span class="o">.</span><span class="na">DONT_KILL_APP</span><span class="o">);</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>Once you enable the receiver this way, it will stay enabled, even if the user reboots the device. In other words, programmatically enabling the receiver overrides the manifest setting, even across reboots. The receiver will stay enabled until your app disables it. You can disable a receiver (for example, if the user cancels an alarm) as follows:</p>
+
+<p><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">ComponentName</span> <span class="n">receiver</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ComponentName</span><span class="o">(</span><span class="n">context</span><span class="o">,</span> <span class="n">SampleBootReceiver</span><span class="o">.</span><span class="na">class</span><span class="o">);</span>
+</span><span class='line'><span class="n">PackageManager</span> <span class="n">pm</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="na">getPackageManager</span><span class="o">();</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">pm</span><span class="o">.</span><span class="na">setComponentEnabledSetting</span><span class="o">(</span><span class="n">receiver</span><span class="o">,</span>
+</span><span class='line'>        <span class="n">PackageManager</span><span class="o">.</span><span class="na">COMPONENT_ENABLED_STATE_DISABLED</span><span class="o">,</span>
+</span><span class='line'>        <span class="n">PackageManager</span><span class="o">.</span><span class="na">DONT_KILL_APP</span><span class="o">);</span>
+</span></code></pre></td></tr></table></div></figure></p>
+</div>
+<div class="entry-content">
+<center><img src="/images/by.png" />除非另有声明，本网站采用<a href="http://creativecommons.org/licenses/by/3.0/cn/" rel="license">知识共享“署名 3.0 中国大陆”许可协议</a>授权。</center>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Solarex</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-10-31T10:12:00+08:00" pubdate data-updated="true">Oct 31<span>st</span>, 2014</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/android/'>android</a>, <a class='category' href='/blog/categories/dev/'>dev</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+    <!-- JiaThis Button BEGIN -->
+    <div class="jiathis_style_32x32">
+        <a class="jiathis_button_tsina"></a>
+        <a class="jiathis_button_weixin"></a>
+        <a class="jiathis_button_douban"></a>
+        <a class="jiathis_button_fanfou"></a>
+        <a class="jiathis_button_evernote"></a>
+        <a class="jiathis_button_delicious"></a>
+        <a class="jiathis_button_renren"></a>
+        <a class="jiathis_button_tqq"></a>
+        <a class="jiathis_button_qzone"></a>
+        <a href="http://www.jiathis.com/share" class="jiathis jiathis_txt jiathis_separator jtico jtico_jiathis" target="_blank"></a>
+        <a class="jiathis_counter_style"></a>
+    </div>
+    <script type="text/javascript" >
+        var jiathis_config={
+summary:"",
+        hideMore:false
+        }
+</script>
+<script type="text/javascript" src="http://v3.jiathis.com/code/jia.js" charset="utf-8"></script>
+<!-- JiaThis Button END -->
+  </div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2014/10/31/android-multithreading-in-a-ui-environment/" title="Previous Post: Multithreading in a UI Environment">&laquo; Multithreading in a UI Environment</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2015/03/22/using-gnu-command-line-tools-on-mac-os-x/" title="Next Post: Using GNU Command Line Tools on Mac OS X">Using GNU Command Line Tools on Mac OS X &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+
+<section id="comment">
+<!-- Duoshuo Comment BEGIN -->
+	<div class="ds-thread"></div>
+<script type="text/javascript">
+var duoshuoQuery = {short_name:"solarex"};
+	(function() {
+		var ds = document.createElement('script');
+		ds.type = 'text/javascript';ds.async = true;
+		ds.src = 'http://static.duoshuo.com/embed.js';
+		ds.charset = 'UTF-8';
+		(document.getElementsByTagName('head')[0] 
+		|| document.getElementsByTagName('body')[0]).appendChild(ds);
+	})();
+	</script>
+<!-- Duoshuo Comment END -->
+</section>
+
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2016/03/14/mobile-apps-offline-support/">Mobile Apps Offline Support</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/03/13/the-clean-architecture/">The Clean Architecture</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/02/25/android-handler-memory-leaks/">Android Handler Memory Leaks</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/02/12/recyclerview-animation-part-ii/">RecyclerView Animation part II</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/02/11/recyclerview-animation-part-i/">RecyclerView Animation part I</a>
+      </li>
+    
+  </ul>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2016 - Solarex -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a> | Themed with <a href="https://github.com/lucaslew/whitespace">Whitespace</a></span>
+</p>
+
+
+<script type="text/javascript">
+    var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+    document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/h.js%3F2574e8b2c205dfe8ff89e239fa38ca27' type='text/javascript'%3E%3C/script%3E"));
+</script>
+
+
+</footer>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

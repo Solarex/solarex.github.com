@@ -1,0 +1,1429 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Android Handler Memory Leaks - Solarex's Blog</title>
+  <meta name="author" content="Solarex">
+
+  
+  <meta name="description" content="Android uses Java as a platform for development. This helps us with many low level issues including memory management, platform type dependencies, &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://Solarex.github.io/blog/2016/02/25/android-handler-memory-leaks">
+  <link href="/favicon.ico" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Solarex's Blog" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <!--
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  -->
+  <script src="http://libs.baidu.com/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.useso.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href='http://fonts.useso.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
+<link href='http://fonts.useso.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+
+</head>
+
+<body   class="collapse-sidebar sidebar-footer" >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Solarex's Blog</a></h1>
+  
+    <h2>Yet Another Blog 4 Solarex</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:Solarex.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+    <li><a href="/">Blog</a></li>
+    <li><a href="/blog/archives">Archives</a></li>
+    <li><a href="/projects">Projects</a></li>
+	<li><a href="https://solarex.github.io/wiki">Wiki</a></li>
+    <li><a href="/about">About</a></li>
+	<li><a href="https://solarex.github.io/resume">Resume</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Android Handler Memory Leaks</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2016-02-25T19:58:00+08:00" pubdate data-updated="true">Feb 25<span>th</span>, 2016</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>Android uses Java as a platform for development. This helps us with many low level issues including memory management, platform type dependencies, and so on. However we still sometimes get crashes with OutOfMemory. So where’s the garbage collector?</p>
+
+<p>I’m going to focus on one of the cases where big objects in memory can’t be cleared for a lengthy period of time. This case is not ultimately a memory leak &ndash; objects will be collected at some point &ndash; so we sometimes ignore it. This is not advisable as it can sometimes lead to OOM errors.</p>
+
+<p>The case I’m describing is the Handler leak, which is usually detected as a warning by Lint.</p>
+
+<!-- more -->
+
+
+<h2>Basic Example</h2>
+
+<center><img src="/images/anonymous_runnable_code.png"></center>
+
+
+<p>This is a very basic activity. Notice that this anonymous <code>Runnable</code> has been posted to the <code>Handler</code> with a very long delay. We’ll run it and rotate the phone couple of times, then dump memory and analyze it.</p>
+
+<center><img src="/images/anonymous_runnable_memory_analyze.png"></center>
+
+
+<p>We have seven activities in memory now. This is definitely not good. Let’s find out why GC is not able to clear them.ps.The query I made to get a list of all Activities remaining in memory was created in OQL (Object Query Language), which is very simple, yet powerful.</p>
+
+<center><img src="/images/anonymous_runnable_memory_explained.png"></center>
+
+
+<p>As you can see, one of the activities is referenced by this$0. This is an indirect reference from the anonymous class to the owner class. This$0 is referenced by callback, which is then referenced by a chain of next’s of Message back to the main thread.Any time you create a non-static class inside the owner class, Java creates an indirect reference to the owner.</p>
+
+<p>Once you post <code>Runnable</code> or <code>Message</code> into Handler, it’s then stored in list of <code>Message</code> commands referenced from <code>LooperThread</code> until the message is executed. Posting delayed messages is a clear leak for at least the time of the delay value. Posting without delay may cause a temporary leak as well if the queue of messages is large.</p>
+
+<h2>Static Runnable Solution</h2>
+
+<p>Let’s try to overcome a memory leak by getting rid of <code>this$0</code>, by converting the anonymous class to static.</p>
+
+<center><img src="/images/static_class.png"></center>
+
+
+<p>Run, rotate and get the memory dump.</p>
+
+<center><img src="/images/static_class_memory_analyze.png"></center>
+
+
+<p>What, again? Let’s see who keeps referring to Activities.</p>
+
+<center><img src="/images/static_class_memory_analyze_explained.png"></center>
+
+
+<p>Take a look at the bottom of the tree &ndash; activity is kept as a reference to mContext inside mTextView of our DoneRunnable class. Using static inner classes is not enough to overcome memory leaks, however. We need to do more.</p>
+
+<h2>Static Runnable With WeakReference</h2>
+
+<p>Let’s continue using iterative fixes and get rid of the reference to TextView, which keeps activity from being destroyed.</p>
+
+<center><img src="/images/static_class_with_WeakRef.png"></center>
+
+
+<p>Note that we are keeping WeakReference to TextView, and let’s run, rotate and dump memory.Be careful with WeakReferences. They can be null at any moment, so resolve them first to a local variable (hard reference) and then check to null before use.</p>
+
+<center><img src="/images/static_class_with_WeakRef_memory_analyze.png"></center>
+
+
+<p>Hooray! Only one activity instance. This solves our memory problem.</p>
+
+<p>So for this approach we should:</p>
+
+<ul>
+<li>Use static inner classes (or outer classes)</li>
+<li>Use <code>WeakReference</code> to all objects manipulated from <code>Handler/Runnable</code></li>
+</ul>
+
+
+<p>If you compare this code to the initial code, you might find a big difference in readability and code clearance. The initial code is much shorter and much clearer, and you’ll see that eventually, text in textView will be changed to ‘Done’. No need to browse the code to realise that.</p>
+
+<p>Writing this much boilerplate code is very tedious, especially if postDelayed is set to a short time, such as 50ms. There are better and clearer solutions.</p>
+
+<h2>Cleanup All Messages onDestroy</h2>
+
+<p><code>Handler</code> class has an interesting feature &ndash; <code>removeCallbacksAndMessages</code> &ndash; which can accept <code>null</code> as argument. It will remove all <code>Runnables</code> and <code>Messages</code> posted to a particular handler. Let’s use it in <code>onDestroy</code>.</p>
+
+<center><img src="/images/removeCallbacks.png"></center>
+
+
+<p>Let’s run, rotate and dump memory.</p>
+
+<center><img src="/images/removeCallbacks_memory_analyze.png"></center>
+
+
+<p>Good! Only one instance.</p>
+
+<p>This approach is way better than the previous one, as it keeps code clear and readable. The only overhead is to remember to clear all messages on activity/fragment destroy.</p>
+
+<p>I have one more solution which, if you’re lazy like me, you might like even more. :)</p>
+
+<h2>Use WeakHandler</h2>
+
+<p>The Badoo team came up with the interesting idea of introducing <code>WeakHandler</code> &ndash; a class that behaves as <code>Handler</code>, but is way safer.</p>
+
+<p>It takes advantage of hard and weak references to get rid of memory leaks. I will describe the idea in detail a bit later, but let’s look at the code first:</p>
+
+<center><img src="/images/WeakHandler.png"></center>
+
+
+<p>Very similar to the original code apart from one small difference &ndash; instead of using <code>android.os.Handler</code>, I’ve used <code>WeakHandler</code>. Let’s run, rotate and dump memory:</p>
+
+<center><img src="/images/WeakHandler_memory_analyze.png"></center>
+
+
+<p>Nice, isn’t it? The code is cleaner than ever, and memory is clean as well! :)</p>
+
+<p>To use it, just add dependency to your <code>build.gradle</code>:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='groovy'><span class='line'><span class="n">repositories</span> <span class="o">{</span>
+</span><span class='line'>    <span class="n">maven</span> <span class="o">{</span>
+</span><span class='line'>        <span class="n">repositories</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">url</span> <span class="s1">&#39;https://oss.sonatype.org/content/repositories/releases/&#39;</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">dependencies</span> <span class="o">{</span>
+</span><span class='line'>    <span class="n">compile</span> <span class="s1">&#39;com.badoo.mobile:android-weak-handler:1.0&#39;</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>And import it in your java class:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kn">import</span> <span class="nn">com.badoo.mobile.util.WeakHandler</span><span class="o">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Visit Badoo’s github page, where you can fork it, or study it’s <a href="https://github.com/badoo/android-weak-handler">source code</a>.</p>
+
+<h2>WeakHandler. How it works</h2>
+
+<p>The main aim of <code>WeakHandler</code> is to keep <code>Runnables/Messages</code> hard-referenced while <code>WeakHandler</code> is also hard-referenced. Once it can be GC-ed, all messages should go away as well.</p>
+
+<p>Here is a simple diagram that demonstrates differences between using normal <code>Handler</code> and <code>WeakHandler</code> to post anonymous runnables:</p>
+
+<center><img src="/images/WeakHandler_how_it_works.png"></center>
+
+
+<p>Looking at the top diagram, <code>Activity</code> keeps a reference to <code>Handler</code>, which posts <code>Runnable</code> (puts it into queue of <code>Messages</code> referenced from <code>Thread</code>). Everything is fine except the indirect reference from <code>Runnable</code> to <code>Activity</code>. While <code>Message</code> is in the queue, all graphs can’t be garbage-collected.</p>
+
+<p>By comparison, in the bottom diagram <code>Activity</code> holds <code>WeakHandler</code>, which keeps <code>Handler</code> inside. When we ask it to post <code>Runnable</code>, it is wrapped into <code>WeakRunnable</code> and posted. So the <code>Message</code> queue keeps reference only to <code>WeakRunnable</code>. <code>WeakRunnable</code> keeps weak reference to the desired <code>Runnable</code>, so the <code>Runnable</code> can be garbage-collected.</p>
+
+<p>Another little trick is that <code>WeakHandler</code> still keeps a hard reference to the desired <code>Runnable</code>, to prevent it from being garbage-collected while <code>WeakRunnable</code> is active.</p>
+
+<p>The side-effect of using <code>WeakHandler</code> is that all messages and runnables may not be executed if <code>WeakHandler</code> has been garbage-collected. To prevent that, just keep a reference to it from <code>Activity</code>. Once <code>Activity</code> is ready to be collected, all graphs with <code>WeakHandler</code> will collected as well.</p>
+
+<h2>Conclusions</h2>
+
+<p>Using <code>postDelayed</code> in Android requires additional effort. To achieve it we came up with three different methods:</p>
+
+<ul>
+<li>Use a static inner <code>Runnable/Handler</code> with <code>WeakReference</code> to owner class</li>
+<li>Clear all messages from <code>Handler</code> in <code>onDestroy</code> of <code>Activity/Fragment</code></li>
+<li>Use <a href="https://github.com/badoo/android-weak-handler">WeakHandler</a> from Badoo as a silver bullet</li>
+</ul>
+
+
+<p>It’s up to you to choose your preferred technique. The second seems very reasonable, but needs some extra work. The third is my favourite, obviously, but it require some attention as well &ndash; <code>WeakHandler</code> should not be used without hard reference from outside.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+<span class='line-number'>55</span>
+<span class='line-number'>56</span>
+<span class='line-number'>57</span>
+<span class='line-number'>58</span>
+<span class='line-number'>59</span>
+<span class='line-number'>60</span>
+<span class='line-number'>61</span>
+<span class='line-number'>62</span>
+<span class='line-number'>63</span>
+<span class='line-number'>64</span>
+<span class='line-number'>65</span>
+<span class='line-number'>66</span>
+<span class='line-number'>67</span>
+<span class='line-number'>68</span>
+<span class='line-number'>69</span>
+<span class='line-number'>70</span>
+<span class='line-number'>71</span>
+<span class='line-number'>72</span>
+<span class='line-number'>73</span>
+<span class='line-number'>74</span>
+<span class='line-number'>75</span>
+<span class='line-number'>76</span>
+<span class='line-number'>77</span>
+<span class='line-number'>78</span>
+<span class='line-number'>79</span>
+<span class='line-number'>80</span>
+<span class='line-number'>81</span>
+<span class='line-number'>82</span>
+<span class='line-number'>83</span>
+<span class='line-number'>84</span>
+<span class='line-number'>85</span>
+<span class='line-number'>86</span>
+<span class='line-number'>87</span>
+<span class='line-number'>88</span>
+<span class='line-number'>89</span>
+<span class='line-number'>90</span>
+<span class='line-number'>91</span>
+<span class='line-number'>92</span>
+<span class='line-number'>93</span>
+<span class='line-number'>94</span>
+<span class='line-number'>95</span>
+<span class='line-number'>96</span>
+<span class='line-number'>97</span>
+<span class='line-number'>98</span>
+<span class='line-number'>99</span>
+<span class='line-number'>100</span>
+<span class='line-number'>101</span>
+<span class='line-number'>102</span>
+<span class='line-number'>103</span>
+<span class='line-number'>104</span>
+<span class='line-number'>105</span>
+<span class='line-number'>106</span>
+<span class='line-number'>107</span>
+<span class='line-number'>108</span>
+<span class='line-number'>109</span>
+<span class='line-number'>110</span>
+<span class='line-number'>111</span>
+<span class='line-number'>112</span>
+<span class='line-number'>113</span>
+<span class='line-number'>114</span>
+<span class='line-number'>115</span>
+<span class='line-number'>116</span>
+<span class='line-number'>117</span>
+<span class='line-number'>118</span>
+<span class='line-number'>119</span>
+<span class='line-number'>120</span>
+<span class='line-number'>121</span>
+<span class='line-number'>122</span>
+<span class='line-number'>123</span>
+<span class='line-number'>124</span>
+<span class='line-number'>125</span>
+<span class='line-number'>126</span>
+<span class='line-number'>127</span>
+<span class='line-number'>128</span>
+<span class='line-number'>129</span>
+<span class='line-number'>130</span>
+<span class='line-number'>131</span>
+<span class='line-number'>132</span>
+<span class='line-number'>133</span>
+<span class='line-number'>134</span>
+<span class='line-number'>135</span>
+<span class='line-number'>136</span>
+<span class='line-number'>137</span>
+<span class='line-number'>138</span>
+<span class='line-number'>139</span>
+<span class='line-number'>140</span>
+<span class='line-number'>141</span>
+<span class='line-number'>142</span>
+<span class='line-number'>143</span>
+<span class='line-number'>144</span>
+<span class='line-number'>145</span>
+<span class='line-number'>146</span>
+<span class='line-number'>147</span>
+<span class='line-number'>148</span>
+<span class='line-number'>149</span>
+<span class='line-number'>150</span>
+<span class='line-number'>151</span>
+<span class='line-number'>152</span>
+<span class='line-number'>153</span>
+<span class='line-number'>154</span>
+<span class='line-number'>155</span>
+<span class='line-number'>156</span>
+<span class='line-number'>157</span>
+<span class='line-number'>158</span>
+<span class='line-number'>159</span>
+<span class='line-number'>160</span>
+<span class='line-number'>161</span>
+<span class='line-number'>162</span>
+<span class='line-number'>163</span>
+<span class='line-number'>164</span>
+<span class='line-number'>165</span>
+<span class='line-number'>166</span>
+<span class='line-number'>167</span>
+<span class='line-number'>168</span>
+<span class='line-number'>169</span>
+<span class='line-number'>170</span>
+<span class='line-number'>171</span>
+<span class='line-number'>172</span>
+<span class='line-number'>173</span>
+<span class='line-number'>174</span>
+<span class='line-number'>175</span>
+<span class='line-number'>176</span>
+<span class='line-number'>177</span>
+<span class='line-number'>178</span>
+<span class='line-number'>179</span>
+<span class='line-number'>180</span>
+<span class='line-number'>181</span>
+<span class='line-number'>182</span>
+<span class='line-number'>183</span>
+<span class='line-number'>184</span>
+<span class='line-number'>185</span>
+<span class='line-number'>186</span>
+<span class='line-number'>187</span>
+<span class='line-number'>188</span>
+<span class='line-number'>189</span>
+<span class='line-number'>190</span>
+<span class='line-number'>191</span>
+<span class='line-number'>192</span>
+<span class='line-number'>193</span>
+<span class='line-number'>194</span>
+<span class='line-number'>195</span>
+<span class='line-number'>196</span>
+<span class='line-number'>197</span>
+<span class='line-number'>198</span>
+<span class='line-number'>199</span>
+<span class='line-number'>200</span>
+<span class='line-number'>201</span>
+<span class='line-number'>202</span>
+<span class='line-number'>203</span>
+<span class='line-number'>204</span>
+<span class='line-number'>205</span>
+<span class='line-number'>206</span>
+<span class='line-number'>207</span>
+<span class='line-number'>208</span>
+<span class='line-number'>209</span>
+<span class='line-number'>210</span>
+<span class='line-number'>211</span>
+<span class='line-number'>212</span>
+<span class='line-number'>213</span>
+<span class='line-number'>214</span>
+<span class='line-number'>215</span>
+<span class='line-number'>216</span>
+<span class='line-number'>217</span>
+<span class='line-number'>218</span>
+<span class='line-number'>219</span>
+<span class='line-number'>220</span>
+<span class='line-number'>221</span>
+<span class='line-number'>222</span>
+<span class='line-number'>223</span>
+<span class='line-number'>224</span>
+<span class='line-number'>225</span>
+<span class='line-number'>226</span>
+<span class='line-number'>227</span>
+<span class='line-number'>228</span>
+<span class='line-number'>229</span>
+<span class='line-number'>230</span>
+<span class='line-number'>231</span>
+<span class='line-number'>232</span>
+<span class='line-number'>233</span>
+<span class='line-number'>234</span>
+<span class='line-number'>235</span>
+<span class='line-number'>236</span>
+<span class='line-number'>237</span>
+<span class='line-number'>238</span>
+<span class='line-number'>239</span>
+<span class='line-number'>240</span>
+<span class='line-number'>241</span>
+<span class='line-number'>242</span>
+<span class='line-number'>243</span>
+<span class='line-number'>244</span>
+<span class='line-number'>245</span>
+<span class='line-number'>246</span>
+<span class='line-number'>247</span>
+<span class='line-number'>248</span>
+<span class='line-number'>249</span>
+<span class='line-number'>250</span>
+<span class='line-number'>251</span>
+<span class='line-number'>252</span>
+<span class='line-number'>253</span>
+<span class='line-number'>254</span>
+<span class='line-number'>255</span>
+<span class='line-number'>256</span>
+<span class='line-number'>257</span>
+<span class='line-number'>258</span>
+<span class='line-number'>259</span>
+<span class='line-number'>260</span>
+<span class='line-number'>261</span>
+<span class='line-number'>262</span>
+<span class='line-number'>263</span>
+<span class='line-number'>264</span>
+<span class='line-number'>265</span>
+<span class='line-number'>266</span>
+<span class='line-number'>267</span>
+<span class='line-number'>268</span>
+<span class='line-number'>269</span>
+<span class='line-number'>270</span>
+<span class='line-number'>271</span>
+<span class='line-number'>272</span>
+<span class='line-number'>273</span>
+<span class='line-number'>274</span>
+<span class='line-number'>275</span>
+<span class='line-number'>276</span>
+<span class='line-number'>277</span>
+<span class='line-number'>278</span>
+<span class='line-number'>279</span>
+<span class='line-number'>280</span>
+<span class='line-number'>281</span>
+<span class='line-number'>282</span>
+<span class='line-number'>283</span>
+<span class='line-number'>284</span>
+<span class='line-number'>285</span>
+<span class='line-number'>286</span>
+<span class='line-number'>287</span>
+<span class='line-number'>288</span>
+<span class='line-number'>289</span>
+<span class='line-number'>290</span>
+<span class='line-number'>291</span>
+<span class='line-number'>292</span>
+<span class='line-number'>293</span>
+<span class='line-number'>294</span>
+<span class='line-number'>295</span>
+<span class='line-number'>296</span>
+<span class='line-number'>297</span>
+<span class='line-number'>298</span>
+<span class='line-number'>299</span>
+<span class='line-number'>300</span>
+<span class='line-number'>301</span>
+<span class='line-number'>302</span>
+<span class='line-number'>303</span>
+<span class='line-number'>304</span>
+<span class='line-number'>305</span>
+<span class='line-number'>306</span>
+<span class='line-number'>307</span>
+<span class='line-number'>308</span>
+<span class='line-number'>309</span>
+<span class='line-number'>310</span>
+<span class='line-number'>311</span>
+<span class='line-number'>312</span>
+<span class='line-number'>313</span>
+<span class='line-number'>314</span>
+<span class='line-number'>315</span>
+<span class='line-number'>316</span>
+<span class='line-number'>317</span>
+<span class='line-number'>318</span>
+<span class='line-number'>319</span>
+<span class='line-number'>320</span>
+<span class='line-number'>321</span>
+<span class='line-number'>322</span>
+<span class='line-number'>323</span>
+<span class='line-number'>324</span>
+<span class='line-number'>325</span>
+<span class='line-number'>326</span>
+<span class='line-number'>327</span>
+<span class='line-number'>328</span>
+<span class='line-number'>329</span>
+<span class='line-number'>330</span>
+<span class='line-number'>331</span>
+<span class='line-number'>332</span>
+<span class='line-number'>333</span>
+<span class='line-number'>334</span>
+<span class='line-number'>335</span>
+<span class='line-number'>336</span>
+<span class='line-number'>337</span>
+<span class='line-number'>338</span>
+<span class='line-number'>339</span>
+<span class='line-number'>340</span>
+<span class='line-number'>341</span>
+<span class='line-number'>342</span>
+<span class='line-number'>343</span>
+<span class='line-number'>344</span>
+<span class='line-number'>345</span>
+<span class='line-number'>346</span>
+<span class='line-number'>347</span>
+<span class='line-number'>348</span>
+<span class='line-number'>349</span>
+<span class='line-number'>350</span>
+<span class='line-number'>351</span>
+<span class='line-number'>352</span>
+<span class='line-number'>353</span>
+<span class='line-number'>354</span>
+<span class='line-number'>355</span>
+<span class='line-number'>356</span>
+<span class='line-number'>357</span>
+<span class='line-number'>358</span>
+<span class='line-number'>359</span>
+<span class='line-number'>360</span>
+<span class='line-number'>361</span>
+<span class='line-number'>362</span>
+<span class='line-number'>363</span>
+<span class='line-number'>364</span>
+<span class='line-number'>365</span>
+<span class='line-number'>366</span>
+<span class='line-number'>367</span>
+<span class='line-number'>368</span>
+<span class='line-number'>369</span>
+<span class='line-number'>370</span>
+<span class='line-number'>371</span>
+<span class='line-number'>372</span>
+<span class='line-number'>373</span>
+<span class='line-number'>374</span>
+<span class='line-number'>375</span>
+<span class='line-number'>376</span>
+<span class='line-number'>377</span>
+<span class='line-number'>378</span>
+<span class='line-number'>379</span>
+<span class='line-number'>380</span>
+<span class='line-number'>381</span>
+<span class='line-number'>382</span>
+<span class='line-number'>383</span>
+<span class='line-number'>384</span>
+<span class='line-number'>385</span>
+<span class='line-number'>386</span>
+<span class='line-number'>387</span>
+<span class='line-number'>388</span>
+<span class='line-number'>389</span>
+<span class='line-number'>390</span>
+<span class='line-number'>391</span>
+<span class='line-number'>392</span>
+<span class='line-number'>393</span>
+<span class='line-number'>394</span>
+<span class='line-number'>395</span>
+<span class='line-number'>396</span>
+<span class='line-number'>397</span>
+<span class='line-number'>398</span>
+<span class='line-number'>399</span>
+<span class='line-number'>400</span>
+<span class='line-number'>401</span>
+<span class='line-number'>402</span>
+<span class='line-number'>403</span>
+<span class='line-number'>404</span>
+<span class='line-number'>405</span>
+<span class='line-number'>406</span>
+<span class='line-number'>407</span>
+<span class='line-number'>408</span>
+<span class='line-number'>409</span>
+<span class='line-number'>410</span>
+<span class='line-number'>411</span>
+<span class='line-number'>412</span>
+<span class='line-number'>413</span>
+<span class='line-number'>414</span>
+<span class='line-number'>415</span>
+<span class='line-number'>416</span>
+<span class='line-number'>417</span>
+<span class='line-number'>418</span>
+<span class='line-number'>419</span>
+<span class='line-number'>420</span>
+<span class='line-number'>421</span>
+<span class='line-number'>422</span>
+<span class='line-number'>423</span>
+<span class='line-number'>424</span>
+<span class='line-number'>425</span>
+<span class='line-number'>426</span>
+<span class='line-number'>427</span>
+<span class='line-number'>428</span>
+<span class='line-number'>429</span>
+<span class='line-number'>430</span>
+<span class='line-number'>431</span>
+<span class='line-number'>432</span>
+<span class='line-number'>433</span>
+<span class='line-number'>434</span>
+<span class='line-number'>435</span>
+<span class='line-number'>436</span>
+<span class='line-number'>437</span>
+<span class='line-number'>438</span>
+<span class='line-number'>439</span>
+<span class='line-number'>440</span>
+<span class='line-number'>441</span>
+<span class='line-number'>442</span>
+<span class='line-number'>443</span>
+<span class='line-number'>444</span>
+<span class='line-number'>445</span>
+<span class='line-number'>446</span>
+<span class='line-number'>447</span>
+<span class='line-number'>448</span>
+<span class='line-number'>449</span>
+<span class='line-number'>450</span>
+<span class='line-number'>451</span>
+<span class='line-number'>452</span>
+<span class='line-number'>453</span>
+<span class='line-number'>454</span>
+<span class='line-number'>455</span>
+<span class='line-number'>456</span>
+<span class='line-number'>457</span>
+<span class='line-number'>458</span>
+<span class='line-number'>459</span>
+<span class='line-number'>460</span>
+<span class='line-number'>461</span>
+<span class='line-number'>462</span>
+<span class='line-number'>463</span>
+<span class='line-number'>464</span>
+<span class='line-number'>465</span>
+<span class='line-number'>466</span>
+<span class='line-number'>467</span>
+<span class='line-number'>468</span>
+<span class='line-number'>469</span>
+<span class='line-number'>470</span>
+<span class='line-number'>471</span>
+<span class='line-number'>472</span>
+<span class='line-number'>473</span>
+<span class='line-number'>474</span>
+<span class='line-number'>475</span>
+<span class='line-number'>476</span>
+<span class='line-number'>477</span>
+<span class='line-number'>478</span>
+<span class='line-number'>479</span>
+<span class='line-number'>480</span>
+<span class='line-number'>481</span>
+<span class='line-number'>482</span>
+<span class='line-number'>483</span>
+<span class='line-number'>484</span>
+<span class='line-number'>485</span>
+<span class='line-number'>486</span>
+<span class='line-number'>487</span>
+<span class='line-number'>488</span>
+<span class='line-number'>489</span>
+<span class='line-number'>490</span>
+<span class='line-number'>491</span>
+<span class='line-number'>492</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kn">package</span> <span class="n">com</span><span class="o">.</span><span class="na">badoo</span><span class="o">.</span><span class="na">mobile</span><span class="o">.</span><span class="na">util</span><span class="o">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="kn">import</span> <span class="nn">android.os.Handler</span><span class="o">;</span>
+</span><span class='line'><span class="kn">import</span> <span class="nn">android.os.Looper</span><span class="o">;</span>
+</span><span class='line'><span class="kn">import</span> <span class="nn">android.os.Message</span><span class="o">;</span>
+</span><span class='line'><span class="kn">import</span> <span class="nn">android.support.annotation.NonNull</span><span class="o">;</span>
+</span><span class='line'><span class="kn">import</span> <span class="nn">android.support.annotation.Nullable</span><span class="o">;</span>
+</span><span class='line'><span class="kn">import</span> <span class="nn">android.support.annotation.VisibleForTesting</span><span class="o">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="kn">import</span> <span class="nn">java.lang.ref.WeakReference</span><span class="o">;</span>
+</span><span class='line'><span class="kn">import</span> <span class="nn">java.util.concurrent.locks.Lock</span><span class="o">;</span>
+</span><span class='line'><span class="kn">import</span> <span class="nn">java.util.concurrent.locks.ReentrantLock</span><span class="o">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="cm">/**</span>
+</span><span class='line'><span class="cm"> * Memory safer implementation of android.os.Handler</span>
+</span><span class='line'><span class="cm"> * &lt;p/&gt;</span>
+</span><span class='line'><span class="cm"> * Original implementation of Handlers always keeps hard reference to handler in queue of execution.</span>
+</span><span class='line'><span class="cm"> * If you create anonymous handler and post delayed message into it, it will keep all parent class</span>
+</span><span class='line'><span class="cm"> * for that time in memory even if it could be cleaned.</span>
+</span><span class='line'><span class="cm"> * &lt;p/&gt;</span>
+</span><span class='line'><span class="cm"> * This implementation is trickier, it will keep WeakReferences to runnables and messages,</span>
+</span><span class='line'><span class="cm"> * and GC could collect them once WeakHandler instance is not referenced any more</span>
+</span><span class='line'><span class="cm"> * &lt;p/&gt;</span>
+</span><span class='line'><span class="cm"> *</span>
+</span><span class='line'><span class="cm"> * @see android.os.Handler</span>
+</span><span class='line'><span class="cm"> *</span>
+</span><span class='line'><span class="cm"> * Created by Dmytro Voronkevych on 17/06/2014.</span>
+</span><span class='line'><span class="cm"> */</span>
+</span><span class='line'><span class="nd">@SuppressWarnings</span><span class="o">(</span><span class="s">&quot;unused&quot;</span><span class="o">)</span>
+</span><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">WeakHandler</span> <span class="o">{</span>
+</span><span class='line'>    <span class="kd">private</span> <span class="kd">final</span> <span class="n">Handler</span><span class="o">.</span><span class="na">Callback</span> <span class="n">mCallback</span><span class="o">;</span> <span class="c1">// hard reference to Callback. We need to keep callback in memory</span>
+</span><span class='line'>    <span class="kd">private</span> <span class="kd">final</span> <span class="n">ExecHandler</span> <span class="n">mExec</span><span class="o">;</span>
+</span><span class='line'>    <span class="kd">private</span> <span class="n">Lock</span> <span class="n">mLock</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ReentrantLock</span><span class="o">();</span>
+</span><span class='line'>    <span class="nd">@SuppressWarnings</span><span class="o">(</span><span class="s">&quot;ConstantConditions&quot;</span><span class="o">)</span>
+</span><span class='line'>    <span class="nd">@VisibleForTesting</span>
+</span><span class='line'>    <span class="kd">final</span> <span class="n">ChainedRef</span> <span class="n">mRunnables</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ChainedRef</span><span class="o">(</span><span class="n">mLock</span><span class="o">,</span> <span class="kc">null</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="cm">/**</span>
+</span><span class='line'><span class="cm">     * Default constructor associates this handler with the {@link Looper} for the</span>
+</span><span class='line'><span class="cm">     * current thread.</span>
+</span><span class='line'><span class="cm">     *</span>
+</span><span class='line'><span class="cm">     * If this thread does not have a looper, this handler won&#39;t be able to receive messages</span>
+</span><span class='line'><span class="cm">     * so an exception is thrown.</span>
+</span><span class='line'><span class="cm">     */</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="nf">WeakHandler</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>        <span class="n">mCallback</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+</span><span class='line'>        <span class="n">mExec</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ExecHandler</span><span class="o">();</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="cm">/**</span>
+</span><span class='line'><span class="cm">     * Constructor associates this handler with the {@link Looper} for the</span>
+</span><span class='line'><span class="cm">     * current thread and takes a callback interface in which you can handle</span>
+</span><span class='line'><span class="cm">     * messages.</span>
+</span><span class='line'><span class="cm">     *</span>
+</span><span class='line'><span class="cm">     * If this thread does not have a looper, this handler won&#39;t be able to receive messages</span>
+</span><span class='line'><span class="cm">     * so an exception is thrown.</span>
+</span><span class='line'><span class="cm">     *</span>
+</span><span class='line'><span class="cm">     * @param callback The callback interface in which to handle messages, or null.</span>
+</span><span class='line'><span class="cm">     */</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="nf">WeakHandler</span><span class="o">(</span><span class="nd">@Nullable</span> <span class="n">Handler</span><span class="o">.</span><span class="na">Callback</span> <span class="n">callback</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="n">mCallback</span> <span class="o">=</span> <span class="n">callback</span><span class="o">;</span> <span class="c1">// Hard referencing body</span>
+</span><span class='line'>        <span class="n">mExec</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ExecHandler</span><span class="o">(</span><span class="k">new</span> <span class="n">WeakReference</span><span class="o">&lt;&gt;(</span><span class="n">callback</span><span class="o">));</span> <span class="c1">// Weak referencing inside ExecHandler</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="cm">/**</span>
+</span><span class='line'><span class="cm">     * Use the provided {@link Looper} instead of the default one.</span>
+</span><span class='line'><span class="cm">     *</span>
+</span><span class='line'><span class="cm">     * @param looper The looper, must not be null.</span>
+</span><span class='line'><span class="cm">     */</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="nf">WeakHandler</span><span class="o">(</span><span class="nd">@NonNull</span> <span class="n">Looper</span> <span class="n">looper</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="n">mCallback</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+</span><span class='line'>        <span class="n">mExec</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ExecHandler</span><span class="o">(</span><span class="n">looper</span><span class="o">);</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="cm">/**</span>
+</span><span class='line'><span class="cm">     * Use the provided {@link Looper} instead of the default one and take a callback</span>
+</span><span class='line'><span class="cm">     * interface in which to handle messages.</span>
+</span><span class='line'><span class="cm">     *</span>
+</span><span class='line'><span class="cm">     * @param looper The looper, must not be null.</span>
+</span><span class='line'><span class="cm">     * @param callback The callback interface in which to handle messages, or null.</span>
+</span><span class='line'><span class="cm">     */</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="nf">WeakHandler</span><span class="o">(</span><span class="nd">@NonNull</span> <span class="n">Looper</span> <span class="n">looper</span><span class="o">,</span> <span class="nd">@NonNull</span> <span class="n">Handler</span><span class="o">.</span><span class="na">Callback</span> <span class="n">callback</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="n">mCallback</span> <span class="o">=</span> <span class="n">callback</span><span class="o">;</span>
+</span><span class='line'>        <span class="n">mExec</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ExecHandler</span><span class="o">(</span><span class="n">looper</span><span class="o">,</span> <span class="k">new</span> <span class="n">WeakReference</span><span class="o">&lt;&gt;(</span><span class="n">callback</span><span class="o">));</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="cm">/**</span>
+</span><span class='line'><span class="cm">     * Causes the Runnable r to be added to the message queue.</span>
+</span><span class='line'><span class="cm">     * The runnable will be run on the thread to which this handler is</span>
+</span><span class='line'><span class="cm">     * attached.</span>
+</span><span class='line'><span class="cm">     *</span>
+</span><span class='line'><span class="cm">     * @param r The Runnable that will be executed.</span>
+</span><span class='line'><span class="cm">     *</span>
+</span><span class='line'><span class="cm">     * @return Returns true if the Runnable was successfully placed in to the</span>
+</span><span class='line'><span class="cm">     *         message queue.  Returns false on failure, usually because the</span>
+</span><span class='line'><span class="cm">     *         looper processing the message queue is exiting.</span>
+</span><span class='line'><span class="cm">     */</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="kd">final</span> <span class="kt">boolean</span> <span class="nf">post</span><span class="o">(</span><span class="nd">@NonNull</span> <span class="n">Runnable</span> <span class="n">r</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">mExec</span><span class="o">.</span><span class="na">post</span><span class="o">(</span><span class="n">wrapRunnable</span><span class="o">(</span><span class="n">r</span><span class="o">));</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="cm">/**</span>
+</span><span class='line'><span class="cm">     * Causes the Runnable r to be added to the message queue, to be run</span>
+</span><span class='line'><span class="cm">     * at a specific time given by &lt;var&gt;uptimeMillis&lt;/var&gt;.</span>
+</span><span class='line'><span class="cm">     * &lt;b&gt;The time-base is {@link android.os.SystemClock#uptimeMillis}.&lt;/b&gt;</span>
+</span><span class='line'><span class="cm">     * The runnable will be run on the thread to which this handler is attached.</span>
+</span><span class='line'><span class="cm">     *</span>
+</span><span class='line'><span class="cm">     * @param r The Runnable that will be executed.</span>
+</span><span class='line'><span class="cm">     * @param uptimeMillis The absolute time at which the callback should run,</span>
+</span><span class='line'><span class="cm">     *         using the {@link android.os.SystemClock#uptimeMillis} time-base.</span>
+</span><span class='line'><span class="cm">     *</span>
+</span><span class='line'><span class="cm">     * @return Returns true if the Runnable was successfully placed in to the</span>
+</span><span class='line'><span class="cm">     *         message queue.  Returns false on failure, usually because the</span>
+</span><span class='line'><span class="cm">     *         looper processing the message queue is exiting.  Note that a</span>
+</span><span class='line'><span class="cm">     *         result of true does not mean the Runnable will be processed -- if</span>
+</span><span class='line'><span class="cm">     *         the looper is quit before the delivery time of the message</span>
+</span><span class='line'><span class="cm">     *         occurs then the message will be dropped.</span>
+</span><span class='line'><span class="cm">     */</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="kd">final</span> <span class="kt">boolean</span> <span class="nf">postAtTime</span><span class="o">(</span><span class="nd">@NonNull</span> <span class="n">Runnable</span> <span class="n">r</span><span class="o">,</span> <span class="kt">long</span> <span class="n">uptimeMillis</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">mExec</span><span class="o">.</span><span class="na">postAtTime</span><span class="o">(</span><span class="n">wrapRunnable</span><span class="o">(</span><span class="n">r</span><span class="o">),</span> <span class="n">uptimeMillis</span><span class="o">);</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="cm">/**</span>
+</span><span class='line'><span class="cm">     * Causes the Runnable r to be added to the message queue, to be run</span>
+</span><span class='line'><span class="cm">     * at a specific time given by &lt;var&gt;uptimeMillis&lt;/var&gt;.</span>
+</span><span class='line'><span class="cm">     * &lt;b&gt;The time-base is {@link android.os.SystemClock#uptimeMillis}.&lt;/b&gt;</span>
+</span><span class='line'><span class="cm">     * The runnable will be run on the thread to which this handler is attached.</span>
+</span><span class='line'><span class="cm">     *</span>
+</span><span class='line'><span class="cm">     * @param r The Runnable that will be executed.</span>
+</span><span class='line'><span class="cm">     * @param uptimeMillis The absolute time at which the callback should run,</span>
+</span><span class='line'><span class="cm">     *         using the {@link android.os.SystemClock#uptimeMillis} time-base.</span>
+</span><span class='line'><span class="cm">     *</span>
+</span><span class='line'><span class="cm">     * @return Returns true if the Runnable was successfully placed in to the</span>
+</span><span class='line'><span class="cm">     *         message queue.  Returns false on failure, usually because the</span>
+</span><span class='line'><span class="cm">     *         looper processing the message queue is exiting.  Note that a</span>
+</span><span class='line'><span class="cm">     *         result of true does not mean the Runnable will be processed -- if</span>
+</span><span class='line'><span class="cm">     *         the looper is quit before the delivery time of the message</span>
+</span><span class='line'><span class="cm">     *         occurs then the message will be dropped.</span>
+</span><span class='line'><span class="cm">     *</span>
+</span><span class='line'><span class="cm">     * @see android.os.SystemClock#uptimeMillis</span>
+</span><span class='line'><span class="cm">     */</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="kd">final</span> <span class="kt">boolean</span> <span class="nf">postAtTime</span><span class="o">(</span><span class="n">Runnable</span> <span class="n">r</span><span class="o">,</span> <span class="n">Object</span> <span class="n">token</span><span class="o">,</span> <span class="kt">long</span> <span class="n">uptimeMillis</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">mExec</span><span class="o">.</span><span class="na">postAtTime</span><span class="o">(</span><span class="n">wrapRunnable</span><span class="o">(</span><span class="n">r</span><span class="o">),</span> <span class="n">token</span><span class="o">,</span> <span class="n">uptimeMillis</span><span class="o">);</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="cm">/**</span>
+</span><span class='line'><span class="cm">     * Causes the Runnable r to be added to the message queue, to be run</span>
+</span><span class='line'><span class="cm">     * after the specified amount of time elapses.</span>
+</span><span class='line'><span class="cm">     * The runnable will be run on the thread to which this handler</span>
+</span><span class='line'><span class="cm">     * is attached.</span>
+</span><span class='line'><span class="cm">     *</span>
+</span><span class='line'><span class="cm">     * @param r The Runnable that will be executed.</span>
+</span><span class='line'><span class="cm">     * @param delayMillis The delay (in milliseconds) until the Runnable</span>
+</span><span class='line'><span class="cm">     *        will be executed.</span>
+</span><span class='line'><span class="cm">     *</span>
+</span><span class='line'><span class="cm">     * @return Returns true if the Runnable was successfully placed in to the</span>
+</span><span class='line'><span class="cm">     *         message queue.  Returns false on failure, usually because the</span>
+</span><span class='line'><span class="cm">     *         looper processing the message queue is exiting.  Note that a</span>
+</span><span class='line'><span class="cm">     *         result of true does not mean the Runnable will be processed --</span>
+</span><span class='line'><span class="cm">     *         if the looper is quit before the delivery time of the message</span>
+</span><span class='line'><span class="cm">     *         occurs then the message will be dropped.</span>
+</span><span class='line'><span class="cm">     */</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="kd">final</span> <span class="kt">boolean</span> <span class="nf">postDelayed</span><span class="o">(</span><span class="n">Runnable</span> <span class="n">r</span><span class="o">,</span> <span class="kt">long</span> <span class="n">delayMillis</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">mExec</span><span class="o">.</span><span class="na">postDelayed</span><span class="o">(</span><span class="n">wrapRunnable</span><span class="o">(</span><span class="n">r</span><span class="o">),</span> <span class="n">delayMillis</span><span class="o">);</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="cm">/**</span>
+</span><span class='line'><span class="cm">     * Posts a message to an object that implements Runnable.</span>
+</span><span class='line'><span class="cm">     * Causes the Runnable r to executed on the next iteration through the</span>
+</span><span class='line'><span class="cm">     * message queue. The runnable will be run on the thread to which this</span>
+</span><span class='line'><span class="cm">     * handler is attached.</span>
+</span><span class='line'><span class="cm">     * &lt;b&gt;This method is only for use in very special circumstances -- it</span>
+</span><span class='line'><span class="cm">     * can easily starve the message queue, cause ordering problems, or have</span>
+</span><span class='line'><span class="cm">     * other unexpected side-effects.&lt;/b&gt;</span>
+</span><span class='line'><span class="cm">     *</span>
+</span><span class='line'><span class="cm">     * @param r The Runnable that will be executed.</span>
+</span><span class='line'><span class="cm">     *</span>
+</span><span class='line'><span class="cm">     * @return Returns true if the message was successfully placed in to the</span>
+</span><span class='line'><span class="cm">     *         message queue.  Returns false on failure, usually because the</span>
+</span><span class='line'><span class="cm">     *         looper processing the message queue is exiting.</span>
+</span><span class='line'><span class="cm">     */</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="kd">final</span> <span class="kt">boolean</span> <span class="nf">postAtFrontOfQueue</span><span class="o">(</span><span class="n">Runnable</span> <span class="n">r</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">mExec</span><span class="o">.</span><span class="na">postAtFrontOfQueue</span><span class="o">(</span><span class="n">wrapRunnable</span><span class="o">(</span><span class="n">r</span><span class="o">));</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="cm">/**</span>
+</span><span class='line'><span class="cm">     * Remove any pending posts of Runnable r that are in the message queue.</span>
+</span><span class='line'><span class="cm">     */</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="kd">final</span> <span class="kt">void</span> <span class="nf">removeCallbacks</span><span class="o">(</span><span class="n">Runnable</span> <span class="n">r</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="kd">final</span> <span class="n">WeakRunnable</span> <span class="n">runnable</span> <span class="o">=</span> <span class="n">mRunnables</span><span class="o">.</span><span class="na">remove</span><span class="o">(</span><span class="n">r</span><span class="o">);</span>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(</span><span class="n">runnable</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">mExec</span><span class="o">.</span><span class="na">removeCallbacks</span><span class="o">(</span><span class="n">runnable</span><span class="o">);</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="cm">/**</span>
+</span><span class='line'><span class="cm">     * Remove any pending posts of Runnable &lt;var&gt;r&lt;/var&gt; with Object</span>
+</span><span class='line'><span class="cm">     * &lt;var&gt;token&lt;/var&gt; that are in the message queue.  If &lt;var&gt;token&lt;/var&gt; is null,</span>
+</span><span class='line'><span class="cm">     * all callbacks will be removed.</span>
+</span><span class='line'><span class="cm">     */</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="kd">final</span> <span class="kt">void</span> <span class="nf">removeCallbacks</span><span class="o">(</span><span class="n">Runnable</span> <span class="n">r</span><span class="o">,</span> <span class="n">Object</span> <span class="n">token</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="kd">final</span> <span class="n">WeakRunnable</span> <span class="n">runnable</span> <span class="o">=</span> <span class="n">mRunnables</span><span class="o">.</span><span class="na">remove</span><span class="o">(</span><span class="n">r</span><span class="o">);</span>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(</span><span class="n">runnable</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">mExec</span><span class="o">.</span><span class="na">removeCallbacks</span><span class="o">(</span><span class="n">runnable</span><span class="o">,</span> <span class="n">token</span><span class="o">);</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="cm">/**</span>
+</span><span class='line'><span class="cm">     * Pushes a message onto the end of the message queue after all pending messages</span>
+</span><span class='line'><span class="cm">     * before the current time. It will be received in callback,</span>
+</span><span class='line'><span class="cm">     * in the thread attached to this handler.</span>
+</span><span class='line'><span class="cm">     *</span>
+</span><span class='line'><span class="cm">     * @return Returns true if the message was successfully placed in to the</span>
+</span><span class='line'><span class="cm">     *         message queue.  Returns false on failure, usually because the</span>
+</span><span class='line'><span class="cm">     *         looper processing the message queue is exiting.</span>
+</span><span class='line'><span class="cm">     */</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="kd">final</span> <span class="kt">boolean</span> <span class="nf">sendMessage</span><span class="o">(</span><span class="n">Message</span> <span class="n">msg</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">mExec</span><span class="o">.</span><span class="na">sendMessage</span><span class="o">(</span><span class="n">msg</span><span class="o">);</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="cm">/**</span>
+</span><span class='line'><span class="cm">     * Sends a Message containing only the what value.</span>
+</span><span class='line'><span class="cm">     *</span>
+</span><span class='line'><span class="cm">     * @return Returns true if the message was successfully placed in to the</span>
+</span><span class='line'><span class="cm">     *         message queue.  Returns false on failure, usually because the</span>
+</span><span class='line'><span class="cm">     *         looper processing the message queue is exiting.</span>
+</span><span class='line'><span class="cm">     */</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="kd">final</span> <span class="kt">boolean</span> <span class="nf">sendEmptyMessage</span><span class="o">(</span><span class="kt">int</span> <span class="n">what</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">mExec</span><span class="o">.</span><span class="na">sendEmptyMessage</span><span class="o">(</span><span class="n">what</span><span class="o">);</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="cm">/**</span>
+</span><span class='line'><span class="cm">     * Sends a Message containing only the what value, to be delivered</span>
+</span><span class='line'><span class="cm">     * after the specified amount of time elapses.</span>
+</span><span class='line'><span class="cm">     * @see #sendMessageDelayed(android.os.Message, long)</span>
+</span><span class='line'><span class="cm">     *</span>
+</span><span class='line'><span class="cm">     * @return Returns true if the message was successfully placed in to the</span>
+</span><span class='line'><span class="cm">     *         message queue.  Returns false on failure, usually because the</span>
+</span><span class='line'><span class="cm">     *         looper processing the message queue is exiting.</span>
+</span><span class='line'><span class="cm">     */</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="kd">final</span> <span class="kt">boolean</span> <span class="nf">sendEmptyMessageDelayed</span><span class="o">(</span><span class="kt">int</span> <span class="n">what</span><span class="o">,</span> <span class="kt">long</span> <span class="n">delayMillis</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">mExec</span><span class="o">.</span><span class="na">sendEmptyMessageDelayed</span><span class="o">(</span><span class="n">what</span><span class="o">,</span> <span class="n">delayMillis</span><span class="o">);</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="cm">/**</span>
+</span><span class='line'><span class="cm">     * Sends a Message containing only the what value, to be delivered</span>
+</span><span class='line'><span class="cm">     * at a specific time.</span>
+</span><span class='line'><span class="cm">     * @see #sendMessageAtTime(android.os.Message, long)</span>
+</span><span class='line'><span class="cm">     *</span>
+</span><span class='line'><span class="cm">     * @return Returns true if the message was successfully placed in to the</span>
+</span><span class='line'><span class="cm">     *         message queue.  Returns false on failure, usually because the</span>
+</span><span class='line'><span class="cm">     *         looper processing the message queue is exiting.</span>
+</span><span class='line'><span class="cm">     */</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="kd">final</span> <span class="kt">boolean</span> <span class="nf">sendEmptyMessageAtTime</span><span class="o">(</span><span class="kt">int</span> <span class="n">what</span><span class="o">,</span> <span class="kt">long</span> <span class="n">uptimeMillis</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">mExec</span><span class="o">.</span><span class="na">sendEmptyMessageAtTime</span><span class="o">(</span><span class="n">what</span><span class="o">,</span> <span class="n">uptimeMillis</span><span class="o">);</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="cm">/**</span>
+</span><span class='line'><span class="cm">     * Enqueue a message into the message queue after all pending messages</span>
+</span><span class='line'><span class="cm">     * before (current time + delayMillis). You will receive it in</span>
+</span><span class='line'><span class="cm">     * callback, in the thread attached to this handler.</span>
+</span><span class='line'><span class="cm">     *</span>
+</span><span class='line'><span class="cm">     * @return Returns true if the message was successfully placed in to the</span>
+</span><span class='line'><span class="cm">     *         message queue.  Returns false on failure, usually because the</span>
+</span><span class='line'><span class="cm">     *         looper processing the message queue is exiting.  Note that a</span>
+</span><span class='line'><span class="cm">     *         result of true does not mean the message will be processed -- if</span>
+</span><span class='line'><span class="cm">     *         the looper is quit before the delivery time of the message</span>
+</span><span class='line'><span class="cm">     *         occurs then the message will be dropped.</span>
+</span><span class='line'><span class="cm">     */</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="kd">final</span> <span class="kt">boolean</span> <span class="nf">sendMessageDelayed</span><span class="o">(</span><span class="n">Message</span> <span class="n">msg</span><span class="o">,</span> <span class="kt">long</span> <span class="n">delayMillis</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">mExec</span><span class="o">.</span><span class="na">sendMessageDelayed</span><span class="o">(</span><span class="n">msg</span><span class="o">,</span> <span class="n">delayMillis</span><span class="o">);</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="cm">/**</span>
+</span><span class='line'><span class="cm">     * Enqueue a message into the message queue after all pending messages</span>
+</span><span class='line'><span class="cm">     * before the absolute time (in milliseconds) &lt;var&gt;uptimeMillis&lt;/var&gt;.</span>
+</span><span class='line'><span class="cm">     * &lt;b&gt;The time-base is {@link android.os.SystemClock#uptimeMillis}.&lt;/b&gt;</span>
+</span><span class='line'><span class="cm">     * You will receive it in callback, in the thread attached</span>
+</span><span class='line'><span class="cm">     * to this handler.</span>
+</span><span class='line'><span class="cm">     *</span>
+</span><span class='line'><span class="cm">     * @param uptimeMillis The absolute time at which the message should be</span>
+</span><span class='line'><span class="cm">     *         delivered, using the</span>
+</span><span class='line'><span class="cm">     *         {@link android.os.SystemClock#uptimeMillis} time-base.</span>
+</span><span class='line'><span class="cm">     *</span>
+</span><span class='line'><span class="cm">     * @return Returns true if the message was successfully placed in to the</span>
+</span><span class='line'><span class="cm">     *         message queue.  Returns false on failure, usually because the</span>
+</span><span class='line'><span class="cm">     *         looper processing the message queue is exiting.  Note that a</span>
+</span><span class='line'><span class="cm">     *         result of true does not mean the message will be processed -- if</span>
+</span><span class='line'><span class="cm">     *         the looper is quit before the delivery time of the message</span>
+</span><span class='line'><span class="cm">     *         occurs then the message will be dropped.</span>
+</span><span class='line'><span class="cm">     */</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="kt">boolean</span> <span class="nf">sendMessageAtTime</span><span class="o">(</span><span class="n">Message</span> <span class="n">msg</span><span class="o">,</span> <span class="kt">long</span> <span class="n">uptimeMillis</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">mExec</span><span class="o">.</span><span class="na">sendMessageAtTime</span><span class="o">(</span><span class="n">msg</span><span class="o">,</span> <span class="n">uptimeMillis</span><span class="o">);</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="cm">/**</span>
+</span><span class='line'><span class="cm">     * Enqueue a message at the front of the message queue, to be processed on</span>
+</span><span class='line'><span class="cm">     * the next iteration of the message loop.  You will receive it in</span>
+</span><span class='line'><span class="cm">     * callback, in the thread attached to this handler.</span>
+</span><span class='line'><span class="cm">     * &lt;b&gt;This method is only for use in very special circumstances -- it</span>
+</span><span class='line'><span class="cm">     * can easily starve the message queue, cause ordering problems, or have</span>
+</span><span class='line'><span class="cm">     * other unexpected side-effects.&lt;/b&gt;</span>
+</span><span class='line'><span class="cm">     *</span>
+</span><span class='line'><span class="cm">     * @return Returns true if the message was successfully placed in to the</span>
+</span><span class='line'><span class="cm">     *         message queue.  Returns false on failure, usually because the</span>
+</span><span class='line'><span class="cm">     *         looper processing the message queue is exiting.</span>
+</span><span class='line'><span class="cm">     */</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="kd">final</span> <span class="kt">boolean</span> <span class="nf">sendMessageAtFrontOfQueue</span><span class="o">(</span><span class="n">Message</span> <span class="n">msg</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">mExec</span><span class="o">.</span><span class="na">sendMessageAtFrontOfQueue</span><span class="o">(</span><span class="n">msg</span><span class="o">);</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="cm">/**</span>
+</span><span class='line'><span class="cm">     * Remove any pending posts of messages with code &#39;what&#39; that are in the</span>
+</span><span class='line'><span class="cm">     * message queue.</span>
+</span><span class='line'><span class="cm">     */</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="kd">final</span> <span class="kt">void</span> <span class="nf">removeMessages</span><span class="o">(</span><span class="kt">int</span> <span class="n">what</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="n">mExec</span><span class="o">.</span><span class="na">removeMessages</span><span class="o">(</span><span class="n">what</span><span class="o">);</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="cm">/**</span>
+</span><span class='line'><span class="cm">     * Remove any pending posts of messages with code &#39;what&#39; and whose obj is</span>
+</span><span class='line'><span class="cm">     * &#39;object&#39; that are in the message queue.  If &lt;var&gt;object&lt;/var&gt; is null,</span>
+</span><span class='line'><span class="cm">     * all messages will be removed.</span>
+</span><span class='line'><span class="cm">     */</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="kd">final</span> <span class="kt">void</span> <span class="nf">removeMessages</span><span class="o">(</span><span class="kt">int</span> <span class="n">what</span><span class="o">,</span> <span class="n">Object</span> <span class="n">object</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="n">mExec</span><span class="o">.</span><span class="na">removeMessages</span><span class="o">(</span><span class="n">what</span><span class="o">,</span> <span class="n">object</span><span class="o">);</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="cm">/**</span>
+</span><span class='line'><span class="cm">     * Remove any pending posts of callbacks and sent messages whose</span>
+</span><span class='line'><span class="cm">     * &lt;var&gt;obj&lt;/var&gt; is &lt;var&gt;token&lt;/var&gt;.  If &lt;var&gt;token&lt;/var&gt; is null,</span>
+</span><span class='line'><span class="cm">     * all callbacks and messages will be removed.</span>
+</span><span class='line'><span class="cm">     */</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="kd">final</span> <span class="kt">void</span> <span class="nf">removeCallbacksAndMessages</span><span class="o">(</span><span class="n">Object</span> <span class="n">token</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="n">mExec</span><span class="o">.</span><span class="na">removeCallbacksAndMessages</span><span class="o">(</span><span class="n">token</span><span class="o">);</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="cm">/**</span>
+</span><span class='line'><span class="cm">     * Check if there are any pending posts of messages with code &#39;what&#39; in</span>
+</span><span class='line'><span class="cm">     * the message queue.</span>
+</span><span class='line'><span class="cm">     */</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="kd">final</span> <span class="kt">boolean</span> <span class="nf">hasMessages</span><span class="o">(</span><span class="kt">int</span> <span class="n">what</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">mExec</span><span class="o">.</span><span class="na">hasMessages</span><span class="o">(</span><span class="n">what</span><span class="o">);</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="cm">/**</span>
+</span><span class='line'><span class="cm">     * Check if there are any pending posts of messages with code &#39;what&#39; and</span>
+</span><span class='line'><span class="cm">     * whose obj is &#39;object&#39; in the message queue.</span>
+</span><span class='line'><span class="cm">     */</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="kd">final</span> <span class="kt">boolean</span> <span class="nf">hasMessages</span><span class="o">(</span><span class="kt">int</span> <span class="n">what</span><span class="o">,</span> <span class="n">Object</span> <span class="n">object</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">mExec</span><span class="o">.</span><span class="na">hasMessages</span><span class="o">(</span><span class="n">what</span><span class="o">,</span> <span class="n">object</span><span class="o">);</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="kd">public</span> <span class="kd">final</span> <span class="n">Looper</span> <span class="nf">getLooper</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">mExec</span><span class="o">.</span><span class="na">getLooper</span><span class="o">();</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="kd">private</span> <span class="n">WeakRunnable</span> <span class="nf">wrapRunnable</span><span class="o">(</span><span class="nd">@NonNull</span> <span class="n">Runnable</span> <span class="n">r</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="c1">//noinspection ConstantConditions</span>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(</span><span class="n">r</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="k">throw</span> <span class="k">new</span> <span class="nf">NullPointerException</span><span class="o">(</span><span class="s">&quot;Runnable can&#39;t be null&quot;</span><span class="o">);</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>        <span class="kd">final</span> <span class="n">ChainedRef</span> <span class="n">hardRef</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ChainedRef</span><span class="o">(</span><span class="n">mLock</span><span class="o">,</span> <span class="n">r</span><span class="o">);</span>
+</span><span class='line'>        <span class="n">mRunnables</span><span class="o">.</span><span class="na">insertAfter</span><span class="o">(</span><span class="n">hardRef</span><span class="o">);</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">hardRef</span><span class="o">.</span><span class="na">wrapper</span><span class="o">;</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="kd">private</span> <span class="kd">static</span> <span class="kd">class</span> <span class="nc">ExecHandler</span> <span class="kd">extends</span> <span class="n">Handler</span> <span class="o">{</span>
+</span><span class='line'>        <span class="kd">private</span> <span class="kd">final</span> <span class="n">WeakReference</span><span class="o">&lt;</span><span class="n">Handler</span><span class="o">.</span><span class="na">Callback</span><span class="o">&gt;</span> <span class="n">mCallback</span><span class="o">;</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="n">ExecHandler</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">mCallback</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="n">ExecHandler</span><span class="o">(</span><span class="n">WeakReference</span><span class="o">&lt;</span><span class="n">Handler</span><span class="o">.</span><span class="na">Callback</span><span class="o">&gt;</span> <span class="n">callback</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">mCallback</span> <span class="o">=</span> <span class="n">callback</span><span class="o">;</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="n">ExecHandler</span><span class="o">(</span><span class="n">Looper</span> <span class="n">looper</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="kd">super</span><span class="o">(</span><span class="n">looper</span><span class="o">);</span>
+</span><span class='line'>            <span class="n">mCallback</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="n">ExecHandler</span><span class="o">(</span><span class="n">Looper</span> <span class="n">looper</span><span class="o">,</span> <span class="n">WeakReference</span><span class="o">&lt;</span><span class="n">Handler</span><span class="o">.</span><span class="na">Callback</span><span class="o">&gt;</span> <span class="n">callback</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="kd">super</span><span class="o">(</span><span class="n">looper</span><span class="o">);</span>
+</span><span class='line'>            <span class="n">mCallback</span> <span class="o">=</span> <span class="n">callback</span><span class="o">;</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="nd">@Override</span>
+</span><span class='line'>        <span class="kd">public</span> <span class="kt">void</span> <span class="nf">handleMessage</span><span class="o">(</span><span class="nd">@NonNull</span> <span class="n">Message</span> <span class="n">msg</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="k">if</span> <span class="o">(</span><span class="n">mCallback</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>                <span class="k">return</span><span class="o">;</span>
+</span><span class='line'>            <span class="o">}</span>
+</span><span class='line'>            <span class="kd">final</span> <span class="n">Handler</span><span class="o">.</span><span class="na">Callback</span> <span class="n">callback</span> <span class="o">=</span> <span class="n">mCallback</span><span class="o">.</span><span class="na">get</span><span class="o">();</span>
+</span><span class='line'>            <span class="k">if</span> <span class="o">(</span><span class="n">callback</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span> <span class="c1">// Already disposed</span>
+</span><span class='line'>                <span class="k">return</span><span class="o">;</span>
+</span><span class='line'>            <span class="o">}</span>
+</span><span class='line'>            <span class="n">callback</span><span class="o">.</span><span class="na">handleMessage</span><span class="o">(</span><span class="n">msg</span><span class="o">);</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="kd">static</span> <span class="kd">class</span> <span class="nc">WeakRunnable</span> <span class="kd">implements</span> <span class="n">Runnable</span> <span class="o">{</span>
+</span><span class='line'>        <span class="kd">private</span> <span class="kd">final</span> <span class="n">WeakReference</span><span class="o">&lt;</span><span class="n">Runnable</span><span class="o">&gt;</span> <span class="n">mDelegate</span><span class="o">;</span>
+</span><span class='line'>        <span class="kd">private</span> <span class="kd">final</span> <span class="n">WeakReference</span><span class="o">&lt;</span><span class="n">ChainedRef</span><span class="o">&gt;</span> <span class="n">mReference</span><span class="o">;</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="n">WeakRunnable</span><span class="o">(</span><span class="n">WeakReference</span><span class="o">&lt;</span><span class="n">Runnable</span><span class="o">&gt;</span> <span class="n">delegate</span><span class="o">,</span> <span class="n">WeakReference</span><span class="o">&lt;</span><span class="n">ChainedRef</span><span class="o">&gt;</span> <span class="n">reference</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">mDelegate</span> <span class="o">=</span> <span class="n">delegate</span><span class="o">;</span>
+</span><span class='line'>            <span class="n">mReference</span> <span class="o">=</span> <span class="n">reference</span><span class="o">;</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="nd">@Override</span>
+</span><span class='line'>        <span class="kd">public</span> <span class="kt">void</span> <span class="nf">run</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>            <span class="kd">final</span> <span class="n">Runnable</span> <span class="n">delegate</span> <span class="o">=</span> <span class="n">mDelegate</span><span class="o">.</span><span class="na">get</span><span class="o">();</span>
+</span><span class='line'>            <span class="kd">final</span> <span class="n">ChainedRef</span> <span class="n">reference</span> <span class="o">=</span> <span class="n">mReference</span><span class="o">.</span><span class="na">get</span><span class="o">();</span>
+</span><span class='line'>            <span class="k">if</span> <span class="o">(</span><span class="n">reference</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>                <span class="n">reference</span><span class="o">.</span><span class="na">remove</span><span class="o">();</span>
+</span><span class='line'>            <span class="o">}</span>
+</span><span class='line'>            <span class="k">if</span> <span class="o">(</span><span class="n">delegate</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>                <span class="n">delegate</span><span class="o">.</span><span class="na">run</span><span class="o">();</span>
+</span><span class='line'>            <span class="o">}</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="kd">static</span> <span class="kd">class</span> <span class="nc">ChainedRef</span> <span class="o">{</span>
+</span><span class='line'>        <span class="nd">@Nullable</span>
+</span><span class='line'>        <span class="n">ChainedRef</span> <span class="n">next</span><span class="o">;</span>
+</span><span class='line'>        <span class="nd">@Nullable</span>
+</span><span class='line'>        <span class="n">ChainedRef</span> <span class="n">prev</span><span class="o">;</span>
+</span><span class='line'>        <span class="nd">@NonNull</span>
+</span><span class='line'>        <span class="kd">final</span> <span class="n">Runnable</span> <span class="n">runnable</span><span class="o">;</span>
+</span><span class='line'>        <span class="nd">@NonNull</span>
+</span><span class='line'>        <span class="kd">final</span> <span class="n">WeakRunnable</span> <span class="n">wrapper</span><span class="o">;</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="nd">@NonNull</span>
+</span><span class='line'>        <span class="n">Lock</span> <span class="n">lock</span><span class="o">;</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="kd">public</span> <span class="nf">ChainedRef</span><span class="o">(</span><span class="nd">@NonNull</span> <span class="n">Lock</span> <span class="n">lock</span><span class="o">,</span> <span class="nd">@NonNull</span> <span class="n">Runnable</span> <span class="n">r</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="k">this</span><span class="o">.</span><span class="na">runnable</span> <span class="o">=</span> <span class="n">r</span><span class="o">;</span>
+</span><span class='line'>            <span class="k">this</span><span class="o">.</span><span class="na">lock</span> <span class="o">=</span> <span class="n">lock</span><span class="o">;</span>
+</span><span class='line'>            <span class="k">this</span><span class="o">.</span><span class="na">wrapper</span> <span class="o">=</span> <span class="k">new</span> <span class="n">WeakRunnable</span><span class="o">(</span><span class="k">new</span> <span class="n">WeakReference</span><span class="o">&lt;&gt;(</span><span class="n">r</span><span class="o">),</span> <span class="k">new</span> <span class="n">WeakReference</span><span class="o">&lt;&gt;(</span><span class="k">this</span><span class="o">));</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="kd">public</span> <span class="n">WeakRunnable</span> <span class="nf">remove</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">lock</span><span class="o">.</span><span class="na">lock</span><span class="o">();</span>
+</span><span class='line'>            <span class="k">try</span> <span class="o">{</span>
+</span><span class='line'>                <span class="k">if</span> <span class="o">(</span><span class="n">prev</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>                    <span class="n">prev</span><span class="o">.</span><span class="na">next</span> <span class="o">=</span> <span class="n">next</span><span class="o">;</span>
+</span><span class='line'>                <span class="o">}</span>
+</span><span class='line'>                <span class="k">if</span> <span class="o">(</span><span class="n">next</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>                    <span class="n">next</span><span class="o">.</span><span class="na">prev</span> <span class="o">=</span> <span class="n">prev</span><span class="o">;</span>
+</span><span class='line'>                <span class="o">}</span>
+</span><span class='line'>                <span class="n">prev</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+</span><span class='line'>                <span class="n">next</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+</span><span class='line'>            <span class="o">}</span> <span class="k">finally</span> <span class="o">{</span>
+</span><span class='line'>                <span class="n">lock</span><span class="o">.</span><span class="na">unlock</span><span class="o">();</span>
+</span><span class='line'>            <span class="o">}</span>
+</span><span class='line'>            <span class="k">return</span> <span class="n">wrapper</span><span class="o">;</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="kd">public</span> <span class="kt">void</span> <span class="nf">insertAfter</span><span class="o">(</span><span class="nd">@NonNull</span> <span class="n">ChainedRef</span> <span class="n">candidate</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">lock</span><span class="o">.</span><span class="na">lock</span><span class="o">();</span>
+</span><span class='line'>            <span class="k">try</span> <span class="o">{</span>
+</span><span class='line'>                <span class="k">if</span> <span class="o">(</span><span class="k">this</span><span class="o">.</span><span class="na">next</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>                    <span class="k">this</span><span class="o">.</span><span class="na">next</span><span class="o">.</span><span class="na">prev</span> <span class="o">=</span> <span class="n">candidate</span><span class="o">;</span>
+</span><span class='line'>                <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>                <span class="n">candidate</span><span class="o">.</span><span class="na">next</span> <span class="o">=</span> <span class="k">this</span><span class="o">.</span><span class="na">next</span><span class="o">;</span>
+</span><span class='line'>                <span class="k">this</span><span class="o">.</span><span class="na">next</span> <span class="o">=</span> <span class="n">candidate</span><span class="o">;</span>
+</span><span class='line'>                <span class="n">candidate</span><span class="o">.</span><span class="na">prev</span> <span class="o">=</span> <span class="k">this</span><span class="o">;</span>
+</span><span class='line'>            <span class="o">}</span> <span class="k">finally</span> <span class="o">{</span>
+</span><span class='line'>                <span class="n">lock</span><span class="o">.</span><span class="na">unlock</span><span class="o">();</span>
+</span><span class='line'>            <span class="o">}</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="nd">@Nullable</span>
+</span><span class='line'>        <span class="kd">public</span> <span class="n">WeakRunnable</span> <span class="nf">remove</span><span class="o">(</span><span class="n">Runnable</span> <span class="n">obj</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">lock</span><span class="o">.</span><span class="na">lock</span><span class="o">();</span>
+</span><span class='line'>            <span class="k">try</span> <span class="o">{</span>
+</span><span class='line'>                <span class="n">ChainedRef</span> <span class="n">curr</span> <span class="o">=</span> <span class="k">this</span><span class="o">.</span><span class="na">next</span><span class="o">;</span> <span class="c1">// Skipping head</span>
+</span><span class='line'>                <span class="k">while</span> <span class="o">(</span><span class="n">curr</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>                    <span class="k">if</span> <span class="o">(</span><span class="n">curr</span><span class="o">.</span><span class="na">runnable</span> <span class="o">==</span> <span class="n">obj</span><span class="o">)</span> <span class="o">{</span> <span class="c1">// We do comparison exactly how Handler does inside</span>
+</span><span class='line'>                        <span class="k">return</span> <span class="n">curr</span><span class="o">.</span><span class="na">remove</span><span class="o">();</span>
+</span><span class='line'>                    <span class="o">}</span>
+</span><span class='line'>                    <span class="n">curr</span> <span class="o">=</span> <span class="n">curr</span><span class="o">.</span><span class="na">next</span><span class="o">;</span>
+</span><span class='line'>                <span class="o">}</span>
+</span><span class='line'>            <span class="o">}</span> <span class="k">finally</span> <span class="o">{</span>
+</span><span class='line'>                <span class="n">lock</span><span class="o">.</span><span class="na">unlock</span><span class="o">();</span>
+</span><span class='line'>            <span class="o">}</span>
+</span><span class='line'>            <span class="k">return</span> <span class="kc">null</span><span class="o">;</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>reference</h2>
+
+<ul>
+<li><a href="https://techblog.badoo.com/blog/2014/08/28/android-handler-memory-leaks">Android Handler Memory Leaks</a></li>
+</ul>
+
+</div>
+<div class="entry-content">
+<center><img src="/images/by.png" />除非另有声明，本网站采用<a href="http://creativecommons.org/licenses/by/3.0/cn/" rel="license">知识共享“署名 3.0 中国大陆”许可协议</a>授权。</center>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Solarex</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2016-02-25T19:58:00+08:00" pubdate data-updated="true">Feb 25<span>th</span>, 2016</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/android/'>android</a>, <a class='category' href='/blog/categories/dev/'>dev</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+    <!-- JiaThis Button BEGIN -->
+    <div class="jiathis_style_32x32">
+        <a class="jiathis_button_tsina"></a>
+        <a class="jiathis_button_weixin"></a>
+        <a class="jiathis_button_douban"></a>
+        <a class="jiathis_button_fanfou"></a>
+        <a class="jiathis_button_evernote"></a>
+        <a class="jiathis_button_delicious"></a>
+        <a class="jiathis_button_renren"></a>
+        <a class="jiathis_button_tqq"></a>
+        <a class="jiathis_button_qzone"></a>
+        <a href="http://www.jiathis.com/share" class="jiathis jiathis_txt jiathis_separator jtico jtico_jiathis" target="_blank"></a>
+        <a class="jiathis_counter_style"></a>
+    </div>
+    <script type="text/javascript" >
+        var jiathis_config={
+summary:"",
+        hideMore:false
+        }
+</script>
+<script type="text/javascript" src="http://v3.jiathis.com/code/jia.js" charset="utf-8"></script>
+<!-- JiaThis Button END -->
+  </div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2016/02/12/recyclerview-animation-part-ii/" title="Previous Post: RecyclerView Animation part II">&laquo; RecyclerView Animation part II</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2016/03/13/the-clean-architecture/" title="Next Post: The Clean Architecture">The Clean Architecture &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+
+<section id="comment">
+<!-- Duoshuo Comment BEGIN -->
+	<div class="ds-thread"></div>
+<script type="text/javascript">
+var duoshuoQuery = {short_name:"solarex"};
+	(function() {
+		var ds = document.createElement('script');
+		ds.type = 'text/javascript';ds.async = true;
+		ds.src = 'http://static.duoshuo.com/embed.js';
+		ds.charset = 'UTF-8';
+		(document.getElementsByTagName('head')[0] 
+		|| document.getElementsByTagName('body')[0]).appendChild(ds);
+	})();
+	</script>
+<!-- Duoshuo Comment END -->
+</section>
+
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2016/03/14/mobile-apps-offline-support/">Mobile Apps Offline Support</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/03/13/the-clean-architecture/">The Clean Architecture</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/02/25/android-handler-memory-leaks/">Android Handler Memory Leaks</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/02/12/recyclerview-animation-part-ii/">RecyclerView Animation part II</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/02/11/recyclerview-animation-part-i/">RecyclerView Animation part I</a>
+      </li>
+    
+  </ul>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2016 - Solarex -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a> | Themed with <a href="https://github.com/lucaslew/whitespace">Whitespace</a></span>
+</p>
+
+
+<script type="text/javascript">
+    var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+    document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/h.js%3F2574e8b2c205dfe8ff89e239fa38ca27' type='text/javascript'%3E%3C/script%3E"));
+</script>
+
+
+</footer>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

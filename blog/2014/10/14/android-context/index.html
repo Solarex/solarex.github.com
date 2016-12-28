@@ -1,0 +1,483 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Android Context - Solarex's Blog</title>
+  <meta name="author" content="Solarex">
+
+  
+  <meta name="description" content="Context is probably the most used element in Android applications…it may also be the most misused.Context objects are so common, and get passed &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://Solarex.github.io/blog/2014/10/14/android-context">
+  <link href="/favicon.ico" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Solarex's Blog" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <!--
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  -->
+  <script src="http://libs.baidu.com/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.useso.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href='http://fonts.useso.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
+<link href='http://fonts.useso.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+
+</head>
+
+<body   class="collapse-sidebar sidebar-footer" >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Solarex's Blog</a></h1>
+  
+    <h2>Yet Another Blog 4 Solarex</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:Solarex.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+    <li><a href="/">Blog</a></li>
+    <li><a href="/blog/archives">Archives</a></li>
+    <li><a href="/projects">Projects</a></li>
+	<li><a href="https://solarex.github.io/wiki">Wiki</a></li>
+    <li><a href="/about">About</a></li>
+	<li><a href="https://solarex.github.io/resume">Resume</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Android Context</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-10-14T10:11:00+08:00" pubdate data-updated="true">Oct 14<span>th</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><center><p><img src="/images/android_robot.png" width="255" height="300"></p></center>
+
+
+<p>Context is probably the most used element in Android applications…it may also be the most misused.Context objects are so common, and get passed around so frequently, it can be easy to create a situation you didn’t intend.  Loading resources, launching a new Activity, obtaining a system service, getting internal file paths, and creating views all require a Context (and that’s not even getting started on the full list!) to accomplish the task.  What I’d like to do is provide for you some insights on how Context works alongside some tips that will (hopefully) allow you to leverage it more effectively in your applications.</p>
+
+<!-- more -->
+
+
+<h2>Context Types</h2>
+
+<p>Not all Context instances are created equal.  Depending on the Android application component, the Context you have access to varies slightly:</p>
+
+<ul>
+<li><p><strong>Application</strong> – is a singleton instance running in your application process.  It can be accessed via methods like getApplication() from an Activity or Service, and getApplicationContext() from any other object that inherits from Context.  Regardless of where or how it is accessed, you will always receive the same instance from within your process.</p></li>
+<li><p><strong>Activity/Service</strong> – inherit from ContextWrapper which implements the same API, but proxies all of its method calls to a hidden internal Context instance, also known as its base context.  Whenever the framework creates a new Activity or Service instance, it also creates a new ContextImpl instance to do all of the heavy lifting that either component will wrap.  Each Activity or Service, and their corresponding base context, are unique per-instance.</p></li>
+<li><p><strong>BroadcastReceiver</strong> – is not a Context in and of itself, but the framework passes a Context to it in onReceive() each time a new broadcast event comes in.  This instance is a ReceiverRestrictedContext with two main functions disabled; calling registerReceiver() and bindService().  These two functions are not allowed from within an existing BroadcastReceiver.onReceive().  Each time a receiver processes a broadcast, the Context handed to it is a new instance.</p></li>
+<li><p><strong>ContentProvider</strong> – is also not a Context but is given one when created that can be accessed via <code>getContext()</code>.  If the <code>ContentProvider</code> is running local to the caller (i.e. same application process), then this will actually return the same Application singleton.  However, if the two are in separate processes, this will be a newly created instance representing the package the provider is running in.</p></li>
+</ul>
+
+
+<h2>Saved References</h2>
+
+<p>The first issue we need to address comes from saving a reference to a <code>Context</code> in an object or class that has a lifecycle that extends beyond that of the instance you saved.  For example, creating a custom singleton that requires a <code>Context</code> to load resources or access a <code>ContentProvider</code>, and saving a reference to the current <code>Activity</code> or <code>Service</code> in that singleton.</p>
+
+<p>Bad Singleton</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">CustomManager</span> <span class="o">{</span>
+</span><span class='line'>    <span class="kd">private</span> <span class="kd">static</span> <span class="n">CustomManager</span> <span class="n">sInstance</span><span class="o">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="kd">public</span> <span class="kd">static</span> <span class="n">CustomManager</span> <span class="nf">getInstance</span><span class="o">(</span><span class="n">Context</span> <span class="n">context</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(</span><span class="n">sInstance</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">sInstance</span> <span class="o">=</span> <span class="k">new</span> <span class="n">CustomManager</span><span class="o">(</span><span class="n">context</span><span class="o">);</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">return</span> <span class="n">sInstance</span><span class="o">;</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="kd">private</span> <span class="n">Context</span> <span class="n">mContext</span><span class="o">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="kd">private</span> <span class="nf">CustomManager</span><span class="o">(</span><span class="n">Context</span> <span class="n">context</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="n">mContext</span> <span class="o">=</span> <span class="n">context</span><span class="o">;</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The problem here is we don’t know where that <code>Context</code> came from, and it is not safe to hold a reference to the object if it ends up being an <code>Activity</code> or a <code>Service</code>.  This is a problem because a singleton is managed by a single static reference inside the enclosing class.  This means that our object, and ALL the other objects referenced by it, will never be garbage collected.  If this <code>Context</code> were an Activity, we would effectively hold hostage in memory all the views and other potentially large objects associated with it; creating a leak.</p>
+
+<p>To protect against this, we modify the singleton to always reference the application context:</p>
+
+<p>Better Singleton</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">CustomManager</span> <span class="o">{</span>
+</span><span class='line'>    <span class="kd">private</span> <span class="kd">static</span> <span class="n">CustomManager</span> <span class="n">sInstance</span><span class="o">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="kd">public</span> <span class="kd">static</span> <span class="n">CustomManager</span> <span class="nf">getInstance</span><span class="o">(</span><span class="n">Context</span> <span class="n">context</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(</span><span class="n">sInstance</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="c1">//Always pass in the Application Context</span>
+</span><span class='line'>            <span class="n">sInstance</span> <span class="o">=</span> <span class="k">new</span> <span class="n">CustomManager</span><span class="o">(</span><span class="n">context</span><span class="o">.</span><span class="na">getApplicationContext</span><span class="o">());</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">return</span> <span class="n">sInstance</span><span class="o">;</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="kd">private</span> <span class="n">Context</span> <span class="n">mContext</span><span class="o">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="kd">private</span> <span class="nf">CustomManager</span><span class="o">(</span><span class="n">Context</span> <span class="n">context</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="n">mContext</span> <span class="o">=</span> <span class="n">context</span><span class="o">;</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Now it doesn’t matter where our <code>Context</code> came from, because the reference we are holding is safe.  The application context is itself a singleton, so we aren’t leaking anything by creating another static reference to it.  Another great example of places where this can crop up is saving references to a <code>Context</code> from inside a running background thread or a pending Handler.</p>
+
+<p>So why can’t we always just reference the application context?  Take the middleman out of the equation, as it were, and never have to worry about creating leaks?  The answer, as I alluded to in the introduction, is because one <code>Context</code> is not equal to another.</p>
+
+<h2>Context Capabilities</h2>
+
+<p>The common actions you can safely take with a given <code>Context</code> object depends on where it came from originally.  Below is a table of the common places an application will receive a <code>Context</code>, and in each case what it is useful for:</p>
+
+<table border="1" width="90%" align="center">
+<thead>
+<tr>
+<th></th>
+<th align="center">Application</th>
+<th align="center">Activity</th>
+<th align="center">Service</th>
+<th align="center">ContentProvider</th>
+<th align="center">BroadcastReceiver</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Show a Dialog</td>
+<td align="center">NO</td>
+<td align="center">YES</td>
+<td align="center">NO</td>
+<td align="center">NO</td>
+<td align="center">NO</td>
+</tr>
+<tr>
+<td>Start an Activity</td>
+<td align="center">NO<sup>1</sup></td>
+<td align="center">YES</td>
+<td align="center">NO<sup>1</sup></td>
+<td align="center">NO<sup>1</sup></td>
+<td align="center">NO<sup>1</sup></td>
+</tr>
+<tr>
+<td>Layout Inflation</td>
+<td align="center">NO<sup>2</sup></td>
+<td align="center">YES</td>
+<td align="center">NO<sup>2</sup></td>
+<td align="center">NO<sup>2</sup></td>
+<td align="center">NO<sup>2</sup></td>
+</tr>
+<tr>
+<td>Start a Service</td>
+<td align="center">YES</td>
+<td align="center">YES</td>
+<td align="center">YES</td>
+<td align="center">YES</td>
+<td align="center">YES</td>
+</tr>
+<tr>
+<td>Bind to a Service</td>
+<td align="center">YES</td>
+<td align="center">YES</td>
+<td align="center">YES</td>
+<td align="center">YES</td>
+<td align="center">NO</td>
+</tr>
+<tr>
+<td>Send a Broadcast</td>
+<td align="center">YES</td>
+<td align="center">YES</td>
+<td align="center">YES</td>
+<td align="center">YES</td>
+<td align="center">YES</td>
+</tr>
+<tr>
+<td>Register BroadcastReceiver</td>
+<td align="center">YES</td>
+<td align="center">YES</td>
+<td align="center">YES</td>
+<td align="center">YES</td>
+<td align="center">NO<sup>3</sup></td>
+</tr>
+<tr>
+<td>Load Resource Values</td>
+<td align="center">YES</td>
+<td align="center">YES</td>
+<td align="center">YES</td>
+<td align="center">YES</td>
+<td align="center">YES</td>
+</tr>
+</tbody>
+</table>
+
+
+<ul>
+<li>An application CAN start an <code>Activity</code> from here, but it requires that a new task be created.  This may fit specific use cases, but can create non-standard back stack behaviors in your application and is generally not recommended or considered good practice.</li>
+<li>This is legal, but inflation will be done with the default theme for the system on which you are running, not what’s defined in your application.</li>
+<li>Allowed if the receiver is null, which is used for obtaining the current value of a sticky broadcast, on Android 4.2 and above.</li>
+</ul>
+
+
+<h2>User Interface</h2>
+
+<p>You can see from looking at the previous table that there are a number of functions the application context is not properly suited to handle; all of them related to working with the UI.  In fact, the only implementation equipped to handle all tasks associated with the UI is <code>Activity</code>; the other instances fare pretty much the same in all categories.</p>
+
+<p>Luckily, these three actions are things an application doesn’t really have any place doing outside the scope of an <code>Activity</code>; it’s almost like the framework was designed that way on purpose.  Attempting to show a Dialog that was created with a reference to the application context, or starting an <code>Activity</code> from the application context will throw an exception and crash your application…a strong indicator something has gone wrong.</p>
+
+<p>The less obvious issue is inflating layouts.  If you read my last piece on layout inflation, you already know that it can be a slightly mysterious process with some hidden behaviors;  using the right <code>Context</code> is linked to another one of those behaviors.  While the framework will not complain and will return a perfectly good view hierarchy from a <code>LayoutInflater</code> created with the application context, the themes and styles from your app will not be considered in the process.  This is because <code>Activity</code> is the only <code>Context</code> on which the themes defined in your manifest are actually attached.  Any other instance will use the system default theme to inflate your views, leading to a display output you probably didn’t expect.</p>
+
+<h2>The Intersection of these Rules</h2>
+
+<p>Invariably, someone will arrive at the conclusion that these two rules conflict.  There is a case in the application’s current design where a long-term reference must be saved and we must save an <code>Activity</code> because the tasks we want to accomplish include manipulation of the UI.  If that is the case, I would urge you to reconsider your design, as this would be a textbook instance of fighting the framework.</p>
+
+<h2>The Rule of Thumb</h2>
+
+<p>In most cases, use the <code>Context</code> directly available to you from the enclosing component you’re working within.  You can safely hold a reference to it as long as that reference does not extend beyond the lifecycle of that component. As soon as you need to save a reference to a <code>Context</code> from an object that lives beyond your <code>Activity</code> or <code>Service</code>, even temporarily, switch that reference you save over to the application context.</p>
+
+<p>REF:<a href="http://www.doubleencore.com/2013/06/context/">Context</a></p>
+</div>
+<div class="entry-content">
+<center><img src="/images/by.png" />除非另有声明，本网站采用<a href="http://creativecommons.org/licenses/by/3.0/cn/" rel="license">知识共享“署名 3.0 中国大陆”许可协议</a>授权。</center>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Solarex</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-10-14T10:11:00+08:00" pubdate data-updated="true">Oct 14<span>th</span>, 2014</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/android/'>android</a>, <a class='category' href='/blog/categories/dev/'>dev</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+    <!-- JiaThis Button BEGIN -->
+    <div class="jiathis_style_32x32">
+        <a class="jiathis_button_tsina"></a>
+        <a class="jiathis_button_weixin"></a>
+        <a class="jiathis_button_douban"></a>
+        <a class="jiathis_button_fanfou"></a>
+        <a class="jiathis_button_evernote"></a>
+        <a class="jiathis_button_delicious"></a>
+        <a class="jiathis_button_renren"></a>
+        <a class="jiathis_button_tqq"></a>
+        <a class="jiathis_button_qzone"></a>
+        <a href="http://www.jiathis.com/share" class="jiathis jiathis_txt jiathis_separator jtico jtico_jiathis" target="_blank"></a>
+        <a class="jiathis_counter_style"></a>
+    </div>
+    <script type="text/javascript" >
+        var jiathis_config={
+summary:"",
+        hideMore:false
+        }
+</script>
+<script type="text/javascript" src="http://v3.jiathis.com/code/jia.js" charset="utf-8"></script>
+<!-- JiaThis Button END -->
+  </div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2014/10/14/java-thread-tutorial/" title="Previous Post: Java thread tutorial">&laquo; Java thread tutorial</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2014/10/17/java-singleton/" title="Next Post: 深入浅出单实例Singleton设计模式">深入浅出单实例Singleton设计模式 &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+
+<section id="comment">
+<!-- Duoshuo Comment BEGIN -->
+	<div class="ds-thread"></div>
+<script type="text/javascript">
+var duoshuoQuery = {short_name:"solarex"};
+	(function() {
+		var ds = document.createElement('script');
+		ds.type = 'text/javascript';ds.async = true;
+		ds.src = 'http://static.duoshuo.com/embed.js';
+		ds.charset = 'UTF-8';
+		(document.getElementsByTagName('head')[0] 
+		|| document.getElementsByTagName('body')[0]).appendChild(ds);
+	})();
+	</script>
+<!-- Duoshuo Comment END -->
+</section>
+
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2016/03/14/mobile-apps-offline-support/">Mobile Apps Offline Support</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/03/13/the-clean-architecture/">The Clean Architecture</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/02/25/android-handler-memory-leaks/">Android Handler Memory Leaks</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/02/12/recyclerview-animation-part-ii/">RecyclerView Animation part II</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/02/11/recyclerview-animation-part-i/">RecyclerView Animation part I</a>
+      </li>
+    
+  </ul>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2016 - Solarex -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a> | Themed with <a href="https://github.com/lucaslew/whitespace">Whitespace</a></span>
+</p>
+
+
+<script type="text/javascript">
+    var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+    document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/h.js%3F2574e8b2c205dfe8ff89e239fa38ca27' type='text/javascript'%3E%3C/script%3E"));
+</script>
+
+
+</footer>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

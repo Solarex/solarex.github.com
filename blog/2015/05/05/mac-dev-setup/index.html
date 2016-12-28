@@ -1,0 +1,529 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Setup Mac Development Environment - Solarex's Blog</title>
+  <meta name="author" content="Solarex">
+
+  
+  <meta name="description" content="System preferences In Apple Icon > System Preferences: Trackpad > Tap to click
+Keyboard > Key Repeat > Fast (all the way to the right)
+Keyboard > &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://Solarex.github.io/blog/2015/05/05/mac-dev-setup">
+  <link href="/favicon.ico" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Solarex's Blog" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <!--
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  -->
+  <script src="http://libs.baidu.com/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.useso.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href='http://fonts.useso.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
+<link href='http://fonts.useso.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+
+</head>
+
+<body   class="collapse-sidebar sidebar-footer" >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Solarex's Blog</a></h1>
+  
+    <h2>Yet Another Blog 4 Solarex</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:Solarex.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+    <li><a href="/">Blog</a></li>
+    <li><a href="/blog/archives">Archives</a></li>
+    <li><a href="/projects">Projects</a></li>
+	<li><a href="https://solarex.github.io/wiki">Wiki</a></li>
+    <li><a href="/about">About</a></li>
+	<li><a href="https://solarex.github.io/resume">Resume</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Setup Mac Development Environment</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2015-05-05T12:04:00+08:00" pubdate data-updated="true">May 5<span>th</span>, 2015</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p><center><img src="/images/apple_mac_logo.jpg" width=225 height=225/></center></p>
+
+
+
+
+<h2 id="system-preferences">System preferences</h2>
+
+
+<p>In Apple Icon > System Preferences:</p>
+
+<ul>
+<li>Trackpad > Tap to click</li>
+<li>Keyboard > Key Repeat > Fast (all the way to the right)</li>
+<li>Keyboard > Delay Until Repeat > Short (all the way to the right)</li>
+<li>Dock > Automatically hide and show the Dock</li>
+</ul>
+
+
+<!-- more -->
+
+
+
+
+<h2 id="homebrew">Homebrew</h2>
+
+
+<ul>
+<li><p>install command line tools <code>xcode-select --install</code>,<code>xcode-select -p
+/Library/Developer/CommandLineTools</code> to check if command line tools is installed</p></li>
+<li><p>install homebrew <code>ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"</code> from <a href="http://brew.sh/">brew.sh</a></p></li>
+<li><p><code>brew doctor</code>,<code>brew update</code>,<code>brew list</code>,<code>brew search wget</code>,<code>brew install wget</code>,<code>brew outdated</code>,<code>brew upgrade</code>,<code>brew upgrade wget</code>,<code>brew uninstall wget --force</code>,<code>brew info wget</code>,<code>brew deps wget</code>,<code>brew edit wget</code>,<code>brew list --versions</code>,<code>brew cleanup</code></p></li>
+<li><p><code>brew install caskroom/cask/brew-cask</code> from <a href="http://caskroom.io/">caskroom.io</a></p></li>
+<li><code>brew cask search thunder</code>,<code>brew cask info thunder</code>,<code>brew cask edit thunder</code>,<code>brew cask uninstall thunder</code></li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>brew list
+</span><span class='line'>ant     automake   coreutils  gcc49  gnu-sed       libksba   libyaml  pkg-config  tig
+</span><span class='line'>apktool   brew-cask  dex2jar  git    isl011        libmpc08  mpfr2    readline    tree
+</span><span class='line'>autoconf  cloog018   findutils    gmp4   libgpg-error  libtool   openssl  rename      wget
+</span><span class='line'>houruhou at MacPro in ~
+</span><span class='line'><span class="nv">$ </span>brew cask list
+</span><span class='line'>android-file-transfer   dash              go2shell              neteasemusic      sublime-text
+</span><span class='line'>android-studio          diffmerge         google-chrome         pycharm           vlc
+</span><span class='line'>appcleaner          flux              iterm2            qq
+</span><span class='line'>bilibili        foxmail           jd-gui            skim
+</span><span class='line'>ccleaner        gitbook-editor        macdown           sogouinput
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>Sublime Text</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class='json'><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="nt">&quot;font_face&quot;</span><span class="p">:</span> <span class="s2">&quot;Consolas&quot;</span><span class="p">,</span>
+</span><span class='line'>    <span class="nt">&quot;font_size&quot;</span><span class="p">:</span> <span class="mi">13</span><span class="p">,</span>
+</span><span class='line'>    <span class="nt">&quot;rulers&quot;</span><span class="p">:</span>
+</span><span class='line'>    <span class="p">[</span>
+</span><span class='line'>        <span class="mi">79</span>
+</span><span class='line'>    <span class="p">],</span>
+</span><span class='line'>    <span class="nt">&quot;highlight_line&quot;</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>
+</span><span class='line'>    <span class="nt">&quot;bold_folder_labels&quot;</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>
+</span><span class='line'>    <span class="nt">&quot;highlight_modified_tabs&quot;</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>
+</span><span class='line'>    <span class="nt">&quot;tab_size&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
+</span><span class='line'>    <span class="nt">&quot;translate_tabs_to_spaces&quot;</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>
+</span><span class='line'>    <span class="nt">&quot;word_wrap&quot;</span><span class="p">:</span> <span class="kc">false</span><span class="p">,</span>
+</span><span class='line'>    <span class="nt">&quot;indent_to_bracket&quot;</span><span class="p">:</span> <span class="kc">true</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>Go2Shell <code>open -a go2shell --args config</code> no longer needed</li>
+</ul>
+
+
+<h2 id="python">Python</h2>
+
+
+<ul>
+<li><code>brew install python --with-brew-openssl</code>,<code>brew install python3 --with-brewed-openssl</code></li>
+<li><code>sudo easy_install pip</code></li>
+<li>pip.conf</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>cat ~/.pip/pip.conf
+</span><span class='line'>; http://www.pypi-mirrors.org/
+</span><span class='line'><span class="o">[</span>global<span class="o">]</span>
+</span><span class='line'>use-mirrors<span class="o">=</span><span class="nb">true</span>
+</span><span class='line'>; <span class="nv">mirrors</span><span class="o">=</span>http://pypi.douban.com
+</span><span class='line'>index-url<span class="o">=</span>http://pypi.douban.com/simple
+</span><span class='line'>trusted-host<span class="o">=</span>pypi.douban.com
+</span><span class='line'>; ln -s pip.conf ~/.pip/pip.conf
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li><code>sudo pip install virtualenv virtualenvwrapper</code></li>
+<li>virtualenv setup</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="c">#virtualenv</span>
+</span><span class='line'><span class="c"># virtualenvwrapper</span>
+</span><span class='line'><span class="nb">export </span><span class="nv">VIRTUALENVWRAPPER_PYTHON</span><span class="o">=</span>/usr/bin/python
+</span><span class='line'><span class="nb">export </span><span class="nv">WORKON_HOME</span><span class="o">=</span>/Users/houruhou/Workspace/Solarex/PythonWorkspace
+</span><span class='line'><span class="o">[</span> -f /usr/local/bin/virtualenvwrapper.sh <span class="o">]</span> <span class="o">&amp;&amp;</span> <span class="nb">source</span> /usr/local/bin/virtualenvwrapper.sh
+</span><span class='line'><span class="o">[</span> -f /etc/bash_completion.d/virtualenvwrapper <span class="o">]</span> <span class="o">&amp;&amp;</span> <span class="nb">source</span> /etc/bash_completion.d/virtualenvwrapper
+</span><span class='line'><span class="nb">export </span><span class="nv">PIP_VIRTUALENV_BASE</span><span class="o">=</span><span class="nv">$WORKON_HOME</span>
+</span><span class='line'><span class="nb">export </span><span class="nv">PIP_RESPECT_VIRTUALENV</span><span class="o">=</span><span class="nb">true</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li><code>mkvirtualenv --no-site-packages test</code></li>
+</ul>
+
+
+<h2 id="java">Java</h2>
+
+
+<ul>
+<li><code>brew cask install java</code></li>
+<li><code>brew tap caskroom/versions</code>,<code>brew cask install java6</code></li>
+<li><code>/usr/libexec/java_home -V</code>查看安装了哪些jdk</li>
+<li><code>JAVA_HOME=`/usr/libexec/java_home -v 1.6</code></li>
+<li>open eclipse prompt to install java</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>/Library/Java/JavaVirtualMachines/jdk1.7.0_45.jdk/Contents/Info.plist
+</span><span class='line'>
+</span><span class='line'>diff
+</span><span class='line'>
+</span><span class='line'>&lt;key&gt;JVMCapabilities&lt;/key&gt;
+</span><span class='line'>    &lt;array&gt;
+</span><span class='line'>&lt;string&gt;CommandLine&lt;/string&gt;
+</span><span class='line'>&lt;/array&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;key&gt;JVMCapabilities&lt;/key&gt;
+</span><span class='line'>&lt;array&gt;
+</span><span class='line'>    &lt;string&gt;JNI&lt;/string&gt;
+</span><span class='line'>    &lt;string&gt;BundledApp&lt;/string&gt;
+</span><span class='line'>    &lt;string&gt;WebStart&lt;/string&gt;
+</span><span class='line'>    &lt;string&gt;Applets&lt;/string&gt;
+</span><span class='line'>    &lt;string&gt;CommandLine&lt;/string&gt;
+</span><span class='line'>&lt;/array&gt;
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li><code>eclipse.ini</code></li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>--launcher.XXMaxPermSize
+</span><span class='line'>2048m
+</span><span class='line'>...
+</span><span class='line'>-vmargs
+</span><span class='line'>...
+</span><span class='line'>-Xms512m
+</span><span class='line'>-Xmx850m
+</span><span class='line'>-XX:PermSize<span class="o">=</span>512m
+</span><span class='line'>-XX:MaxPermSize<span class="o">=</span>1024m
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+<h2 id="command-line">command line</h2>
+
+
+<ul>
+<li><code>defaults write com.apple.finder AppleShowAllFiles -boolean true ; killall Finder</code> 显示隐藏文件，<code>defaults write com.apple.finder AppleShowAllFiles -boolean false ; killall Finder</code>，不显示隐藏文件</li>
+<li><code>defaults write com.apple.dock ResetLaunchPad -bool true; killall Dock</code>新的应用被安装后，经常会跑到 Launchpad 的第一屏，所以它们的位置跟安装的顺序有关系，而我更希望它们可以按照某种更加稳定的顺序排列，比如按照系统默认的顺序，在默认顺序中，Launchpad 第一屏只有 Apple 自家应用。</li>
+<li><code>defaults write com.apple.screencapture location ~/Pictures/ScreenShots;killall SystemUIServer</code>,change default screen capture folder</li>
+<li><code>sudo scutil --set HostName MacPro</code>修改hostname</li>
+<li><code>defaults write com.apple.finder _FXShowPosixPathInTitle -bool TRUE;killall Finder</code>finder显示路径，<code>defaults delete com.apple.finder _FXShowPosixPathInTitle;killall Finder</code>恢复默认不显示</li>
+</ul>
+
+
+<h2 id="reference">reference</h2>
+
+
+<ul>
+<li><a href="https://github.com/nicolashery/mac-dev-setup">mac-dev-setup</a></li>
+<li><a href="https://github.com/pubyun/macdev">mac-dev</a></li>
+<li><a href="https://aaaaaashu.gitbooks.io/mac-dev-setup/content/SystemPreferences/index.html">setup-mac-dev-zh_cn</a>,<a href="http://sourabhbajaj.com/mac-setup/">setup-mac-dev</a></li>
+<li><a href="https://github.com/solarex/macconfigurations">mac-configurations</a></li>
+<li><a href="https://support.apple.com/en-us/HT201236">Mac keyboard shortcuts</a></li>
+<li><a href="https://support.apple.com/en-us/HT204434">Mac keyboard shortcuts for accessibility features</a></li>
+</ul>
+
+</div>
+<div class="entry-content">
+<center><img src="/images/by.png" />除非另有声明，本网站采用<a href="http://creativecommons.org/licenses/by/3.0/cn/" rel="license">知识共享“署名 3.0 中国大陆”许可协议</a>授权。</center>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Solarex</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2015-05-05T12:04:00+08:00" pubdate data-updated="true">May 5<span>th</span>, 2015</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/dev/'>dev</a>, <a class='category' href='/blog/categories/tools/'>tools</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+    <!-- JiaThis Button BEGIN -->
+    <div class="jiathis_style_32x32">
+        <a class="jiathis_button_tsina"></a>
+        <a class="jiathis_button_weixin"></a>
+        <a class="jiathis_button_douban"></a>
+        <a class="jiathis_button_fanfou"></a>
+        <a class="jiathis_button_evernote"></a>
+        <a class="jiathis_button_delicious"></a>
+        <a class="jiathis_button_renren"></a>
+        <a class="jiathis_button_tqq"></a>
+        <a class="jiathis_button_qzone"></a>
+        <a href="http://www.jiathis.com/share" class="jiathis jiathis_txt jiathis_separator jtico jtico_jiathis" target="_blank"></a>
+        <a class="jiathis_counter_style"></a>
+    </div>
+    <script type="text/javascript" >
+        var jiathis_config={
+summary:"",
+        hideMore:false
+        }
+</script>
+<script type="text/javascript" src="http://v3.jiathis.com/code/jia.js" charset="utf-8"></script>
+<!-- JiaThis Button END -->
+  </div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2015/05/05/android-custom-view/" title="Previous Post: Android Custom View">&laquo; Android Custom View</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2015/09/22/android-message-handling-mechanism/" title="Next Post: Android Message Handling Mechanism">Android Message Handling Mechanism &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+
+<section id="comment">
+<!-- Duoshuo Comment BEGIN -->
+	<div class="ds-thread"></div>
+<script type="text/javascript">
+var duoshuoQuery = {short_name:"solarex"};
+	(function() {
+		var ds = document.createElement('script');
+		ds.type = 'text/javascript';ds.async = true;
+		ds.src = 'http://static.duoshuo.com/embed.js';
+		ds.charset = 'UTF-8';
+		(document.getElementsByTagName('head')[0] 
+		|| document.getElementsByTagName('body')[0]).appendChild(ds);
+	})();
+	</script>
+<!-- Duoshuo Comment END -->
+</section>
+
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2016/03/14/mobile-apps-offline-support/">Mobile Apps Offline Support</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/03/13/the-clean-architecture/">The Clean Architecture</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/02/25/android-handler-memory-leaks/">Android Handler Memory Leaks</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/02/12/recyclerview-animation-part-ii/">RecyclerView Animation part II</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/02/11/recyclerview-animation-part-i/">RecyclerView Animation part I</a>
+      </li>
+    
+  </ul>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2016 - Solarex -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a> | Themed with <a href="https://github.com/lucaslew/whitespace">Whitespace</a></span>
+</p>
+
+
+<script type="text/javascript">
+    var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+    document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/h.js%3F2574e8b2c205dfe8ff89e239fa38ca27' type='text/javascript'%3E%3C/script%3E"));
+</script>
+
+
+</footer>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

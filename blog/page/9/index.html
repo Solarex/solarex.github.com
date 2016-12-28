@@ -1,0 +1,515 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Solarex's Blog</title>
+  <meta name="author" content="Solarex">
+
+  
+  <meta name="description" content=" C version C版本的hello,world深入详解之前上学的时候在SlideShare上看到过，记得当时大呼过瘾，许多C深入理解的知识基本上都被罗列了出来，现在看来仍然获益颇多。PDF版本可以在这里和这里下载。 ">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://Solarex.github.io/blog/page/9">
+  <link href="/favicon.ico" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Solarex's Blog" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <!--
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  -->
+  <script src="http://libs.baidu.com/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.useso.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href='http://fonts.useso.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
+<link href='http://fonts.useso.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+
+</head>
+
+<body   class="collapse-sidebar sidebar-footer" >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Solarex's Blog</a></h1>
+  
+    <h2>Yet Another Blog 4 Solarex</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:Solarex.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+    <li><a href="/">Blog</a></li>
+    <li><a href="/blog/archives">Archives</a></li>
+    <li><a href="/projects">Projects</a></li>
+	<li><a href="https://solarex.github.io/wiki">Wiki</a></li>
+    <li><a href="/about">About</a></li>
+	<li><a href="https://solarex.github.io/resume">Resume</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div class="blog-index">
+  
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/09/01/what-can-we-learn-from-hello-world/">What Can We Learn From Hello World</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-09-01T07:57:00+08:00" pubdate data-updated="true">Sep 1<span>st</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><center><p><img src="/images/java_logo.svg" width="150" height="275" alt="java"></p></center>
+
+
+<h2>C version</h2>
+
+<p>C版本的<code>hello,world</code>深入详解之前上学的时候在<a href="http://www.slideshare.net/olvemaudal/deep-c">SlideShare</a>上看到过，记得当时大呼过瘾，许多C深入理解的知识基本上都被罗列了出来，现在看来仍然获益颇多。PDF版本可以在<a href="/downloads/files/DeepC0.pdf">这里和<a href="/downloads/files/DeepC1.pdf">这里</a>下载。</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2014/09/01/what-can-we-learn-from-hello-world/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/06/02/ssh-key-config-for-multi-github-accounts/">SSH Key Settings for Multi Github Accounts</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-06-02T15:13:00+08:00" pubdate data-updated="true">Jun 2<span>nd</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>在同一台电脑上有多个github账户时，切换ssh key会比较麻烦，可以使用ssh config来简化这一动作。</p>
+
+<p>在使用<code>ssh-keygen</code>时，为不同的账户选择不同的ssh key文件。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>hrh@Solarex:~<span class="nv">$ </span>ls ~/.ssh/
+</span><span class='line'>id_rsa_accountA id_rsa_accountA.pub id_rsa_accountB id_rsa_accountB.pub known_hosts config
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p></p>
+
+<p>在<code>~/.bashrc</code>中添加ssh key。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>ssh-add ~/.ssh/id_rsa_accountA &gt;/dev/null 2&gt;&amp;1
+</span><span class='line'>ssh-add ~/.ssh/id_rsa_accountB &gt;/dev/null 2&gt;&amp;1
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>配置ssh config文件<code>~/.ssh/config</code>。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="c">#AccountA</span>
+</span><span class='line'>Host github-a.com
+</span><span class='line'>    HostName github.com
+</span><span class='line'>    User git
+</span><span class='line'>    IdentityFile ~/.ssh/id_rsa_accountA
+</span><span class='line'>
+</span><span class='line'><span class="c">#AccountB</span>
+</span><span class='line'>Host github-b.com
+</span><span class='line'>    HostName github.com
+</span><span class='line'>    User git
+</span><span class='line'>    IdentityFile ~/.ssh/id_rsa_accountB
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这样以后使用AccountA时可以<code>git clone git@github-a.com:user/repos.git local_dir</code>这样操作，clone下来后可以<code>cd local_dir</code>对<code>user.name</code>和<code>user.email</code>来进行config来覆盖global config，剩下的就和平时没有什么区别了，使用AccountB时相似操作就可以了。</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2014/06/02/ssh-key-config-for-multi-github-accounts/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/06/02/checking-intent-availability/">Checking Intent Availability</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-06-02T11:41:00+08:00" pubdate data-updated="true">Jun 2<span>nd</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Intents are probably Android’s most powerful tool. They tie together loosely coupled components and make it possible to start Activities that are not part of your own app. Using intents you can delegate to the Contacts app to select a contact or you can start the browser, share data and so on.</p>
+
+<p>The receiving apps declare intent filters which describe the intents its component react to. If you know which intent filters the app provides and if the components are publicly available you can start any Activity of any app on the users device.</p>
+
+<p>The problem is: How do you know if the app is installed – if you can use the Intent?</p>
+
+<p>The solution is to create the Intent and check if it is available:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kd">static</span> <span class="kt">boolean</span> <span class="nf">isIntentAvailable</span><span class="o">(</span><span class="n">Context</span> <span class="n">ctx</span><span class="o">,</span> <span class="n">Intent</span> <span class="n">intent</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>   <span class="kd">final</span> <span class="n">PackageManager</span> <span class="n">mgr</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="na">getPackageManager</span><span class="o">();</span>
+</span><span class='line'>   <span class="n">List</span><span class="o">&lt;</span><span class="n">ResolveInfo</span><span class="o">&gt;</span> <span class="n">list</span> <span class="o">=</span>
+</span><span class='line'>      <span class="n">mgr</span><span class="o">.</span><span class="na">queryIntentActivities</span><span class="o">(</span><span class="n">intent</span><span class="o">,</span>
+</span><span class='line'>         <span class="n">PackageManager</span><span class="o">.</span><span class="na">MATCH_DEFAULT_ONLY</span><span class="o">);</span>
+</span><span class='line'>   <span class="k">return</span> <span class="n">list</span><span class="o">.</span><span class="na">size</span><span class="o">()</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="o">;</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>And we can use it this way:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kt">boolean</span> <span class="nf">onPrepareOptionsMenu</span><span class="o">(</span><span class="n">Menu</span> <span class="n">menu</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>    <span class="kd">final</span> <span class="kt">boolean</span> <span class="n">scanAvailable</span> <span class="o">=</span> <span class="n">isIntentAvailable</span><span class="o">(</span><span class="k">this</span><span class="o">,</span>
+</span><span class='line'>        <span class="s">&quot;com.google.zxing.client.android.SCAN&quot;</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">MenuItem</span> <span class="n">item</span><span class="o">;</span>
+</span><span class='line'>    <span class="n">item</span> <span class="o">=</span> <span class="n">menu</span><span class="o">.</span><span class="na">findItem</span><span class="o">(</span><span class="n">R</span><span class="o">.</span><span class="na">id</span><span class="o">.</span><span class="na">menu_item_add</span><span class="o">);</span>
+</span><span class='line'>    <span class="n">item</span><span class="o">.</span><span class="na">setEnabled</span><span class="o">(</span><span class="n">scanAvailable</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">return</span> <span class="kd">super</span><span class="o">.</span><span class="na">onPrepareOptionsMenu</span><span class="o">(</span><span class="n">menu</span><span class="o">);</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>If you wanna check this before <code>startActivity</code> in case not caught by <code>ActivityNotFoundException</code>,here is another way:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="k">if</span> <span class="o">(</span><span class="n">intent</span><span class="o">.</span><span class="na">resolveActivity</span><span class="o">(</span><span class="n">ctx</span><span class="o">.</span><span class="na">getPackageManager</span><span class="o">())</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>    <span class="n">ctx</span><span class="o">.</span><span class="na">startActivity</span><span class="o">(</span><span class="n">intent</span><span class="o">);</span>
+</span><span class='line'><span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+</span><span class='line'>    <span class="n">log</span><span class="o">(</span><span class="s">&quot;No component can react to this intent = &quot;</span> <span class="o">+</span> <span class="n">intent</span><span class="o">);</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/12/24/recent-summary/">近阶段总结</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-12-24T22:06:00+08:00" pubdate data-updated="true">Dec 24<span>th</span>, 2013</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>没有什么比漫无目的的徘徊更让人心烦意乱，消磨意志的了，最近就处于这样一种状态。Android开发基础已经基本上掌握了，但是高级点的技巧依然无从下手，一个Service如何长时间运行不被杀，流量监控后台运行的机制是什么都不了解。为什么无从下手，因为不知道优秀的应用是如何实现的，借鉴都不知道从哪抄。要打破这种状态，不仅仅需要巩固基础知识，更重要的是要学习高级技巧。</p>
+
+<ul>
+<li><p>巩固基础知识，Android开发基础知识总结，Android Guides，Android Training必须看完，做好笔记。Java基础知识巩固复习，设计模式学习总结，Android框架采用了许多设计模式，把Java基础知识打牢固才能更好的为下一步学习Android框架打好基础。 书籍/资料：Pro Android 4 / Java 编程思想 / Head First 设计模式 / 大话设计模式 / 设计模式视频</p></li>
+<li><p>借鉴优秀应用，Google原生应用，Android SDK Sample，优秀开源应用，学习这些优秀的开源应用如何处理后台Service，如何处理多线程，如何进行网络连接尽可能地少消耗流量。。。如果有时间，可以看下Google I/O开发者大会和Google Developer Blog来跟随大师脚步学习大师的开发技巧。</p></li>
+<li><p>工具的学习使用，总结开发工具使用技巧，Vim，Git，Source Insight，自动构建工具Ant，Maven，build.xml，pom.xml文件编写规则。调教好Vim插件，为以后学习框架时打log，看框架打好基础。学会高效使用Git，Github，利用Github Wiki来做笔记，作总结。 书籍/资料：Ant 视频 / Maven in action</p></li>
+<li><p>为学习框架和Android系统做准备，Linux系统编程，操作系统原理，Linux网络编程这些都要大致过一遍，不用太细致深入，有个概念就可以了。 书籍：Android内核剖析 / LKD / MOS / UNP / APUE / CSAPP</p></li>
+</ul>
+
+
+<p>计划</p>
+
+<ul>
+<li>年前必须搞定基础知识复习总结。Android开发基础知识，Java基础知识总结。Android Guides/Android Training，Pro Android 4总结学习。Sundy教学视频。</li>
+<li>看Google 原生Settings应用。</li>
+<li>调教好Vim，Git。</li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/11/29/git-basic-config/">Git配置(持续更新)</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-11-29T23:14:00+08:00" pubdate data-updated="true">Nov 29<span>th</span>, 2013</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><center><p><img src="/images/git-logo-black.png" width="182" height="76" alt="git"></p></center>
+
+
+<p>用git大概有2年多了吧，不过大都停留在<code>add</code>，<code>commit</code>，<code>clone</code>，<code>push</code>这些简单的操作上，最近看了git-scm网站的维护者，Pro.Git的作者的一个演讲，准备好好研究下git。以下是笔记，会不间断更新。</p>
+
+<p>最基础的git config莫过于<code>user.name</code>和<code>user.email</code>了吧。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>git config --global user.name Solarex
+</span><span class='line'>git config --global user.email i@solarex.name
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>git <code>commit</code>的时候有时会发现在comment中需要换行，在命令行直接输入的话非常不方便，其实可以在自己喜欢的编辑器里面操作。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>git config --global core.editor vim
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这样git在执行<code>commit</code>操作时就会打开vim，就可以像编辑文本一样写comment了。</p>
+
+<p>在打印git log的时候，如果有色彩区分会好看很多。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>git config --global color.ui auto
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>看一些视频的时候，经常会看到他们输入一些非常短的命令就执行了相应的操作，其实，这些可以通过<code>alias</code>实现。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>git config --global alias.st <span class="s2">&quot;status&quot;</span>
+</span><span class='line'>git config --global alias.ci <span class="s2">&quot;commit -a -v&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>另外强烈推荐<code>tig</code>来查看git log，非常方便。Ubuntu下通过命令<code>sudo apt-get install tig</code>，Mac下通过<code>brew install tig</code>均可直接安装。</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  <div class="pagination">
+    
+      <a class="prev" href="/blog/page/10/">&larr; Older</a>
+    
+    <a href="/blog/archives">Blog Archives</a>
+    
+    <a class="next" href="/blog/page/8/">Newer &rarr;</a>
+    
+  </div>
+</div>
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2016/03/14/mobile-apps-offline-support/">Mobile Apps Offline Support</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/03/13/the-clean-architecture/">The Clean Architecture</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/02/25/android-handler-memory-leaks/">Android Handler Memory Leaks</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/02/12/recyclerview-animation-part-ii/">RecyclerView Animation part II</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/02/11/recyclerview-animation-part-i/">RecyclerView Animation part I</a>
+      </li>
+    
+  </ul>
+</section>
+
+
+
+
+
+  
+</aside>
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2016 - Solarex -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a> | Themed with <a href="https://github.com/lucaslew/whitespace">Whitespace</a></span>
+</p>
+
+
+<script type="text/javascript">
+    var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+    document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/h.js%3F2574e8b2c205dfe8ff89e239fa38ca27' type='text/javascript'%3E%3C/script%3E"));
+</script>
+
+
+</footer>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

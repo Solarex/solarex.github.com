@@ -1,0 +1,417 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Building a RecyclerView LayoutManager part IV - Solarex's Blog</title>
+  <meta name="author" content="Solarex">
+
+  
+  <meta name="description" content="While writing what was intended to be the final post of this series, a discussion of predictive animations, I ran into a number of interesting &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://Solarex.github.io/blog/2016/01/15/building-a-recyclerview-layoutmanager-part-iv">
+  <link href="/favicon.ico" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Solarex's Blog" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <!--
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  -->
+  <script src="http://libs.baidu.com/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.useso.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href='http://fonts.useso.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
+<link href='http://fonts.useso.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+
+</head>
+
+<body   class="collapse-sidebar sidebar-footer" >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Solarex's Blog</a></h1>
+  
+    <h2>Yet Another Blog 4 Solarex</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:Solarex.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+    <li><a href="/">Blog</a></li>
+    <li><a href="/blog/archives">Archives</a></li>
+    <li><a href="/projects">Projects</a></li>
+	<li><a href="https://solarex.github.io/wiki">Wiki</a></li>
+    <li><a href="/about">About</a></li>
+	<li><a href="https://solarex.github.io/resume">Resume</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Building a RecyclerView LayoutManager Part IV</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2016-01-15T16:14:00+08:00" pubdate data-updated="true">Jan 15<span>th</span>, 2016</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>While writing what was intended to be the final post of this series, a discussion of predictive animations, I ran into a number of interesting challenges that I thought warranted their own discussion. This series began as an investigation into whether RecyclerView could easily handle a layout structure that could scroll in both the horizontal and vertical axes, and how difficult it would be for the developer to build their own LayoutManager. I chose a basic grid of uniform items as the structure, thinking it would be the most straightforward to implement.</p>
+
+<p>The following graphic represents the basic goal of what the implementation ought to achieve while the user scrolls around the screen.</p>
+
+<center><img src="/images/building_recyclerview_layoutmanager_redux.gif" width="600" height="360"></center>
+
+
+
+
+<!-- more -->
+
+
+<p></p>
+
+<h2>Broken By Design</h2>
+
+<p>No matter how you attempt to organize the adapter positions (left-to-right, top-to-bottom, etc.), the viewport into the content will always show a broken, disconnected range of the data set. To be more precise, there are items inside the adapter range between the first and last visible positions that are also outside the visible range of views.</p>
+
+<p>This is an important point, because it’s contrary to layouts that scroll on a single axis (and consequently, all the default layouts provided by the current framework). These standard widgets show the data set range in a contiguous block–from the first to the last visible position with no breaks.</p>
+
+<p>The RecyclerView LayoutManager API, as it is released today, makes a few implicit assumptions about the visible data set. These assumptions tend to favor a contiguous visible range, and make producing a layout like the grid illustrated above a bit more challenging. Nowhere is this more apparent than in the predictive animation APIs. For posterity’s sake, I felt compelled to explain where some of those shortcomings came into play during this process.</p>
+
+<h3>Assumption #1: Removing an item from outside the visible range doesn’t affect the currently visible views.</h3>
+
+<p>When you think about the way LinearLayoutManager or GridLayoutManager react when an adapter item is removed, both are fairly similar at a high level. If the removed item is currently visible, a space will be left empty that needs to be filled with the surrounding views. This means extra appearing views must be laid out to fill the gap. However, there isn’t really a case where a removal would send disappearing views off-screen…the only disappearing views are those explicitly removed. If the removed view is outside the visible range (either before or after), it won’t affect the visible layout at all–there are no views appearing or disappearing. In these cases you typically see no animation. All that may change is the absolute positioning of that data block within the larger range.</p>
+
+<p>The above cases, as stated, are also mostly true for a disconnected layout. However, the discontinuous nature of the visible range allows for items to be removed that are inside the visible range without actually being visible! Stated another way, their position is between the first and last visible position, but the item view is not currently in the layout. The consequence is that item removals which happen off-screen can and will affect both appearing and disappearing views that you need to animate in that layout pass.</p>
+
+<p>Pre-layout is the critical phase of a <code>RecyclerView</code> animation when you have the chance to lay out appearing views. To assist you, <code>RecyclerView</code> returns views back (including the removed ones) by their initial position values so you can lay contents out in their initial state. However, when view removals don’t intersect with the visible range, <code>RecyclerView</code> instead returns views by their final position values. This makes handling appearing views in this case much more difficult without additional bookkeeping…difficult, but doable.</p>
+
+<p>For <code>FixedGridLayoutManager</code>, as we saw in the last post, we were required us to listen to the <code>onItemsRemoved()</code> callback in addition to parsing through visible views to find removals and properly handle all appearing view cases. <code>RecyclerView</code> made sure that this callback came before pre-layout when we needed it (the off-screen case), even though it comes after pre-layout otherwise. <code>RecyclerView</code> does this to avoid conflicting the posting of these events with your layout–the timing of it was just a happy accident for us.</p>
+
+<p>We also had to track the fact that visible removals would offset the view positions in a way we expected, but off-screen removals would not. This is why the removals were marked with different types. A snippet left out of the last post shows that we would supply a manual offset back to the appearing view logic when the removals were off-screen…so the positions would match what they were when the removal was visible.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">private</span> <span class="kt">void</span> <span class="nf">fillGrid</span><span class="o">(</span><span class="kt">int</span> <span class="n">direction</span><span class="o">,</span> <span class="kt">int</span> <span class="n">emptyLeft</span><span class="o">,</span> <span class="kt">int</span> <span class="n">emptyTop</span><span class="o">,</span> <span class="n">RecyclerView</span><span class="o">.</span><span class="na">Recycler</span> <span class="n">recycler</span><span class="o">,</span>
+</span><span class='line'>        <span class="kt">boolean</span> <span class="n">preLayout</span><span class="o">,</span> <span class="n">SparseIntArray</span> <span class="n">removedPositions</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>    <span class="err">…</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">for</span> <span class="o">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">getVisibleChildCount</span><span class="o">();</span> <span class="n">i</span><span class="o">++)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="kt">int</span> <span class="n">nextPosition</span> <span class="o">=</span> <span class="n">positionOfIndex</span><span class="o">(</span><span class="n">i</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="cm">/*</span>
+</span><span class='line'><span class="cm">         * When a removal happens out of bounds, the pre-layout positions of items</span>
+</span><span class='line'><span class="cm">         * after the removal are shifted to their final positions ahead of schedule.</span>
+</span><span class='line'><span class="cm">         * We have to track off-screen removals and shift those positions back</span>
+</span><span class='line'><span class="cm">         * so we can properly lay out all current (and appearing) views in their</span>
+</span><span class='line'><span class="cm">         * initial locations.</span>
+</span><span class='line'><span class="cm">         */</span>
+</span><span class='line'>        <span class="kt">int</span> <span class="n">offsetPositionDelta</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(</span><span class="n">preLayout</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="kt">int</span> <span class="n">offsetPosition</span> <span class="o">=</span> <span class="n">nextPosition</span><span class="o">;</span>
+</span><span class='line'>
+</span><span class='line'>            <span class="k">for</span> <span class="o">(</span><span class="kt">int</span> <span class="n">offset</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">offset</span> <span class="o">&lt;</span> <span class="n">removedPositions</span><span class="o">.</span><span class="na">size</span><span class="o">();</span> <span class="n">offset</span><span class="o">++)</span> <span class="o">{</span>
+</span><span class='line'>                <span class="c1">//Look for off-screen removals that are less-than this</span>
+</span><span class='line'>                <span class="k">if</span> <span class="o">(</span><span class="n">removedPositions</span><span class="o">.</span><span class="na">valueAt</span><span class="o">(</span><span class="n">offset</span><span class="o">)</span> <span class="o">==</span> <span class="n">REMOVE_INVISIBLE</span>
+</span><span class='line'>                        <span class="o">&amp;&amp;</span> <span class="n">removedPositions</span><span class="o">.</span><span class="na">keyAt</span><span class="o">(</span><span class="n">offset</span><span class="o">)</span> <span class="o">&lt;</span> <span class="n">nextPosition</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>                    <span class="c1">//Offset position to match</span>
+</span><span class='line'>                    <span class="n">offsetPosition</span><span class="o">--;</span>
+</span><span class='line'>                <span class="o">}</span>
+</span><span class='line'>            <span class="o">}</span>
+</span><span class='line'>            <span class="n">offsetPositionDelta</span> <span class="o">=</span> <span class="n">nextPosition</span> <span class="o">-</span> <span class="n">offsetPosition</span><span class="o">;</span>
+</span><span class='line'>            <span class="n">nextPosition</span> <span class="o">=</span> <span class="n">offsetPosition</span><span class="o">;</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(</span><span class="n">nextPosition</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="o">||</span> <span class="n">nextPosition</span> <span class="o">&gt;=</span> <span class="n">getItemCount</span><span class="o">())</span> <span class="o">{</span>
+</span><span class='line'>            <span class="c1">//Item space beyond the data set, don&#39;t attempt to add a view</span>
+</span><span class='line'>            <span class="k">continue</span><span class="o">;</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="err">…</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(</span><span class="n">i</span> <span class="o">%</span> <span class="n">mVisibleColumnCount</span> <span class="o">==</span> <span class="o">(</span><span class="n">mVisibleColumnCount</span> <span class="o">-</span> <span class="mi">1</span><span class="o">))</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">leftOffset</span> <span class="o">=</span> <span class="n">startLeftOffset</span><span class="o">;</span>
+</span><span class='line'>            <span class="n">topOffset</span> <span class="o">+=</span> <span class="n">mDecoratedChildHeight</span><span class="o">;</span>
+</span><span class='line'>
+</span><span class='line'>            <span class="c1">//During pre-layout, on each column end, apply any additional appearing views</span>
+</span><span class='line'>            <span class="k">if</span> <span class="o">(</span><span class="n">preLayout</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>                <span class="n">layoutAppearingViews</span><span class="o">(</span><span class="n">recycler</span><span class="o">,</span> <span class="n">view</span><span class="o">,</span> <span class="n">nextPosition</span><span class="o">,</span> <span class="n">removedPositions</span><span class="o">.</span><span class="na">size</span><span class="o">(),</span> <span class="n">offsetPositionDelta</span><span class="o">);</span>
+</span><span class='line'>            <span class="o">}</span>
+</span><span class='line'>        <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">leftOffset</span> <span class="o">+=</span> <span class="n">mDecoratedChildWidth</span><span class="o">;</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="err">…</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This <code>offsetPositionDelta</code> value was then passed to <code>layoutAppearingViews()</code> as a global offset to what the real row/column position were that we should be using during pre-layout. This offset would not need to exist if not for this additional bookkeeping requirement.</p>
+
+<h3>Assumption #2: Adding a new item only results in disappearing sibling views, not appearing views.</h3>
+
+<p>With item additions, the reverse is true. If the new item should be visible when added, standard layout managers will push disappearing views off-screen to make room. There isn’t really a case where this action would also trigger one or more sibling views to slide into place as appearing children. As with removals, an addition outside the visible range doesn’t really have any bearing on the visible views, so no animation is typically in play.</p>
+
+<p>For <code>FixedGridLayoutManager</code>, or any disconnected range layout, it doesn’t really matter if the addition happens inside or outside the visible range. In both cases we would need to manage possible appearing and disappearing views. The same option we used for remove is not available to us because <code>onItemsAdded()</code> is always called after pre-layout…we don’t get our happy accident this time around.</p>
+
+<p>Without that callback, we don’t really have much to go on during pre-layout when it comes to an add. It becomes a compromise between laying out extra views in hopes that we need them, and not laying out so many extra views we damage performance. <code>FixedGridLayoutManager</code> does not support predicting appearing views during an item add.</p>
+
+<h2>Just the Beginning…</h2>
+
+<p>The RecyclerView APIs are very new, and there are tons of changes already in the works with more to follow after that. They are also extremely complex, and hard to get right. For every amount of effort RecyclerView requires of you, it is doing 10x more behind the scenes. These types of growing pains are expected. Hopefully those of you trying to do similar things find this as a caution that saves you time, while we both wait for the framework to mature.</p>
+</div>
+<div class="entry-content">
+<center><img src="/images/by.png" />除非另有声明，本网站采用<a href="http://creativecommons.org/licenses/by/3.0/cn/" rel="license">知识共享“署名 3.0 中国大陆”许可协议</a>授权。</center>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Solarex</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2016-01-15T16:14:00+08:00" pubdate data-updated="true">Jan 15<span>th</span>, 2016</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/android/'>android</a>, <a class='category' href='/blog/categories/dev/'>dev</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+    <!-- JiaThis Button BEGIN -->
+    <div class="jiathis_style_32x32">
+        <a class="jiathis_button_tsina"></a>
+        <a class="jiathis_button_weixin"></a>
+        <a class="jiathis_button_douban"></a>
+        <a class="jiathis_button_fanfou"></a>
+        <a class="jiathis_button_evernote"></a>
+        <a class="jiathis_button_delicious"></a>
+        <a class="jiathis_button_renren"></a>
+        <a class="jiathis_button_tqq"></a>
+        <a class="jiathis_button_qzone"></a>
+        <a href="http://www.jiathis.com/share" class="jiathis jiathis_txt jiathis_separator jtico jtico_jiathis" target="_blank"></a>
+        <a class="jiathis_counter_style"></a>
+    </div>
+    <script type="text/javascript" >
+        var jiathis_config={
+summary:"",
+        hideMore:false
+        }
+</script>
+<script type="text/javascript" src="http://v3.jiathis.com/code/jia.js" charset="utf-8"></script>
+<!-- JiaThis Button END -->
+  </div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2016/01/13/building-a-recyclerview-layoutmanager-part-iii/" title="Previous Post: Building a RecyclerView LayoutManager part III">&laquo; Building a RecyclerView LayoutManager part III</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2016/02/11/recyclerview-animation-part-i/" title="Next Post: RecyclerView Animation part I">RecyclerView Animation part I &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+
+<section id="comment">
+<!-- Duoshuo Comment BEGIN -->
+	<div class="ds-thread"></div>
+<script type="text/javascript">
+var duoshuoQuery = {short_name:"solarex"};
+	(function() {
+		var ds = document.createElement('script');
+		ds.type = 'text/javascript';ds.async = true;
+		ds.src = 'http://static.duoshuo.com/embed.js';
+		ds.charset = 'UTF-8';
+		(document.getElementsByTagName('head')[0] 
+		|| document.getElementsByTagName('body')[0]).appendChild(ds);
+	})();
+	</script>
+<!-- Duoshuo Comment END -->
+</section>
+
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2016/03/14/mobile-apps-offline-support/">Mobile Apps Offline Support</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/03/13/the-clean-architecture/">The Clean Architecture</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/02/25/android-handler-memory-leaks/">Android Handler Memory Leaks</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/02/12/recyclerview-animation-part-ii/">RecyclerView Animation part II</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/02/11/recyclerview-animation-part-i/">RecyclerView Animation part I</a>
+      </li>
+    
+  </ul>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2016 - Solarex -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a> | Themed with <a href="https://github.com/lucaslew/whitespace">Whitespace</a></span>
+</p>
+
+
+<script type="text/javascript">
+    var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+    document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/h.js%3F2574e8b2c205dfe8ff89e239fa38ca27' type='text/javascript'%3E%3C/script%3E"));
+</script>
+
+
+</footer>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

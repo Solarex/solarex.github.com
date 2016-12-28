@@ -1,0 +1,2130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: java | Solarex's Blog]]></title>
+  <link href="http://Solarex.github.io/blog/categories/java/atom.xml" rel="self"/>
+  <link href="http://Solarex.github.io/"/>
+  <updated>2016-12-28T14:00:31+08:00</updated>
+  <id>http://Solarex.github.io/</id>
+  <author>
+    <name><![CDATA[Solarex]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[深入浅出单实例Singleton设计模式]]></title>
+    <link href="http://Solarex.github.io/blog/2014/10/17/java-singleton/"/>
+    <updated>2014-10-17T10:07:00+08:00</updated>
+    <id>http://Solarex.github.io/blog/2014/10/17/java-singleton</id>
+    <content type="html"><![CDATA[<p><center><img src="http://Solarex.github.io/images/java-singleton.png"/></center></p>
+
+
+<h3>前序</h3>
+
+<p>单实例Singleton设计模式可能是被讨论和使用的最广泛的一个设计模式了，这可能也是面试中问得最多的一个设计模式了。这个设计模式主要目的是想在整个系统中只能出现一个类的实例。这样做当然是有必然的，比如你的软件的全局配置信息，或者是一个Factory，或是一个主控类，等等。你希望这个类在整个系统中只能出现一个实例。当然，作为一个技术负责人的你，你当然有权利通过使用非技术的手段来达到你的目的。比如：你在团队内部明文规定，“XX类只能有一个全局实例，如果某人使用两次以上，那么该人将被处于2000元的罚款！”（呵呵），你当然有权这么做。但是如果你的设计的是东西是一个类库，或是一个需要提供给用户使用的API，恐怕你的这项规定将会失效。因为，你无权要求别人会那么做。所以，这就是为什么，我们希望通过使用技术的手段来达成这样一个目的的原因。</p>
+
+<p>本文会带着你深入整个Singleton的世界，当然，我会放弃使用C++语言而改用Java语言，因为使用Java这个语言可能更容易让我说明一些事情。</p>
+
+<!-- more -->
+
+
+<h3>Singleton的教学版本</h3>
+
+<p>这里，我将直接给出一个Singleton的简单实现，因为我相信你已经有这方面的一些基础了。我们姑且把这具版本叫做1.0版</p>
+
+<p>```java
+// version 1.0
+public class Singleton
+{</p>
+
+<pre><code>private static final Singleton singleton = null;
+
+private Singleton()
+{
+}
+public static Singleton getInstance()
+{
+    if (singleton== null)
+    {
+        singleton= new Singleton();
+    }
+    return singleton;
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<p>在上面的实例中，我想说明下面几个Singleton的特点：（下面这些东西可能是尽人皆知的，没有什么新鲜的）</p>
+
+<ul>
+<li>私有（private）的构造函数，表明这个类是不可能形成实例了。这主要是怕这个类会有多个实例。</li>
+<li>即然这个类是不可能形成实例，那么，我们需要一个静态的方式让其形成实例：<code>getInstance()</code>。注意这个方法是在new自己，因为其可以访问私有的构造函数，所以他是可以保证实例被创建出来的。</li>
+<li>在<code>getInstance()</code>中，先做判断是否已形成实例，如果已形成则直接返回，否则创建实例。</li>
+<li>所形成的实例保存在自己类中的私有成员中。</li>
+<li>我们取实例时，只需要使用<code>Singleton.getInstance()</code>就行了。</li>
+</ul>
+
+
+<p>当然，如果你觉得知道了上面这些事情后就学成了，那我给你当头棒喝一下了，事情远远没有那么简单。</p>
+
+<h3>Singleton的实际版本</h3>
+
+<p>上面的这个程序存在比较严重的问题，因为是全局性的实例，所以，在多线程情况下，所有的全局共享的东西都会变得非常的危险，这个也一样，在多线程情况下，如果多个线程同时调用<code>getInstance()</code>的话，那么，可能会有多个进程同时通过 (<code>singleton== null</code>)的条件检查，于是，多个实例就创建出来，并且很可能造成内存泄露问题。嗯，熟悉多线程的你一定会说——“我们需要线程互斥或同步”，没错，我们需要这个事情，于是我们的Singleton升级成1.1版，如下所示：</p>
+
+<p>```java
+// version 1.1
+public class Singleton
+{</p>
+
+<pre><code>private static final Singleton singleton = null;
+
+private Singleton()
+{
+}
+public static Singleton getInstance()
+{
+    if (singleton== null)
+    {
+        synchronized (Singleton.class) {
+            singleton= new Singleton();
+        }
+    }
+    return singleton;
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<p>嗯，使用了Java的<code>synchronized</code>方法，看起来不错哦。应该没有问题了吧？！错！这还是有问题！为什么呢？前面已经说过，如果有多个线程同时通过(<code>singleton== null</code>)的条件检查（因为他们并行运行），虽然我们的synchronized方法会帮助我们<strong>同步所有的线程，让我们并行线程变成串行</strong>的一个一个去new，那不还是一样的吗？同样会出现很多实例。嗯，确实如此！看来，还得把那个判断(<code>singleton== null</code>)条件也同步起来。于是，我们的Singleton再次升级成1.2版本，如下所示：</p>
+
+<p>```java
+// version 1.2
+public class Singleton
+{</p>
+
+<pre><code>private static final Singleton singleton = null;
+
+private Singleton()
+{
+}
+public static Singleton getInstance()
+{
+    synchronized (Singleton.class) 
+    {
+        if (singleton== null)
+        {
+            singleton= new Singleton();
+        }
+    }
+    return singleton;
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<p>不错不错，看似很不错了。在多线程下应该没有什么问题了，不是吗？的确是这样的，1.2版的Singleton在多线程下的确没有问题了，因为我们同步了所有的线程。只不过嘛……，什么？！还不行？！是的，还是有点小问题，我们本来只是想让new这个操作并行就可以了，现在，只要是进入getInstance()的线程都得同步啊，注意，创建对象的动作只有一次，后面的动作全是读取那个成员变量，这些读取的动作不需要线程同步啊。这样的作法感觉非常极端啊，为了一个初始化的创建动作，居然让我们搭上了所有的读操作，严重影响后续的性能啊！</p>
+
+<p>还得改！嗯，看来，在线程同步前还得加一个(<code>singleton== null</code>)的条件判断，如果对象已经创建了，那么就不需要线程的同步了。OK，下面是1.3版的Singleton。</p>
+
+<p>```java
+// version 1.3
+public class Singleton
+{</p>
+
+<pre><code>private static final Singleton singleton = null;
+
+private Singleton()
+{
+}
+public static Singleton getInstance()
+{
+    if (singleton== null)
+    {
+        synchronized (Singleton.class) 
+        {
+            if (singleton== null)
+            {
+                singleton= new Singleton();
+            }
+        }
+    }
+    return singleton;
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<p>感觉代码开始变得有点罗嗦和复杂了，不过，这可能是最不错的一个版本了，这个版本又叫“双重检查”Double-Check。下面是说明：</p>
+
+<p>第一个条件是说，如果实例创建了，那就不需要同步了，直接返回就好了。
+不然，我们就开始同步线程。
+第二个条件是说，如果被同步的线程中，有一个线程创建了对象，那么别的线程就不用再创建了。
+相当不错啊，干得非常漂亮！请大家为我们的1.3版起立鼓掌！</p>
+
+<h3>Singleton的其它问题</h3>
+
+<p>怎么？还有问题？！当然还有，请记住下面这条规则——“无论你的代码写得有多好，其只能在特定的范围内工作，超出这个范围就要出Bug了”，这是“陈式第一定理”，呵呵。你能想一想还有什么情况会让这个我们上面的代码出问题吗？</p>
+
+<p>在C++下，我不是很好举例，但是在Java的环境下，嘿嘿，还是让我们来看看下面的一些反例和一些别的事情的讨论（当然，有些反例可能属于钻牛角尖，可能有点学院派，不过也不排除其实际可能性，就算是提个醒吧）：</p>
+
+<p>其一、<code>Class Loader</code>。不知道你对Java的Class Loader熟悉吗？“类装载器”？！C++可没有这个东西啊。这是Java动态性的核心。顾名思义，类装载器是用来把类(class)装载进JVM的。JVM规范定义了两种类型的类装载器：启动内装载器(bootstrap)和用户自定义装载器(user-defined class loader)。 在一个JVM中可能存在多个ClassLoader，每个ClassLoader拥有自己的NameSpace。一个ClassLoader只能拥有一个class对象类型的实例，但是不同的ClassLoader可能拥有相同的class对象实例，这时可能产生致命的问题。如ClassLoaderA，装载了类A的类型实例A1，而ClassLoaderB，也装载了类A的对象实例A2。逻辑上讲A1=A2，但是由于A1和A2来自于不同的ClassLoader，它们实际上是完全不同的，如果A中定义了一个静态变量c，则c在不同的ClassLoader中的值是不同的。</p>
+
+<p>于是，如果咱们的Singleton 1.3版本如果面对着多个Class Loader会怎么样？呵呵，多个实例同样会被多个Class Loader创建出来，当然，这个有点牵强，不过他确实存在。难道我们还要整出个1.4版吗？可是，我们怎么可能在我的Singleton类中操作Class Loader啊？是的，你根本不可能。在这种情况下，你能做的只有是——“保证多个Class Loader不会装载同一个Singleton”。</p>
+
+<p>其二、序例化。如果我们的这个Singleton类是一个关于我们程序配置信息的类。我们需要它有序列化的功能，那么，当反序列化的时候，我们将无法控制别人不多次反序列化。不过，我们可以利用一下Serializable接口的<code>readResolve()</code>方法，比如：</p>
+
+<p>```java
+public class Singleton implements Serializable
+{</p>
+
+<pre><code>......
+......
+protected Object readResolve()
+{
+    return getInstance();
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<p>其三、多个Java虚拟机。如果我们的程序运行在多个Java的虚拟机中。什么？多个虚拟机？这是一种什么样的情况啊。嗯，这种情况是有点极端，不过还是可能出现，比如EJB或RMI之流的东西。要在这种环境下避免多实例，看来只能通过良好的设计或非技术来解决了。</p>
+
+<p>其四，volatile变量。关于volatile这个关键字所声明的变量可以被看作是一种 “程度较轻的同步synchronized”；与 synchronized 块相比，volatile 变量所需的编码较少，并且运行时开销也较少，但是它所能实现的功能也仅是synchronized的一部分。当然，如前面所述，我们需要的Singleton只是在创建的时候线程同步，而后面的读取则不需要同步。所以，volatile变量并不能帮助我们即能解决问题，又有好的性能。而且，这种变量只能在JDK 1.5+版后才能使用。</p>
+
+<p>其五、关于继承。是的，继承于Singleton后的子类也有可能造成多实例的问题。不过，因为我们早把Singleton的构造函数声明成了私有的，所以也就杜绝了继承这种事情。</p>
+
+<p>其六，关于代码重用。也话我们的系统中有很多个类需要用到这个模式，如果我们在每一个类都中有这样的代码，那么就显得有点傻了。那么，我们是否可以使用一种方法，把这具模式抽象出去？在C++下这是很容易的，因为有模板和友元，还支持栈上分配内存，所以比较容易一些（程序如下所示），Java下可能比较复杂一些，聪明的你知道怎么做吗？</p>
+
+<p>```cpp
+template<class t=""> class Singleton
+{</p>
+
+<pre><code>public:
+    static T&amp; Instance()
+    {
+        static T theSingleInstance; //假设T有一个protected默认构造函数
+        return theSingleInstance;
+    }
+</code></pre>
+
+<p>};</p>
+
+<p>class OnlyOne : public Singleton<onlyone>
+{</p>
+
+<pre><code>friend class Singleton&lt;onlyone&gt;;
+int example_data;
+
+public:
+    int GetExampleData() const {return example_data;}
+protected: 
+    OnlyOne(): example_data(42) {}   // 默认构造函数
+    OnlyOne(OnlyOne&amp;) {}
+</code></pre>
+
+<p>};</p>
+
+<p>int main( )
+{</p>
+
+<pre><code>cout &lt;&lt; OnlyOne::Instance().GetExampleData()&lt;&lt; endl;
+return 0;
+</code></pre>
+
+<p>}
+```</p>
+
+<p>REF:</p>
+
+<ul>
+<li><a href="http://coolshell.cn/articles/265.html">深入浅出单实例Singleton设计模式</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Singleton_pattern">Singleton pattern</a></li>
+</ul>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Java thread tutorial]]></title>
+    <link href="http://Solarex.github.io/blog/2014/10/14/java-thread-tutorial/"/>
+    <updated>2014-10-14T08:49:00+08:00</updated>
+    <id>http://Solarex.github.io/blog/2014/10/14/java-thread-tutorial</id>
+    <content type="html"><![CDATA[<center><p><img src="http://Solarex.github.io/images/java-thread-tutorial.png" ></p></center>
+
+
+<ul>
+<li><a href="#overview">Java Thread and Multithreading Tutorial</a>
+
+<ul>
+<li><a href="#example">Java Thread Example</a></li>
+<li><a href="#sleep">Java Thread Sleep</a></li>
+<li><a href="#join">Java Thread Join</a></li>
+<li><a href="#states">Java Thread States</a></li>
+<li><a href="#wait">Java Thread wait, notify and notifyAll</a></li>
+<li><a href="#safety">Java Thread Safety and Java Synchronization</a></li>
+<li><a href="#exception">Java Exception in thread main</a></li>
+<li><a href="#singleton">Thread Safety in Singleton Class</a></li>
+<li><a href="#daemon">Java Daemon Thread</a></li>
+<li><a href="#threadlocal">Java Thread Local</a></li>
+<li><a href="#dump">Java Thread Dump</a></li>
+<li><a href="#deadlock">How to Analyze Deadlock and avoid it in Java</a></li>
+<li><a href="#timer">Java Timer Thread</a></li>
+<li><a href="#producer">Java Producer Consumer Problem</a></li>
+<li><a href="#pool">Java Thread Pool</a></li>
+<li><a href="#future">Java Callable Future</a></li>
+<li><a href="#futuretask">Java FutureTask Example</a></li>
+</ul>
+</li>
+</ul>
+
+
+<h2 id="overview">Java Thread and Multithreading Tutorial</h2>
+
+
+<p>There are two types of threads in an application – <code>user thread</code> and <code>daemon thread</code>. When we start an application, main is the first user thread created and we can create multiple user threads as well as daemon threads. When all the user threads are executed, JVM terminates the program.</p>
+
+<p>We can set different priorities to different Threads but it doesn’t guarantee that higher priority thread will execute first than lower priority thread. Thread scheduler is the part of Operating System implementation and when a Thread is started, it’s execution is controlled by Thread Scheduler and JVM doesn’t have any control on it’s execution.</p>
+
+<!-- more -->
+
+
+
+
+<h3 id="example">Java Thread Example</h3>
+
+
+<p>Every java application has at least one thread – main thread. Although there are so many other threads running in background like memory management, system management, signal processing etc. But from application point of view – main is the first thread and we can create multiple threads from it.</p>
+
+<p>Multithreading refers to two or more threads executing concurrently in a single program. A computer single core processor can execute only one thread at a time and time slicing is the OS feature to share processor time between different processes and threads.</p>
+
+<p>Benefits of Threads</p>
+
+<ul>
+<li>Threads are lightweight compared to processes, it takes less time and resource to create a thread.</li>
+<li>Threads share their parent process data and code</li>
+<li>Context switching between threads is usually less expensive than between processes.</li>
+<li>Thread intercommunication is relatively easy than process communication.</li>
+</ul>
+
+
+<p>Java provides two ways to create a thread programmatically.</p>
+
+<ul>
+<li>Implementing the <code>java.lang.Runnable</code> interface.</li>
+<li>Extending the <code>java.lang.Thread</code> class.</li>
+</ul>
+
+
+<p><strong>Once we start any thread, it’s execution depends on the OS implementation of time slicing and we can’t control their execution. However we can set threads priority but even then it doesn’t guarantee that higher priority thread will be executed first.</strong></p>
+
+<p>As you have noticed that thread doesn’t return any value but what if we want our thread to do some processing and then return the result to our client program, check our <a href="#future">Java Callable Future</a>.</p>
+
+<h3 id="sleep">Java Thread Sleep</h3>
+
+
+<p><code>java.lang.Thread sleep()</code> method can be used to pause the execution of current thread for specified time in milliseconds. The argument value for milliseconds can’t be negative, else it throws <code>IllegalArgumentException</code>.</p>
+
+<p>There is another method <code>sleep(long millis, int nanos)</code> that can be used to pause the execution of current thread for specified milliseconds and nanoseconds. The allowed nano second value is between 0 and 999999.</p>
+
+<p>Thread Sleep important points</p>
+
+<ul>
+<li>It always pause the current thread execution.</li>
+<li>The actual time thread sleeps before waking up and start execution depends on system timers and schedulers. For a quiet system, the actual time for sleep is near to the specified sleep time but for a busy system it will be little bit more.</li>
+<li>Thread sleep doesn’t lose any monitors or locks current thread has acquired.</li>
+<li>Any other thread can interrupt the current thread in sleep, in that case <code>InterruptedException</code> is thrown.</li>
+</ul>
+
+
+<p>How Thread Sleep Works</p>
+
+<p><code>Thread.sleep()</code> interacts with the thread scheduler to put the current thread in wait state for specified period of time. Once the wait time is over, thread state is changed to runnable state and wait for the CPU for further execution. So the actual time that current thread sleep depends on the thread scheduler that is part of operating system.</p>
+
+<h3 id="join">Java Thread Join</h3>
+
+
+<p>Java Thread <code>join</code> method can be used to pause the current thread execution until unless the specified thread is dead. There are three overloaded join functions.</p>
+
+<ul>
+<li><p><code>public final void join()</code>: This method puts the current thread on wait until the thread on which it’s called is dead. If the thread is interrupted, it throws <code>InterruptedException</code>.</p></li>
+<li><p><code>public final synchronized void join(long millis)</code>: This method is used to wait for the thread on which it’s called to be dead or wait for specified milliseconds. Since thread execution depends on OS implementation, it doesn’t guarantee that the current thread will wait only for given time.</p></li>
+<li><p><code>public final synchronized void join(long millis, int nanos)</code>: This method is used to wait for thread to die for given milliseconds plus nanoseconds.</p></li>
+</ul>
+
+
+<p>```java
+package org.solarex.threadtest;</p>
+
+<p>public class ThreadJoinExample {</p>
+
+<pre><code>public static void main(String[] args) {
+    Thread t1 = new Thread(new MyRunnable(), "t1");
+    Thread t2 = new Thread(new MyRunnable(), "t2");
+    Thread t3 = new Thread(new MyRunnable(), "t3");
+
+    t1.start();
+
+    //start second thread after waiting for 2 seconds or if it's dead
+    try {
+        t1.join(2000);
+    } catch (InterruptedException e) {
+        e.printStackTrace();
+    }
+
+    t2.start();
+
+    //start third thread only when first thread is dead
+    try {
+        t1.join();
+    } catch (InterruptedException e) {
+        e.printStackTrace();
+    }
+
+    t3.start();
+
+    //let all threads finish execution before finishing main thread
+    try {
+        t1.join();
+        t2.join();
+        t3.join();
+    } catch (InterruptedException e) {
+        e.printStackTrace();
+    }
+
+    System.out.println("All threads are dead, exiting main thread");
+}
+</code></pre>
+
+<p>}</p>
+
+<p>class MyRunnable implements Runnable{</p>
+
+<pre><code>@Override
+public void run() {
+    System.out.println("Thread started:::"+Thread.currentThread().getName()+"@"+System.currentTimeMillis());
+    try {
+        Thread.sleep(4000);
+    } catch (InterruptedException e) {
+        e.printStackTrace();
+    }
+    System.out.println("Thread ended:::"+Thread.currentThread().getName()+"@"+System.currentTimeMillis());
+}
+</code></pre>
+
+<p>}</p>
+
+<hr />
+
+<p>// output begin
+hrh@Solarex:Java$ java org.solarex.threadtest.ThreadJoinExample
+Thread started:::t1@1413344304212
+Thread started:::t2@1413344306213
+Thread ended:::t1@1413344308213
+Thread started:::t3@1413344308214
+Thread ended:::t2@1413344310213
+Thread ended:::t3@1413344312214
+All threads are dead, exiting main thread
+// output end
+```</p>
+
+<h3 id="states">Java Thread States</h3>
+
+
+<p>Thread States</p>
+
+<p>Below diagram shows different states of thread in java, note that we can create a thread in java and start it but how the thread states change from Runnable to Running to Blocked depends on the OS implementation of thread scheduler and java doesn’t have full control on that.</p>
+
+<center><p><img src="http://Solarex.github.io/images/thread-lifecycle-states.png"></p></center>
+
+
+<ul>
+<li><p><code>New</code>:When we create a new Thread object using new operator, thread state is New Thread. At this point, thread is not alive and it’s a state internal to Java programming.</p></li>
+<li><p><code>Runnable</code>:When we call <code>start()</code> function on <code>Thread</code> object, it’s state is changed to <code>Runnable</code> and the control is given to <strong>Thread scheduler</strong> to finish it’s execution. Whether to run this thread instantly or keep it in runnable thread pool before running it depends on the OS implementation of thread scheduler.</p></li>
+<li><p><code>Running</code>:When thread is executing, it’s state is changed to <code>Running</code>. Thread scheduler picks one of the thread from the runnable thread pool and change it’s state to Running and CPU starts executing this thread. A thread can change state to Runnable, Dead or Blocked from running state depends on time slicing, thread completion of run() method or waiting for some resources.</p></li>
+<li><p><code>Blocked/Waiting</code>:A thread can be waiting for other thread to finish using thread <code>join</code> or it can be waiting for some resources to available, for example producer consumer problem or waiter notifier implementation or IO resources, then it’s state is changed to Waiting. Once the thread wait state is over, it’s state is changed to Runnable and it’s moved back to runnable thread pool.</p></li>
+<li><p><code>Dead</code>:Once the thread finished executing, it’s state is changed to Dead and it’s considered to be not alive.</p></li>
+</ul>
+
+
+<h3 id="wait">Java Thread wait,notifyand notifyAll</h3>
+
+
+<ul>
+<li><p><strong>wait</strong>:Object <code>wait</code> methods has three variance, one which waits indefinitely for any other thread to call notify or notifyAll method on the object to wake up the current thread. Other two variances puts the current thread in wait for specific amount of time before they wake up.</p></li>
+<li><p><strong>notify</strong>:<code>notify</code> method wakes up only one thread waiting on the object and that thread starts execution. So if there are multiple threads waiting for an object, this method will wake up only one of them. The choice of the thread to wake depends on the OS implementation of thread management.</p></li>
+<li><p><strong>notifyAll</strong>:<code>notifyAll</code> method wakes up all the threads waiting on the object, although which one will process first depends on the OS implementation.</p></li>
+</ul>
+
+
+<p>```java
+//Message.java
+package org.solarex.threadtest;</p>
+
+<p>public class Message{</p>
+
+<pre><code>private String msg;
+
+public Message(String str){
+    this.msg = str;
+}
+
+public String getMsg(){
+    return msg;
+}
+
+public void setMsg(String str){
+    this.msg = str;
+}
+</code></pre>
+
+<p>}
+//Waiter.java
+package org.solarex.threadtest;</p>
+
+<p>public class Waiter implements Runnable{</p>
+
+<pre><code>private Message msg;
+public Waiter(Message m){
+    this.msg = m;
+}
+@Override
+public void run(){
+    String name = Thread.currentThread().getName();
+    synchronized(msg){
+        try{
+            System.out.println(name+" waiting to get notified @ " + System.currentTimeMillis());
+            msg.wait();
+        }catch(InterruptedException e){
+            e.printStackTrace();
+        }
+        System.out.println(name+" waiter thread got notified @ " + System.currentTimeMillis());
+        System.out.println(name+" proccessed: " + msg.getMsg());
+    }
+}
+</code></pre>
+
+<p>}
+//Notifier.java
+package org.solarex.threadtest;
+public class Notifier implements Runnable{</p>
+
+<pre><code>private Message msg;
+public Notifier(Message msg){
+    this.msg = msg;
+}
+
+@Override
+public void run(){
+    String name = Thread.currentThread().getName();
+    System.out.println(name+" started");
+    try{
+        Thread.sleep(1000);
+        synchronized(msg){
+            msg.setMsg(name+" notifier work done");
+            // msg.notify();
+            msg.notifyAll();
+        }
+    }catch (InterruptedException e){
+        e.printStackTrace();
+    }
+}
+</code></pre>
+
+<p>}
+//WaitNotifierTest.java
+package org.solarex.threadtest;
+public class WaitNotifyTest {</p>
+
+<pre><code>public static void main(String[] args){
+    Message msg = new Message("Hi");
+    Waiter waiter0 = new Waiter(msg);
+    new Thread(waiter0, "waiter0").start();
+
+    Waiter waiter1 = new Waiter(msg);
+    new Thread(waiter1, "waiter1").start();
+
+    Notifier notifier = new Notifier(msg);
+    new Thread(notifier, "notifier").start();
+
+    System.out.println("main thread exit");
+}
+</code></pre>
+
+<p>}</p>
+
+<p>// javac -d . Message.java Waiter.java Notifier.java WaitNotifierTest.java
+// java org.solarex.threadtest.WaitNotifierTest
+// &mdash;&mdash;&mdash;&mdash;begin output&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;
+hrh@Solarex:Java$ java org.solarex.threadtest.WaitNotifyTest
+waiter0 waiting to get notified @ 1413423213359
+waiter1 waiting to get notified @ 1413423213360
+main thread exit
+notifier started
+waiter1 waiter thread got notified @ 1413423214362
+waiter1 proccessed: notifier notifier work done
+waiter0 waiter thread got notified @ 1413423214362
+waiter0 proccessed: notifier notifier work done
+// &mdash;&mdash;&mdash;&mdash;end output&mdash;&mdash;&mdash;&mdash;&mdash;
+```</p>
+
+<h3 id="safety">Java Thread Safety and Java Synchronization</h3>
+
+
+<p>Thread safety is the process to make our program safe to use in multithreaded environment, there are different ways through which we can make our program thread safe.</p>
+
+<ul>
+<li>Synchronization is the easiest and most widely used tool for thread safety in java.</li>
+<li>Use of Atomic Wrapper classes from <code>java.util.concurrent.atomic</code> package. For example <code>AtomicInteger</code></li>
+<li>Use of locks from <code>java.util.concurrent.locks</code> package.</li>
+<li>Using thread safe collection classes, check this post for usage of <code>ConcurrentHashMap</code> for thread safety.</li>
+<li>Using volatile keyword with variables to make every thread read the data from memory, not read from thread cache.</li>
+</ul>
+
+
+<p>Synchronization is the tool using which we can achieve thread safety, JVM guarantees that synchronized code will be executed by only one thread at a time. java keyword synchronized is used to create synchronized code and internally it uses locks on Object or Class to make sure only one thread is executing the synchronized code.</p>
+
+<ul>
+<li>Java synchronization works on locking and unlocking of resource, before any thread enters into synchronized code, it has to acquire lock on the Object and when code execution ends, it unlocks the resource that can be locked by other threads. In the mean time other threads are in wait state to lock the synchronized resource.</li>
+<li>We can use synchronized keyword in two ways, one is to make a complete method synchronized and other way is to create synchronized block.可以创建synchronized方法或者synchronized代码块</li>
+<li>When a method is synchronized, it locks the Object, if method is static it locks the Class, so it’s always best practice to use synchronized block to lock the only sections of method that needs synchronization.</li>
+<li>While creating synchronized block, we need to provide the resource on which lock will be acquired, it can be XYZ.class or any Object field of the class.</li>
+<li><code>synchronized(this)</code> will lock the Object before entering into the synchronized block.</li>
+<li>You should use the lowest level of locking, for example if there are multiple synchronized block in a class and one of them is locking the Object, then other synchronized blocks will also be not available for execution by other threads. When we lock an Object, it acquires lock on all the fields of the Object.</li>
+<li>Java Synchronization provides data integrity on the cost of performance, so it should be used only when it’s absolutely necessary.</li>
+<li>Java Synchronization works only in the same JVM, so if you need to lock some resource in multiple JVM environment, it will not work and you might have to look after some global locking mechanism.</li>
+<li>Java Synchronization could result in deadlocks, check this post about <a href="#deadlock">deadlock in java and how to avoid them</a>.</li>
+<li>Java synchronized keyword cannot be used for constructors and variables.</li>
+<li>It is preferable to create a dummy private Object to use for synchronized block, so that it’s reference can’t be changed by any other code. For example if you have a setter method for Object on which you are synchronizing, it’s reference can be changed by some other code leads to parallel execution of the synchronized block.</li>
+<li>We should not use any object that is maintained in a constant pool, for example String should not be used for synchronization because if any other code is also locking on same String, it will try to acquire lock on the same reference object from String pool and even though both the codes are unrelated, they will lock each other.</li>
+</ul>
+
+
+<p>```java
+//dummy object variable for synchronization
+private Object mutex=new Object();
+&hellip;
+//using synchronized block to read, increment and update count value synchronously
+synchronized (mutex) {</p>
+
+<pre><code>    count++;
+</code></pre>
+
+<p>}
+```</p>
+
+<p>```java
+public class MyObject {</p>
+
+<p>  // Locks on the object&rsquo;s monitor
+  public synchronized void doSomething() {</p>
+
+<pre><code>// ...
+</code></pre>
+
+<p>  }
+}</p>
+
+<p>// Hackers code
+MyObject myObject = new MyObject();
+synchronized (myObject) {
+  while (true) {</p>
+
+<pre><code>// Indefinitely delay myObject
+Thread.sleep(Integer.MAX_VALUE); 
+</code></pre>
+
+<p>  }
+}
+```</p>
+
+<p>Notice that hacker’s code is trying to lock the myObject instance and once it gets the lock, it’s never releasing it causing <code>doSomething()</code> method to block on waiting for the lock, this will cause system to go on deadlock and cause Denial of Service (DoS).</p>
+
+<p>```java
+public class MyObject {
+  public Object lock = new Object();</p>
+
+<p>  public void doSomething() {</p>
+
+<pre><code>synchronized (lock) {
+  // ...
+}
+</code></pre>
+
+<p>  }
+}</p>
+
+<p>//untrusted code</p>
+
+<p>MyObject myObject = new MyObject();
+//change the lock Object reference
+myObject.lock = new Object();
+```</p>
+
+<p>Notice that lock Object is public and by changing it’s reference, we can execute synchronized block parallel in multiple threads. Similar case is true if you have private Object but have setter method to change it’s reference.</p>
+
+<p>```java
+public class MyObject {
+  //locks on the class object&rsquo;s monitor
+  public static synchronized void doSomething() {</p>
+
+<pre><code>// ...
+</code></pre>
+
+<p>  }
+}</p>
+
+<p>// hackers code
+synchronized (MyObject.class) {
+  while (true) {</p>
+
+<pre><code>Thread.sleep(Integer.MAX_VALUE); // Indefinitely delay MyObject
+</code></pre>
+
+<p>  }
+}
+```</p>
+
+<p>Notice that hacker code is getting lock on class monitor and not releasing it, it will cause deadlock and DoS in the system.</p>
+
+<h3 id="exception">Java Exception in thread main</h3>
+
+
+<p>These are some of the common java exceptions in thread main, whenever you face any one of these check following:</p>
+
+<ul>
+<li>Same JRE version is used to compile and run the java program</li>
+<li>You are running java class from the classes directory and package is provided as directory.</li>
+<li>Your java classpath is set properly to include all the dependency classes</li>
+<li>You are using only file name without .class extension while running a java program</li>
+<li>Java class main method syntax is correct</li>
+</ul>
+
+
+<h3 id="singleton">Thread Safety in Singleton Class</h3>
+
+
+<p><strong>Singleton</strong> is one of the most widely used creational design pattern to restrict the object creation by applications. In real world applications, resources like Database connections or Enterprise Information Systems (EIS) are limited and should be used wisely to avoid any resource crunch. To achieve this, we can implement Singleton design pattern to create a wrapper class around the resource and limit the number of object created at runtime to one.</p>
+
+<p>In general we follow below steps to create a singleton class:</p>
+
+<ul>
+<li>Override the private constructor to avoid any new object creation with new operator.</li>
+<li>Declare a private static instance of the same class</li>
+<li><p>Provide a public static method that will return the singleton class instance variable. If the variable is not initialized then initialize it or else simply return the instance variable.</p></li>
+<li><p>Create the instance variable at the time of class loading:</p></li>
+<li><strong>Pros</strong>:Thread safety without synchronization,Easy to implement</li>
+<li><p><strong>Cons</strong>:Early creation of resource that might not be used in the application,The client application can’t pass any argument, so we can’t reuse it. For example, having a generic singleton class for database connection where client application supplies database server properties.</p></li>
+<li><p>Synchronize the <code>getInstance()</code> method:</p></li>
+<li><strong>Pros</strong>:Thread safety is guaranteed,Client application can pass parameters,Lazy initialization achieved</li>
+<li><p><strong>Cons</strong>:Slow performance because of locking overhead,Unnecessary synchronization that is not required once the instance variable is initialized.</p></li>
+<li><p>Use synchronized block inside the if loop:</p></li>
+<li><strong>Pros</strong>:Thread safety is guaranteed,Client application can pass arguments,Lazy initialization achieved,Synchronization overhead is minimal and applicable only for first few threads when the variable is null.</li>
+<li><strong>Cons</strong>:Extra if condition</li>
+</ul>
+
+
+<p>```java
+public class ASingleton{</p>
+
+<pre><code>private static ASingleton instance= null;
+private static Object mutex= new Object();
+private ASingleton(){
+}
+
+public static ASingleton getInstance(){
+    if(instance==null){
+        synchronized (mutex){
+            if(instance==null) instance= new ASingleton();
+        }
+    }
+    return instance;
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<h3 id="daemon">Java Daemon Thread</h3>
+
+
+<p>When we create a Thread in java, by default it’s a user thread and if it’s running JVM will not terminate the program. When a thread is marked as daemon thread, JVM doesn’t wait it to finish and as soon as all the user threads are finished, it terminates the program as well as all the associated daemon threads</p>
+
+<p>```java
+package org.solarex.threadtest;
+public class JavaDaemonThread{</p>
+
+<pre><code>public static void main(String[] args) throws InterruptedException{
+    Thread dt = new Thread(new DaemonThread(), "dt");
+    dt.setDaemon(true);
+    dt.start();
+    Thread.sleep(30000);
+    System.out.println("main thread exit");
+}
+</code></pre>
+
+<p>}
+class DaemonThread implements Runnable{</p>
+
+<pre><code>@Override
+public void run(){
+    while(true){
+        processSth();
+    }
+}
+
+private void processSth(){
+    try{
+        System.out.println("process @ " + System.currentTimeMillis());
+        Thread.sleep(5000);
+    }catch(Exception e){
+        e.printStackTrace();
+    }
+}
+</code></pre>
+
+<p>}</p>
+
+<p>//&mdash;&mdash;&mdash;&mdash;&mdash;begin output&mdash;&mdash;&mdash;&mdash;&mdash;&ndash;
+hrh@Solarex:Java$ java org.solarex.threadtest.JavaDaemonThread
+process @ 1413426032024
+process @ 1413426037024
+process @ 1413426042024
+process @ 1413426047025
+process @ 1413426052025
+process @ 1413426057025
+main thread exit
+//&mdash;&mdash;&mdash;&mdash;&mdash;end output&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&ndash;
+```</p>
+
+<p>If we don’t set the thread to be run as daemon thread, the program will never terminate even after main thread is finished it’s execution. Usually we create a daemon thread for functionalities that are not critical to system, for example logging thread or monitoring thread to capture the system resource details and their state.</p>
+
+<h3 id="threadlocal">Java Thread Local</h3>
+
+
+<p>Java <code>ThreadLocal</code> is used to create thread-local variables. We know that all threads of an Object share it’s variables, so if the variable is not thread safe, we can use synchronization but if we want to avoid synchronization, we can use ThreadLocal variables.Every thread has it’s own <code>ThreadLocal</code> variable and they can use it’s <code>get()</code> and <code>set()</code> methods to get the default value or change it’s value local to Thread. <code>ThreadLocal</code> instances are typically private static fields in classes that wish to associate state with a thread.</p>
+
+<p>```java
+package org.solarex.threadtest;</p>
+
+<p>import java.text.SimpleDateFormat;
+import java.util.Random;</p>
+
+<p>public class ThreadLocalExample implements Runnable{</p>
+
+<pre><code>// SimpleDateFormat is not thread-safe, so give one to each thread
+private static final ThreadLocal&lt;SimpleDateFormat&gt; formatter = new ThreadLocal&lt;SimpleDateFormat&gt;(){
+    @Override
+    protected SimpleDateFormat initialValue()
+    {
+        return new SimpleDateFormat("yyyyMMdd HHmm");
+    }
+};
+
+public static void main(String[] args) throws InterruptedException {
+    ThreadLocalExample obj = new ThreadLocalExample();
+    for(int i=0 ; i&lt;10; i++){
+        Thread t = new Thread(obj, ""+i);
+        Thread.sleep(new Random().nextInt(1000));
+        t.start();
+    }
+}
+
+@Override
+public void run() {
+    System.out.println("Thread Name= "+Thread.currentThread().getName()+" default Formatter = "+formatter.get().toPattern());
+    try {
+        Thread.sleep(new Random().nextInt(1000));
+    } catch (InterruptedException e) {
+        e.printStackTrace();
+    }
+
+    formatter.set(new SimpleDateFormat());
+
+    System.out.println("Thread Name= "+Thread.currentThread().getName()+" formatter = "+formatter.get().toPattern());
+}
+</code></pre>
+
+<p>}
+//&mdash;&mdash;&mdash;begin output&mdash;&mdash;&mdash;&mdash;&mdash;
+hrh@Solarex:Java$ java org.solarex.threadtest.ThreadLocalExample
+Thread Name= 0 default Formatter = yyyyMMdd HHmm
+Thread Name= 1 default Formatter = yyyyMMdd HHmm
+Thread Name= 1 formatter = M/d/yy h:mm a
+Thread Name= 0 formatter = M/d/yy h:mm a
+Thread Name= 2 default Formatter = yyyyMMdd HHmm
+Thread Name= 3 default Formatter = yyyyMMdd HHmm
+Thread Name= 2 formatter = M/d/yy h:mm a
+Thread Name= 4 default Formatter = yyyyMMdd HHmm
+Thread Name= 3 formatter = M/d/yy h:mm a
+Thread Name= 4 formatter = M/d/yy h:mm a
+Thread Name= 5 default Formatter = yyyyMMdd HHmm
+Thread Name= 6 default Formatter = yyyyMMdd HHmm
+Thread Name= 5 formatter = M/d/yy h:mm a
+Thread Name= 7 default Formatter = yyyyMMdd HHmm
+Thread Name= 8 default Formatter = yyyyMMdd HHmm
+Thread Name= 7 formatter = M/d/yy h:mm a
+Thread Name= 6 formatter = M/d/yy h:mm a
+Thread Name= 8 formatter = M/d/yy h:mm a
+Thread Name= 9 default Formatter = yyyyMMdd HHmm
+Thread Name= 9 formatter = M/d/yy h:mm a
+//&mdash;&mdash;&mdash;end output&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;
+```</p>
+
+<p>As you can see from the output that Thread-0 has changed the value of formatter but still thread-2 default formatter is same as the initialized value.</p>
+
+<h3 id="dump">Java Thread Dump</h3>
+
+
+<p>Java comes with <code>jstack</code> tool through which we can generate thread dump for a java process. This is a two step process.</p>
+
+<ul>
+<li>Find out the PID of the java process using <code>ps -eaf | grep java</code> command</li>
+<li>Run <code>jstack</code> tool as <code>jstack PID</code> to generate the thread dump output to console, you can append thread dump output to file using command <code>jstack PID &gt;&gt; mydumps.tdump</code></li>
+</ul>
+
+
+<h3 id="deadlock">How to Analytize Deadlock and avoid it in Java</h3>
+
+
+<p>Deadlock is a programming situation where two or more threads are blocked forever, this situation arises with at least two threads and two or more resources.</p>
+
+<p>```java
+package org.solarex.threadtest;</p>
+
+<p>public class ThreadDeadlock {</p>
+
+<pre><code>public static void main(String[] args) throws InterruptedException {
+    Object obj1 = new Object();
+    Object obj2 = new Object();
+    Object obj3 = new Object();
+
+    Thread t1 = new Thread(new SyncThread(obj1, obj2), "t1");
+    Thread t2 = new Thread(new SyncThread(obj2, obj3), "t2");
+    Thread t3 = new Thread(new SyncThread(obj3, obj1), "t3");
+
+    t1.start();
+    Thread.sleep(5000);
+    t2.start();
+    Thread.sleep(5000);
+    t3.start();
+
+}
+</code></pre>
+
+<p>}</p>
+
+<p>class SyncThread implements Runnable{</p>
+
+<pre><code>private Object obj1;
+private Object obj2;
+
+public SyncThread(Object o1, Object o2){
+    this.obj1=o1;
+    this.obj2=o2;
+}
+@Override
+public void run() {
+    String name = Thread.currentThread().getName();
+    System.out.println(name + " acquiring lock on "+obj1);
+    synchronized (obj1) {
+     System.out.println(name + " acquired lock on "+obj1);
+     work();
+     System.out.println(name + " acquiring lock on "+obj2);
+     synchronized (obj2) {
+        System.out.println(name + " acquired lock on "+obj2);
+        work();
+    }
+     System.out.println(name + " released lock on "+obj2);
+    }
+    System.out.println(name + " released lock on "+obj1);
+    System.out.println(name + " finished execution.");
+}
+private void work() {
+    try {
+        Thread.sleep(30000);
+    } catch (InterruptedException e) {
+        e.printStackTrace();
+    }
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<p>For analyzing deadlock, we need to look out for the threads with state as <code>BLOCKED</code> and then the resources it’s waiting to lock, every resource has a unique ID using which we can find which thread is already holding the lock on the object.</p>
+
+<p>These are some of the guidelines using which we can avoid most of the deadlock situations.</p>
+
+<ul>
+<li><strong>Avoid Nested Locks</strong>: This is the most common reason for deadlocks, avoid locking another resource if you already hold one. It’s almost impossible to get deadlock situation if you are working with only one object lock.</li>
+<li><strong>Lock Only What is Required</strong>: You should acquire lock only on the resources you have to work on, for example in above program I am locking the complete Object resource but if we are only interested in one of it’s fields, then we should lock only that specific field not complete object.</li>
+<li><strong>Avoid waiting indefinitely</strong>: You can get deadlock if two threads are waiting for each other to finish indefinitely using thread join. If your thread has to wait for another thread to finish, it’s always best to use join with maximum time you want to wait for thread to finish.</li>
+</ul>
+
+
+<h3 id="timer">Java Timer Thread</h3>
+
+
+<p><code>java.util.Timer</code> is a utility class that can be used to schedule a thread to be executed at certain time in future. Java <code>Timer</code> class can be used to schedule a task to be run one-time or to be run at regular intervals.<code>java.util.TimerTask</code> is an abstract class that implements <code>Runnable</code> interface and we need to extend this class to create our own <code>TimerTask</code> that can be scheduled using java <code>Timer</code> class.Timer class is thread safe and multiple threads can share a single Timer object without need for external synchronization. Timer class uses <code>java.util.TaskQueue</code> to add tasks at given regular interval and at any time there can be only one thread running the <code>TimerTask</code>, for example if you are creating a Timer to run every 10 seconds but single thread execution takes 20 seconds, then Timer object will keep adding tasks to the queue and as soon as one thread is finished, it will notify the queue and another thread will start executing.</p>
+
+<p>Timer class uses Object <strong>wait and notify</strong> methods to schedule the tasks.</p>
+
+<p>```java
+package org.solarex.threadtest;</p>
+
+<p>import java.util.Date;
+import java.util.Timer;
+import java.util.TimerTask;</p>
+
+<p>public class MyTimerTask extends TimerTask {</p>
+
+<pre><code>@Override
+public void run() {
+    System.out.println("Timer task started at:"+new Date());
+    completeTask();
+    System.out.println("Timer task finished at:"+new Date());
+}
+
+private void completeTask() {
+    try {
+        //assuming it takes 20 secs to complete the task
+        Thread.sleep(20000);
+    } catch (InterruptedException e) {
+        e.printStackTrace();
+    }
+}
+
+public static void main(String args[]){
+    TimerTask timerTask = new MyTimerTask();
+    //running timer task as daemon thread
+    Timer timer = new Timer(true);
+    timer.scheduleAtFixedRate(timerTask, 0, 10*1000);
+    System.out.println("TimerTask started");
+    //cancel after sometime
+    try {
+        Thread.sleep(120000);
+    } catch (InterruptedException e) {
+        e.printStackTrace();
+    }
+    timer.cancel();
+    System.out.println("TimerTask cancelled");
+    try {
+        Thread.sleep(30000);
+    } catch (InterruptedException e) {
+        e.printStackTrace();
+    }
+}
+</code></pre>
+
+<p>}</p>
+
+<p>//&mdash;&mdash;&mdash;begin output&mdash;&mdash;&mdash;&mdash;&mdash;&ndash;
+hrh@Solarex:Java$ java org.solarex.threadtest.MyTimerTask
+TimerTask started
+Timer task started at:Thu Oct 16 13:55:16 CST 2014
+Timer task finished at:Thu Oct 16 13:55:36 CST 2014
+Timer task started at:Thu Oct 16 13:55:36 CST 2014
+Timer task finished at:Thu Oct 16 13:55:56 CST 2014
+Timer task started at:Thu Oct 16 13:55:56 CST 2014
+Timer task finished at:Thu Oct 16 13:56:16 CST 2014
+Timer task started at:Thu Oct 16 13:56:16 CST 2014
+Timer task finished at:Thu Oct 16 13:56:36 CST 2014
+Timer task started at:Thu Oct 16 13:56:36 CST 2014
+Timer task finished at:Thu Oct 16 13:56:56 CST 2014
+Timer task started at:Thu Oct 16 13:56:56 CST 2014
+TimerTask cancelled
+Timer task finished at:Thu Oct 16 13:57:16 CST 2014
+//&mdash;&mdash;&mdash;end output&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;
+```</p>
+
+<p>The output confirms that if a task is already executing, Timer will <strong>wait for it to finish and once finished</strong>, it will start again the next task from the queue.</p>
+
+<p>Timer object can be created to run the associated tasks as a daemon thread. Timer <code>cancel()</code> method is used to terminate the timer and discard any scheduled tasks, however it doesn’t interfere with the currently executing task and let it finish. If the timer is run as daemon thread, whether we cancel it or not, it will terminate as soon as all the user threads are finished executing.</p>
+
+<p>Timer class contains several <code>schedule()</code> methods to schedule a task to run once at given date or after some delay. There are several <code>scheduleAtFixedRate()</code> methods to run a task periodically with certain interval.</p>
+
+<p>While scheduling tasks using Timer, you should make sure that time interval is more than normal thread execution, otherwise tasks queue size will keep growing and eventually task will be executing always.</p>
+
+<h3 id="producer">Java Producer Consumer Problem</h3>
+
+
+<p><code>java.util.concurrent.BlockingQueue</code> is a Queue that supports operations that wait for the queue to become non-empty when retrieving and removing an element, and wait for space to become available in the queue when adding an element.</p>
+
+<p><code>BlockingQueue</code> doesn’t accept null values and throw <code>NullPointerException</code> if you try to store null value in the queue.<code>BlockingQueue</code> implementations are thread-safe. All queuing methods are atomic in nature and use internal locks or other forms of concurrency control.</p>
+
+<p><code>BlockingQueue</code> interface is part of java collections framework and it’s primarily used for implementing producer consumer problem. We don’t need to worry about waiting for the space to be available for producer or object to be available for consumer in <code>BlockingQueue</code> as it’s handled by implementation classes of <code>BlockingQueue</code>.Java provides several <code>BlockingQueue</code> implementations such as <code>ArrayBlockingQueue</code>, <code>LinkedBlockingQueue</code>, <code>PriorityBlockingQueue</code>, <code>SynchronousQueue</code> etc.</p>
+
+<p>While implementing producer consumer problem, we will use <code>ArrayBlockingQueue</code> implementation and following methods are important to know.</p>
+
+<ul>
+<li><code>put(E e)</code>: This method is used to insert elements to the queue, if the queue is full it waits for the space to be available.</li>
+<li><code>E take()</code>: This method retrieves and remove the element from the head of the queue, if queue is empty it waits for the element to be available.</li>
+</ul>
+
+
+<p>```java
+//Message.java
+public class Message {</p>
+
+<pre><code>private String msg;
+
+public Message(String str){
+    this.msg=str;
+}
+
+public String getMsg() {
+    return msg;
+}
+</code></pre>
+
+<p>}</p>
+
+<p>//Producer.java
+import java.util.concurrent.BlockingQueue;</p>
+
+<p>public class Producer implements Runnable {</p>
+
+<pre><code>private BlockingQueue&lt;Message&gt; queue;
+
+public Producer(BlockingQueue&lt;Message&gt; q){
+    this.queue=q;
+}
+@Override
+public void run() {
+    //produce messages
+    for(int i=0; i&lt;100; i++){
+        Message msg = new Message(""+i);
+        try {
+            Thread.sleep(i);
+            queue.put(msg);
+            System.out.println("Produced "+msg.getMsg());
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+    //adding exit message
+    Message msg = new Message("exit");
+    try {
+        queue.put(msg);
+    } catch (InterruptedException e) {
+        e.printStackTrace();
+    }
+}
+</code></pre>
+
+<p>}</p>
+
+<p>//Consumer.java
+import java.util.concurrent.BlockingQueue;</p>
+
+<p>public class Consumer implements Runnable{</p>
+
+<p>private BlockingQueue<Message> queue;</p>
+
+<pre><code>public Consumer(BlockingQueue&lt;Message&gt; q){
+    this.queue=q;
+}
+
+@Override
+public void run() {
+    try{
+        Message msg;
+        //consuming messages until exit message is received
+        while((msg = queue.take()).getMsg() !="exit"){
+        Thread.sleep(10);
+        System.out.println("Consumed "+msg.getMsg());
+        }
+    }catch(InterruptedException e) {
+        e.printStackTrace();
+    }
+}
+</code></pre>
+
+<p>}</p>
+
+<p>//ProducerConsumerService.java
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;</p>
+
+<p>public class ProducerConsumerService {</p>
+
+<pre><code>public static void main(String[] args) {
+    //Creating BlockingQueue of size 10
+    BlockingQueue&lt;Message&gt; queue = new ArrayBlockingQueue&lt;&gt;(10);
+    Producer producer = new Producer(queue);
+    Consumer consumer = new Consumer(queue);
+    //starting producer to produce messages in queue
+    new Thread(producer).start();
+    //starting consumer to consume messages from queue
+    new Thread(consumer).start();
+    System.out.println("Producer and Consumer has been started");
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<h3 id="pool">Java Thread Pool</h3>
+
+
+<p>A thread pool manages the pool of worker threads, it contains a queue that keeps tasks waiting to get executed.</p>
+
+<p>A thread pool manages the collection of <code>Runnable</code> threads and worker threads execute Runnable from the queue.</p>
+
+<p><code>java.util.concurrent.Executors</code> provide implementation of <code>java.util.concurrent.Executor</code> interface to create the thread pool in java.</p>
+
+<p>```java
+// WorkerThread.java
+public class WorkerThread implements Runnable {</p>
+
+<pre><code>private String command;
+
+public WorkerThread(String s){
+    this.command=s;
+}
+
+@Override
+public void run() {
+    System.out.println(Thread.currentThread().getName()+" Start. Command = "+command);
+    processCommand();
+    System.out.println(Thread.currentThread().getName()+" End.");
+}
+
+private void processCommand() {
+    try {
+        Thread.sleep(5000);
+    } catch (InterruptedException e) {
+        e.printStackTrace();
+    }
+}
+
+@Override
+public String toString(){
+    return this.command;
+}
+</code></pre>
+
+<p>}</p>
+
+<p>//SimpleThreadPool.java
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;</p>
+
+<p>public class SimpleThreadPool {</p>
+
+<pre><code>public static void main(String[] args) {
+    ExecutorService executor = Executors.newFixedThreadPool(5);
+    for (int i = 0; i &lt; 10; i++) {
+        Runnable worker = new WorkerThread("" + i);
+        executor.execute(worker);
+      }
+    executor.shutdown();
+    while (!executor.isTerminated()) {
+    }
+    System.out.println("Finished all threads");
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<p>Executors class provide simple implementation of <code>ExecutorService</code> using <code>ThreadPoolExecutor</code> but <code>ThreadPoolExecutor</code> provides much more feature than that. We can specify the number of threads that will be alive when we create <code>ThreadPoolExecutor</code> instance and we can limit the size of thread pool and create our own <code>RejectedExecutionHandler</code> implementation to handle the jobs that can’t fit in the worker queue.</p>
+
+<p>```java
+// RejectedExecutionHandlerImpl.java
+import java.util.concurrent.RejectedExecutionHandler;
+import java.util.concurrent.ThreadPoolExecutor;</p>
+
+<p>public class RejectedExecutionHandlerImpl implements RejectedExecutionHandler {</p>
+
+<pre><code>@Override
+public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
+    System.out.println(r.toString() + " is rejected");
+}
+</code></pre>
+
+<p>}</p>
+
+<p>// MyMonitorThread.java
+import java.util.concurrent.ThreadPoolExecutor;</p>
+
+<p>public class MyMonitorThread implements Runnable
+{</p>
+
+<pre><code>private ThreadPoolExecutor executor;
+
+private int seconds;
+
+private boolean run=true;
+
+public MyMonitorThread(ThreadPoolExecutor executor, int delay)
+{
+    this.executor = executor;
+    this.seconds=delay;
+}
+
+public void shutdown(){
+    this.run=false;
+}
+
+@Override
+public void run()
+{
+    while(run){
+            System.out.println(
+                String.format("[monitor] [%d/%d] Active: %d, Completed: %d, Task: %d, isShutdown: %s, isTerminated: %s",
+                    this.executor.getPoolSize(),
+                    this.executor.getCorePoolSize(),
+                    this.executor.getActiveCount(),
+                    this.executor.getCompletedTaskCount(),
+                    this.executor.getTaskCount(),
+                    this.executor.isShutdown(),
+                    this.executor.isTerminated()));
+            try {
+                Thread.sleep(seconds*1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+    }
+
+}
+</code></pre>
+
+<p>}</p>
+
+<p>// WorkerPool.java
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;</p>
+
+<p>public class WorkerPool {</p>
+
+<pre><code>public static void main(String args[]) throws InterruptedException{
+    //RejectedExecutionHandler implementation
+    RejectedExecutionHandlerImpl rejectionHandler = new RejectedExecutionHandlerImpl();
+    //Get the ThreadFactory implementation to use
+    ThreadFactory threadFactory = Executors.defaultThreadFactory();
+    //creating the ThreadPoolExecutor
+    ThreadPoolExecutor executorPool = new ThreadPoolExecutor(2, 4, 10, TimeUnit.SECONDS, new ArrayBlockingQueue&lt;Runnable&gt;(2), threadFactory, rejectionHandler);
+    //start the monitoring thread
+    MyMonitorThread monitor = new MyMonitorThread(executorPool, 3);
+    Thread monitorThread = new Thread(monitor);
+    monitorThread.start();
+    //submit work to the thread pool
+    for(int i=0; i&lt;10; i++){
+        executorPool.execute(new WorkerThread("cmd"+i));
+    }
+
+    Thread.sleep(30000);
+    //shut down the pool
+    executorPool.shutdown();
+    //shut down the monitor thread
+    Thread.sleep(5000);
+    monitor.shutdown();
+
+}
+</code></pre>
+
+<p>}</p>
+
+<p>Notice that while initializing the ThreadPoolExecutor, we are keeping initial pool size as 2, maximum pool size to 4 and work queue size as 2. So if there are 4 running tasks and more tasks are submitted, the work queue will hold only 2 of them and rest of them will be handled by RejectedExecutionHandlerImpl.</p>
+
+<p>Notice the change in active, completed and total completed task count of the executor. We can invoke <code>shutdown()</code> method to finish execution of all the submitted tasks and terminate the thread pool.
+```</p>
+
+<h3 id="future">Java Callable Future</h3>
+
+
+<p>In last few posts, we learned a lot about java threads but sometimes we wish that <strong>a thread could return some value that we can use</strong>. Java 5 introduced <code>java.util.concurrent.Callable</code> interface in concurrency package that is similar to Runnable interface but it can return any Object and able to throw Exception.</p>
+
+<p>Callable interface use Generic to define the return type of Object. <code>Executors</code> class provide useful methods to execute <code>Callable</code> in a thread pool. Since callable tasks run in parallel, we have to wait for the returned Object. Callable tasks return <code>java.util.concurrent.Future</code> object. Using Future we can find out the status of the Callable task and get the returned Object. It provides <code>get()</code> method that can wait for the Callable to finish and then return the result.</p>
+
+<p>Future provides <code>cancel()</code> method to cancel the associated <code>Callable</code> task. There is an overloaded version of <code>get()</code> method where we can specify the time to wait for the result, it’s useful to avoid current thread getting blocked for longer time. There are <code>isDone()</code> and <code>isCancelled()</code> methods to find out the current status of associated <code>Callable</code> task.</p>
+
+<p>```java
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;</p>
+
+<p>public class MyCallable implements Callable<String> {</p>
+
+<pre><code>@Override
+public String call() throws Exception {
+    Thread.sleep(1000);
+    //return the thread name executing this callable task
+    return Thread.currentThread().getName();
+}
+
+public static void main(String args[]){
+    //Get ExecutorService from Executors utility class, thread pool size is 10
+    ExecutorService executor = Executors.newFixedThreadPool(10);
+    //create a list to hold the Future object associated with Callable
+    List&lt;Future&lt;String&gt;&gt; list = new ArrayList&lt;Future&lt;String&gt;&gt;();
+    //Create MyCallable instance
+    Callable&lt;String&gt; callable = new MyCallable();
+    for(int i=0; i&lt; 100; i++){
+        //submit Callable tasks to be executed by thread pool
+        Future&lt;String&gt; future = executor.submit(callable);
+        //add Future to the list, we can get return value using Future
+        list.add(future);
+    }
+    for(Future&lt;String&gt; fut : list){
+        try {
+            //print the return value of Future, notice the output delay in console
+            // because Future.get() waits for task to get completed
+            System.out.println(new Date()+ "::"+fut.get());
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+        }
+    }
+    //shut down the executor service now
+    executor.shutdown();
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<h3 id="futuretask">Java FutureTask Example</h3>
+
+
+<p><code>FutureTask</code> is base concrete implementation of <code>Future</code> interface and provides asynchronous processing. It contains the methods to start and cancel a task and also methods that can return the state of the <code>FutureTask</code> as whether it’s completed or cancelled. We need a callable object to create a future task and then we can use Java Thread Pool Executor to process these asynchronously.</p>
+
+<p>```java
+// MyCallable.java
+import java.util.concurrent.Callable;</p>
+
+<p>public class MyCallable implements Callable<String> {</p>
+
+<pre><code>private long waitTime;
+
+public MyCallable(int timeInMillis){
+    this.waitTime=timeInMillis;
+}
+@Override
+public String call() throws Exception {
+    Thread.sleep(waitTime);
+    //return the thread name executing this callable task
+    return Thread.currentThread().getName();
+}
+</code></pre>
+
+<p>}</p>
+
+<p>// FutureTaskExample.java
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.FutureTask;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;</p>
+
+<p>public class FutureTaskExample {</p>
+
+<pre><code>public static void main(String[] args) {
+    MyCallable callable1 = new MyCallable(1000);
+    MyCallable callable2 = new MyCallable(2000);
+
+    FutureTask&lt;String&gt; futureTask1 = new FutureTask&lt;String&gt;(callable1);
+    FutureTask&lt;String&gt; futureTask2 = new FutureTask&lt;String&gt;(callable2);
+
+    ExecutorService executor = Executors.newFixedThreadPool(2);
+    executor.execute(futureTask1);
+    executor.execute(futureTask2);
+
+    while (true) {
+        try {
+            if(futureTask1.isDone() &amp;&amp; futureTask2.isDone()){
+                System.out.println("Done");
+                //shut down executor service
+                executor.shutdown();
+                return;
+            }
+
+            if(!futureTask1.isDone()){
+            //wait indefinitely for future task to complete
+            System.out.println("FutureTask1 output="+futureTask1.get());
+            }
+
+            System.out.println("Waiting for FutureTask2 to complete");
+            String s = futureTask2.get(200L, TimeUnit.MILLISECONDS);
+            if(s !=null){
+                System.out.println("FutureTask2 output="+s);
+            }
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+        }catch(TimeoutException e){
+            //do nothing
+        }
+    }
+
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<p>When we run above program, you will notice that it doesn’t print anything for sometime because <code>get()</code> method of <code>FutureTask</code> waits for the task to get completed and then returns the output object. There is an overloaded method also to wait for only specified amount of time and we are using it for futureTask2. Also notice the use of <code>isDone()</code> method to make sure program gets terminated once all the tasks are executed.</p>
+
+<p>Ref:</p>
+
+<ul>
+<li><a href="http://www.journaldev.com/1079/java-thread-tutorial">Java Thread and Multithreading Tutorial</a></li>
+<li><a href="http://docs.oracle.com/javase/tutorial/essential/concurrency/">Concurrency</a></li>
+</ul>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Java反射]]></title>
+    <link href="http://Solarex.github.io/blog/2014/09/16/java-reflection-tutorial/"/>
+    <updated>2014-09-16T14:35:00+08:00</updated>
+    <id>http://Solarex.github.io/blog/2014/09/16/java-reflection-tutorial</id>
+    <content type="html"><![CDATA[<p><center><img src="http://Solarex.github.io/images/java-reflection-tutorial.png"></center></p>
+
+
+
+
+<!-- more -->
+
+
+<p>// TODO</p>
+
+<p>Ref:</p>
+
+<ul>
+<li><a href="http://www.journaldev.com/1789/java-reflection-tutorial-for-classes-methods-fields-constructors-annotations-and-much-more">Java Reflection Tutorial</a></li>
+<li><a href="http://docs.oracle.com/javase/tutorial/reflect/">Trail: The Reflection API</a></li>
+</ul>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Java Annotations]]></title>
+    <link href="http://Solarex.github.io/blog/2014/09/12/java-annotations/"/>
+    <updated>2014-09-12T12:52:00+08:00</updated>
+    <id>http://Solarex.github.io/blog/2014/09/12/java-annotations</id>
+    <content type="html"><![CDATA[<center><p><img src="http://Solarex.github.io/images/java-annotations.png" width="210" height="135" alt="java"></p></center>
+
+
+<p>Ref:<a href="http://docs.oracle.com/javase/tutorial/java/annotations/">Java Annotations tutorial</a>,<a href="https://en.wikipedia.org/wiki/Java_annotation">Wiki</a>,<a href="http://java.dzone.com/articles/how-annotations-work-java">How do Annotations Work In Java?</a>,</p>
+
+<p>Annotation is special kind of Java construct used to decorate a class, method, field, parameter, variable, constructor, or package. It’s the vehicle chosen by JSR-175 to provide metadata.Java annotations are typically used for the following purposes:</p>
+
+<ul>
+<li>Compiler instructions</li>
+<li>Build-time instructions</li>
+<li>Runtime instructions</li>
+</ul>
+
+
+<h2>Basics</h2>
+
+<p>Annotations have a number of uses, among them:</p>
+
+<ul>
+<li>Information for the compiler — Annotations can be used by the compiler to detect errors or suppress warnings.</li>
+<li>Compile-time and deployment-time processing — Software tools can process annotation information to generate code, XML files, and so forth.</li>
+<li>Runtime processing — Some annotations are available to be examined at runtime.</li>
+</ul>
+
+
+<p>The format of an Annotation:In its simplest form, an annotation looks like <code>@Entity</code>,the annotation can include elements, which can be named or unnamed,if there is just one element named value, then the name can be omitted,if the annotation has no elements, then the parentheses can be omitted, as shown in the previous <code>@Override</code> example,it is also possible to use multiple annotations on the same declaration.If the annotations have the same type, then this is called a repeating annotation,repeating annotations are supported as of the Java SE 8 release.</p>
+
+<p>The predefined annotation types defined in java.lang are <code>@Deprecated</code>, <code>@Override</code>, and <code>@SuppressWarnings</code>.Note that the Javadoc tag starts with a lowercase d (<code>deprecated</code>)and the annotation starts with an uppercase D(<code>Deprecated</code>).</p>
+
+<p>Every compiler warning belongs to a category. The Java Language Specification lists two categories: <code>deprecation</code> and <code>unchecked</code>. The unchecked warning can occur when interfacing with legacy code written before the advent of generics. To suppress multiple categories of warnings, use the following syntax:<code>@SuppressWarnings({"unchecked", "deprecation"})</code>.</p>
+
+<p>Annotations can be applied to declarations: declarations of classes, fields, methods, and other program elements. When used on a declaration, each annotation often appears, by convention, on its own line.As of the Java SE 8 release, annotations can also be applied to the use of types.</p>
+
+<h2>Declaring an Annotation Type</h2>
+
+<p>Declaring an annotation type, syntax for doing this is:</p>
+
+<p><code>java
+@interface ClassPreamble {
+   String author();
+   String date();
+   int currentRevision() default 1;
+   String lastModified() default "N/A";
+   String lastModifiedBy() default "N/A";
+   // Note use of array
+   String[] reviewers();
+}
+</code></p>
+
+<p>The annotation type definition looks similar to an interface definition where the keyword interface is preceded by the at sign (@) (@ = AT, as in annotation type). Annotation types are a form of interface.The body of the previous annotation definition contains annotation type element declarations, which look a lot like methods. Note that they can define optional default values.Annotations only support primitives, string and enumerations. All attributes of annotations are defined as methods and default values can also be provided.</p>
+
+<p>```java
+@Target(ElementType.METHOD)
+@Retention(RetentionPolicy.RUNTIME)
+@interface Todo {</p>
+
+<pre><code>public enum Priority {LOW, MEDIUM, HIGH}
+public enum Status {STARTED, NOT_STARTED}
+String author() default "Yash";
+Priority priority() default Priority.LOW;
+Status status() default Status.NOT_STARTED;
+</code></pre>
+
+<p>}
+```</p>
+
+<p><strong>Note</strong>: To make the information in @ClassPreamble appear in Javadoc-generated documentation, you must annotate the @ClassPreamble definition with the @Documented annotation:</p>
+
+<p>```java
+// import this to use @Documented
+import java.lang.annotation.*;</p>
+
+<p>@Documented
+@interface ClassPreamble {</p>
+
+<p>   // Annotation element definitions</p>
+
+<p>}
+```</p>
+
+<p>You can also define that your annotation is a qualifier for the <code>@Inject</code> annotation.</p>
+
+<p><code>java
+@javax.inject.Qualifier
+@Documented
+@Target({ElementType.FIELD, ElementType.PARAMETER})
+@Retention(RetentionPolicy.RUNTIME)
+public @interface Checker {
+}
+</code></p>
+
+<!-- more -->
+
+
+<h2>Predefined Annotation Types</h2>
+
+<h3>Annotation Types Used by the Java Language</h3>
+
+<p>Annotation types used by the Java Language include <code>@Deprecated</code>, <code>@Override</code>, <code>@SuppressWarnings</code>, <code>@SafeVarargs</code>, <code>@FunctionalInterface</code>.</p>
+
+<p>A set of annotation types are predefined in the Java SE API. Some annotation types are used by the Java compiler, and some apply to other annotations.The predefined annotation types defined in <code>java.lang</code> are <code>@Deprecated</code>, <code>@Override</code>, and <code>@SuppressWarnings</code>.<code>@SuppressWarnings</code> annotation tells the compiler to suppress specific warnings that it would otherwise generate.<code>@SafeVarargs</code> annotation, when applied to a method or constructor, asserts that the code does not perform potentially unsafe operations on its varargs parameter. When this annotation type is used, unchecked warnings relating to varargs usage are suppressed.<code>@FunctionalInterface</code> annotation, introduced in Java SE 8, indicates that the type declaration is intended to be a functional interface, as defined by the Java Language Specification.</p>
+
+<h3>Annotations That Apply to Other Annotations</h3>
+
+<p>Annotations that apply to other Annotations include <code>@Retention</code>, <code>@Documented</code>, <code>@Target</code>, <code>@Inherited</code>, <code>@Repeatable</code>.</p>
+
+<p><code>@Retention</code>annotation specifies how the marked annotation is stored:</p>
+
+<ul>
+<li><code>RetentionPolicy.SOURCE</code> – The marked annotation is retained only in the source level and is ignored by the compiler.</li>
+<li><code>RetentionPolicy.CLASS</code> – The marked annotation is retained by the compiler at compile time, but is ignored by the Java Virtual Machine (JVM).</li>
+<li><code>RetentionPolicy.RUNTIME</code> – The marked annotation is retained by the JVM so it can be used by the runtime environment.</li>
+</ul>
+
+
+<p><code>@Documented</code> annotation indicates that whenever the specified annotation is used those elements should be documented using the Javadoc tool. (By default, annotations are not included in Javadoc.)</p>
+
+<p><code>@Target</code> annotation marks another annotation to restrict what kind of Java elements the annotation can be applied to. A target annotation specifies one of the following element types as its value:</p>
+
+<ul>
+<li><code>ElementType.ANNOTATION_TYPE</code> can be applied to an annotation type.</li>
+<li><code>ElementType.CONSTRUCTOR</code> can be applied to a constructor.</li>
+<li><code>ElementType.FIELD</code> can be applied to a field or property.</li>
+<li><code>ElementType.LOCAL_VARIABLE</code> can be applied to a local variable.</li>
+<li><code>ElementType.METHOD</code> can be applied to a method-level annotation.</li>
+<li><code>ElementType.PACKAGE</code> can be applied to a package declaration.</li>
+<li><code>ElementType.PARAMETER</code> can be applied to the parameters of a method.</li>
+<li><code>ElementType.TYPE</code> can be applied to any element of a class.</li>
+</ul>
+
+
+<p><code>@Inherited</code> annotation indicates that the annotation type can be inherited from the super class. (This is not true by default.) When the user queries the annotation type and the class has no annotation for this type, the class' superclass is queried for the annotation type. This annotation applies only to class declarations.</p>
+
+<p><code>@Repeatable</code> annotation, introduced in Java SE 8, indicates that the marked annotation can be applied more than once to the same declaration or type use.</p>
+
+<h2>Type Annotations and Pluggable Type Systems</h2>
+
+<p>Before the Java SE 8 release, annotations could only be applied to declarations. As of the Java SE 8 release, annotations can also be applied to any type use. This means that annotations can be used anywhere you use a type.</p>
+
+<h2>Repeating Annotations</h2>
+
+<p>There are some situations where you want to apply the same annotation to a declaration or type use. As of the Java SE 8 release, repeating annotations enable you to do this.</p>
+
+<p>For compatibility reasons, repeating annotations are stored in a <code>container</code> annotation that is automatically generated by the Java compiler. In order for the compiler to do this, two declarations are required in your code.</p>
+
+<ul>
+<li>Declare a Repeatable Annotation Type</li>
+</ul>
+
+
+<p>The annotation type must be marked with the <code>@Repeatable</code> meta-annotation. The following example defines a custom <code>@Schedule</code> repeatable annotation type:</p>
+
+<p>```java
+import java.lang.annotation.Repeatable;</p>
+
+<p>@Repeatable(Schedules.class)
+public @interface Schedule {
+  String dayOfMonth() default &ldquo;first&rdquo;;
+  String dayOfWeek() default &ldquo;Mon&rdquo;;
+  int hour() default 12;
+}
+```</p>
+
+<p>The value of the <code>@Repeatable</code> meta-annotation, in parentheses, is the type of the container annotation that the Java compiler generates to store repeating annotations. In this example, the containing annotation type is <code>Schedules</code>, so repeating <code>@Schedule</code> annotations is stored in an <code>@Schedules</code> annotation.</p>
+
+<p>Applying the same annotation to a declaration without first declaring it to be repeatable results in a compile-time error.</p>
+
+<ul>
+<li>Declare the Containing Annotation Type</li>
+</ul>
+
+
+<p>The containing annotation type must have a value element with an array type. The component type of the array type must be the repeatable annotation type. The declaration for the Schedules containing annotation type is the following:</p>
+
+<p>```java
+public @interface Schedules {</p>
+
+<pre><code>Schedule[] value();
+</code></pre>
+
+<p>}
+```</p>
+
+<h3>Retrieving Annotations</h3>
+
+<p>There are several methods available in the Reflection API that can be used to retrieve annotations. The behavior of the methods that return a single annotation, such as <code>AnnotatedElement.getAnnotationByType(Class&lt;T&gt;)</code>, are unchanged in that they only return a single annotation if one annotation of the requested type is present. If more than one annotation of the requested type is present, you can obtain them by first getting their container annotation. In this way, legacy code continues to work. Other methods were introduced in Java SE 8 that scan through the container annotation to return multiple annotations at once, such as <code>AnnotatedElement.getAnnotations(Class&lt;T&gt;)</code>. See the <code>AnnotatedElement</code> class specification for information on all of the available methods.</p>
+
+<p>If you are familiar with Reflection code, you know reflection provides <code>Class</code>, <code>Method</code> and <code>Field</code> objects. All of these have a <code>getAnnotation()</code> method which returns the annotation object. We need to cast this object as our custom annotation (after checking with <code>instanceOf()</code>) and then we can call methods defined in our custom annotation.</p>
+
+<p>```java
+Class businessLogicClass = BusinessLogic.class;
+for(Method method : businessLogicClass.getMethods()) {</p>
+
+<pre><code>Todo todoAnnotation = (Todo)method.getAnnotation(Todo.class);
+if(todoAnnotation != null) {
+    System.out.println(" Method Name : " + method.getName());
+    System.out.println(" Author : " + todoAnnotation.author());
+    System.out.println(" Priority : " + todoAnnotation.priority());
+    System.out.println(" Status : " + todoAnnotation.status());
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<h3>Design Considerations</h3>
+
+<p>When designing an annotation type, you must consider the cardinality of annotations of that type. It is now possible to use an annotation zero times, once, or, if the annotation&rsquo;s type is marked as <code>@Repeatable</code>, more than once. It is also possible to restrict where an annotation type can be used by using the <code>@Target</code> meta-annotation. For example, you can create a repeatable annotation type that can only be used on methods and fields. It is important to design your annotation type carefully to ensure that the programmer using the annotation finds it to be as flexible and powerful as possible.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Java Class Loaded and Initialized]]></title>
+    <link href="http://Solarex.github.io/blog/2014/09/04/java-class-loaded-and-initialized/"/>
+    <updated>2014-09-04T13:05:00+08:00</updated>
+    <id>http://Solarex.github.io/blog/2014/09/04/java-class-loaded-and-initialized</id>
+    <content type="html"><![CDATA[<center><p><img src="http://Solarex.github.io/images/java_logo.svg" width="150" height="275" alt="java"></p></center>
+
+
+<h2>class loaded and initialized</h2>
+
+<p><code>java -verbose:class -classpath . org.solarex.TestClassLoader</code> get information about each class loaded.The “-verbose:class” option displays information about each class loaded.</p>
+
+<p>```java
+package org.solarex.test;
+public class A{</p>
+
+<pre><code>public void method(){
+    System.out.println("inside of A");
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<p>```java
+package org.solarex.test;
+public void TestLoader{</p>
+
+<pre><code>public static void main(String[] args){
+    System.out.println("Hello,world\n");
+    // A aInstance = new A();
+    // aInstance.method();
+}
+</code></pre>
+
+<p>} <br/>
+```</p>
+
+<p><code>javac -d . *.java</code>,<code>java -verbose:class -classpath . org.solarex.test.TestLoader</code>得到结果:</p>
+
+<!-- more -->
+
+
+<p>```bash</p>
+
+<h1>loader.before</h1>
+
+<p>[Opened /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.Object from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.io.Serializable from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.Comparable from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.CharSequence from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.String from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.reflect.GenericDeclaration from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.reflect.Type from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.reflect.AnnotatedElement from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.Class from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.Cloneable from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.ClassLoader from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.System from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.Throwable from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.Error from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.ThreadDeath from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.Exception from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.RuntimeException from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.security.ProtectionDomain from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.security.AccessControlContext from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.ClassNotFoundException from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.LinkageError from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.NoClassDefFoundError from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.ClassCastException from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.ArrayStoreException from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.VirtualMachineError from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.OutOfMemoryError from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.StackOverflowError from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.IllegalMonitorStateException from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.ref.Reference from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.ref.SoftReference from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.ref.WeakReference from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.ref.FinalReference from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.ref.PhantomReference from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.ref.Finalizer from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.Runnable from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.Thread from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.Thread$UncaughtExceptionHandler from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.ThreadGroup from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.util.Map from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.util.Dictionary from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.util.Hashtable from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.util.Properties from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.reflect.AccessibleObject from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.reflect.Member from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.reflect.Field from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.reflect.Method from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.reflect.Constructor from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded sun.reflect.MagicAccessorImpl from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded sun.reflect.MethodAccessor from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded sun.reflect.MethodAccessorImpl from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded sun.reflect.ConstructorAccessor from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded sun.reflect.ConstructorAccessorImpl from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded sun.reflect.DelegatingClassLoader from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded sun.reflect.ConstantPool from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded sun.reflect.FieldAccessor from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded sun.reflect.FieldAccessorImpl from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded sun.reflect.UnsafeFieldAccessorImpl from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded sun.reflect.UnsafeStaticFieldAccessorImpl from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.Appendable from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.AbstractStringBuilder from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.StringBuffer from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.StringBuilder from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.StackTraceElement from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.nio.Buffer from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded sun.misc.AtomicLong from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded sun.misc.AtomicLongCSImpl from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded sun.misc.PostVMInitHook from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.Boolean from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.Character from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.Number from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.Float from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.Double from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.Byte from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.Short from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.Integer from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.Long from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.NullPointerException from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.ArithmeticException from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.io.ObjectStreamField from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.util.Comparator from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.String$CaseInsensitiveComparator from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.security.Guard from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.security.Permission from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.security.BasicPermission from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.RuntimePermission from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.util.AbstractMap from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded sun.misc.SoftCache from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.ref.ReferenceQueue from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.ref.ReferenceQueue$Null from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.ref.ReferenceQueue$Lock from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.util.HashMap from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.util.Map$Entry from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.util.HashMap$Entry from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.security.AccessController from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded sun.misc.JavaSecurityAccess from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.security.AccessControlContext$1 from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded sun.misc.SharedSecrets from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded sun.misc.Unsafe from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.IncompatibleClassChangeError from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.NoSuchMethodError from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded sun.reflect.Reflection from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.util.Collections from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.Iterable from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.util.Collection from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.util.Set from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.util.AbstractCollection from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.util.AbstractSet from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.util.Collections$EmptySet from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.util.RandomAccess from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.util.List from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.util.AbstractList from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.util.Collections$EmptyList from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.util.Collections$EmptyMap from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.util.Collections$ReverseComparator from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.util.Collections$SynchronizedMap from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.reflect.ReflectPermission from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.security.PrivilegedAction from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded sun.reflect.ReflectionFactory$GetReflectionFactoryAction from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.util.Vector from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.util.Stack from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded sun.reflect.ReflectionFactory from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.ref.Reference$Lock from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.ref.Reference$ReferenceHandler from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.ref.Finalizer$FinalizerThread from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.util.Enumeration from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.util.Hashtable$EmptyEnumerator from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.util.Iterator from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.util.Hashtable$EmptyIterator from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.util.Hashtable$Entry from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.nio.charset.Charset from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.nio.charset.spi.CharsetProvider from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded sun.nio.cs.FastCharsetProvider from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded sun.nio.cs.StandardCharsets from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded sun.util.PreHashedMap from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded sun.nio.cs.StandardCharsets$Aliases from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded sun.nio.cs.StandardCharsets$Classes from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded sun.nio.cs.StandardCharsets$Cache from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.ThreadLocal from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.util.concurrent.atomic.AtomicInteger from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.Class$3 from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.reflect.Modifier from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded sun.reflect.LangReflectAccess from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.reflect.ReflectAccess from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.StringValue from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.util.Arrays from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.Math from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded sun.nio.cs.HistoricallyNamedCharset from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded sun.nio.cs.Unicode from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded sun.nio.cs.UTF_8 from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.Class$1 from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded sun.reflect.ReflectionFactory$1 from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded sun.reflect.NativeConstructorAccessorImpl from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded sun.reflect.DelegatingConstructorAccessorImpl from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded sun.misc.VM from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.StringCoding from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.ThreadLocal$ThreadLocalMap from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.ThreadLocal$ThreadLocalMap$Entry from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.StringCoding$StringDecoder from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.nio.charset.CharsetDecoder from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded sun.nio.cs.UTF_8$Decoder from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.nio.charset.CodingErrorAction from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.nio.ByteBuffer from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.nio.HeapByteBuffer from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.nio.Bits from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded sun.misc.JavaNioAccess from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.nio.Bits$1 from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.nio.ByteOrder from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.Readable from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.nio.CharBuffer from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.nio.HeapCharBuffer from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.nio.charset.CoderResult from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.nio.charset.CoderResult$Cache from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.nio.charset.CoderResult$1 from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.nio.charset.CoderResult$2 from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded sun.misc.Version from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded sun.misc.JavaLangAccess from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.System$2 from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.Runtime from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.io.File from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.io.FileSystem from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.io.UnixFileSystem from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.io.ExpiringCache from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.util.LinkedHashMap from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.io.ExpiringCache$1 from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.util.LinkedHashMap$Entry from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded sun.security.action.GetPropertyAction from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded sun.misc.JavaIOFileAccess from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.io.File$1 from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded sun.jkernel.DownloadManager from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded sun.jkernel.DownloadManager$1 from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded sun.jkernel.DownloadManager$2 from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.StringCoding$StringEncoder from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.nio.charset.CharsetEncoder from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded sun.nio.cs.UTF_8$Encoder from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.ClassLoader$3 from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.io.ExpiringCache$Entry from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.ClassLoader$NativeLibrary from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.io.Closeable from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.io.InputStream from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.io.FileInputStream from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.io.FileDescriptor from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded sun.misc.JavaIOFileDescriptorAccess from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.io.FileDescriptor$1 from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.io.Flushable from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.io.OutputStream from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.io.FileOutputStream from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.io.FilterInputStream from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.io.BufferedInputStream from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.util.concurrent.atomic.AtomicReferenceFieldUpdater from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.util.concurrent.atomic.AtomicReferenceFieldUpdater$AtomicReferenceFieldUpdaterImpl from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded sun.reflect.misc.ReflectUtil from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.io.FilterOutputStream from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.io.PrintStream from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.io.BufferedOutputStream from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.io.Writer from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.io.OutputStreamWriter from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded sun.nio.cs.StreamEncoder from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.io.BufferedWriter from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.Terminator from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded sun.misc.SignalHandler from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.Terminator$1 from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded sun.misc.Signal from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded sun.misc.NativeSignalHandler from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded sun.misc.OSEnvironment from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.Compiler from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.Compiler$1 from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded sun.misc.Launcher from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.net.URLStreamHandlerFactory from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded sun.misc.Launcher$Factory from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.security.SecureClassLoader from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.net.URLClassLoader from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded sun.misc.Launcher$ExtClassLoader from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded sun.security.util.Debug from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.Package from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.net.URL from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.security.CodeSource from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.Void from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.security.cert.Certificate from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.ClassFormatError from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.IllegalArgumentException from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.io.IOException from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded sun.misc.URLClassPath from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.AssertionStatusDirectives from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded sun.misc.JavaNetAccess from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.net.URLClassLoader$7 from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.security.PermissionCollection from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.util.StringTokenizer from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.security.PrivilegedExceptionAction from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded sun.misc.Launcher$ExtClassLoader$1 from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded sun.misc.MetaIndex from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.io.Reader from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.io.BufferedReader from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.io.InputStreamReader from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.io.FileReader from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded sun.nio.cs.StreamDecoder from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.util.ArrayList from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.reflect.Array from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded sun.net.www.ParseUtil from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.util.BitSet from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.io.ObjectStreamClass from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.net.URL$1 from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.util.Locale from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.util.concurrent.ConcurrentMap from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.util.concurrent.ConcurrentHashMap from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.util.concurrent.locks.Lock from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.util.concurrent.locks.ReentrantLock from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.util.concurrent.ConcurrentHashMap$Segment from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.util.concurrent.locks.AbstractOwnableSynchronizer from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.util.concurrent.locks.AbstractQueuedSynchronizer from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.util.concurrent.locks.ReentrantLock$Sync from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.util.concurrent.locks.ReentrantLock$NonfairSync from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.util.concurrent.locks.AbstractQueuedSynchronizer$Node from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.util.concurrent.ConcurrentHashMap$HashEntry from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.CharacterDataLatin1 from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.net.Parts from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.net.URLStreamHandler from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded sun.net.www.protocol.file.Handler from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.util.HashSet from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded sun.net.www.protocol.jar.Handler from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded sun.misc.Launcher$AppClassLoader from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded sun.misc.Launcher$AppClassLoader$1 from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.SystemClassLoaderAction from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.net.URLClassLoader$1 from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded sun.net.util.URLUtil from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded sun.misc.URLClassPath$3 from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded sun.misc.URLClassPath$Loader from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded sun.misc.URLClassPath$JarLoader from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.security.PrivilegedActionException from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded sun.misc.URLClassPath$FileLoader from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded sun.misc.Resource from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded sun.misc.URLClassPath$FileLoader$1 from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded sun.nio.ByteBuffered from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.security.Permissions from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.net.URLConnection from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded sun.net.www.URLConnection from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded sun.net.www.protocol.file.FileURLConnection from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.net.ContentHandler from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.net.UnknownContentHandler from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded sun.net.www.MessageHeader from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.io.FilePermission from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.io.FilePermission$1 from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.security.Policy from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded sun.security.provider.PolicyFile from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.security.Policy$UnsupportedEmptyCollection from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.util.concurrent.atomic.AtomicReference from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.security.Policy$PolicyInfo from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.io.FilePermissionCollection from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.security.AllPermission from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.security.UnresolvedPermission from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.security.BasicPermissionCollection from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded sun.misc.JavaSecurityProtectionDomainAccess from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.security.ProtectionDomain$2 from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.security.ProtectionDomain$Key from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.security.Principal from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded org.solarex.test.TestLoader from file:/home/hrh/tmp/]
+Hello,world
+[Loaded java.lang.Shutdown from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.Shutdown$Lock from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+```</p>
+
+<p>```bash</p>
+
+<h1>loader.after</h1>
+
+<h1>diff loader.before loader.after</h1>
+
+<p>&hellip;
+[Loaded java.security.Principal from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded org.solarex.test.TestLoader from file:/home/hrh/tmp/]
+Hello,world
+[Loaded org.solarex.test.A from file:/home/hrh/tmp/]
+inside of A
+[Loaded java.lang.Shutdown from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+[Loaded java.lang.Shutdown$Lock from /opt/jvm/jdk6u45/jdk1.6.0_45/jre/lib/rt.jar]
+```</p>
+
+<p>In summary,a class is loaded:</p>
+
+<ul>
+<li>when the <code>new</code> bytecode is executed,eg. <code>SomeClass sc = new SomeClass()</code></li>
+<li>when the bytecodes make a static reference to a class,eg. <code>System.out</code></li>
+</ul>
+
+
+<p>A class is initialized when a symbol in the class is first used.When a class is loaded it is not initialized.JVM will initialize superclass and fields in textual order, initialize static,final fields first, and give every field a default value before initialization.</p>
+]]></content>
+  </entry>
+  
+</feed>

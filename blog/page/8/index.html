@@ -1,0 +1,629 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Solarex's Blog</title>
+  <meta name="author" content="Solarex">
+
+  
+  <meta name="description" content=" ">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://Solarex.github.io/blog/page/8">
+  <link href="/favicon.ico" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Solarex's Blog" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <!--
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  -->
+  <script src="http://libs.baidu.com/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.useso.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href='http://fonts.useso.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
+<link href='http://fonts.useso.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+
+</head>
+
+<body   class="collapse-sidebar sidebar-footer" >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Solarex's Blog</a></h1>
+  
+    <h2>Yet Another Blog 4 Solarex</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:Solarex.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+    <li><a href="/">Blog</a></li>
+    <li><a href="/blog/archives">Archives</a></li>
+    <li><a href="/projects">Projects</a></li>
+	<li><a href="https://solarex.github.io/wiki">Wiki</a></li>
+    <li><a href="/about">About</a></li>
+	<li><a href="https://solarex.github.io/resume">Resume</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div class="blog-index">
+  
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/09/16/java-reflection-tutorial/">Java反射</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-09-16T14:35:00+08:00" pubdate data-updated="true">Sep 16<span>th</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p><center><img src="/images/java-reflection-tutorial.png"></center></p>
+
+
+
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2014/09/16/java-reflection-tutorial/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/09/16/zhihu-intent-fileter-schema/">跳出浏览器</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-09-16T12:52:00+08:00" pubdate data-updated="true">Sep 16<span>th</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><center><p><img src="/images/zhihu_logo.png" alt="zhihu"></p></center>
+
+
+<p>之前使用浏览器浏览知乎网站时，网站上会显示打开应用，不同的浏览器点击会有不同的反应(跳转网页或者打开知乎应用)，当时思考了一下具体的实现方式，觉得可能是知乎网站根据UC或者Chrome浏览器不同的UA显示不同的网页代码，在点击应用的时候会触发超链接，知乎客户端根据特定的Schema来在客户端中打开不同的问题页面，最近在网上浏览到一片文章，作者对这种冲浏览器跳转到客户端应用的实现方式进行了具体的分析，我只想到文章中的前两种方式，后面的Chrome浏览器的Chrome Intent以及后台启动http服务来响应网页链接的方式囿于眼界没有想到，不得不佩服文章作者视野之开阔。文章不错，特分享在此。</p>
+
+<p>Ref:<a href="http://zhuanlan.zhihu.com/andlib/19848910">#黑科技# 跳出浏览器</a></p>
+
+<p>当移动浪潮来袭，不论是传统 PC 网站/应用，还是新兴的移动互联网，都一并蜂拥的走进用户的手机。提供一个便于手机浏览的 Web 页面，再造一个功能丰富的移动 App 成了每个产品的标配。提供移动 Web 页面，可以使得用户更易获取产品信息，在微信上、微博中，搜索里点个链接，就可以立刻享用产品功能；而提供移动 App，则可以提供更好的产品体验，使用 native api 能构建更丰富的特色功能，提供更出众的性能表现。</p>
+
+<p>来想象一下这个场景，当别人发给你一个链接，是知乎问题「豌豆荚的员工工作方式是什么样的？」，你在手机浏览器上慢吞吞的加载好了，答案看得特别激动想点个赞。结果发现，还！要！登！录！我明明已经安装了知乎的 App 好吗！为啥不让我愉快的在知乎 App 上操作呐？</p>
+
+<p>这就是本 #黑科技# 的主题，有了移动 Web 页面，又提供了移动 App，如何能让两者更完美的结合在一起呢？当用户已经安装了 App 的前提下，访问移动端 Web 页面时，可以无缝的跳转到 App 中对应的位置去？</p>
+
+<center><p><img src="/images/zhihu_question_wandoulab.jpg" alt="wandoulabs"></p></center>
+
+
+<p>依然举上面那个栗子，知乎的同学其实已经有了解决方案，就是「打开应用」那个按钮，如果已经安装了知乎 App，点击后就会从浏览器跳转到应用中了。类似于这样的按钮，背后的技术方案是什么？有哪些局限性？有没有什么一招搞定的必杀技？这就是本文讨论的主要内容。</p>
+
+<h2>第一招：拦截 Http 跳转</h2>
+
+<p>在 Android 中，最标准的方式，就是在应用的配置文件 <code>AndroidManifest.xml</code> 中，通过 <code>&lt;activity&gt;</code> 标签里的 <code>&lt;intent-filter&gt;</code> 来声明：“本应用可以更好的处理某些 url 对应的页面，浏览器你交给我吧”。套在例子上，声明形如：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='xml'><span class='line'><span class="nt">&lt;activity</span> <span class="na">android:name=</span><span class="s">”com.zhihu.android.QuestionActivity”</span><span class="nt">&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;intent-filter&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;action</span> <span class="na">android:name=</span><span class="s">”android.intent.action.VIEW”</span> <span class="nt">/&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;category</span> <span class="na">android:name=</span><span class="s">”android.intent.category.DEFAULT”</span> <span class="nt">/&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;category</span> <span class="na">android:name=</span><span class="s">”android.intent.category.BROWSABLE”</span> <span class="nt">/&gt;</span>
+</span><span class='line'>    <span class="c">&lt;!-- 关键所在，匹配相应域名和 url 模式 --&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;data</span> <span class="na">android:scheme=</span><span class="s">”http”</span> <span class="na">android:host=</span><span class="s">”www.zhihu.com”</span>
+</span><span class='line'><span class="na">android:pathPattern=</span><span class="s">”/question/.*”</span> <span class="nt">/&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;/intent-filter&gt;</span>
+</span><span class='line'><span class="nt">&lt;/activity&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>做了上述的声明之后，在 Chrome 里访问 豌豆荚的员工工作方式是什么样的？，便可以跳转到知乎 Android 客户端，并打开这个问题的页面。不过这个解决方案有挺多问题，最重要的一个原因是：“兼容性”。</p>
+
+<p>除了 Chrome，从豌豆荚上的下载量看，最热门的手机浏览器是这些：</p>
+
+<center><p><img src="/images/mobile_browser_share.jpg" alt="mobile browser"></p></center>
+
+
+<p>而以上浏览器，大都不遵守 Android 的协定，不支持通过匹配 url 跳转到更适合的应用中去。臆测其原因，大抵是国内浏览器都不愿将流量导给其他应用吧。</p>
+
+<h2>第二招：自定义 Scheme</h2>
+
+<p>如此，那就另辟蹊径，既然 http 协议的 url 会被很多浏览器拦自行处理掉，那就不用 http 协议而采用自定义的 scheme 试试看。</p>
+
+<p>将 <code>AndroidManifest.xml</code> 中的声明修改如下：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='xml'><span class='line'><span class="nt">&lt;activity</span> <span class="na">android:name=</span><span class="s">”com.zhihu.android.QuestionActivity”</span><span class="nt">&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;intent-filter&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;action</span> <span class="na">android:name=</span><span class="s">”android.intent.action.VIEW”</span> <span class="nt">/&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;category</span> <span class="na">android:name=</span><span class="s">”android.intent.category.DEFAULT”</span> <span class="nt">/&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;category</span> <span class="na">android:name=</span><span class="s">”android.intent.category.BROWSABLE”</span> <span class="nt">/&gt;</span>
+</span><span class='line'>    <span class="c">&lt;!-- 关键所在，匹配相应的 scheme --&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;data</span> <span class="na">android:scheme=</span><span class="s">”zhihu”</span> <span class="na">android:host=</span><span class="s">”questions”</span> <span class="nt">/&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;/intent-filter&gt;</span>
+</span><span class='line'><span class="nt">&lt;/activity&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>把「打开应用」的跳转链接设置为形如 &ldquo;zhihu://questions/…&rdquo; 的 url，点击后就可以匹配跳转到应用对应的 activity 中去。当然，如果简单的使用 <code>&lt;a&gt;</code> 标签来做这件事情，若手机中未安装知乎客户端，点击后就会跳转到一个错误页面（地址是 zhihu://questions/…）。解决方案也简单，使用 <code>&lt;iframe&gt;</code> 即可，详情就不在此赘述。</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2014/09/16/zhihu-intent-fileter-schema/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/09/12/java-annotations/">Java Annotations</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-09-12T12:52:00+08:00" pubdate data-updated="true">Sep 12<span>th</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><center><p><img src="/images/java-annotations.png" width="210" height="135" alt="java"></p></center>
+
+
+<p>Ref:<a href="http://docs.oracle.com/javase/tutorial/java/annotations/">Java Annotations tutorial</a>,<a href="https://en.wikipedia.org/wiki/Java_annotation">Wiki</a>,<a href="http://java.dzone.com/articles/how-annotations-work-java">How do Annotations Work In Java?</a>,</p>
+
+<p>Annotation is special kind of Java construct used to decorate a class, method, field, parameter, variable, constructor, or package. It’s the vehicle chosen by JSR-175 to provide metadata.Java annotations are typically used for the following purposes:</p>
+
+<ul>
+<li>Compiler instructions</li>
+<li>Build-time instructions</li>
+<li>Runtime instructions</li>
+</ul>
+
+
+<h2>Basics</h2>
+
+<p>Annotations have a number of uses, among them:</p>
+
+<ul>
+<li>Information for the compiler — Annotations can be used by the compiler to detect errors or suppress warnings.</li>
+<li>Compile-time and deployment-time processing — Software tools can process annotation information to generate code, XML files, and so forth.</li>
+<li>Runtime processing — Some annotations are available to be examined at runtime.</li>
+</ul>
+
+
+<p>The format of an Annotation:In its simplest form, an annotation looks like <code>@Entity</code>,the annotation can include elements, which can be named or unnamed,if there is just one element named value, then the name can be omitted,if the annotation has no elements, then the parentheses can be omitted, as shown in the previous <code>@Override</code> example,it is also possible to use multiple annotations on the same declaration.If the annotations have the same type, then this is called a repeating annotation,repeating annotations are supported as of the Java SE 8 release.</p>
+
+<p>The predefined annotation types defined in java.lang are <code>@Deprecated</code>, <code>@Override</code>, and <code>@SuppressWarnings</code>.Note that the Javadoc tag starts with a lowercase d (<code>deprecated</code>)and the annotation starts with an uppercase D(<code>Deprecated</code>).</p>
+
+<p>Every compiler warning belongs to a category. The Java Language Specification lists two categories: <code>deprecation</code> and <code>unchecked</code>. The unchecked warning can occur when interfacing with legacy code written before the advent of generics. To suppress multiple categories of warnings, use the following syntax:<code>@SuppressWarnings({"unchecked", "deprecation"})</code>.</p>
+
+<p>Annotations can be applied to declarations: declarations of classes, fields, methods, and other program elements. When used on a declaration, each annotation often appears, by convention, on its own line.As of the Java SE 8 release, annotations can also be applied to the use of types.</p>
+
+<h2>Declaring an Annotation Type</h2>
+
+<p>Declaring an annotation type, syntax for doing this is:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="nd">@interface</span> <span class="n">ClassPreamble</span> <span class="o">{</span>
+</span><span class='line'>   <span class="n">String</span> <span class="nf">author</span><span class="o">();</span>
+</span><span class='line'>   <span class="n">String</span> <span class="nf">date</span><span class="o">();</span>
+</span><span class='line'>   <span class="kt">int</span> <span class="nf">currentRevision</span><span class="o">()</span> <span class="k">default</span> <span class="mi">1</span><span class="o">;</span>
+</span><span class='line'>   <span class="n">String</span> <span class="nf">lastModified</span><span class="o">()</span> <span class="k">default</span> <span class="s">&quot;N/A&quot;</span><span class="o">;</span>
+</span><span class='line'>   <span class="n">String</span> <span class="nf">lastModifiedBy</span><span class="o">()</span> <span class="k">default</span> <span class="s">&quot;N/A&quot;</span><span class="o">;</span>
+</span><span class='line'>   <span class="c1">// Note use of array</span>
+</span><span class='line'>   <span class="n">String</span><span class="o">[]</span> <span class="nf">reviewers</span><span class="o">();</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The annotation type definition looks similar to an interface definition where the keyword interface is preceded by the at sign (@) (@ = AT, as in annotation type). Annotation types are a form of interface.The body of the previous annotation definition contains annotation type element declarations, which look a lot like methods. Note that they can define optional default values.Annotations only support primitives, string and enumerations. All attributes of annotations are defined as methods and default values can also be provided.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="nd">@Target</span><span class="o">(</span><span class="n">ElementType</span><span class="o">.</span><span class="na">METHOD</span><span class="o">)</span>
+</span><span class='line'><span class="nd">@Retention</span><span class="o">(</span><span class="n">RetentionPolicy</span><span class="o">.</span><span class="na">RUNTIME</span><span class="o">)</span>
+</span><span class='line'><span class="nd">@interface</span> <span class="n">Todo</span> <span class="o">{</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="kd">enum</span> <span class="n">Priority</span> <span class="o">{</span><span class="n">LOW</span><span class="o">,</span> <span class="n">MEDIUM</span><span class="o">,</span> <span class="n">HIGH</span><span class="o">}</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="kd">enum</span> <span class="n">Status</span> <span class="o">{</span><span class="n">STARTED</span><span class="o">,</span> <span class="n">NOT_STARTED</span><span class="o">}</span>
+</span><span class='line'>    <span class="n">String</span> <span class="nf">author</span><span class="o">()</span> <span class="k">default</span> <span class="s">&quot;Yash&quot;</span><span class="o">;</span>
+</span><span class='line'>    <span class="n">Priority</span> <span class="nf">priority</span><span class="o">()</span> <span class="k">default</span> <span class="n">Priority</span><span class="o">.</span><span class="na">LOW</span><span class="o">;</span>
+</span><span class='line'>    <span class="n">Status</span> <span class="nf">status</span><span class="o">()</span> <span class="k">default</span> <span class="n">Status</span><span class="o">.</span><span class="na">NOT_STARTED</span><span class="o">;</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><strong>Note</strong>: To make the information in @ClassPreamble appear in Javadoc-generated documentation, you must annotate the @ClassPreamble definition with the @Documented annotation:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="c1">// import this to use @Documented</span>
+</span><span class='line'><span class="kn">import</span> <span class="nn">java.lang.annotation.*</span><span class="o">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="nd">@Documented</span>
+</span><span class='line'><span class="nd">@interface</span> <span class="n">ClassPreamble</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>   <span class="c1">// Annotation element definitions</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You can also define that your annotation is a qualifier for the <code>@Inject</code> annotation.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="nd">@javax.inject.Qualifier</span>
+</span><span class='line'><span class="nd">@Documented</span>
+</span><span class='line'><span class="nd">@Target</span><span class="o">({</span><span class="n">ElementType</span><span class="o">.</span><span class="na">FIELD</span><span class="o">,</span> <span class="n">ElementType</span><span class="o">.</span><span class="na">PARAMETER</span><span class="o">})</span>
+</span><span class='line'><span class="nd">@Retention</span><span class="o">(</span><span class="n">RetentionPolicy</span><span class="o">.</span><span class="na">RUNTIME</span><span class="o">)</span>
+</span><span class='line'><span class="kd">public</span> <span class="nd">@interface</span> <span class="n">Checker</span> <span class="o">{</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2014/09/12/java-annotations/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/09/04/java-class-loaded-and-initialized/">Java Class Loaded and Initialized</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-09-04T13:05:00+08:00" pubdate data-updated="true">Sep 4<span>th</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><center><p><img src="/images/java_logo.svg" width="150" height="275" alt="java"></p></center>
+
+
+<h2>class loaded and initialized</h2>
+
+<p><code>java -verbose:class -classpath . org.solarex.TestClassLoader</code> get information about each class loaded.The “-verbose:class” option displays information about each class loaded.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kn">package</span> <span class="n">org</span><span class="o">.</span><span class="na">solarex</span><span class="o">.</span><span class="na">test</span><span class="o">;</span>
+</span><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">A</span><span class="o">{</span>
+</span><span class='line'>  <span class="kd">public</span> <span class="kt">void</span> <span class="nf">method</span><span class="o">(){</span>
+</span><span class='line'>      <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">&quot;inside of A&quot;</span><span class="o">);</span>
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kn">package</span> <span class="n">org</span><span class="o">.</span><span class="na">solarex</span><span class="o">.</span><span class="na">test</span><span class="o">;</span>
+</span><span class='line'><span class="kd">public</span> <span class="kt">void</span> <span class="n">TestLoader</span><span class="o">{</span>
+</span><span class='line'>  <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">args</span><span class="o">){</span>
+</span><span class='line'>      <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">&quot;Hello,world\n&quot;</span><span class="o">);</span>
+</span><span class='line'>      <span class="c1">// A aInstance = new A();</span>
+</span><span class='line'>      <span class="c1">// aInstance.method();</span>
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>  
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><code>javac -d . *.java</code>,<code>java -verbose:class -classpath . org.solarex.test.TestLoader</code>得到结果:</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2014/09/04/java-class-loaded-and-initialized/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/09/02/notes-on-git/">Git学习笔记</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-09-02T00:24:00+08:00" pubdate data-updated="true">Sep 2<span>nd</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><center><p><img src="/images/git-logo-black.png" width="455" height="190" alt="git" ></p></center>
+
+
+<h2>起步</h2>
+
+<p>Git 和其他版本控制系统的主要差别在于，Git 只关心文件数据的整体是否发生变化，而大多数其他系统则只关心文件内容的具体差异。这类系统（CVS，Subversion，Perforce，Bazaar 等等）每次记录有哪些文件作了更新，以及都更新了哪些行的什么内容。Git 并不保存这些前后变化的差异数据。实际上，Git 更像是把变化的文件作快照后，记录在一个微型的文件系统中。每次提交更新时，它会纵览一遍所有文件的指纹信息并对文件作一快照，然后保存一个指向这次快照的索引。为提高性能，若文件没有变化，Git 不会再次保存，而只对上次保存的快照作一链接。</p>
+
+<p>在保存到 Git 之前，所有数据都要进行内容的校验和（checksum）计算，并将此结果作为数据的唯一标识和索引。换句话说，不可能在你修改了文件或目录之后，Git 一无所知。这项特性作为 Git 的设计哲学，建在整体架构的最底层。所以如果文件在传输时变得不完整，或者磁盘损坏导致文件数据缺失，Git 都能立即察觉。Git 使用 SHA-1 算法计算数据的校验和，通过对文件的内容或目录的结构计算出一个 SHA-1 哈希值，作为指纹字符串。该字串由 40 个十六进制字符（0-9 及 a-f）组成。Git 的工作完全依赖于这类指纹字串，所以你会经常看到这样的哈希值。实际上，所有保存在 Git 数据库中的东西都是用此哈希值来作索引的，而不是靠文件名。</p>
+
+<p>常用的 Git 操作大多仅仅是把数据添加到数据库。因为任何一种不可逆的操作，比如删除数据，都会使回退或重现历史版本变得困难重重。在别的 VCS 中，若还未提交更新，就有可能丢失或者混淆一些修改的内容，但在 Git 里，一旦提交快照之后就完全不用担心丢失数据，特别是养成定期推送到其他仓库的习惯的话。</p>
+
+<p>对于任何一个文件，在 Git 内都只有三种状态：已提交（committed），已修改（modified）和已暂存（staged）。已提交表示该文件已经被安全地保存在本地数据库中了；已修改表示修改了某个文件，但还没有提交保存；已暂存表示把已修改的文件放在下次提交时要保存的清单中。</p>
+
+<p>每个项目都有一个 Git 目录（译注：如果 git clone 出来的话，就是其中 .git 的目录；如果 git clone &mdash;bare 的话，新建的目录本身就是 Git 目录。），它是 Git 用来保存元数据和对象数据库的地方。该目录非常重要，每次克隆镜像仓库的时候，实际拷贝的就是这个目录里面的数据。从项目中取出某个版本的所有文件和目录，用以开始后续工作的叫做工作目录。这些文件实际上都是从 Git 目录中的压缩对象数据库中提取出来的，接下来就可以在工作目录中对这些文件进行编辑。所谓的暂存区域只不过是个简单的文件，一般都放在 Git 目录中。有时候人们会把这个文件叫做索引文件，不过标准说法还是叫暂存区域。</p>
+
+<p>Git 提供了一个叫做 <code>git config</code> 的工具（译注：实际是 <code>git-config</code> 命令，只不过可以通过 git 加一个名字来呼叫此命令。），专门用来配置或读取相应的工作环境变量。而正是由这些环境变量，决定了 Git 在各个环节的具体工作方式和行为。这些变量可以存放在以下三个不同的地方：</p>
+
+<ul>
+<li><code>/etc/gitconfig</code> 文件：系统中对所有用户都普遍适用的配置。若使用 <code>git config</code> 时用 <code>--system</code> 选项，读写的就是这个文件。</li>
+<li><code>~/.gitconfig</code> 文件：用户目录下的配置文件只适用于该用户。若使用 <code>git config</code> 时用 <code>--global</code> 选项，读写的就是这个文件。</li>
+<li>当前项目的 git 目录中的配置文件（也就是工作目录中的 <code>.git/config</code> 文件）：这里的配置仅仅针对当前项目有效。每一个级别的配置都会覆盖上层的相同配置，所以 <code>.git/config</code> 里的配置会覆盖 <code>/etc/gitconfig</code> 中的同名变量。</li>
+</ul>
+
+
+<p>要检查已有的配置信息，可以使用 <code>git config --list</code> 命令。</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2014/09/02/notes-on-git/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  <div class="pagination">
+    
+      <a class="prev" href="/blog/page/9/">&larr; Older</a>
+    
+    <a href="/blog/archives">Blog Archives</a>
+    
+    <a class="next" href="/blog/page/7/">Newer &rarr;</a>
+    
+  </div>
+</div>
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2016/03/14/mobile-apps-offline-support/">Mobile Apps Offline Support</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/03/13/the-clean-architecture/">The Clean Architecture</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/02/25/android-handler-memory-leaks/">Android Handler Memory Leaks</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/02/12/recyclerview-animation-part-ii/">RecyclerView Animation part II</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/02/11/recyclerview-animation-part-i/">RecyclerView Animation part I</a>
+      </li>
+    
+  </ul>
+</section>
+
+
+
+
+
+  
+</aside>
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2016 - Solarex -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a> | Themed with <a href="https://github.com/lucaslew/whitespace">Whitespace</a></span>
+</p>
+
+
+<script type="text/javascript">
+    var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+    document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/h.js%3F2574e8b2c205dfe8ff89e239fa38ca27' type='text/javascript'%3E%3C/script%3E"));
+</script>
+
+
+</footer>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

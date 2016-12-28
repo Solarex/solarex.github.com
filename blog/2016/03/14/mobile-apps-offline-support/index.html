@@ -1,0 +1,423 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Mobile Apps Offline Support - Solarex's Blog</title>
+  <meta name="author" content="Solarex">
+
+  
+  <meta name="description" content="Offline support for mobile applications can be thought of as the ability for the application to react gracefully to the lack of stability of the &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://Solarex.github.io/blog/2016/03/14/mobile-apps-offline-support">
+  <link href="/favicon.ico" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Solarex's Blog" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <!--
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  -->
+  <script src="http://libs.baidu.com/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.useso.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href='http://fonts.useso.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
+<link href='http://fonts.useso.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+
+</head>
+
+<body   class="collapse-sidebar sidebar-footer" >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Solarex's Blog</a></h1>
+  
+    <h2>Yet Another Blog 4 Solarex</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:Solarex.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+    <li><a href="/">Blog</a></li>
+    <li><a href="/blog/archives">Archives</a></li>
+    <li><a href="/projects">Projects</a></li>
+	<li><a href="https://solarex.github.io/wiki">Wiki</a></li>
+    <li><a href="/about">About</a></li>
+	<li><a href="https://solarex.github.io/resume">Resume</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Mobile Apps Offline Support</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2016-03-14T08:43:00+08:00" pubdate data-updated="true">Mar 14<span>th</span>, 2016</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>Offline support for mobile applications can be thought of as the ability for the application to react gracefully to the lack of stability of the network connection. The rather new context of mobile devices introduced problems such as presence or absence of a network connection or even high latency and low bandwidth. These problems are rather new and thus not very well known to engineers starting with mobile development. Among other things building a mobile application which resilient to different network scenarios could mean:</p>
+
+<ul>
+<li>Displaying comprehensive error messages when network calls fail.</li>
+<li>Allowing the use of the application in “guest mode”, where certain features can be delayed until the user actually signs in.</li>
+<li>Visually displaying the absence of network connectivity on the UI (connected mode/offline mode).</li>
+<li>Disabling controls in the absence of network connectivity.</li>
+<li>Allowing the user to query and act on data while no network connection (offline data access).</li>
+<li>Testing the application under different network conditions!</li>
+</ul>
+
+
+<p>While all these things are extremely important from the usability point of view, there is one of these that can be particular complex, “offline data access”. There are several different scenarios or levels of offline data access that applications might need to support, and I’ll go through each next.</p>
+
+<!-- more -->
+
+
+<h2>Local Caching</h2>
+
+<p>The application needs to be able to display information even when there is no connection, however under connectivity conditions the data needs to be refreshed. This is achieved by somehow persisting the data on the mobile device, usually for a healthy period of time.</p>
+
+<center><img src="/images/local_cache.png"></center>
+
+
+<p>There are 3 different “strategies” for refreshing the data on the cache which I would like to cover next.</p>
+
+<h3>Network first</h3>
+
+<p>Always try to retrieve the data from the server, and whenever that is not possible, then resort to retrieve the data from the local cache. This strategy can be very useful if you are particularly interested in showing the latest and more updated information.</p>
+
+<h3>Local first</h3>
+
+<p>For a specified period of time, don’t even try to go the network, just return from local cache. This approach is very well suited when there’s no risk in showing cached data. On the other hand, it has a better user experience since there’s usually no latency involved.</p>
+
+<h3>Hybrid / Smart</h3>
+
+<p>This approach will return from local cache before fetching data from a service. It can either wait for a notification from the server or simply poll the service in background to refresh the data to cache it locally. This mechanism hits a balance between a good performance/UX, while still refreshing the local cache regularly, reducing the risk of showing “stale” data.</p>
+
+<p>Furthermore, local caching can be complemented with some way of server-side caching support as well. Just as in HTTP caching, when retrieving the data from the server, the client can send a “revision” to see if the data has been updated. The server can check the clients revision against the current one on the server, and either inform the client that there is no need to update or return the latest data.</p>
+
+<h3>Sample scenario</h3>
+
+<p>The improvement in performance and user experience makes local caching extremely useful in many scenarios. The key condition for it to be useful is that the data does not have to be displayed in real-time. The longer the data can be locally cached, the more sense this approach will make.</p>
+
+<p>Think for instance of a list of interesting locations or contacts for users on the “field”. This is information while very useful on the go, is unlikely to change very frequently, so it is ideal for being cached locally.</p>
+
+<h2>Local Queuing</h2>
+
+<p>Whenever the application does not have a network connection, server requests can be locally queued for later processing. This will allow the user to fire and forget operations and be notified whenever (and if) those operations were successfully processed by the server.</p>
+
+<center><img src="/images/local_queuing.png"></center>
+
+
+<p>When working with local queues of operations you should take into account the following things:</p>
+
+<ul>
+<li>Users should be notified that the operation has been queued.</li>
+<li>Users will most probably be interested in seeing the actual status of the queue. Which are the items that went through and which are the ones that are still pending?</li>
+<li>It could be important to be able to cancel or retry manually an operation while it is still in the queue.</li>
+<li>Whenever one of these operations is sent to the server, the user will want to know the outcome (success, failed).</li>
+<li>The flow or process the user initiated could potentially need to be resumed where it was left off at the time the operation was queued.</li>
+</ul>
+
+
+<p>Local queuing is particularly a good idea when having people doing auditing or field work like measuring things, and sending reports. If these operations are not updating records, but rather only inserting new ones, the implementation of this is rather simple and requires no concurrency management or conflict resolution.</p>
+
+<h3>Sample Scenario</h3>
+
+<p>Local queuing helps to not loose work while on the go. This can be extremely important in scenarios of inventory checks or audits, where the user on the field must not loose time waiting for a connection in order to use the app or submit those reports.</p>
+
+<h3>Data-Sync</h3>
+
+<p>By leveraging local caching and queuing, you can keep the data in your device and your server up to date. This is known as “synchronizing”. There are different ways to synchronize the data.</p>
+
+<center><img src="/images/data_sync.png"></center>
+
+
+<h3>Mobile Data up-to-date</h3>
+
+<p>In this case, you worry about the data in you mobile application being up to date. This can be achieved in two ways: by just using local caching as described above, or it can be done by querying the server for the latest changes. These latest changes, also known as “delta”, allow the mobile application to apply and reconstruct the current state of the server. In order to be able to query for the latest changes, you can leverage audit fields like <code>UpdatedOn</code>, <code>CreatedOn</code> and <code>DeletedOn</code>.</p>
+
+<p>In this second case, the data is not being modified in the device, so there is no need to resolve conflicts, so the server is always right.</p>
+
+<h3>Server Data up-to-date</h3>
+
+<p>This can be achieved by using local queues, but queuing is not enough. What happens if by the time my request is sent to the server, the data on the server was no longer in the same state as when I attempted to modify it? Delaying the execution of the request, for example due to network loss, can result in increased concurrency conflicts. At this point, the developer (or the user) must decide how to “merge” the changes on the server and the app. For every conflict in the data, the merge could be:</p>
+
+<ul>
+<li>Keep the device version</li>
+<li>Keep the server version</li>
+<li>Keep both versions</li>
+</ul>
+
+
+<p>More often than not, the logic for merging records can be automated by the mobile developer. Which algorithm is used, will be tied to the business rules of that application. Whenever this is not possible to fully automate, the user can be prompted to make a decision.</p>
+
+<h3>Keep both Mobile and Server Up-to-date</h3>
+
+<p>This is also referred to as two-way sync. As you can probably tell by now, this would be a combination of the two previous techniques. This is the most complete and powerful of the scenarios so far described. Notice however, that while it might be tempting to build applications to support two-way sync, it is by far the most complex scenario of all. Apart from being complex, as I have covered in this article, it might not always be necessary.</p>
+
+<h3>Sample Scenario</h3>
+
+<p>Two-way-sync gives the mobile application a whole new level of user experience. However, one of the key conditions for two-way sync to be a must-have is the need to keep a team or group of users up to date with everybody else’s activity. An example of such a thing could be collaborating applications with updates, comments or status changes. Think about a collaborative address book where everybody on the team is allowed to update contacts at any given time.</p>
+
+<h2>Considerations</h2>
+
+<p>Building your mobile application with support for offline scenarios, can drastically improve the user experience, however choosing the right level of support, and later on implementing this is not trivial. Below I will be listing some of the things to consider when planning to add offline support to your apps.</p>
+
+<h3>Data Size</h3>
+
+<p>When caching data locally, try to be conscious of the size of the data you’ll be storing. Striking the right balance between the amount of data that is stored and the perceived UX improvement is important. In cases where there are lots of data (ie: a full Sharepoint site), you might have to consider giving the user the option of choosing what he wants to cache for offline reading afterwards.</p>
+
+<h3>Data Storage</h3>
+
+<p>Make sure to choose wisely how and where you will be storing your data. Is that data sensitive? If so, you will want to encrypt the data while at rest (storage). If you choose to encrypt the data, make sure to also store the key for decrypting the data in a safe place and consider leveraging operating system functionality for this. Also keep in mind that in some platforms your application’s code can be read (or reflected), so consider obfuscating your code. And last but not least, make sure to have a mechanism for remotely wiping the data on the handset. Some tools like mobile device management (MDM) platforms can help to achieve this, but it can also be handled by the application itself.</p>
+
+<h3>Battery Usage</h3>
+
+<p>If you plan to have polling mechanisms and background jobs, make sure to take the battery status into account. Some processes and network usage might drain the battery in detriment of the user experience. You can check the status of the battery, and whether the device is connected to a charger before you start a rather consuming process.</p>
+
+<h3>Consuming the Data</h3>
+
+<p>Depending on your application’s needs, you might have to query and operate (create, update, delete) on your data. In non-trivial scenarios using a database as the persistence mechanism is not a bad idea. There are several things to take into account for choosing the right database:</p>
+
+<ul>
+<li>platform support: Will I be able to use this database from all the versions of my app? (iOS, Android, Web, Hybrid, etc…)</li>
+<li>relational vs NoSQL database technology</li>
+<li>ORM support for conveniently mapping the object model to the database</li>
+<li>data size</li>
+<li>existing support for sync protocols (ie: CouchDB)</li>
+</ul>
+
+
+<p>Next we will go through a list of libraries and databases that can be useful when implementing Offline Support.</p>
+
+<h2>Useful Libraries &amp; Databases</h2>
+
+<ul>
+<li>SQLite,SQLite is an Open Source relational database that works very well in mobile devices. It uses a single file to store all the data, so managing the persistence side is simple. It will not solve too much on the sync- and conflict resolution side, but it’s a simple and easy to use alternative for caching or queuing information. There are implementations for the main mobile platforms like iOS, Android, Xamarin and Windows Phone.</li>
+<li>SQLCypher,As previously said, when the data you are caching or queuing is rather sensitive, you might want to encrypt the data at rest. SQLCypher is a very robust alternative for encrypting SQLite databases. It has versions for every major mobile platform, but it is a paid library. It is available in different editions depending on the level of security and support you need.</li>
+<li>Couchbase Mobile,Originally known as Membase, Couchbase is an open source distributed NoSQL database. It is particularly interesting in offline scenarios due to its ability to synchronize back and forth with Couchbase Mobile along with the addition of a sync gateway. It supports the main mobile platforms including Xamarin and PhoneGap, and provides local file encryption.</li>
+<li>Meteor,<a href="https://www.meteor.com/">Meteor</a>is an open source platform for building web applications, with built in support for Live Updates. Meteor is based on the open source Node.js platform and MongoDB. It comes with a publish-subscriber mechanism that enables Meteor to propagate changes on the data to every connected clients in real-time.</li>
+</ul>
+
+
+<p>It supports mobile all platforms through hybrid tools like PhoneGap and Cordova.</p>
+
+<h2>Summary</h2>
+
+<p>In times where mobile users are starting to expect the same level of user experience in enterprise applications as they do on their personal consumer applications, offline Support can no longer be ignored. Providing the right level of support for offline scenarios will dramatically improve the mobile application user’s experience and be vital for employee’s productivity.</p>
+
+<p>Keep in mind the security aspects of storing data locally in your device, and try to not to underestimate the impact that your application can have on your users battery.</p>
+
+<h2>reference</h2>
+
+<ul>
+<li><a href="http://www.infoq.com/articles/mobile-apps-offline-support">Mobile Apps Offline Support</a></li>
+<li><a href="https://www.youtube.com/watch?v=BlkJzgjzL0c">Android Application Architecture</a></li>
+<li><a href="https://github.com/yigit/dev-summit-architecture-demo">dev-summit-architecture-demo</a></li>
+<li><a href="http://www.infoq.com/cn/articles/mobile-apps-offline-support">为移动应用提供离线支持</a></li>
+</ul>
+
+</div>
+<div class="entry-content">
+<center><img src="/images/by.png" />除非另有声明，本网站采用<a href="http://creativecommons.org/licenses/by/3.0/cn/" rel="license">知识共享“署名 3.0 中国大陆”许可协议</a>授权。</center>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Solarex</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2016-03-14T08:43:00+08:00" pubdate data-updated="true">Mar 14<span>th</span>, 2016</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/android/'>android</a>, <a class='category' href='/blog/categories/dev/'>dev</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+    <!-- JiaThis Button BEGIN -->
+    <div class="jiathis_style_32x32">
+        <a class="jiathis_button_tsina"></a>
+        <a class="jiathis_button_weixin"></a>
+        <a class="jiathis_button_douban"></a>
+        <a class="jiathis_button_fanfou"></a>
+        <a class="jiathis_button_evernote"></a>
+        <a class="jiathis_button_delicious"></a>
+        <a class="jiathis_button_renren"></a>
+        <a class="jiathis_button_tqq"></a>
+        <a class="jiathis_button_qzone"></a>
+        <a href="http://www.jiathis.com/share" class="jiathis jiathis_txt jiathis_separator jtico jtico_jiathis" target="_blank"></a>
+        <a class="jiathis_counter_style"></a>
+    </div>
+    <script type="text/javascript" >
+        var jiathis_config={
+summary:"",
+        hideMore:false
+        }
+</script>
+<script type="text/javascript" src="http://v3.jiathis.com/code/jia.js" charset="utf-8"></script>
+<!-- JiaThis Button END -->
+  </div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2016/03/13/the-clean-architecture/" title="Previous Post: The Clean Architecture">&laquo; The Clean Architecture</a>
+      
+      
+    </p>
+  </footer>
+</article>
+
+
+<section id="comment">
+<!-- Duoshuo Comment BEGIN -->
+	<div class="ds-thread"></div>
+<script type="text/javascript">
+var duoshuoQuery = {short_name:"solarex"};
+	(function() {
+		var ds = document.createElement('script');
+		ds.type = 'text/javascript';ds.async = true;
+		ds.src = 'http://static.duoshuo.com/embed.js';
+		ds.charset = 'UTF-8';
+		(document.getElementsByTagName('head')[0] 
+		|| document.getElementsByTagName('body')[0]).appendChild(ds);
+	})();
+	</script>
+<!-- Duoshuo Comment END -->
+</section>
+
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2016/03/14/mobile-apps-offline-support/">Mobile Apps Offline Support</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/03/13/the-clean-architecture/">The Clean Architecture</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/02/25/android-handler-memory-leaks/">Android Handler Memory Leaks</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/02/12/recyclerview-animation-part-ii/">RecyclerView Animation part II</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/02/11/recyclerview-animation-part-i/">RecyclerView Animation part I</a>
+      </li>
+    
+  </ul>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2016 - Solarex -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a> | Themed with <a href="https://github.com/lucaslew/whitespace">Whitespace</a></span>
+</p>
+
+
+<script type="text/javascript">
+    var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+    document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/h.js%3F2574e8b2c205dfe8ff89e239fa38ca27' type='text/javascript'%3E%3C/script%3E"));
+</script>
+
+
+</footer>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

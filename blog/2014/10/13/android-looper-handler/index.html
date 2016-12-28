@@ -1,0 +1,437 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Intro to Android Loopers and Handlers - Solarex's Blog</title>
+  <meta name="author" content="Solarex">
+
+  
+  <meta name="description" content="What can you do with Loopers and Handlers? Basically, they implement a common concurrency pattern that I call the Pipeline Thread. Here’s how it &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://Solarex.github.io/blog/2014/10/13/android-looper-handler">
+  <link href="/favicon.ico" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Solarex's Blog" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <!--
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  -->
+  <script src="http://libs.baidu.com/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.useso.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href='http://fonts.useso.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
+<link href='http://fonts.useso.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+
+</head>
+
+<body   class="collapse-sidebar sidebar-footer" >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Solarex's Blog</a></h1>
+  
+    <h2>Yet Another Blog 4 Solarex</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:Solarex.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+    <li><a href="/">Blog</a></li>
+    <li><a href="/blog/archives">Archives</a></li>
+    <li><a href="/projects">Projects</a></li>
+	<li><a href="https://solarex.github.io/wiki">Wiki</a></li>
+    <li><a href="/about">About</a></li>
+	<li><a href="https://solarex.github.io/resume">Resume</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Intro to Android Loopers and Handlers</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-10-13T11:24:00+08:00" pubdate data-updated="true">Oct 13<span>th</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>What can you do with <code>Loopers</code> and <code>Handlers</code>? Basically, they implement a common concurrency pattern that I call the <code>Pipeline Thread</code>. Here’s how it works:</p>
+
+<ul>
+<li>The Pipeline Thread holds a queue of tasks which are just some units of work that can be executed or processed.</li>
+<li>Other threads can safely push new tasks into the Pipeline Thread’s queue at any time.</li>
+<li>The Pipeline Thread processes the queued tasks one after another. If there are no tasks queued, it blocks until a task appears in the queue.</li>
+<li>Sometimes tasks can called messages and other names.</li>
+</ul>
+
+
+<!-- more -->
+
+
+<p>我们能用<code>Loopers</code>和<code>Handlers</code>来干什么？这两个类实现了一种通用的并发模型，我把它叫做：Pipeline 线程。它是这样工作的：</p>
+
+<ul>
+<li>Pipeline 线程持有一个任务队列，这些任务就是一些可以执行的工作单元</li>
+<li>其他线程可以自由的将任务加到Pipeline线程的任务队列中去</li>
+<li>Pipeline线程就按次序一个一个执行任务，如果任务队列中没有任务了，它就会自动阻塞直到有任务到来</li>
+<li>有些时候，任务可以叫做消息（messages）或者其他名字</li>
+</ul>
+
+
+<p><code>Looper</code> is a class that turns a thread into a <code>Pipeline Thread</code> and <code>Handler</code> gives you a mechanism to push tasks into it from any other threads.The <code>Looper</code> is named so because it implements the loop – takes the next task, executes it, then takes the next one and so on. The <code>Handler</code> is called a handler because someone could not invent a better name.</p>
+
+<p>Looper类可以将一个线程转换成Pipeline线程，而Handler提供了一种机制，你可以通过它将任务添加到Pipeline线程中。Looper之所以这么命名是因为它实现了循环——取一个task执行，然后再取下一个task执行，如此循环；Handler如此命名是因为他们无法想出一个更好的名字了~</p>
+
+<p>Here’s what you should put into a Thread&rsquo;s <code>run()</code> method to turn it into a Pipeline Thread and to create a <code>Handler</code> so that other threads can assign tasks to it:</p>
+
+<p>下面就是你需要添加到Thread类的run方法中的代码来创建一个你自己的Pipeline线程，并创建一个<code>Handler</code>以便其他线程可以将任务分发到此Pipeline线程中。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="nd">@Override</span>
+</span><span class='line'><span class="kd">public</span> <span class="kt">void</span> <span class="nf">run</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>  <span class="k">try</span> <span class="o">{</span>
+</span><span class='line'>    <span class="c1">// preparing a looper on current thread</span>
+</span><span class='line'>    <span class="c1">// the current thread is being detected implicitly</span>
+</span><span class='line'>    <span class="n">Looper</span><span class="o">.</span><span class="na">prepare</span><span class="o">();</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1">// now, the handler will automatically bind to the</span>
+</span><span class='line'>    <span class="c1">// Looper that is attached to the current thread</span>
+</span><span class='line'>    <span class="c1">// You don&#39;t need to specify the Looper explicitly</span>
+</span><span class='line'>    <span class="n">handler</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Handler</span><span class="o">();</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1">// After the following line the thread will start</span>
+</span><span class='line'>    <span class="c1">// running the message loop and will not normally</span>
+</span><span class='line'>    <span class="c1">// exit the loop unless a problem happens or you</span>
+</span><span class='line'>    <span class="c1">// quit() the looper (see below)</span>
+</span><span class='line'>    <span class="n">Looper</span><span class="o">.</span><span class="na">loop</span><span class="o">();</span>
+</span><span class='line'>  <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">Throwable</span> <span class="n">t</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>    <span class="n">Log</span><span class="o">.</span><span class="na">e</span><span class="o">(</span><span class="n">TAG</span><span class="o">,</span> <span class="s">&quot;halted due to an error&quot;</span><span class="o">,</span> <span class="n">t</span><span class="o">);</span>
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>After that, you can just pass the handler to any other thread. It has a thread-safe interface that includes many operations, but the most straightforward ones are <code>postMessage()</code> and its relatives.</p>
+
+<p>然后，你只要将这个handler对象传到其他任何线程中去，它有一个线程安全的接口，包括了很多操作，但是最主要的操作就是postMessage()以及相关的方法了。</p>
+
+<p>For example, imagine another thread has a reference to the handler that was created in our Pipeline Thread. Here’s how that other thread can schedule an operation to be executed in the Pipeline Thread:</p>
+
+<p>想象一下，一个线程A持有了handler对象的引用，此handler是在Pipeline线程中创建的，下面代码就可以让这个线程A在Pipeline线程中执行操作了：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">handler</span><span class="o">.</span><span class="na">post</span><span class="o">(</span><span class="k">new</span> <span class="n">Runnable</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>  <span class="nd">@Override</span>
+</span><span class='line'>  <span class="kd">public</span> <span class="kt">void</span> <span class="nf">run</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>    <span class="c1">// this will be done in the Pipeline Thread</span>
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'><span class="o">});</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>By the way, the UI thread has a <code>Looper</code> created for it implicitly, so you can just create a <code>Handler</code> in activity&rsquo;s <code>onCreate()</code> and it will work fine:</p>
+
+<p>UI线程拥有一个Looper（可以通过<code>Looper.getMainLooper()</code>方法获取，判断一个线程是否为主线程可以使用<code>Looper.getLooper() == Looper.getMainLooper()</code>来判断）。所以，你可以在<code>Activity</code>的<code>onCreate()</code>方法中直接新建一个handler对象：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="nd">@Override</span>
+</span><span class='line'><span class="kd">public</span> <span class="kt">void</span> <span class="nf">onCreate</span><span class="o">(</span><span class="n">Bundle</span> <span class="n">savedInstanceState</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>    <span class="kd">super</span><span class="o">.</span><span class="na">onCreate</span><span class="o">(</span><span class="n">savedInstanceState</span><span class="o">);</span>
+</span><span class='line'>    <span class="n">setContentView</span><span class="o">(</span><span class="n">R</span><span class="o">.</span><span class="na">layout</span><span class="o">.</span><span class="na">main</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1">// Create the Handler. It will implicitly bind to the Looper</span>
+</span><span class='line'>    <span class="c1">// that is internally created for this thread (since it is the UI thread)</span>
+</span><span class='line'>    <span class="n">handler</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Handler</span><span class="o">();</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>什么时候使用多线程:</p>
+
+<ul>
+<li>耗时操作使用多线程, 耗时操作放在UI线程中会导致用户的操作无法得到响应.</li>
+<li>阻塞操作使用多线程, 理由同上.</li>
+<li>多核CPU的设备使用多线程, 可以有效提高CPU的利用率.</li>
+<li>并行操作使用多线程.</li>
+</ul>
+
+
+<p>android中的多线程模型主要涉及的类有:Looper, Handler, MessageQueue, Message等.</p>
+
+<p>Looper类用来创建消息队列. 每个线程最多只能有一个消息队列, android中UI线程默认具有消息队列, 但非UI线程在默认情况下是不具备消息队列的. 如果需要在非UI线程中开启消息队列, 需要调用<code>Looper.prepare()</code>方法, 在该方法的执行过程中会创建一个<code>Looper</code>对象, 而<code>Looper</code>的构造函数中会创建一个<code>MessageQueue</code> instance(Looper的构造函数是私有的, 在Looper类之外无法创建其对象).  此后再为该线程绑定一个Handler instance, 然后调用Looper.loop()方法, 就可以不断的从消息队列中取出消息和处理消息了. <code>Looper.myLooper()</code>方法可以得到线程的Looper对象, 如果为null, 说明此时该线程尚未开启消息队列.</p>
+
+<p>Handler类用于处理消息. 该类具有四个构造函数:</p>
+
+<ul>
+<li><code>public Handler()</code>. 创建好的<code>Handler</code> instance将绑定在代码所在的线程的消息队列上, 因此一定要确定该线程开启了消息队列, 否则程序将发生错误. 使用这个构造函数创建<code>Handler</code> instance, 一般来说, 我们需要重写<code>Hanler</code>类的<code>handleMessage()</code>方法, 以便在之后的消息处理时调用.</li>
+<li><code>public Handler(Callback callback)</code>. <code>Callback</code>是<code>Handler</code>内部定义的一个接口, 因此想要使用这个构造函数创建<code>Handler</code>对象, 需要自定义一个类实现<code>Callback</code>接口, 并重写接口中定义的<code>handleMessage()</code>方法. 这个构造函数其实与无参的构造函数类似, 也要确保代码所在的线程开启了消息队列. 不同的是在之后处理消息时, 将调用<code>callback</code>的<code>handleMessage()</code>方法, 而不是<code>Handler</code>对象的<code>handleMssage()</code>方法.</li>
+<li><code>public Handler(Looper looper)</code>. 这个构造函数表示创建一个<code>Handler</code> instance, 并将其绑定在looper所在的线程上. 此时looper不能为null. 此时一般也需要重写<code>Hanler</code>类的<code>handleMessage()</code>方法</li>
+<li><code>public Handler(Looper looper, Callback callback)</code>. 可以结合2和3理解.</li>
+</ul>
+
+
+<p><code>MessageQueue</code>类用于表示消息队列. 队列中的每一个Message都有一个when字段, 这个字段用来决定Message应该何时出对处理. 消息队列中的每一个Message根据when字段的大小由小到大排列, 排在最前面的消息会首先得到处理, 因此可以说消息队列并不是一个严格的先进先出的队列.</p>
+
+<p><code>Message</code>类用于表示消息. <code>Message</code>对象可以通过arg1, arg2, obj字段和<code>setData()</code>携带数据, 此外还具有很多字段. when字段决定Message应该何时处理, target字段用来表示将由哪个Handler对象处理这个消息, next字段表示在消息队列中排在这个Message之后的下一个Message, callback字段如果不为null表示这个Message包装了一个runnable对象, what字段表示code, 即这个消息具体是什么类型的消息. 每个what都在其handler的namespace中, 我们只需要确保将由同一个handler处理的消息的what属性不重复就可以.</p>
+
+<p>将消息压入消息队列: <code>Message</code>对象的<code>target</code>字段关联了哪个线程的消息队列, 这个消息就会被压入哪个线程的消息队列中.</p>
+
+<ul>
+<li>调用<code>Handler</code>类中以<code>send</code>开头的方法可以将<code>Message</code>对象压入消息队列中, 调用Handler类中以post开头的方法可以将一个runnable对象包装在一个Message对象中, 然后再压入消息队列, 此时入队的Message其callback字段不为null, 值就是这个runnable对象. 调用<code>Handler</code>对象的这些方法入队的<code>Message</code>, 其target属性会被赋值为这个handler对象.</li>
+<li>调用<code>Message</code>对象的<code>sendToTarget()</code>方法可以将其本身压入与其target字段(即handler对象)所关联的消息队列中.</li>
+</ul>
+
+
+<p>将未来得及处理的消息从消息队列中删除:调用Handler对象中以remove开头的方法就可以.</p>
+
+<p>从消息队列中取出消息并处理消息: 所有在消息队列中的消息, 都具有target字段. 消息是在target所关联的线程上被取出和处理的.</p>
+
+<ul>
+<li>如果取出的<code>Message</code>对象的callback字段不为null, 那么就调用<code>callback</code>字段的<code>run()</code>方法(callback字段的类型是runnable). 注意此时并不开启一个新的线程运行run()方法, 而是直接在handler对象(即<code>Message</code>的target字段)所关联的线程上运行.</li>
+<li>如果取出的Message对象的callback字段为null, 且<code>Handler</code>对象中的callback字段也为null, 那么这个消息将由<code>Handler</code>对象的<code>handleMessage(msg)</code>方法处理. 注意Message对象的callback字段是Runnable类型的而Handler对象的callback字段是Callback类型的, Handler对象的callback字段是在创建Handler instance的时候指定的, 如果没有指定则这个字段为null, 详见Handler类的四个构造方法.</li>
+<li>如果取出的<code>Message</code>对象的callback字段为null, 且Handler对象中的callback字段不为null, 那么这个消息将由<code>Handler</code>对象中的callback字段的handleMessage方法处理.</li>
+</ul>
+
+
+<p>线程间通信: 有了以上的叙述, 线程间的通信也就好理解了. 假如一个handler关联了A线程上的消息队列, 那么我们可以在B线程上调用handler的相关方法向A线程上的消息队列压入一个Message, 这个Message将在A线程上得到处理.</p>
+
+<p>REF:<a href="http://mindtherobot.com/blog/159/android-guts-intro-to-loopers-and-handlers/">Android Guts: Intro to Loopers and Handlers</a></p>
+</div>
+<div class="entry-content">
+<center><img src="/images/by.png" />除非另有声明，本网站采用<a href="http://creativecommons.org/licenses/by/3.0/cn/" rel="license">知识共享“署名 3.0 中国大陆”许可协议</a>授权。</center>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Solarex</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-10-13T11:24:00+08:00" pubdate data-updated="true">Oct 13<span>th</span>, 2014</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/android/'>android</a>, <a class='category' href='/blog/categories/dev/'>dev</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+    <!-- JiaThis Button BEGIN -->
+    <div class="jiathis_style_32x32">
+        <a class="jiathis_button_tsina"></a>
+        <a class="jiathis_button_weixin"></a>
+        <a class="jiathis_button_douban"></a>
+        <a class="jiathis_button_fanfou"></a>
+        <a class="jiathis_button_evernote"></a>
+        <a class="jiathis_button_delicious"></a>
+        <a class="jiathis_button_renren"></a>
+        <a class="jiathis_button_tqq"></a>
+        <a class="jiathis_button_qzone"></a>
+        <a href="http://www.jiathis.com/share" class="jiathis jiathis_txt jiathis_separator jtico jtico_jiathis" target="_blank"></a>
+        <a class="jiathis_counter_style"></a>
+    </div>
+    <script type="text/javascript" >
+        var jiathis_config={
+summary:"",
+        hideMore:false
+        }
+</script>
+<script type="text/javascript" src="http://v3.jiathis.com/code/jia.js" charset="utf-8"></script>
+<!-- JiaThis Button END -->
+  </div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2014/10/12/android-decompile/" title="Previous Post: Android反编译">&laquo; Android反编译</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2014/10/13/android-main-thread/" title="Next Post: A journey on the Android Main Thread">A journey on the Android Main Thread &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+
+<section id="comment">
+<!-- Duoshuo Comment BEGIN -->
+	<div class="ds-thread"></div>
+<script type="text/javascript">
+var duoshuoQuery = {short_name:"solarex"};
+	(function() {
+		var ds = document.createElement('script');
+		ds.type = 'text/javascript';ds.async = true;
+		ds.src = 'http://static.duoshuo.com/embed.js';
+		ds.charset = 'UTF-8';
+		(document.getElementsByTagName('head')[0] 
+		|| document.getElementsByTagName('body')[0]).appendChild(ds);
+	})();
+	</script>
+<!-- Duoshuo Comment END -->
+</section>
+
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2016/03/14/mobile-apps-offline-support/">Mobile Apps Offline Support</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/03/13/the-clean-architecture/">The Clean Architecture</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/02/25/android-handler-memory-leaks/">Android Handler Memory Leaks</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/02/12/recyclerview-animation-part-ii/">RecyclerView Animation part II</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/02/11/recyclerview-animation-part-i/">RecyclerView Animation part I</a>
+      </li>
+    
+  </ul>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2016 - Solarex -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a> | Themed with <a href="https://github.com/lucaslew/whitespace">Whitespace</a></span>
+</p>
+
+
+<script type="text/javascript">
+    var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+    document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/h.js%3F2574e8b2c205dfe8ff89e239fa38ca27' type='text/javascript'%3E%3C/script%3E"));
+</script>
+
+
+</footer>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

@@ -1,0 +1,307 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>The Hidden Pitfalls of AsyncTask - Solarex's Blog</title>
+  <meta name="author" content="Solarex">
+
+  
+  <meta name="description" content="I originally wrote this article when I was (foolishly) still using AsyncTasks. Nowadays I simply consider it a mistake in all cases. As you&rsquo;ll &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://Solarex.github.io/blog/2014/10/19/android-asynctask-pitfalls">
+  <link href="/favicon.ico" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Solarex's Blog" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <!--
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  -->
+  <script src="http://libs.baidu.com/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.useso.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href='http://fonts.useso.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
+<link href='http://fonts.useso.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+
+</head>
+
+<body   class="collapse-sidebar sidebar-footer" >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Solarex's Blog</a></h1>
+  
+    <h2>Yet Another Blog 4 Solarex</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:Solarex.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+    <li><a href="/">Blog</a></li>
+    <li><a href="/blog/archives">Archives</a></li>
+    <li><a href="/projects">Projects</a></li>
+	<li><a href="https://solarex.github.io/wiki">Wiki</a></li>
+    <li><a href="/about">About</a></li>
+	<li><a href="https://solarex.github.io/resume">Resume</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">The Hidden Pitfalls of AsyncTask</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-10-19T15:56:00+08:00" pubdate data-updated="true">Oct 19<span>th</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p><center><img src="/images/android_logo.jpg"/></center></p>
+
+
+<p>I originally wrote this article when I was (foolishly) still using AsyncTasks. Nowadays I simply consider it a mistake in all cases. As you&rsquo;ll see from the original article, there are a lot of problems with it &ndash; and there are much better solutions.</p>
+
+<p>My preferred alternative these days are combining <a href="https://github.com/Netflix/RxJava">RxJava</a> with schedulers. You get the same effect as an <code>AsyncTask</code> with none of the problems, plus you get an awesome framework in addition. I know, recommending a library to solve a problem is irritating, but RxJava is worth looking at for many reasons.</p>
+
+<p>When <code>AsyncTask</code> was introduced to Android, it was labeled as “<a href="http://android-developers.blogspot.com/2009/05/painless-threading.html">Painless Threading</a>.” Its goal was to make background Threads which could interact with the UI thread easier. It was successful on that count, but it’s not exactly painless – there are a number of cases where <code>AsyncTask</code> is not a silver bullet. It is easy to blindly use <code>AsyncTask</code> without realizing what can go wrong if not handled with care. Below are some of the problems that can arise when using <code>AsyncTask</code> without fully understanding it.</p>
+
+<!-- more -->
+
+
+<h2>AsyncTask and Rotation</h2>
+
+<p>AsyncTask’s primary goal is to make it easy to run a Thread in the background that can later interact with the UI thread. Therefore the most common use case is to have an <code>AsyncTask</code> run a time-consuming operation that updates a portion of the UI when it’s completed (in <code>AsyncTask.onPostExecute()</code>).</p>
+
+<p>This works great… until you rotate the screen. <strong>When an app is rotated, the entire <code>Activity</code> is destroyed and recreated. When the Activity is restarted, your AsyncTask’s reference to the <code>Activity</code> is invalid, so <code>onPostExecute()</code> will have no effect on the new Activity.</strong> This can be confusing if you are implicitly referencing the current Activity by having AsyncTask as an inner class of the Activity.</p>
+
+<p>The usual solution to this problem is to hold onto a reference to AsyncTask that lasts between configuration changes, which updates the target Activity as it restarts. There are a variety of ways to do this, though they either boil down to using a global holder (such as in the <code>Application</code> object) or passing it through <code>Activity.onRetainNonConfigurationInstance()</code>. For a Fragment-based system, you could use a retained Fragment (via <code>Fragment.setRetainedInstance(true)</code>) to store running AsyncTasks.</p>
+
+<h2>AsyncTasks and the Lifecycle</h2>
+
+<p>Along the same lines as above, it is a misconception to think that just because the Activity that originally spawned the <code>AsyncTask</code> is dead, the <code>AsyncTask</code> is as well. It will continue running on its merry way even if you exit the entire application. <strong>The only way that an <code>AsyncTask</code> finishes early is if it is canceled via <code>AsyncTask.cancel()</code>.</strong></p>
+
+<p>This means that you have to manage the cancellation of AsyncTasks yourself; otherwise you run the risk of bogging down your app with unnecessary background tasks, or of leaking memory. When you know you will no longer need an <code>AsyncTask</code>, be sure to cancel it so that it doesn’t cause any headaches later in the execution of your app.</p>
+
+<h2>Cancelling AsyncTasks</h2>
+
+<p>Suppose you’ve got a search query that runs in an <code>AsyncTask</code>. The user may be able to change the search parameters while the <code>AsyncTask</code> is running, so you call <code>AsyncTask.cancel()</code> and then fire up a new <code>AsyncTask</code> for the next query. <strong>This seems to work… until you check the logs and realize that your <code>AsyncTask</code>s all ran till completion, regardless of whether you called <code>cancel()</code> or not!</strong> This even happens if you pass mayInterruptIfRunning as true – what’s going on?</p>
+
+<p>The problem is that there’s a misconception about what <code>AsyncTask.cancel()</code> actually does. It does not kill the Thread with no regard for the consequences! All it does is set the <code>AsyncTask</code> to a “cancelled” state. <strong>It’s up to you to check whether the AsyncTask has been canceled so that you can halt your operation</strong>. As for mayInterruptIfRunning – all it does is send an <code>interrupt()</code> to the running Thread. In the case that your Thread is uninterruptible, then it won’t stop the Thread at all.There are two simple solutions that cover most situations: Either check <code>AsyncTask.isCancelled()</code> on a regular basis during your long-running operation, or keep your Thread interruptible. Either way, when you call <code>AsyncTask.cancel()</code> these methods should prevent your operation from running longer than necessary.</p>
+
+<p>This advice doesn’t always work, though – what if you’re calling a long-running method that is uninterruptible (such as <code>BitmapFactory.decodeStream()</code>)? The only success I’ve had in this situation is to create a situation which causes an Exception to be thrown (in this case, prematurely closing the stream that BitmapFactory was using). This meant that <code>cancel()</code> alone wouldn’t solve the problem – outside intervention was required.</p>
+
+<h2>Limitations on Concurrent AsyncTasks</h2>
+
+<p>I’m not encouraging people to start hundreds of threads in the background; however, it is worth noting that there are some limitations on the number of <code>AsyncTask</code>s that you can start. The modern <code>AsyncTask</code> is limited to 128 concurrent tasks, with an additional queue of 10 tasks (if supporting Android 1.5, it’s a limit of ten tasks at a time, with a maximum queue of 10 tasks). That means that if you queue up more than 138 tasks before they can complete, your app will crash. Most often I see this problem when people use <code>AsyncTask</code>s to load Bitmaps from the net.</p>
+
+<p>If you are finding yourself running up against these limits, you should start by rethinking your design that calls for so many background threads. Alternatively, you could setup a more intelligent queue for your tasks so that you’re not starting them all at once. If you’re desperate, you can grab a copy of <code>AsyncTask</code> and adjust the pool sizes in the code itself.</p>
+
+<ul>
+<li><a href="http://blog.danlew.net/2014/06/21/the-hidden-pitfalls-of-asynctask/">The Hidden Pitfalls of AsyncTask</a></li>
+</ul>
+
+</div>
+<div class="entry-content">
+<center><img src="/images/by.png" />除非另有声明，本网站采用<a href="http://creativecommons.org/licenses/by/3.0/cn/" rel="license">知识共享“署名 3.0 中国大陆”许可协议</a>授权。</center>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Solarex</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-10-19T15:56:00+08:00" pubdate data-updated="true">Oct 19<span>th</span>, 2014</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/android/'>android</a>, <a class='category' href='/blog/categories/dev/'>dev</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+    <!-- JiaThis Button BEGIN -->
+    <div class="jiathis_style_32x32">
+        <a class="jiathis_button_tsina"></a>
+        <a class="jiathis_button_weixin"></a>
+        <a class="jiathis_button_douban"></a>
+        <a class="jiathis_button_fanfou"></a>
+        <a class="jiathis_button_evernote"></a>
+        <a class="jiathis_button_delicious"></a>
+        <a class="jiathis_button_renren"></a>
+        <a class="jiathis_button_tqq"></a>
+        <a class="jiathis_button_qzone"></a>
+        <a href="http://www.jiathis.com/share" class="jiathis jiathis_txt jiathis_separator jtico jtico_jiathis" target="_blank"></a>
+        <a class="jiathis_counter_style"></a>
+    </div>
+    <script type="text/javascript" >
+        var jiathis_config={
+summary:"",
+        hideMore:false
+        }
+</script>
+<script type="text/javascript" src="http://v3.jiathis.com/code/jia.js" charset="utf-8"></script>
+<!-- JiaThis Button END -->
+  </div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2014/10/19/android-tips/" title="Previous Post: Android Tips">&laquo; Android Tips</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2014/10/24/android-loader/" title="Next Post: Android Loader">Android Loader &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+
+<section id="comment">
+<!-- Duoshuo Comment BEGIN -->
+	<div class="ds-thread"></div>
+<script type="text/javascript">
+var duoshuoQuery = {short_name:"solarex"};
+	(function() {
+		var ds = document.createElement('script');
+		ds.type = 'text/javascript';ds.async = true;
+		ds.src = 'http://static.duoshuo.com/embed.js';
+		ds.charset = 'UTF-8';
+		(document.getElementsByTagName('head')[0] 
+		|| document.getElementsByTagName('body')[0]).appendChild(ds);
+	})();
+	</script>
+<!-- Duoshuo Comment END -->
+</section>
+
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2016/03/14/mobile-apps-offline-support/">Mobile Apps Offline Support</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/03/13/the-clean-architecture/">The Clean Architecture</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/02/25/android-handler-memory-leaks/">Android Handler Memory Leaks</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/02/12/recyclerview-animation-part-ii/">RecyclerView Animation part II</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/02/11/recyclerview-animation-part-i/">RecyclerView Animation part I</a>
+      </li>
+    
+  </ul>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2016 - Solarex -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a> | Themed with <a href="https://github.com/lucaslew/whitespace">Whitespace</a></span>
+</p>
+
+
+<script type="text/javascript">
+    var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+    document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/h.js%3F2574e8b2c205dfe8ff89e239fa38ca27' type='text/javascript'%3E%3C/script%3E"));
+</script>
+
+
+</footer>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

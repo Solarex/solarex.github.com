@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: c | Solarex's Blog]]></title>
+  <link href="http://Solarex.github.io/blog/categories/c/atom.xml" rel="self"/>
+  <link href="http://Solarex.github.io/"/>
+  <updated>2016-12-28T14:00:31+08:00</updated>
+  <id>http://Solarex.github.io/</id>
+  <author>
+    <name><![CDATA[Solarex]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[What can we learn from hello world]]></title>
+    <link href="http://Solarex.github.io/blog/2014/09/01/what-can-we-learn-from-hello-world/"/>
+    <updated>2014-09-01T07:57:00+08:00</updated>
+    <id>http://Solarex.github.io/blog/2014/09/01/what-can-we-learn-from-hello-world</id>
+    <content type="html"><![CDATA[<center><p><img src="http://Solarex.github.io/images/java_logo.svg" width="150" height="275" alt="java"></p></center>
+
+
+<h2>C version</h2>
+
+<p>C版本的<code>hello,world</code>深入详解之前上学的时候在<a href="http://www.slideshare.net/olvemaudal/deep-c">SlideShare</a>上看到过，记得当时大呼过瘾，许多C深入理解的知识基本上都被罗列了出来，现在看来仍然获益颇多。PDF版本可以在<a href="http://Solarex.github.io/downloads/files/DeepC0.pdf">这里和<a href="http://Solarex.github.io/downloads/files/DeepC1.pdf">这里</a>下载。</p>
+
+<!-- more -->
+
+
+
+
+<iframe src="http://Solarex.github.io//www.slideshare.net/slideshow/embed_code/9626718" width="427" height="356" frameborder="0" marginwidth="0" marginheight="0" scrolling="no" style="border:1px solid #CCC; border-width:1px; margin-bottom:5px; max-width: 100%;" allowfullscreen> </iframe>
+
+
+<p> <div style="margin-bottom:5px"> <strong> <a href="https://www.slideshare.net/olvemaudal/deep-c" title="Deep C" target="_blank">Deep C</a> </strong> from <strong><a href="http://www.slideshare.net/olvemaudal" target="_blank">Olve Maudal</a></strong> </div></p>
+
+<p> Q:In C,Why dot you think static variables gets a default value(usually 0),while auto variables does not get a default value?</p>
+
+<p> A:Because C is all about execution speed. Setting static variables to default values is a one time cost, while defaulting auto variables might add a signficant runtime cost.Memsetting the global data segment to 0 however, is a one time cost that happens at start up.</p>
+
+<p> Q:Why don’t the C standard require that you always get a warning or error on invalid code?</p>
+
+<p> A:One of the design goals of C is that it should be relatively easy to write a compiler. Adding a requirement that the compilers should refuse or warn about invalid code would add a huge burden on the compiler writers.</p>
+
+<h3>Memory layout</h3>
+
+<p>It is sometimes useful to assume that a C program uses a memory model where the instructions are stored in a <strong>text segment</strong>, and static variables are stored in a <strong>data segment</strong>. Automatic variables are allocated when needed together with housekeeping variables on an <strong>execution stack</strong> that is growing towards low address. The remaining memory, the <strong>heap</strong> is used for allocated storage.The stack and the heap is typically not cleaned up in any way at startup, or during execution, so before objects are explicitly initialized they typically get garbage values based on whatever is left in memory from discarded objects and previous executions. In other words, the programmer must do all the housekeeping on variables with automatic storage and allocated storage.And sometimes it is useful to assume that an <strong>activation record</strong> is created and
+pushed onto the execution stack every time a function is called. The activation record
+contains local auto variables, arguments to the functions, and housekeeping data such
+as pointer to the previous frame and the return address.</p>
+
+<p>Q:In C. Why is the evaluation order mostly unspecified?</p>
+
+<p>A:Because there is a design goal to allow optimal execution speed on a wide range of architectures. In C the compiler can choose to evaluate expressions in the order that is most optimal for a particular platform. This allows for great optimization opportunities.</p>
+
+<p>A sequence point is a point in the program&rsquo;s execution sequence where all previous side-effects shall have taken place and where all subsequent side-effects shall not have taken place.</p>
+
+<h3>Sequence point in C:</h3>
+
+<ul>
+<li>At the end of a full expression there is a sequence point.
+<code>c
+a = i++;
+++i;
+if (++i == 42) { ... }
+</code></li>
+<li>In a function call, there is a sequence point after the evaluation of the arguments, but before the actual call.
+<code>c
+foo(++i)
+</code></li>
+<li>The logical and (&amp;&amp;) and logical or (||) guarantees a left-to-right evaluation, and if the second operand is evaluated, there is a sequence point between the evaluation of the first and second operands.
+<code>c
+if (p &amp;&amp; *p++ == 42) { ... }
+</code></li>
+<li>The comma operator (,) guarantees left-to-right evaluation and there is a sequence point between evaluating the left operand and the right operand.
+<code>c
+i = 39; a = (i++, i++, ++i);
+</code></li>
+<li>For the conditional operator (?:), the first operand is evaluated; there is a sequence point between its evaluation and the evaluation of the second or third operand (whichever is evaluated)
+<code>c
+a++ &gt; 42 ? --a : ++a;
+</code></li>
+</ul>
+
+
+<h3>Behavior:</h3>
+
+<ul>
+<li><code>implementation-defined behavior</code>:the construct is not incorrect; the code must compile; the compiler must document the behavior.</li>
+<li><code>unspecified behavior</code>: the same as implementation-defined except the behavior need not be documented</li>
+<li><code>undefined behavior</code>: the standard imposes no requirements ; anything at all can happen, all bets are off, nasal demons might fly out of your nose.</li>
+<li><code>locale-specific behavior</code>:the C standard defines the expected behavior, but says very little about how it should be implemented.this is a key feature of C, and one of the
+reason why C is such a successful programming language on a wide range of hardware!</li>
+</ul>
+
+
+<p>Integer overflow gives undefined behavior. If you want to prevent this to happen you must write the logic yourself. This is the spirit of C, you don’t get code you have not asked for.</p>
+
+<center><p><img src="http://Solarex.github.io/images/the_spirit_of_c.png" width="600" height="600" alt="the spirit of c"></p></center>
+
+
+<h2>Java version</h2>
+
+<p>```java
+public class HelloWorld{</p>
+
+<pre><code>public static void main(String[] args){
+    System.out.println("HelloWorld.\n");
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<p>Q:Why the “main” method is the program entrance and is static?</p>
+
+<p>A: “static” means that the method is part of its class, not part of objects.Why is that? Why don’t we put a non-static method as program entrance?If a method is not static, then an object needs to be created first to use the method.Because the method has to be invoked on an object. For an entrance, this is not realistic. Therefore, program entrance method is static.The parameter “String[] args” indicates that an array of strings can be sent to the program to help with program initialization.</p>
+
+<p><code>javap -classpath . -c HelloWorld</code>,“javap -c” prints out disassembled code for each method in the class. Disassem-bled code means the instructions that comprise the Java bytecodes.<code>javap -classpath . -verbose HelloWorld</code> take a further look of the class and its constant pool.</p>
+
+<p>Q:How JVM loads the class and invoke the main method?</p>
+
+<p>A:Before the main method is executed, JVM needs to 1) load, 2) link, and 3) initialize the class. 1) Loading brings binary form for a class/interface into JVM. 2) Linking incorporates the binary type data into the run-time state of JVM. Linking consists of 3 steps: verification, preparation, and optional resolution. Verification ensures the class/interface is structurally correct; preparation involves allocating memory needed by the class/interface; resolution resolves symbolic references. And finally 3) initialization assigns the class variables with proper initial values.</p>
+
+<p>This loading job is done by Java Classloaders. When the JVM is started, three class
+loaders are used:</p>
+
+<ul>
+<li>Bootstrap class loader: loads the core Java libraries located in the /jre/lib directory. It is a part of core JVM, and is written in native code.</li>
+<li>Extensions class loader: loads the code in the extension directories(e.g.,/jar/lib/ext).</li>
+<li>System class loader: loads code found on CLASSPATH.</li>
+</ul>
+
+
+<p>Finally, the main() frame is pushed into the JVM stack, and program counter(PC) is set accordingly. PC then indicates to push println() frame to the JVM stack. When the main() method completes, it will popped up from the stack and execution is done.</p>
+
+<p>Ref:<a href="http://www.programcreek.com/2013/01/when-and-how-a-java-class-is-loaded-and-initialized/">When and how a java class is loaded and initialized</a></p>
+]]></content>
+  </entry>
+  
+</feed>

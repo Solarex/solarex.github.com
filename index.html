@@ -1,1 +1,406 @@
-My Octopress Page is coming soon &hellip;
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Solarex's Blog</title>
+  <meta name="author" content="Solarex">
+
+  
+  <meta name="description" content="Offline support for mobile applications can be thought of as the ability for the application to react gracefully to the lack of stability of the &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://Solarex.github.io">
+  <link href="/favicon.ico" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Solarex's Blog" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <!--
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  -->
+  <script src="http://libs.baidu.com/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.useso.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href='http://fonts.useso.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
+<link href='http://fonts.useso.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+
+</head>
+
+<body   class="collapse-sidebar sidebar-footer" >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Solarex's Blog</a></h1>
+  
+    <h2>Yet Another Blog 4 Solarex</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:Solarex.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+    <li><a href="/">Blog</a></li>
+    <li><a href="/blog/archives">Archives</a></li>
+    <li><a href="/projects">Projects</a></li>
+	<li><a href="https://solarex.github.io/wiki">Wiki</a></li>
+    <li><a href="/about">About</a></li>
+	<li><a href="https://solarex.github.io/resume">Resume</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div class="blog-index">
+  
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/03/14/mobile-apps-offline-support/">Mobile Apps Offline Support</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2016-03-14T08:43:00+08:00" pubdate data-updated="true">Mar 14<span>th</span>, 2016</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Offline support for mobile applications can be thought of as the ability for the application to react gracefully to the lack of stability of the network connection. The rather new context of mobile devices introduced problems such as presence or absence of a network connection or even high latency and low bandwidth. These problems are rather new and thus not very well known to engineers starting with mobile development. Among other things building a mobile application which resilient to different network scenarios could mean:</p>
+
+<ul>
+<li>Displaying comprehensive error messages when network calls fail.</li>
+<li>Allowing the use of the application in “guest mode”, where certain features can be delayed until the user actually signs in.</li>
+<li>Visually displaying the absence of network connectivity on the UI (connected mode/offline mode).</li>
+<li>Disabling controls in the absence of network connectivity.</li>
+<li>Allowing the user to query and act on data while no network connection (offline data access).</li>
+<li>Testing the application under different network conditions!</li>
+</ul>
+
+
+<p>While all these things are extremely important from the usability point of view, there is one of these that can be particular complex, “offline data access”. There are several different scenarios or levels of offline data access that applications might need to support, and I’ll go through each next.</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2016/03/14/mobile-apps-offline-support/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/03/13/the-clean-architecture/">The Clean Architecture</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2016-03-13T23:57:00+08:00" pubdate data-updated="true">Mar 13<span>th</span>, 2016</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><center><img src="/images/clean_arch.jpg"></center>
+
+
+<p>Over the last several years we’ve seen a whole range of ideas regarding the architecture of systems. These include:</p>
+
+<ul>
+<li><a href="http://alistair.cockburn.us/Hexagonal+architecture">Hexagonal Architecture</a> (a.k.a. Ports and Adapters) by Alistair Cockburn and adopted by Steve Freeman, and Nat Pryce in their wonderful book <a href="http://www.amazon.com/Growing-Object-Oriented-Software-Guided-Tests/dp/0321503627">Growing Object Oriented Software</a>.</li>
+<li><a href="http://jeffreypalermo.com/blog/the-onion-architecture-part-1/">Onion Architecture</a> by Jeffrey Palermo</li>
+<li><a href="http://blog.8thlight.com/uncle-bob/2011/09/30/Screaming-Architecture.html">Screaming Architecture</a> from a blog of mine last year</li>
+<li><a href="http://www.amazon.com/Lean-Architecture-Agile-Software-Development/dp/0470684208/">DCI</a> from James Coplien, and Trygve Reenskaug.</li>
+<li><a href="http://www.amazon.com/Object-Oriented-Software-Engineering-Approach/dp/0201544350">BCE</a> by Ivar Jacobson from his book Object Oriented Software Engineering: A Use-Case Driven Approach</li>
+</ul>
+
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2016/03/13/the-clean-architecture/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/02/25/android-handler-memory-leaks/">Android Handler Memory Leaks</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2016-02-25T19:58:00+08:00" pubdate data-updated="true">Feb 25<span>th</span>, 2016</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Android uses Java as a platform for development. This helps us with many low level issues including memory management, platform type dependencies, and so on. However we still sometimes get crashes with OutOfMemory. So where’s the garbage collector?</p>
+
+<p>I’m going to focus on one of the cases where big objects in memory can’t be cleared for a lengthy period of time. This case is not ultimately a memory leak &ndash; objects will be collected at some point &ndash; so we sometimes ignore it. This is not advisable as it can sometimes lead to OOM errors.</p>
+
+<p>The case I’m describing is the Handler leak, which is usually detected as a warning by Lint.</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2016/02/25/android-handler-memory-leaks/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/02/12/recyclerview-animation-part-ii/">RecyclerView Animation Part II</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2016-02-12T00:47:00+08:00" pubdate data-updated="true">Feb 12<span>th</span>, 2016</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>In the first article, I’ve covered the main idea on how predictive animations run in RecyclerView. There is actually a lot more going on to achieve this simplicity (for the LayoutManager). Here are some important points that you should know about.</p>
+
+<p>RecyclerView keeps some children attached although they have been removed by the LayoutManager. How does it work? Does it invalidate the contract between the LayoutManager and RecyclerView?</p>
+
+<p>Yes it does ‘kind of’ violate the contract with LayoutManager, but:</p>
+
+<p>RecyclerView does keep the View as a child of the ViewGroup but hides it from the LayoutManager. Each time LayoutManager calls a method to access its children, RecyclerView takes into account the hidden Views. Lets look at the example at Part 1 where ‘C’ was being removed from the adapter.</p>
+
+<center><img src="/images/predictive_animations.gif"></center>
+
+
+
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2016/02/12/recyclerview-animation-part-ii/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/02/11/recyclerview-animation-part-i/">RecyclerView Animation Part I</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2016-02-11T00:47:00+08:00" pubdate data-updated="true">Feb 11<span>th</span>, 2016</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>ListView is one of the most popular widgets of the Android Framework. It has many features, yet it is fairly complex and hard to modify. As the UX paradigms evolved and phones got faster, its limitations started to overshadow its feature set.</p>
+
+<p>With Lollipop, the Android team decided to release a new widget that will make writing different collection views much easier with a pluggable architecture. Many different behaviors can be controlled easily by implementing simple contracts to change:</p>
+
+<ul>
+<li>how items are laid out</li>
+<li>animations!</li>
+<li>item decorations</li>
+<li>recycling strategy</li>
+</ul>
+
+
+<p>This great flexibility comes with the additional complexity of a bigger architecture. Also, there are more things to learn.</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2016/02/11/recyclerview-animation-part-i/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  <div class="pagination">
+    
+      <a class="prev" href="/blog/page/2/">&larr; Older</a>
+    
+    <a href="/blog/archives">Blog Archives</a>
+    
+  </div>
+</div>
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2016/03/14/mobile-apps-offline-support/">Mobile Apps Offline Support</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/03/13/the-clean-architecture/">The Clean Architecture</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/02/25/android-handler-memory-leaks/">Android Handler Memory Leaks</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/02/12/recyclerview-animation-part-ii/">RecyclerView Animation part II</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/02/11/recyclerview-animation-part-i/">RecyclerView Animation part I</a>
+      </li>
+    
+  </ul>
+</section>
+
+
+
+
+
+  
+</aside>
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2016 - Solarex -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a> | Themed with <a href="https://github.com/lucaslew/whitespace">Whitespace</a></span>
+</p>
+
+
+<script type="text/javascript">
+    var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+    document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/h.js%3F2574e8b2c205dfe8ff89e239fa38ca27' type='text/javascript'%3E%3C/script%3E"));
+</script>
+
+
+</footer>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

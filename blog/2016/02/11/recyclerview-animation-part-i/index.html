@@ -1,0 +1,354 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>RecyclerView Animation part I - Solarex's Blog</title>
+  <meta name="author" content="Solarex">
+
+  
+  <meta name="description" content="ListView is one of the most popular widgets of the Android Framework. It has many features, yet it is fairly complex and hard to modify. As the UX &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://Solarex.github.io/blog/2016/02/11/recyclerview-animation-part-i">
+  <link href="/favicon.ico" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Solarex's Blog" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <!--
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  -->
+  <script src="http://libs.baidu.com/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.useso.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href='http://fonts.useso.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
+<link href='http://fonts.useso.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+
+</head>
+
+<body   class="collapse-sidebar sidebar-footer" >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Solarex's Blog</a></h1>
+  
+    <h2>Yet Another Blog 4 Solarex</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:Solarex.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+    <li><a href="/">Blog</a></li>
+    <li><a href="/blog/archives">Archives</a></li>
+    <li><a href="/projects">Projects</a></li>
+	<li><a href="https://solarex.github.io/wiki">Wiki</a></li>
+    <li><a href="/about">About</a></li>
+	<li><a href="https://solarex.github.io/resume">Resume</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">RecyclerView Animation Part I</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2016-02-11T00:47:00+08:00" pubdate data-updated="true">Feb 11<span>th</span>, 2016</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>ListView is one of the most popular widgets of the Android Framework. It has many features, yet it is fairly complex and hard to modify. As the UX paradigms evolved and phones got faster, its limitations started to overshadow its feature set.</p>
+
+<p>With Lollipop, the Android team decided to release a new widget that will make writing different collection views much easier with a pluggable architecture. Many different behaviors can be controlled easily by implementing simple contracts to change:</p>
+
+<ul>
+<li>how items are laid out</li>
+<li>animations!</li>
+<li>item decorations</li>
+<li>recycling strategy</li>
+</ul>
+
+
+<p>This great flexibility comes with the additional complexity of a bigger architecture. Also, there are more things to learn.</p>
+
+<!-- more -->
+
+
+<p>In this post, I want to deep dive into RecyclerView internals, particularly on how animations work.</p>
+
+<p>On Honeycomb, the Android Framework introduced LayoutTransition, which was a very easy way to animate changes inside a ViewGroup. It works by taking a snapshot of the ViewGroup before and after the layout changes, then creating Animators to move between these two states. This process is fairly similar to what RecyclerView needs to do to animate changes in the adapter.</p>
+
+<center><img src="/images/trans_man_default.gif" alt="LayoutTransition example"></center>
+
+
+<p>Unfortunately, lists have one major difference which makes LayoutTransitions a bad fit for their animations. Specifically, items in lists are not the same as views in a ViewGroup. This is an important distinction that needs to be understood to handle animations on “items” while using mechanisms that animate the “views” that show the item contents.</p>
+
+<p>In a normal ViewGroup, if a View is newly added to the View hierarchy, it can be treated like a newly added View and thus it can be animated accordingly (e.g. fade in). For collections, it is a bit different. For example, a View for an item may become visible just because an item before it has been removed from the Adapter. In this case, running a fade in animation for the new item would be misleading because it was already in the list though the view is new because the item just entered the viewport. RecyclerView knows if the item is new or not but it does not know where it was if the item is not new. The same case is valid for disappearing Views, RecyclerView does not know where the view went if it is not removed from the Adapter.</p>
+
+<center><img src="/images/trans_man_bad.gif" alt="LayoutTransition failure for a list"></center>
+
+
+<p>To overcome this problem, <code>RecyclerView</code> could ask <code>LayoutManager</code> for the previous location of the new View. Although this would work, it would require some bookkeeping on the <code>LayoutManager</code> end and may not be trivial to calculate for more complex <code>LayoutManagers</code>.</p>
+
+<p>The way that <code>RecyclerView</code> handles animating appearing and disappearing items (that is, animating the appearance and disappearance of views that refer to items that were and are still in the list) is by relying on the <code>LayoutManager</code> to handle predictive layout logic. One one hand, the <code>RecyclerView</code> wants to know where views would have been had they been laid out prior to this change. On the other hand, the <code>RecyclerView</code> wants to know where views would be laid out after this change if the <code>LayoutManager</code> went to the trouble of laying out items that are not currently visible.</p>
+
+<p>To make it easy for the <code>LayoutManager</code> to provide this information, <code>RecyclerView</code> uses a two step layout process when there are adapter changes which should be animated. The mechanisms for handling these predictive layout passes are described below.</p>
+
+<ul>
+<li>In the first layout pass (preLayout), RecyclerView asks LayoutManager to layout the previous state with the knowledge of the additional information. For the example above, it would be like requesting “Layout items again, btw, ‘C’ has been removed”. The LayoutManager runs its usual layout step but knowing that ‘C’ will be removed, it lays out View(s) to fill the space left by ‘C’.The cool part of this contract is that RecyclerView still behaves as if ‘C’ is still in the backing Adapter. For example, when LayoutManager asks for the View for position 2, RecyclerView returns ‘C’ (<code>getViewForPosition(2) == View('C')</code>) and if LayoutManager asks for position 4, RecyclerView returns the View for ‘E’ (although ‘D’ is the 4th item in the Adapter). LayoutParams of the returned View has an <code>isItemRemoved</code> method which LayoutManager can use to check if this is a disappearing item.</li>
+<li>In the second layout pass (postLayout), RecyclerView asks LayoutManager to re-layout its items. This time, ‘C’ is not in the Adapter anymore. <code>getViewForPosition(2)</code> will return ‘D’ and <code>getViewForPosition(4)</code> will return ‘F’.Keep in mind that the backing item for ‘C’ was already removed from the Adapter, but since RecyclerView has the View representation of it, it can behave as if ‘C’ is still there. In other words, RecyclerView does the bookkeeping for the LayoutManager.</li>
+</ul>
+
+
+<p>Every time <code>onLayoutChildren</code> is called on the <code>LayoutManager</code>, it temporarily detaches all views and lays them out from scratch again. Unchanged Views are returned from the scrap cache so their measurements stay valid, making this relayout fairly cheap and simple.</p>
+
+<center><img src="/images/pre-layout.jpeg" alt="LinearLayoutManager pre layout result"></center>
+
+
+
+
+<center><img src="/images/post-layout.jpeg" alt="LinearLayoutManager post layout result"></center>
+
+
+<p>After these two layout passes, RecyclerView knows where the Views came from so it can run the correct animation.</p>
+
+<center><img src="/images/predictive_animations.gif" alt="predictive animations"></center>
+
+
+<p>You might ask: The View ‘C’ was not laid out by the LayoutManager, how come it is still visible?</p>
+
+<p>To be clear, ‘C’ was laid out by the LayoutManager in the pre-layout pass because it looked like it was in the Adapter. It is true that ‘C’ was not laid out by the LayoutManager in the post-layout pass because it does not exist in the Adapter anymore. It is also true for the LayoutManager that ‘C’ is not its child anymore but not true for the RecyclerView. When a View is removed by the LayoutManager, if ItemAnimator wants to animate it, RecyclerView keeps it as a child (so that animations can run properly). More details on this in Part2.</p>
+
+<h2>Disappearing Items</h2>
+
+<p>With these two layout passes, RecyclerView is able to animate new Views properly. But now, there is another problem with Views that are disappearing. Consider the following case where a new item is added to the list, pushing some other items outside the visible area. This is how it would look with LayoutTransitions:</p>
+
+<center><img src="/images/layout_transition_add.gif" alt="layout transition add"></center>
+
+
+<p>When ‘X’ was added after ‘A’, it pushed ‘F’ outside the screen. Since LayoutManager will not layout ‘F’, LayoutTransition thinks it has been removed from the UI and runs a fade out animation for it. In reality, ‘F’ is still in the adapter but has been pushed out of bounds.</p>
+
+<p>To solve this issue, RecyclerView provides an additional API to LayoutManager to get this information. At the end of a postLayout pass, LayoutManager can call <code>getScrapList</code> to get list of Views which are in this situation (not laid out by the <code>LayoutManager</code> but still present in the <code>Adapter</code>). Then, it lays out these views as well, as if the size of RecyclerView was big enough to show them.</p>
+
+<center><img src="/images/add_post_layout_with_frame.png"></center>
+
+
+<p>One important detail is that, since these Views are not necessary after their animations are complete, <code>LayoutManager</code> calls <code>addDisappearingView</code> instead of <code>addView</code>. This gives the clue to the RecyclerView that this View should be removed after its animations is complete. RecyclerView also adds the View to the list of hidden views so that it will disappear from LayoutManager’s children list as soon as postLayout method returns. This way, LayoutManager can forget about it.</p>
+
+<center><img src="/images/predictive_add.gif"></center>
+
+
+<p>Initially, at least for a LinearLayoutManager, you might think that it can calculate where the Views came from or where they went (if disappeared) and thus won’t need a two pass layout calculation. Unfortunately, there are many edge cases when multiple types of adapter changes happen in the same layout pass. In addition to that, for a more complex LayoutManager, it is not always trivial to calculate where an item would be placed (e.g. StaggeredGridLayout). This approach removes all burden from the LayoutManager and it can support proper animations with little effort.</p>
+
+<p>So far, I’ve covered the main idea on how predictive animations run in RecyclerView. There is actually a lot more going on to achieve this simplicity (for the LayoutManager). You can read about how all this works in Part 2 – Behind The Scenes.</p>
+
+<h2>reference</h2>
+
+<ul>
+<li><a href="http://www.birbit.com/recyclerview-animations-part-1-how-animations-work/">RecyclerView Animations Part 1 – How Animations Work</a></li>
+</ul>
+
+</div>
+<div class="entry-content">
+<center><img src="/images/by.png" />除非另有声明，本网站采用<a href="http://creativecommons.org/licenses/by/3.0/cn/" rel="license">知识共享“署名 3.0 中国大陆”许可协议</a>授权。</center>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Solarex</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2016-02-11T00:47:00+08:00" pubdate data-updated="true">Feb 11<span>th</span>, 2016</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/android/'>android</a>, <a class='category' href='/blog/categories/dev/'>dev</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+    <!-- JiaThis Button BEGIN -->
+    <div class="jiathis_style_32x32">
+        <a class="jiathis_button_tsina"></a>
+        <a class="jiathis_button_weixin"></a>
+        <a class="jiathis_button_douban"></a>
+        <a class="jiathis_button_fanfou"></a>
+        <a class="jiathis_button_evernote"></a>
+        <a class="jiathis_button_delicious"></a>
+        <a class="jiathis_button_renren"></a>
+        <a class="jiathis_button_tqq"></a>
+        <a class="jiathis_button_qzone"></a>
+        <a href="http://www.jiathis.com/share" class="jiathis jiathis_txt jiathis_separator jtico jtico_jiathis" target="_blank"></a>
+        <a class="jiathis_counter_style"></a>
+    </div>
+    <script type="text/javascript" >
+        var jiathis_config={
+summary:"",
+        hideMore:false
+        }
+</script>
+<script type="text/javascript" src="http://v3.jiathis.com/code/jia.js" charset="utf-8"></script>
+<!-- JiaThis Button END -->
+  </div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2016/01/15/building-a-recyclerview-layoutmanager-part-iv/" title="Previous Post: Building a RecyclerView LayoutManager part IV">&laquo; Building a RecyclerView LayoutManager part IV</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2016/02/12/recyclerview-animation-part-ii/" title="Next Post: RecyclerView Animation part II">RecyclerView Animation part II &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+
+<section id="comment">
+<!-- Duoshuo Comment BEGIN -->
+	<div class="ds-thread"></div>
+<script type="text/javascript">
+var duoshuoQuery = {short_name:"solarex"};
+	(function() {
+		var ds = document.createElement('script');
+		ds.type = 'text/javascript';ds.async = true;
+		ds.src = 'http://static.duoshuo.com/embed.js';
+		ds.charset = 'UTF-8';
+		(document.getElementsByTagName('head')[0] 
+		|| document.getElementsByTagName('body')[0]).appendChild(ds);
+	})();
+	</script>
+<!-- Duoshuo Comment END -->
+</section>
+
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2016/03/14/mobile-apps-offline-support/">Mobile Apps Offline Support</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/03/13/the-clean-architecture/">The Clean Architecture</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/02/25/android-handler-memory-leaks/">Android Handler Memory Leaks</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/02/12/recyclerview-animation-part-ii/">RecyclerView Animation part II</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/02/11/recyclerview-animation-part-i/">RecyclerView Animation part I</a>
+      </li>
+    
+  </ul>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2016 - Solarex -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a> | Themed with <a href="https://github.com/lucaslew/whitespace">Whitespace</a></span>
+</p>
+
+
+<script type="text/javascript">
+    var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+    document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/h.js%3F2574e8b2c205dfe8ff89e239fa38ca27' type='text/javascript'%3E%3C/script%3E"));
+</script>
+
+
+</footer>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

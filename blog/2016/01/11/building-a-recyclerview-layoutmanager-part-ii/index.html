@@ -1,0 +1,652 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Building a RecyclerView LayoutManager part II - Solarex's Blog</title>
+  <meta name="author" content="Solarex">
+
+  
+  <meta name="description" content="In the last post, we walked through the core functionality necessary for building a RecyclerView LayoutManager. In this post, we are going to add &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://Solarex.github.io/blog/2016/01/11/building-a-recyclerview-layoutmanager-part-ii">
+  <link href="/favicon.ico" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Solarex's Blog" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <!--
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  -->
+  <script src="http://libs.baidu.com/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.useso.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href='http://fonts.useso.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
+<link href='http://fonts.useso.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+
+</head>
+
+<body   class="collapse-sidebar sidebar-footer" >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Solarex's Blog</a></h1>
+  
+    <h2>Yet Another Blog 4 Solarex</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:Solarex.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+    <li><a href="/">Blog</a></li>
+    <li><a href="/blog/archives">Archives</a></li>
+    <li><a href="/projects">Projects</a></li>
+	<li><a href="https://solarex.github.io/wiki">Wiki</a></li>
+    <li><a href="/about">About</a></li>
+	<li><a href="https://solarex.github.io/resume">Resume</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Building a RecyclerView LayoutManager Part II</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2016-01-11T00:48:00+08:00" pubdate data-updated="true">Jan 11<span>th</span>, 2016</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>In the last post,  we walked through the core functionality necessary for building a RecyclerView LayoutManager. In this post, we are going to add support for a few additional features that the average adapter-based view is expected to have.A reminder that the entire sample application can be found <a href="https://github.com/devunwired/recyclerview-playground">here on GitHub</a>.</p>
+
+<h2>Supporting Item Decorations</h2>
+
+<p><code>RecyclerView</code> has a really neat feature in which an <code>RecyclerView.ItemDecoration</code> instance can be supplied to do custom drawing alongside the child view content, as well as provide insets (margins) that will apply to the child views without the need for modifying layout parameters. The latter places a constraint on how the children should be laid out that the <code>LayoutManager</code> implementation must support.The <a href="https://github.com/devunwired/recyclerview-playground">RecyclerPlayground</a> repository uses a few different decorators in the examples to illustrate how they are implemented.</p>
+
+<!-- more -->
+
+
+<p>LayoutManager gives us helper methods to account for decorations so we don’t have to think about them:</p>
+
+<ul>
+<li>To get the left edge of a child view, use <code>getDecoratedLeft()</code> instead of <code>child.getLeft()</code></li>
+<li>To get the top edge of a child view, use <code>getDecoratedTop()</code> instead of <code>child.getTop()</code></li>
+<li>To get the right edge of a child view, use <code>getDecoratedRight()</code> instead of <code>child.getRight()</code></li>
+<li>To get the bottom edge of a child view, use <code>getDecoratedBottom()</code> instead of <code>child.getBottom()</code></li>
+<li>Use <code>measureChild()</code> or <code>measureChildWithMargins()</code> instead of <code>child.measure()</code> to measure new views coming from the <code>Recycler</code>.</li>
+<li>Use <code>layoutDecorated()</code> instead of <code>child.layout()</code> to lay out new views coming from the <code>Recycler</code>.</li>
+<li>Use <code>getDecoratedMeasuredWidth()</code> or <code>getDecoratedMeasuredHeight()</code> instead of <code>child.getMeasuredWidth()</code> or <code>child.getMeasuredHeight()</code> to get the measurements of a child view.</li>
+</ul>
+
+
+<p>As long as you take into account using the proper methods for getting view properties and measurments, <code>RecyclerView</code> will handle dealing with decorations so you don’t have to.</p>
+
+<h2>Data Set Changes</h2>
+
+<p>When the attached <code>RecyclerView.Adapter</code> triggers an update via <code>notifyDataSetChanged()</code>, the <code>LayoutManager</code> will be responsible for updating the layout in the view. In this case, <code>onLayoutChildren()</code> will be called again. To support this we need to make some adjustments to our sample to make the distinction between a fresh layout and a layout change due to an adapter update. Below is the fully fleshed out method from the <code>FixedGridLayoutManager</code>:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+<span class='line-number'>55</span>
+<span class='line-number'>56</span>
+<span class='line-number'>57</span>
+<span class='line-number'>58</span>
+<span class='line-number'>59</span>
+<span class='line-number'>60</span>
+<span class='line-number'>61</span>
+<span class='line-number'>62</span>
+<span class='line-number'>63</span>
+<span class='line-number'>64</span>
+<span class='line-number'>65</span>
+<span class='line-number'>66</span>
+<span class='line-number'>67</span>
+<span class='line-number'>68</span>
+<span class='line-number'>69</span>
+<span class='line-number'>70</span>
+<span class='line-number'>71</span>
+<span class='line-number'>72</span>
+<span class='line-number'>73</span>
+<span class='line-number'>74</span>
+<span class='line-number'>75</span>
+<span class='line-number'>76</span>
+<span class='line-number'>77</span>
+<span class='line-number'>78</span>
+<span class='line-number'>79</span>
+<span class='line-number'>80</span>
+<span class='line-number'>81</span>
+<span class='line-number'>82</span>
+<span class='line-number'>83</span>
+<span class='line-number'>84</span>
+<span class='line-number'>85</span>
+<span class='line-number'>86</span>
+<span class='line-number'>87</span>
+<span class='line-number'>88</span>
+<span class='line-number'>89</span>
+<span class='line-number'>90</span>
+<span class='line-number'>91</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="nd">@Override</span>
+</span><span class='line'><span class="kd">public</span> <span class="kt">void</span> <span class="nf">onLayoutChildren</span><span class="o">(</span><span class="n">RecyclerView</span><span class="o">.</span><span class="na">Recycler</span> <span class="n">recycler</span><span class="o">,</span> <span class="n">RecyclerView</span><span class="o">.</span><span class="na">State</span> <span class="n">state</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>    <span class="c1">//We have nothing to show for an empty data set but clear any existing views</span>
+</span><span class='line'>    <span class="k">if</span> <span class="o">(</span><span class="n">getItemCount</span><span class="o">()</span> <span class="o">==</span> <span class="mi">0</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="n">detachAndScrapAttachedViews</span><span class="o">(</span><span class="n">recycler</span><span class="o">);</span>
+</span><span class='line'>        <span class="k">return</span><span class="o">;</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1">//...on empty layout, update child size measurements</span>
+</span><span class='line'>    <span class="k">if</span> <span class="o">(</span><span class="n">getChildCount</span><span class="o">()</span> <span class="o">==</span> <span class="mi">0</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="c1">//Scrap measure one child</span>
+</span><span class='line'>        <span class="n">View</span> <span class="n">scrap</span> <span class="o">=</span> <span class="n">recycler</span><span class="o">.</span><span class="na">getViewForPosition</span><span class="o">(</span><span class="mi">0</span><span class="o">);</span>
+</span><span class='line'>        <span class="n">addView</span><span class="o">(</span><span class="n">scrap</span><span class="o">);</span>
+</span><span class='line'>        <span class="n">measureChildWithMargins</span><span class="o">(</span><span class="n">scrap</span><span class="o">,</span> <span class="mi">0</span><span class="o">,</span> <span class="mi">0</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="cm">/*</span>
+</span><span class='line'><span class="cm">         * We make some assumptions in this code based on every child</span>
+</span><span class='line'><span class="cm">         * view being the same size (i.e. a uniform grid). This allows</span>
+</span><span class='line'><span class="cm">         * us to compute the following values up front because they</span>
+</span><span class='line'><span class="cm">         * won&#39;t change.</span>
+</span><span class='line'><span class="cm">         */</span>
+</span><span class='line'>        <span class="n">mDecoratedChildWidth</span> <span class="o">=</span> <span class="n">getDecoratedMeasuredWidth</span><span class="o">(</span><span class="n">scrap</span><span class="o">);</span>
+</span><span class='line'>        <span class="n">mDecoratedChildHeight</span> <span class="o">=</span> <span class="n">getDecoratedMeasuredHeight</span><span class="o">(</span><span class="n">scrap</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="n">detachAndScrapView</span><span class="o">(</span><span class="n">scrap</span><span class="o">,</span> <span class="n">recycler</span><span class="o">);</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">updateWindowSizing</span><span class="o">();</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="kt">int</span> <span class="n">childLeft</span><span class="o">;</span>
+</span><span class='line'>    <span class="kt">int</span> <span class="n">childTop</span><span class="o">;</span>
+</span><span class='line'>    <span class="k">if</span> <span class="o">(</span><span class="n">getChildCount</span><span class="o">()</span> <span class="o">==</span> <span class="mi">0</span><span class="o">)</span> <span class="o">{</span> <span class="c1">//First or empty layout</span>
+</span><span class='line'>        <span class="cm">/*</span>
+</span><span class='line'><span class="cm">         * Reset the visible and scroll positions</span>
+</span><span class='line'><span class="cm">         */</span>
+</span><span class='line'>        <span class="n">mFirstVisiblePosition</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span>
+</span><span class='line'>        <span class="n">childLeft</span> <span class="o">=</span> <span class="n">childTop</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span>
+</span><span class='line'>    <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">getVisibleChildCount</span><span class="o">()</span> <span class="o">&gt;</span> <span class="n">getItemCount</span><span class="o">())</span> <span class="o">{</span>
+</span><span class='line'>        <span class="c1">//Data set is too small to scroll fully, just reset position</span>
+</span><span class='line'>        <span class="n">mFirstVisiblePosition</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span>
+</span><span class='line'>        <span class="n">childLeft</span> <span class="o">=</span> <span class="n">childTop</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span>
+</span><span class='line'>    <span class="o">}</span> <span class="k">else</span> <span class="o">{</span> <span class="c1">//Adapter data set changes</span>
+</span><span class='line'>        <span class="cm">/*</span>
+</span><span class='line'><span class="cm">         * Keep the existing initial position, and save off</span>
+</span><span class='line'><span class="cm">         * the current scrolled offset.</span>
+</span><span class='line'><span class="cm">         */</span>
+</span><span class='line'>        <span class="kd">final</span> <span class="n">View</span> <span class="n">topChild</span> <span class="o">=</span> <span class="n">getChildAt</span><span class="o">(</span><span class="mi">0</span><span class="o">);</span>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(</span><span class="n">mForceClearOffsets</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">childLeft</span> <span class="o">=</span> <span class="n">childTop</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span>
+</span><span class='line'>            <span class="n">mForceClearOffsets</span> <span class="o">=</span> <span class="kc">false</span><span class="o">;</span>
+</span><span class='line'>        <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">childLeft</span> <span class="o">=</span> <span class="n">getDecoratedLeft</span><span class="o">(</span><span class="n">topChild</span><span class="o">);</span>
+</span><span class='line'>            <span class="n">childTop</span> <span class="o">=</span> <span class="n">getDecoratedTop</span><span class="o">(</span><span class="n">topChild</span><span class="o">);</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="cm">/*</span>
+</span><span class='line'><span class="cm">         * Adjust the visible position if out of bounds in the</span>
+</span><span class='line'><span class="cm">         * new layout. This occurs when the new item count in an adapter</span>
+</span><span class='line'><span class="cm">         * is much smaller than it was before, and you are scrolled to</span>
+</span><span class='line'><span class="cm">         * a location where no items would exist.</span>
+</span><span class='line'><span class="cm">         */</span>
+</span><span class='line'>        <span class="kt">int</span> <span class="n">lastVisiblePosition</span> <span class="o">=</span> <span class="n">positionOfIndex</span><span class="o">(</span><span class="n">getVisibleChildCount</span><span class="o">()</span> <span class="o">-</span> <span class="mi">1</span><span class="o">);</span>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(</span><span class="n">lastVisiblePosition</span> <span class="o">&gt;=</span> <span class="n">getItemCount</span><span class="o">())</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">lastVisiblePosition</span> <span class="o">=</span> <span class="o">(</span><span class="n">getItemCount</span><span class="o">()</span> <span class="o">-</span> <span class="mi">1</span><span class="o">);</span>
+</span><span class='line'>            <span class="kt">int</span> <span class="n">lastColumn</span> <span class="o">=</span> <span class="n">mVisibleColumnCount</span> <span class="o">-</span> <span class="mi">1</span><span class="o">;</span>
+</span><span class='line'>            <span class="kt">int</span> <span class="n">lastRow</span> <span class="o">=</span> <span class="n">mVisibleRowCount</span> <span class="o">-</span> <span class="mi">1</span><span class="o">;</span>
+</span><span class='line'>
+</span><span class='line'>            <span class="c1">//Adjust to align the last position in the bottom-right</span>
+</span><span class='line'>            <span class="n">mFirstVisiblePosition</span> <span class="o">=</span> <span class="n">Math</span><span class="o">.</span><span class="na">max</span><span class="o">(</span>
+</span><span class='line'>                    <span class="n">lastVisiblePosition</span> <span class="o">-</span> <span class="n">lastColumn</span> <span class="o">-</span> <span class="o">(</span><span class="n">lastRow</span> <span class="o">*</span> <span class="n">getTotalColumnCount</span><span class="o">()),</span> <span class="mi">0</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'>            <span class="n">childLeft</span> <span class="o">=</span> <span class="n">getHorizontalSpace</span><span class="o">()</span> <span class="o">-</span> <span class="o">(</span><span class="n">mDecoratedChildWidth</span> <span class="o">*</span> <span class="n">mVisibleColumnCount</span><span class="o">);</span>
+</span><span class='line'>            <span class="n">childTop</span> <span class="o">=</span> <span class="n">getVerticalSpace</span><span class="o">()</span> <span class="o">-</span> <span class="o">(</span><span class="n">mDecoratedChildHeight</span> <span class="o">*</span> <span class="n">mVisibleRowCount</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'>            <span class="c1">//Correct cases where shifting to the bottom-right overscrolls the top-left</span>
+</span><span class='line'>            <span class="c1">// This happens on data sets too small to scroll in a direction.</span>
+</span><span class='line'>            <span class="k">if</span> <span class="o">(</span><span class="n">getFirstVisibleRow</span><span class="o">()</span> <span class="o">==</span> <span class="mi">0</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>                <span class="n">childTop</span> <span class="o">=</span> <span class="n">Math</span><span class="o">.</span><span class="na">min</span><span class="o">(</span><span class="n">childTop</span><span class="o">,</span> <span class="mi">0</span><span class="o">);</span>
+</span><span class='line'>            <span class="o">}</span>
+</span><span class='line'>            <span class="k">if</span> <span class="o">(</span><span class="n">getFirstVisibleColumn</span><span class="o">()</span> <span class="o">==</span> <span class="mi">0</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>                <span class="n">childLeft</span> <span class="o">=</span> <span class="n">Math</span><span class="o">.</span><span class="na">min</span><span class="o">(</span><span class="n">childLeft</span><span class="o">,</span> <span class="mi">0</span><span class="o">);</span>
+</span><span class='line'>            <span class="o">}</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1">//Clear all attached views into the recycle bin</span>
+</span><span class='line'>    <span class="n">detachAndScrapAttachedViews</span><span class="o">(</span><span class="n">recycler</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1">//Fill the grid for the initial layout of views</span>
+</span><span class='line'>    <span class="n">fillGrid</span><span class="o">(</span><span class="n">DIRECTION_NONE</span><span class="o">,</span> <span class="n">childLeft</span><span class="o">,</span> <span class="n">childTop</span><span class="o">,</span> <span class="n">recycler</span><span class="o">);</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Our implementation determines if this is a new layout or an update based on whether we have child views attached already. In the case of an update, the first visible position (i.e. the top-left view, which we track continuously) and the current scrolled x/y offset give us enough information to do a new <code>fillGrid()</code> while preserving that the same item position remain in the top-left.</p>
+
+<p>There are a few special cases we handle as well.</p>
+
+<ul>
+<li>When the new data set is too small to scroll, the layout is reset with position 0 in the top-left.</li>
+<li>If the new data set is smaller, and preserving the current position would cause the layout to be scrolled beyond the allowed boundary (on the right and/or bottom). Here we adjust the first position so the layout aligns with the bottom-right of the grid.</li>
+</ul>
+
+
+<h3>onAdapterChanged()</h3>
+
+<p>This method provides you an additional opportunity to reset the layout in the event that the entire adapter is swapped out (i.e. setAdapter() is invoked again on the view). In this event, it’s safer to assume that the views returned will be completely different than from the previous adapter. Therefore, our example simply removes all current views (without recycling them):</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="nd">@Override</span>
+</span><span class='line'><span class="kd">public</span> <span class="kt">void</span> <span class="nf">onAdapterChanged</span><span class="o">(</span><span class="n">RecyclerView</span><span class="o">.</span><span class="na">Adapter</span> <span class="n">oldAdapter</span><span class="o">,</span> <span class="n">RecyclerView</span><span class="o">.</span><span class="na">Adapter</span> <span class="n">newAdapter</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>    <span class="c1">//Completely scrap the existing layout</span>
+</span><span class='line'>    <span class="n">removeAllViews</span><span class="o">();</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The view removal will trigger a new layout pass, and when <code>onLayoutChildren()</code> is called again, our code can perform a fresh layout since there are no longer any child views attached.</p>
+
+<h2>Scroll to Position</h2>
+
+<p>Another important feature you will likely want from your LayoutManager is the ability to tell the view to scroll to a specific position. This can be done with or without animation, and there is a callback for each.</p>
+
+<h3>scrollToPosition()</h3>
+
+<p>This method is invoked from the RecyclerView when the layout should immediately update with the given position as the first visible item. In a vertical list, the element would be placed at the top; in a horizontal list, it would generally be on the left. In our grid, the “selected” position will be placed at the top-left of the view.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="nd">@Override</span>
+</span><span class='line'><span class="kd">public</span> <span class="kt">void</span> <span class="nf">scrollToPosition</span><span class="o">(</span><span class="kt">int</span> <span class="n">position</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>    <span class="k">if</span> <span class="o">(</span><span class="n">position</span> <span class="o">&gt;=</span> <span class="n">getItemCount</span><span class="o">())</span> <span class="o">{</span>
+</span><span class='line'>        <span class="n">Log</span><span class="o">.</span><span class="na">e</span><span class="o">(</span><span class="n">TAG</span><span class="o">,</span> <span class="s">&quot;Cannot scroll to &quot;</span><span class="o">+</span><span class="n">position</span><span class="o">+</span><span class="s">&quot;, item count is &quot;</span><span class="o">+</span><span class="n">getItemCount</span><span class="o">());</span>
+</span><span class='line'>        <span class="k">return</span><span class="o">;</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1">//Ignore current scroll offset, snap to top-left</span>
+</span><span class='line'>    <span class="n">mForceClearOffsets</span> <span class="o">=</span> <span class="kc">true</span><span class="o">;</span>
+</span><span class='line'>    <span class="c1">//Set requested position as first visible</span>
+</span><span class='line'>    <span class="n">mFirstVisiblePosition</span> <span class="o">=</span> <span class="n">position</span><span class="o">;</span>
+</span><span class='line'>    <span class="c1">//Trigger a new view layout</span>
+</span><span class='line'>    <span class="n">requestLayout</span><span class="o">();</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>With a proper implementation of <code>onLayoutChildren()</code>, this can be as simple as updating the target position and triggering a new fill.</p>
+
+<h3>smoothScrollToPosition()</h3>
+
+<p>In the case where the selection should be animated, we need to take a slightly different approach. The contract of this method is for the <code>LayoutManager</code> to construct an instance of a <code>RecyclerView.SmoothScroller</code>, and begin the animation by invoking <code>startSmoothScroll()</code> before the method returns.</p>
+
+<p><code>RecyclerView.SmoothScroller</code> is an abstract class with an API that consists of four required methods:</p>
+
+<ul>
+<li><code>onStart()</code>: Triggered when the scroller animation begins.</li>
+<li><code>onStop()</code>: Triggered when the scroller animation ends.</li>
+<li><code>onSeekTargetStep()</code>: Invoked incrementally as the scroller searches for the target view. The implementation is responsible for reading the provided dx/dy and updating how far the view should actually scroll in both directions.
+
+<ul>
+<li>A <code>RecyclerView.SmoothScroller.Action</code> instance is passed to this method. Notify the view how it should animate the next increment by passing a new dx, dy, duration, and <code>Interpolator</code> to the action’s <code>update()</code> method.</li>
+<li>NOTE: The framework will warn you if you are taking too long to animate (i.e. your increments are too small); try to tune your animation steps to match a standard animation duration from the framework.</li>
+</ul>
+</li>
+<li><code>onTargetFound()</code>: Called only once, after a view for the target position has been attached. This is one final chance to animate the target view to its exact position.
+
+<ul>
+<li>Internally, this uses <code>findViewByPosition()</code> from the <code>LayoutManager</code> to determine when the view is attached. If your <code>LayoutManager</code> is efficient about mapping views to positions, override this method to improve performance. The default implementation iterates over all child views…all the time.</li>
+</ul>
+</li>
+</ul>
+
+
+<p>You can provide your own scroller implementation if you really want to fine-tune your scrolling animations. We have chosen to use the framework’s <code>LinearSmoothScroller</code> instead, which implements the callback work for us. We only need to implement a single method, <code>computeScrollVectorForPosition()</code>, to tell the scroller the initial direction and approximate distance it needs to travel to get from its current location to the target location.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="nd">@Override</span>
+</span><span class='line'><span class="kd">public</span> <span class="kt">void</span> <span class="nf">smoothScrollToPosition</span><span class="o">(</span><span class="n">RecyclerView</span> <span class="n">recyclerView</span><span class="o">,</span> <span class="n">RecyclerView</span><span class="o">.</span><span class="na">State</span> <span class="n">state</span><span class="o">,</span> <span class="kd">final</span> <span class="kt">int</span> <span class="n">position</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>    <span class="k">if</span> <span class="o">(</span><span class="n">position</span> <span class="o">&gt;=</span> <span class="n">getItemCount</span><span class="o">())</span> <span class="o">{</span>
+</span><span class='line'>        <span class="n">Log</span><span class="o">.</span><span class="na">e</span><span class="o">(</span><span class="n">TAG</span><span class="o">,</span> <span class="s">&quot;Cannot scroll to &quot;</span><span class="o">+</span><span class="n">position</span><span class="o">+</span><span class="s">&quot;, item count is &quot;</span><span class="o">+</span><span class="n">getItemCount</span><span class="o">());</span>
+</span><span class='line'>        <span class="k">return</span><span class="o">;</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="cm">/*</span>
+</span><span class='line'><span class="cm">     * LinearSmoothScroller&#39;s default behavior is to scroll the contents until</span>
+</span><span class='line'><span class="cm">     * the child is fully visible. It will snap to the top-left or bottom-right</span>
+</span><span class='line'><span class="cm">     * of the parent depending on whether the direction of travel was positive</span>
+</span><span class='line'><span class="cm">     * or negative.</span>
+</span><span class='line'><span class="cm">     */</span>
+</span><span class='line'>    <span class="n">LinearSmoothScroller</span> <span class="n">scroller</span> <span class="o">=</span> <span class="k">new</span> <span class="n">LinearSmoothScroller</span><span class="o">(</span><span class="n">recyclerView</span><span class="o">.</span><span class="na">getContext</span><span class="o">())</span> <span class="o">{</span>
+</span><span class='line'>        <span class="cm">/*</span>
+</span><span class='line'><span class="cm">         * LinearSmoothScroller, at a minimum, just need to know the vector</span>
+</span><span class='line'><span class="cm">         * (x/y distance) to travel in order to get from the current positioning</span>
+</span><span class='line'><span class="cm">         * to the target.</span>
+</span><span class='line'><span class="cm">         */</span>
+</span><span class='line'>        <span class="nd">@Override</span>
+</span><span class='line'>        <span class="kd">public</span> <span class="n">PointF</span> <span class="nf">computeScrollVectorForPosition</span><span class="o">(</span><span class="kt">int</span> <span class="n">targetPosition</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="kd">final</span> <span class="kt">int</span> <span class="n">rowOffset</span> <span class="o">=</span> <span class="n">getGlobalRowOfPosition</span><span class="o">(</span><span class="n">targetPosition</span><span class="o">)</span>
+</span><span class='line'>                    <span class="o">-</span> <span class="n">getGlobalRowOfPosition</span><span class="o">(</span><span class="n">mFirstVisiblePosition</span><span class="o">);</span>
+</span><span class='line'>            <span class="kd">final</span> <span class="kt">int</span> <span class="n">columnOffset</span> <span class="o">=</span> <span class="n">getGlobalColumnOfPosition</span><span class="o">(</span><span class="n">targetPosition</span><span class="o">)</span>
+</span><span class='line'>                    <span class="o">-</span> <span class="n">getGlobalColumnOfPosition</span><span class="o">(</span><span class="n">mFirstVisiblePosition</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'>            <span class="k">return</span> <span class="k">new</span> <span class="nf">PointF</span><span class="o">(</span><span class="n">columnOffset</span> <span class="o">*</span> <span class="n">mDecoratedChildWidth</span><span class="o">,</span> <span class="n">rowOffset</span> <span class="o">*</span> <span class="n">mDecoratedChildHeight</span><span class="o">);</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>    <span class="o">};</span>
+</span><span class='line'>    <span class="n">scroller</span><span class="o">.</span><span class="na">setTargetPosition</span><span class="o">(</span><span class="n">position</span><span class="o">);</span>
+</span><span class='line'>    <span class="n">startSmoothScroll</span><span class="o">(</span><span class="n">scroller</span><span class="o">);</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This implementation, similar to the existing behavior of ListView, will stop scrolling as soon as the view becomes fully visible; whether that be on the left, top, right, or bottom of the <code>RecyclerView</code>.</p>
+
+<h2>Now What?</h2>
+
+<p>You mean that wasn’t enough? Things are starting to look pretty good! In fact, for many the implementation could be considered complete. But we’re going to go just one step further. In the next, and final post of this series, we will look at supporting animations for data set changes in your LayoutManager.</p>
+
+<h2>reference</h2>
+
+<ul>
+<li><a href="http://wiresareobsolete.com/2014/09/recyclerview-layoutmanager-2/">Building a RecyclerView LayoutManager – Part 2</a></li>
+</ul>
+
+</div>
+<div class="entry-content">
+<center><img src="/images/by.png" />除非另有声明，本网站采用<a href="http://creativecommons.org/licenses/by/3.0/cn/" rel="license">知识共享“署名 3.0 中国大陆”许可协议</a>授权。</center>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Solarex</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2016-01-11T00:48:00+08:00" pubdate data-updated="true">Jan 11<span>th</span>, 2016</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/android/'>android</a>, <a class='category' href='/blog/categories/dev/'>dev</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+    <!-- JiaThis Button BEGIN -->
+    <div class="jiathis_style_32x32">
+        <a class="jiathis_button_tsina"></a>
+        <a class="jiathis_button_weixin"></a>
+        <a class="jiathis_button_douban"></a>
+        <a class="jiathis_button_fanfou"></a>
+        <a class="jiathis_button_evernote"></a>
+        <a class="jiathis_button_delicious"></a>
+        <a class="jiathis_button_renren"></a>
+        <a class="jiathis_button_tqq"></a>
+        <a class="jiathis_button_qzone"></a>
+        <a href="http://www.jiathis.com/share" class="jiathis jiathis_txt jiathis_separator jtico jtico_jiathis" target="_blank"></a>
+        <a class="jiathis_counter_style"></a>
+    </div>
+    <script type="text/javascript" >
+        var jiathis_config={
+summary:"",
+        hideMore:false
+        }
+</script>
+<script type="text/javascript" src="http://v3.jiathis.com/code/jia.js" charset="utf-8"></script>
+<!-- JiaThis Button END -->
+  </div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2016/01/10/building-a-recyclerview-layoutmanager-part-i/" title="Previous Post: Building a RecyclerView LayoutManager part I">&laquo; Building a RecyclerView LayoutManager part I</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2016/01/13/building-a-recyclerview-layoutmanager-part-iii/" title="Next Post: Building a RecyclerView LayoutManager part III">Building a RecyclerView LayoutManager part III &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+
+<section id="comment">
+<!-- Duoshuo Comment BEGIN -->
+	<div class="ds-thread"></div>
+<script type="text/javascript">
+var duoshuoQuery = {short_name:"solarex"};
+	(function() {
+		var ds = document.createElement('script');
+		ds.type = 'text/javascript';ds.async = true;
+		ds.src = 'http://static.duoshuo.com/embed.js';
+		ds.charset = 'UTF-8';
+		(document.getElementsByTagName('head')[0] 
+		|| document.getElementsByTagName('body')[0]).appendChild(ds);
+	})();
+	</script>
+<!-- Duoshuo Comment END -->
+</section>
+
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2016/03/14/mobile-apps-offline-support/">Mobile Apps Offline Support</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/03/13/the-clean-architecture/">The Clean Architecture</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/02/25/android-handler-memory-leaks/">Android Handler Memory Leaks</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/02/12/recyclerview-animation-part-ii/">RecyclerView Animation part II</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/02/11/recyclerview-animation-part-i/">RecyclerView Animation part I</a>
+      </li>
+    
+  </ul>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2016 - Solarex -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a> | Themed with <a href="https://github.com/lucaslew/whitespace">Whitespace</a></span>
+</p>
+
+
+<script type="text/javascript">
+    var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+    document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/h.js%3F2574e8b2c205dfe8ff89e239fa38ca27' type='text/javascript'%3E%3C/script%3E"));
+</script>
+
+
+</footer>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>
