@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "make-an-android-custom-view-publish-and-open-source"
+title: "Make an android custom view,Publish and Open Source"
 date: 2016-05-28 14:34
 comments: true
 categories: 
