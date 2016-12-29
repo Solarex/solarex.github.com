@@ -9,7 +9,7 @@
   <meta name="author" content="Solarex">
 
   
-  <meta name="description" content="有时候在Google Play Store看到一些有趣的应用，或者对有些应用的资源图片之类的很感兴趣，这时候就需要用到Android反编译APK的一些工具了。 ">
+  <meta name="description" content="What can you do with Loopers and Handlers? Basically, they implement a common concurrency pattern that I call the Pipeline Thread. Here’s how it &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -71,6 +71,55 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/10/13/android-looper-handler/">Intro to Android Loopers and Handlers</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-10-13T11:24:00+08:00" pubdate data-updated="true">Oct 13<span>th</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>What can you do with <code>Loopers</code> and <code>Handlers</code>? Basically, they implement a common concurrency pattern that I call the <code>Pipeline Thread</code>. Here’s how it works:</p>
+
+<ul>
+<li>The Pipeline Thread holds a queue of tasks which are just some units of work that can be executed or processed.</li>
+<li>Other threads can safely push new tasks into the Pipeline Thread’s queue at any time.</li>
+<li>The Pipeline Thread processes the queued tasks one after another. If there are no tasks queued, it blocks until a task appears in the queue.</li>
+<li>Sometimes tasks can called messages and other names.</li>
+</ul>
+
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2014/10/13/android-looper-handler/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
   
   
     <article>
@@ -296,50 +345,6 @@
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2014/09/21/android-guide-app-component/">[Guides]App Component</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-09-21T12:04:00+08:00" pubdate data-updated="true">Sep 21<span>st</span>, 2014</time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><center><p><img src="/images/android_robot.png" width="255" height="300"></p></center>
-
-
-<p>TL,DR;</p>
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2014/09/21/android-guide-app-component/">Read on &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/8/">&larr; Older</a>
@@ -357,6 +362,10 @@
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2016/05/28/make-an-android-custom-view-publish-and-open-source/">make-an-android-custom-view-publish-and-open-source</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2016/03/14/mobile-apps-offline-support/">Mobile Apps Offline Support</a>
       </li>
     
@@ -370,10 +379,6 @@
     
       <li class="post">
         <a href="/blog/2016/02/12/recyclerview-animation-part-ii/">RecyclerView Animation part II</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2016/02/11/recyclerview-animation-part-i/">RecyclerView Animation part I</a>
       </li>
     
   </ul>

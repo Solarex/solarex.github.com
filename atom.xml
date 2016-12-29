@@ -4,7 +4,7 @@
   <title><![CDATA[Solarex's Blog]]></title>
   <link href="http://Solarex.github.io/atom.xml" rel="self"/>
   <link href="http://Solarex.github.io/"/>
-  <updated>2016-12-28T14:00:31+08:00</updated>
+  <updated>2016-12-29T09:53:52+08:00</updated>
   <id>http://Solarex.github.io/</id>
   <author>
     <name><![CDATA[Solarex]]></name>
@@ -12,6 +12,610 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[make-an-android-custom-view-publish-and-open-source]]></title>
+    <link href="http://Solarex.github.io/blog/2016/05/28/make-an-android-custom-view-publish-and-open-source/"/>
+    <updated>2016-05-28T14:34:00+08:00</updated>
+    <id>http://Solarex.github.io/blog/2016/05/28/make-an-android-custom-view-publish-and-open-source</id>
+    <content type="html"><![CDATA[<p>Today I’m going to create an android custom view to implement circular <code>SeekBar</code> like the mockup below, make it as a library, open source at GitHub, and publish it to JCenter. In this post, I will cover several fundamental concepts of android custom view, write a helpful README on GitHub, and how to publish your library.</p>
+
+<center><img src="http://Solarex.github.io/images/custom_view_seekbar.png"/></center>
+
+
+<h2>Before you start…</h2>
+
+<p>Try to understand the requirement or design specification, take a look at this widget first, the user can touch the indicator icon through this arc to set the current progress level. The indicator icon will stop dragging when exceeding max or min progress. It works like an extension of circular <code>SeekBar</code> with customized appearances and motion event.</p>
+
+<!-- more -->
+
+
+<h2>Get started:</h2>
+
+<p>All the android view widgets are based on <code>View</code>, to implement custom view, you will start a subclass of <code>View</code> and override several lifecycle callback methods of view, so you need to understand the view lifecycle at first. The following diagram shows some important methods to override:</p>
+
+<center><img src="http://Solarex.github.io/images/custom_view_lifecycle.png"/></center>
+
+
+<p>To get started, the first thing we have to do is to create a class that extends <code>View</code>, and provide two default constructors which allows us to create the view programmatically (1st constructor) or in XML layout (2nd constructor). The <code>SwagPoint(Context context, AttributeSet attrs)</code> constructor is more important here because it is used when Android inflates the view from XML layout file, otherwise you will get exception.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">SwagPoints</span> <span class="kd">extends</span> <span class="n">View</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="c1">// used in view creation programmatically</span>
+</span><span class='line'>  <span class="kd">public</span> <span class="nf">SwagPoints</span><span class="o">(</span><span class="n">Context</span> <span class="n">context</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>      <span class="kd">super</span><span class="o">(</span><span class="n">context</span><span class="o">);</span>
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="c1">// used in XML layout file</span>
+</span><span class='line'>  <span class="kd">public</span> <span class="nf">SwagPoints</span><span class="o">(</span><span class="n">Context</span> <span class="n">context</span><span class="o">,</span> <span class="n">AttributeSet</span> <span class="n">attrs</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>      <span class="kd">super</span><span class="o">(</span><span class="n">context</span><span class="o">,</span> <span class="n">attrs</span><span class="o">);</span>
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'>  
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Then, there are several things we have to control or modify in our custom view:</p>
+
+<ul>
+<li><p><strong>Attributes</strong>: What things are customizable in your view? Determine custom attributes that allow developer to change its appearance and behavior in XML layout file according to their design.</p></li>
+<li><p><strong>Size</strong>: Determine the dimensions of the view and every components in this custom view on the screen.</p></li>
+<li><p><strong>Drawing</strong>: Determine how the view and components to render on the screen which contains the shape, location, appearance.</p></li>
+<li><p><strong>Touch</strong>: Determine the way the user can interact with the view by touching.</p></li>
+</ul>
+
+
+<h2>1. Attribute:</h2>
+
+<p>Here we provide several customizable attributes for developer: the initial progress <code>points</code>, the range of progress <code>max/min</code>, the interval when user change the progress <code>step</code>, the color and size of progress/arc/text. To define custom attributes, we create <code>res/values/attrs.xml</code> file and define custom attributes for your view in a <code>&lt;declare-styleable&gt;</code> resource element as below.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+</pre></td><td class='code'><pre><code class='xml'><span class='line'><span class="nt">&lt;resources&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;declare-styleable</span> <span class="na">name=</span><span class="s">&quot;SwagPoints&quot;</span><span class="nt">&gt;</span>
+</span><span class='line'>        <span class="nt">&lt;attr</span> <span class="na">name=</span><span class="s">&quot;points&quot;</span> <span class="na">format=</span><span class="s">&quot;integer&quot;</span> <span class="nt">/&gt;</span>
+</span><span class='line'>        <span class="nt">&lt;attr</span> <span class="na">name=</span><span class="s">&quot;max&quot;</span> <span class="na">format=</span><span class="s">&quot;integer&quot;</span> <span class="nt">/&gt;</span>
+</span><span class='line'>        <span class="nt">&lt;attr</span> <span class="na">name=</span><span class="s">&quot;min&quot;</span> <span class="na">format=</span><span class="s">&quot;integer&quot;</span><span class="nt">/&gt;</span>
+</span><span class='line'>        <span class="nt">&lt;attr</span> <span class="na">name=</span><span class="s">&quot;step&quot;</span> <span class="na">format=</span><span class="s">&quot;integer&quot;</span><span class="nt">/&gt;</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="nt">&lt;attr</span> <span class="na">name=</span><span class="s">&quot;indicatorIcon&quot;</span> <span class="na">format=</span><span class="s">&quot;reference&quot;</span> <span class="nt">/&gt;</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="nt">&lt;attr</span> <span class="na">name=</span><span class="s">&quot;progressWidth&quot;</span> <span class="na">format=</span><span class="s">&quot;dimension&quot;</span> <span class="nt">/&gt;</span>
+</span><span class='line'>        <span class="nt">&lt;attr</span> <span class="na">name=</span><span class="s">&quot;progressColor&quot;</span> <span class="na">format=</span><span class="s">&quot;color&quot;</span> <span class="nt">/&gt;</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="nt">&lt;attr</span> <span class="na">name=</span><span class="s">&quot;arcWidth&quot;</span> <span class="na">format=</span><span class="s">&quot;dimension&quot;</span> <span class="nt">/&gt;</span>
+</span><span class='line'>        <span class="nt">&lt;attr</span> <span class="na">name=</span><span class="s">&quot;arcColor&quot;</span> <span class="na">format=</span><span class="s">&quot;color&quot;</span> <span class="nt">/&gt;</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="nt">&lt;attr</span> <span class="na">name=</span><span class="s">&quot;textSize&quot;</span> <span class="na">format=</span><span class="s">&quot;dimension&quot;</span><span class="nt">/&gt;</span>
+</span><span class='line'>        <span class="nt">&lt;attr</span> <span class="na">name=</span><span class="s">&quot;textColor&quot;</span> <span class="na">format=</span><span class="s">&quot;color&quot;</span><span class="nt">/&gt;</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="nt">&lt;attr</span> <span class="na">name=</span><span class="s">&quot;clockwise&quot;</span> <span class="na">format=</span><span class="s">&quot;boolean&quot;</span> <span class="nt">/&gt;</span>
+</span><span class='line'>        <span class="nt">&lt;attr</span> <span class="na">name=</span><span class="s">&quot;enabled&quot;</span> <span class="na">format=</span><span class="s">&quot;boolean&quot;</span> <span class="nt">/&gt;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="nt">&lt;/declare-styleable&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="nt">&lt;/resources&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>After adding <code>res/values/attrs.xml</code> file, to use <code>TypedArray</code> to retrieve attribute value in class and define instance variables (the following variable with <code>m</code> as prefix name) to store. Here we add a <code>init()</code> method to put <code>init()</code> inside the constructor after <code>super()</code> method to do this job:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">private</span> <span class="kt">void</span> <span class="nf">init</span><span class="o">(</span><span class="n">Context</span> <span class="n">context</span><span class="o">,</span> <span class="n">AttributeSet</span> <span class="n">attrs</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="kt">float</span> <span class="n">density</span> <span class="o">=</span> <span class="n">getResources</span><span class="o">().</span><span class="na">getDisplayMetrics</span><span class="o">().</span><span class="na">density</span><span class="o">;</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="c1">// Defaults, may need to link this into theme settings</span>
+</span><span class='line'>  <span class="kt">int</span> <span class="n">arcColor</span> <span class="o">=</span> <span class="n">ContextCompat</span><span class="o">.</span><span class="na">getColor</span><span class="o">(</span><span class="n">context</span><span class="o">,</span> <span class="n">R</span><span class="o">.</span><span class="na">color</span><span class="o">.</span><span class="na">color_arc</span><span class="o">);</span>
+</span><span class='line'>  <span class="kt">int</span> <span class="n">progressColor</span> <span class="o">=</span> <span class="n">ContextCompat</span><span class="o">.</span><span class="na">getColor</span><span class="o">(</span><span class="n">context</span><span class="o">,</span> <span class="n">R</span><span class="o">.</span><span class="na">color</span><span class="o">.</span><span class="na">color_progress</span><span class="o">);</span>
+</span><span class='line'>  <span class="kt">int</span> <span class="n">textColor</span> <span class="o">=</span> <span class="n">ContextCompat</span><span class="o">.</span><span class="na">getColor</span><span class="o">(</span><span class="n">context</span><span class="o">,</span> <span class="n">R</span><span class="o">.</span><span class="na">color</span><span class="o">.</span><span class="na">color_text</span><span class="o">);</span>
+</span><span class='line'>  <span class="n">mProgressWidth</span> <span class="o">=</span> <span class="o">(</span><span class="kt">int</span><span class="o">)</span> <span class="o">(</span><span class="n">mProgressWidth</span> <span class="o">*</span> <span class="n">density</span><span class="o">);</span>
+</span><span class='line'>  <span class="n">mArcWidth</span> <span class="o">=</span> <span class="o">(</span><span class="kt">int</span><span class="o">)</span> <span class="o">(</span><span class="n">mArcWidth</span> <span class="o">*</span> <span class="n">density</span><span class="o">);</span>
+</span><span class='line'>  <span class="n">mTextSize</span> <span class="o">=</span> <span class="o">(</span><span class="kt">int</span><span class="o">)</span> <span class="o">(</span><span class="n">mTextSize</span> <span class="o">*</span> <span class="n">density</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">mIndicatorIcon</span> <span class="o">=</span> <span class="n">ContextCompat</span><span class="o">.</span><span class="na">getDrawable</span><span class="o">(</span><span class="n">context</span><span class="o">,</span> <span class="n">R</span><span class="o">.</span><span class="na">drawable</span><span class="o">.</span><span class="na">indicator</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">if</span> <span class="o">(</span><span class="n">attrs</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>      <span class="c1">// Attribute initialization</span>
+</span><span class='line'>      <span class="kd">final</span> <span class="n">TypedArray</span> <span class="n">a</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="na">obtainStyledAttributes</span><span class="o">(</span><span class="n">attrs</span><span class="o">,</span>
+</span><span class='line'>              <span class="n">R</span><span class="o">.</span><span class="na">styleable</span><span class="o">.</span><span class="na">SwagPoints</span><span class="o">,</span> <span class="mi">0</span><span class="o">,</span> <span class="mi">0</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="n">Drawable</span> <span class="n">indicatorIcon</span> <span class="o">=</span> <span class="n">a</span><span class="o">.</span><span class="na">getDrawable</span><span class="o">(</span><span class="n">R</span><span class="o">.</span><span class="na">styleable</span><span class="o">.</span><span class="na">SwagPoints_indicatorIcon</span><span class="o">);</span>
+</span><span class='line'>      <span class="k">if</span> <span class="o">(</span><span class="n">indicatorIcon</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span>
+</span><span class='line'>          <span class="n">mIndicatorIcon</span> <span class="o">=</span> <span class="n">indicatorIcon</span><span class="o">;</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="kt">int</span> <span class="n">indicatorIconHalfWidth</span> <span class="o">=</span> <span class="n">mIndicatorIcon</span><span class="o">.</span><span class="na">getIntrinsicWidth</span><span class="o">()</span> <span class="o">/</span> <span class="mi">2</span><span class="o">;</span>
+</span><span class='line'>      <span class="kt">int</span> <span class="n">indicatorIconHalfHeight</span> <span class="o">=</span> <span class="n">mIndicatorIcon</span><span class="o">.</span><span class="na">getIntrinsicHeight</span><span class="o">()</span> <span class="o">/</span> <span class="mi">2</span><span class="o">;</span>
+</span><span class='line'>      <span class="n">mIndicatorIcon</span><span class="o">.</span><span class="na">setBounds</span><span class="o">(-</span><span class="n">indicatorIconHalfWidth</span><span class="o">,</span> <span class="o">-</span><span class="n">indicatorIconHalfHeight</span><span class="o">,</span> <span class="n">indicatorIconHalfWidth</span><span class="o">,</span>
+</span><span class='line'>              <span class="n">indicatorIconHalfHeight</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="n">mPoints</span> <span class="o">=</span> <span class="n">a</span><span class="o">.</span><span class="na">getInteger</span><span class="o">(</span><span class="n">R</span><span class="o">.</span><span class="na">styleable</span><span class="o">.</span><span class="na">SwagPoints_points</span><span class="o">,</span> <span class="n">mPoints</span><span class="o">);</span>
+</span><span class='line'>      <span class="n">mMin</span> <span class="o">=</span> <span class="n">a</span><span class="o">.</span><span class="na">getInteger</span><span class="o">(</span><span class="n">R</span><span class="o">.</span><span class="na">styleable</span><span class="o">.</span><span class="na">SwagPoints_min</span><span class="o">,</span> <span class="n">mMin</span><span class="o">);</span>
+</span><span class='line'>      <span class="n">mMax</span> <span class="o">=</span> <span class="n">a</span><span class="o">.</span><span class="na">getInteger</span><span class="o">(</span><span class="n">R</span><span class="o">.</span><span class="na">styleable</span><span class="o">.</span><span class="na">SwagPoints_max</span><span class="o">,</span> <span class="n">mMax</span><span class="o">);</span>
+</span><span class='line'>      <span class="n">mStep</span> <span class="o">=</span> <span class="n">a</span><span class="o">.</span><span class="na">getInteger</span><span class="o">(</span><span class="n">R</span><span class="o">.</span><span class="na">styleable</span><span class="o">.</span><span class="na">SwagPoints_step</span><span class="o">,</span> <span class="n">mStep</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="n">mProgressWidth</span> <span class="o">=</span> <span class="o">(</span><span class="kt">int</span><span class="o">)</span> <span class="n">a</span><span class="o">.</span><span class="na">getDimension</span><span class="o">(</span><span class="n">R</span><span class="o">.</span><span class="na">styleable</span><span class="o">.</span><span class="na">SwagPoints_progressWidth</span><span class="o">,</span> <span class="n">mProgressWidth</span><span class="o">);</span>
+</span><span class='line'>      <span class="n">progressColor</span> <span class="o">=</span> <span class="n">a</span><span class="o">.</span><span class="na">getColor</span><span class="o">(</span><span class="n">R</span><span class="o">.</span><span class="na">styleable</span><span class="o">.</span><span class="na">SwagPoints_progressColor</span><span class="o">,</span> <span class="n">progressColor</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="n">mArcWidth</span> <span class="o">=</span> <span class="o">(</span><span class="kt">int</span><span class="o">)</span> <span class="n">a</span><span class="o">.</span><span class="na">getDimension</span><span class="o">(</span><span class="n">R</span><span class="o">.</span><span class="na">styleable</span><span class="o">.</span><span class="na">SwagPoints_arcWidth</span><span class="o">,</span> <span class="n">mArcWidth</span><span class="o">);</span>
+</span><span class='line'>      <span class="n">arcColor</span> <span class="o">=</span> <span class="n">a</span><span class="o">.</span><span class="na">getColor</span><span class="o">(</span><span class="n">R</span><span class="o">.</span><span class="na">styleable</span><span class="o">.</span><span class="na">SwagPoints_arcColor</span><span class="o">,</span> <span class="n">arcColor</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="n">mTextSize</span> <span class="o">=</span> <span class="o">(</span><span class="kt">int</span><span class="o">)</span> <span class="n">a</span><span class="o">.</span><span class="na">getDimension</span><span class="o">(</span><span class="n">R</span><span class="o">.</span><span class="na">styleable</span><span class="o">.</span><span class="na">SwagPoints_textSize</span><span class="o">,</span> <span class="n">mTextSize</span><span class="o">);</span>
+</span><span class='line'>      <span class="n">mTextColor</span> <span class="o">=</span> <span class="n">a</span><span class="o">.</span><span class="na">getColor</span><span class="o">(</span><span class="n">R</span><span class="o">.</span><span class="na">styleable</span><span class="o">.</span><span class="na">SwagPoints_textColor</span><span class="o">,</span> <span class="n">mTextColor</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="n">mClockwise</span> <span class="o">=</span> <span class="n">a</span><span class="o">.</span><span class="na">getBoolean</span><span class="o">(</span><span class="n">R</span><span class="o">.</span><span class="na">styleable</span><span class="o">.</span><span class="na">SwagPoints_clockwise</span><span class="o">,</span>
+</span><span class='line'>              <span class="n">mClockwise</span><span class="o">);</span>
+</span><span class='line'>      <span class="n">mEnabled</span> <span class="o">=</span> <span class="n">a</span><span class="o">.</span><span class="na">getBoolean</span><span class="o">(</span><span class="n">R</span><span class="o">.</span><span class="na">styleable</span><span class="o">.</span><span class="na">SwagPoints_enabled</span><span class="o">,</span> <span class="n">mEnabled</span><span class="o">);</span>
+</span><span class='line'>      <span class="n">a</span><span class="o">.</span><span class="na">recycle</span><span class="o">();</span>
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>2. Size:</h2>
+
+<p>In order to control the view dimension, we have to override <code>View.onMeasure()</code> method and calculate the size of each components. Here we have to define the arc radius according to the width/height of our view.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="nd">@Override</span>
+</span><span class='line'><span class="kd">protected</span> <span class="kt">void</span> <span class="nf">onMeasure</span><span class="o">(</span><span class="kt">int</span> <span class="n">widthMeasureSpec</span><span class="o">,</span> <span class="kt">int</span> <span class="n">heightMeasureSpec</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="kd">final</span> <span class="kt">int</span> <span class="n">width</span> <span class="o">=</span> <span class="n">getDefaultSize</span><span class="o">(</span><span class="n">getSuggestedMinimumWidth</span><span class="o">(),</span> <span class="n">widthMeasureSpec</span><span class="o">);</span>
+</span><span class='line'>  <span class="kd">final</span> <span class="kt">int</span> <span class="n">height</span> <span class="o">=</span> <span class="n">getDefaultSize</span><span class="o">(</span><span class="n">getSuggestedMinimumHeight</span><span class="o">(),</span> <span class="n">heightMeasureSpec</span><span class="o">);</span>
+</span><span class='line'>  <span class="kd">final</span> <span class="kt">int</span> <span class="n">min</span> <span class="o">=</span> <span class="n">Math</span><span class="o">.</span><span class="na">min</span><span class="o">(</span><span class="n">width</span><span class="o">,</span> <span class="n">height</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">mTranslateX</span> <span class="o">=</span> <span class="o">(</span><span class="kt">int</span><span class="o">)</span> <span class="o">(</span><span class="n">width</span> <span class="o">*</span> <span class="mf">0.5f</span><span class="o">);</span>
+</span><span class='line'>  <span class="n">mTranslateY</span> <span class="o">=</span> <span class="o">(</span><span class="kt">int</span><span class="o">)</span> <span class="o">(</span><span class="n">height</span> <span class="o">*</span> <span class="mf">0.5f</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="kt">int</span> <span class="n">arcDiameter</span> <span class="o">=</span> <span class="n">min</span> <span class="o">-</span> <span class="n">getPaddingLeft</span><span class="o">();</span>
+</span><span class='line'>  <span class="n">mArcRadius</span> <span class="o">=</span> <span class="n">arcDiameter</span> <span class="o">/</span> <span class="mi">2</span><span class="o">;</span>
+</span><span class='line'>  <span class="kt">float</span> <span class="n">top</span> <span class="o">=</span> <span class="n">height</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">-</span> <span class="o">(</span><span class="n">arcDiameter</span> <span class="o">/</span> <span class="mi">2</span><span class="o">);</span>
+</span><span class='line'>  <span class="kt">float</span> <span class="n">left</span> <span class="o">=</span> <span class="n">width</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">-</span> <span class="o">(</span><span class="n">arcDiameter</span> <span class="o">/</span> <span class="mi">2</span><span class="o">);</span>
+</span><span class='line'>  <span class="n">mArcRect</span><span class="o">.</span><span class="na">set</span><span class="o">(</span><span class="n">left</span><span class="o">,</span> <span class="n">top</span><span class="o">,</span> <span class="n">left</span> <span class="o">+</span> <span class="n">arcDiameter</span><span class="o">,</span> <span class="n">top</span> <span class="o">+</span> <span class="n">arcDiameter</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">updateIndicatorIconPosition</span><span class="o">();</span>
+</span><span class='line'>  <span class="kd">super</span><span class="o">.</span><span class="na">onMeasure</span><span class="o">(</span><span class="n">widthMeasureSpec</span><span class="o">,</span> <span class="n">heightMeasureSpec</span><span class="o">);</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>3. Drawing:</h2>
+
+<p>Give you a pen and a paper, you can draw what you want. To draw the view, you have to override the <code>onDraw(Canvas canvas)</code> method.
+Before that, we have to know what to draw and how to draw. Android provides two classes to do this job:</p>
+
+<ul>
+<li><p>What to draw, handled by <code>Canvas</code> which is provided as parameter in <code>onDraw()</code> method.</p></li>
+<li><p>How to draw, handled by <code>Paint</code>.</p></li>
+</ul>
+
+
+<p>Before you use <code>Canvas</code> to draw anything, it’s necessary to create <code>Paint</code> objects. For performance optimization, creating the <code>Paint</code> objects ahead is quite important, because the <code>onDraw()</code> method is called when redrawn is needed at anytime, we won’t create the <code>Paint</code> objects inside the <code>onDraw()</code> method, we should avoid any allocation in <code>onDraw()</code> method. Here we define these objects (one for arc, another for progress and the other for text) as instance variables and initialize at <code>init()</code> method:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">private</span> <span class="kt">void</span> <span class="nf">init</span><span class="o">(</span><span class="n">Context</span> <span class="n">context</span><span class="o">,</span> <span class="n">AttributeSet</span> <span class="n">attrs</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>  <span class="c1">// ...</span>
+</span><span class='line'>  
+</span><span class='line'>  <span class="n">mArcPaint</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Paint</span><span class="o">();</span>
+</span><span class='line'>  <span class="n">mArcPaint</span><span class="o">.</span><span class="na">setColor</span><span class="o">(</span><span class="n">arcColor</span><span class="o">);</span>
+</span><span class='line'>  <span class="n">mArcPaint</span><span class="o">.</span><span class="na">setAntiAlias</span><span class="o">(</span><span class="kc">true</span><span class="o">);</span>
+</span><span class='line'>  <span class="n">mArcPaint</span><span class="o">.</span><span class="na">setStyle</span><span class="o">(</span><span class="n">Paint</span><span class="o">.</span><span class="na">Style</span><span class="o">.</span><span class="na">STROKE</span><span class="o">);</span>
+</span><span class='line'>  <span class="n">mArcPaint</span><span class="o">.</span><span class="na">setStrokeWidth</span><span class="o">(</span><span class="n">mArcWidth</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">mProgressPaint</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Paint</span><span class="o">();</span>
+</span><span class='line'>  <span class="n">mProgressPaint</span><span class="o">.</span><span class="na">setColor</span><span class="o">(</span><span class="n">progressColor</span><span class="o">);</span>
+</span><span class='line'>  <span class="n">mProgressPaint</span><span class="o">.</span><span class="na">setAntiAlias</span><span class="o">(</span><span class="kc">true</span><span class="o">);</span>
+</span><span class='line'>  <span class="n">mProgressPaint</span><span class="o">.</span><span class="na">setStyle</span><span class="o">(</span><span class="n">Paint</span><span class="o">.</span><span class="na">Style</span><span class="o">.</span><span class="na">STROKE</span><span class="o">);</span>
+</span><span class='line'>  <span class="n">mProgressPaint</span><span class="o">.</span><span class="na">setStrokeWidth</span><span class="o">(</span><span class="n">mProgressWidth</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">mTextPaint</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Paint</span><span class="o">();</span>
+</span><span class='line'>  <span class="n">mTextPaint</span><span class="o">.</span><span class="na">setColor</span><span class="o">(</span><span class="n">textColor</span><span class="o">);</span>
+</span><span class='line'>  <span class="n">mTextPaint</span><span class="o">.</span><span class="na">setAntiAlias</span><span class="o">(</span><span class="kc">true</span><span class="o">);</span>
+</span><span class='line'>  <span class="n">mTextPaint</span><span class="o">.</span><span class="na">setStyle</span><span class="o">(</span><span class="n">Paint</span><span class="o">.</span><span class="na">Style</span><span class="o">.</span><span class="na">FILL</span><span class="o">);</span>
+</span><span class='line'>  <span class="n">mTextPaint</span><span class="o">.</span><span class="na">setTextSize</span><span class="o">(</span><span class="n">mTextSize</span><span class="o">);</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Once we have <code>Paint</code> objects defined, we can start to implement the <code>onDraw(Canvas canvas)</code> method, here we’re going to draw the text to display current progress number, the arc and current progress:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="nd">@Override</span>
+</span><span class='line'><span class="kd">protected</span> <span class="kt">void</span> <span class="nf">onDraw</span><span class="o">(</span><span class="n">Canvas</span> <span class="n">canvas</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>  <span class="k">if</span> <span class="o">(!</span><span class="n">mClockwise</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>      <span class="n">canvas</span><span class="o">.</span><span class="na">scale</span><span class="o">(-</span><span class="mi">1</span><span class="o">,</span> <span class="mi">1</span><span class="o">,</span> <span class="n">mArcRect</span><span class="o">.</span><span class="na">centerX</span><span class="o">(),</span> <span class="n">mArcRect</span><span class="o">.</span><span class="na">centerY</span><span class="o">());</span>
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="c1">// draw the text</span>
+</span><span class='line'>  <span class="n">String</span> <span class="n">textPoint</span> <span class="o">=</span> <span class="n">String</span><span class="o">.</span><span class="na">valueOf</span><span class="o">(</span><span class="n">mPoints</span><span class="o">);</span>
+</span><span class='line'>  <span class="n">mTextPaint</span><span class="o">.</span><span class="na">getTextBounds</span><span class="o">(</span><span class="n">textPoint</span><span class="o">,</span> <span class="mi">0</span><span class="o">,</span> <span class="n">textPoint</span><span class="o">.</span><span class="na">length</span><span class="o">(),</span> <span class="n">mTextRect</span><span class="o">);</span>
+</span><span class='line'>  <span class="c1">// center the text</span>
+</span><span class='line'>  <span class="kt">int</span> <span class="n">xPos</span> <span class="o">=</span> <span class="n">canvas</span><span class="o">.</span><span class="na">getWidth</span><span class="o">()</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">-</span> <span class="n">mTextRect</span><span class="o">.</span><span class="na">width</span><span class="o">()</span> <span class="o">/</span> <span class="mi">2</span><span class="o">;</span>
+</span><span class='line'>  <span class="kt">int</span> <span class="n">yPos</span> <span class="o">=</span> <span class="o">(</span><span class="kt">int</span><span class="o">)((</span><span class="n">mArcRect</span><span class="o">.</span><span class="na">centerY</span><span class="o">())</span> <span class="o">-</span> <span class="o">((</span><span class="n">mTextPaint</span><span class="o">.</span><span class="na">descent</span><span class="o">()</span> <span class="o">+</span> <span class="n">mTextPaint</span><span class="o">.</span><span class="na">ascent</span><span class="o">())</span> <span class="o">/</span> <span class="mi">2</span><span class="o">));</span>
+</span><span class='line'>  <span class="n">canvas</span><span class="o">.</span><span class="na">drawText</span><span class="o">(</span><span class="n">String</span><span class="o">.</span><span class="na">valueOf</span><span class="o">(</span><span class="n">mPoints</span><span class="o">),</span> <span class="n">xPos</span><span class="o">,</span> <span class="n">yPos</span><span class="o">,</span> <span class="n">mTextPaint</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="c1">// draw the arc and progress</span>
+</span><span class='line'>  <span class="n">canvas</span><span class="o">.</span><span class="na">drawArc</span><span class="o">(</span><span class="n">mArcRect</span><span class="o">,</span> <span class="n">ANGLE_OFFSET</span><span class="o">,</span> <span class="mi">360</span><span class="o">,</span> <span class="kc">false</span><span class="o">,</span> <span class="n">mArcPaint</span><span class="o">);</span>
+</span><span class='line'>  <span class="n">canvas</span><span class="o">.</span><span class="na">drawArc</span><span class="o">(</span><span class="n">mArcRect</span><span class="o">,</span> <span class="n">ANGLE_OFFSET</span><span class="o">,</span> <span class="n">mProgressSweep</span><span class="o">,</span> <span class="kc">false</span><span class="o">,</span> <span class="n">mProgressPaint</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">if</span> <span class="o">(</span><span class="n">mEnabled</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>      <span class="c1">// draw the indicator icon</span>
+</span><span class='line'>      <span class="n">canvas</span><span class="o">.</span><span class="na">translate</span><span class="o">(</span><span class="n">mTranslateX</span> <span class="o">-</span> <span class="n">mIndicatorIconX</span><span class="o">,</span> <span class="n">mTranslateY</span> <span class="o">-</span> <span class="n">mIndicatorIconY</span><span class="o">);</span>
+</span><span class='line'>      <span class="n">mIndicatorIcon</span><span class="o">.</span><span class="na">draw</span><span class="o">(</span><span class="n">canvas</span><span class="o">);</span>
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>After overriding <code>onDraw()</code> method, there is one more important method about drawing to introduce: <code>invalidate()</code>, this method is used when any redrawing is needed, we won’t call <code>onDraw()</code> directly, we just call this method instead, you can use this method anywhere inside your custom view, however, for performance optimization, make sure it’s called as infrequently as possible.</p>
+
+<h2>4. Touching:</h2>
+
+<p>When the user touch the screen, Android calls the <code>onTouchEvent()</code> method, so we override <code>View.onTouchEvent()</code> to handle the user input gestures:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="nd">@Override</span>
+</span><span class='line'><span class="kd">public</span> <span class="kt">boolean</span> <span class="nf">onTouchEvent</span><span class="o">(</span><span class="n">MotionEvent</span> <span class="n">event</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>  <span class="k">if</span> <span class="o">(</span><span class="n">mEnabled</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>      <span class="k">this</span><span class="o">.</span><span class="na">getParent</span><span class="o">().</span><span class="na">requestDisallowInterceptTouchEvent</span><span class="o">(</span><span class="kc">true</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="k">switch</span> <span class="o">(</span><span class="n">event</span><span class="o">.</span><span class="na">getAction</span><span class="o">())</span> <span class="o">{</span>
+</span><span class='line'>          <span class="k">case</span> <span class="n">MotionEvent</span><span class="o">.</span><span class="na">ACTION_DOWN</span><span class="o">:</span>
+</span><span class='line'>              <span class="k">if</span> <span class="o">(</span><span class="n">mOnSwagPointsChangeListener</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span>
+</span><span class='line'>                  <span class="n">mOnSwagPointsChangeListener</span><span class="o">.</span><span class="na">onStartTrackingTouch</span><span class="o">(</span><span class="k">this</span><span class="o">);</span>
+</span><span class='line'>              <span class="n">updateOnTouch</span><span class="o">(</span><span class="n">event</span><span class="o">);</span>
+</span><span class='line'>              <span class="k">break</span><span class="o">;</span>
+</span><span class='line'>          <span class="k">case</span> <span class="n">MotionEvent</span><span class="o">.</span><span class="na">ACTION_MOVE</span><span class="o">:</span>
+</span><span class='line'>              <span class="n">updateOnTouch</span><span class="o">(</span><span class="n">event</span><span class="o">);</span>
+</span><span class='line'>              <span class="k">break</span><span class="o">;</span>
+</span><span class='line'>          <span class="k">case</span> <span class="n">MotionEvent</span><span class="o">.</span><span class="na">ACTION_UP</span><span class="o">:</span>
+</span><span class='line'>              <span class="k">if</span> <span class="o">(</span><span class="n">mOnSwagPointsChangeListener</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span>
+</span><span class='line'>                  <span class="n">mOnSwagPointsChangeListener</span><span class="o">.</span><span class="na">onStopTrackingTouch</span><span class="o">(</span><span class="k">this</span><span class="o">);</span>
+</span><span class='line'>              <span class="n">setPressed</span><span class="o">(</span><span class="kc">false</span><span class="o">);</span>
+</span><span class='line'>              <span class="k">this</span><span class="o">.</span><span class="na">getParent</span><span class="o">().</span><span class="na">requestDisallowInterceptTouchEvent</span><span class="o">(</span><span class="kc">false</span><span class="o">);</span>
+</span><span class='line'>              <span class="k">break</span><span class="o">;</span>
+</span><span class='line'>          <span class="k">case</span> <span class="n">MotionEvent</span><span class="o">.</span><span class="na">ACTION_CANCEL</span><span class="o">:</span>
+</span><span class='line'>              <span class="k">if</span> <span class="o">(</span><span class="n">mOnSwagPointsChangeListener</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span>
+</span><span class='line'>                  <span class="n">mOnSwagPointsChangeListener</span><span class="o">.</span><span class="na">onStopTrackingTouch</span><span class="o">(</span><span class="k">this</span><span class="o">);</span>
+</span><span class='line'>              <span class="n">setPressed</span><span class="o">(</span><span class="kc">false</span><span class="o">);</span>
+</span><span class='line'>              <span class="k">this</span><span class="o">.</span><span class="na">getParent</span><span class="o">().</span><span class="na">requestDisallowInterceptTouchEvent</span><span class="o">(</span><span class="kc">false</span><span class="o">);</span>
+</span><span class='line'>              <span class="k">break</span><span class="o">;</span>
+</span><span class='line'>      <span class="o">}</span>
+</span><span class='line'>      <span class="k">return</span> <span class="kc">true</span><span class="o">;</span>
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'>  <span class="k">return</span> <span class="kc">false</span><span class="o">;</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>There are several things we have to control when user touches the indicator or other place of view:</p>
+
+<ul>
+<li><p>Update the indicator icon position and progress text.</p></li>
+<li><p>Draw the current progress on the arc.</p></li>
+<li><p>Stop when reaching max or min.</p></li>
+</ul>
+
+
+<p>To know the indicator icon position and the current progress to draw, we have to convert the touch coordinate on the screen to the angle of arc.</p>
+
+<p>In our custom view, we consider the center of arc as origin <code>(0, 0)</code>, and use trigonometric functions to transform the touch coordinate into the angle of the arc in degree <code>(0, 360)</code>, and map to the current progress value of given range <code>(min, max)</code>.</p>
+
+<center><img src="http://Solarex.github.io/images/custom_view_touch.png"/></center>
+
+
+<p>Here we have a method to convert from touch coordinate to the arc angle:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">private</span> <span class="kt">double</span> <span class="nf">convertTouchEventPointToAngle</span><span class="o">(</span><span class="kt">float</span> <span class="n">xPos</span><span class="o">,</span> <span class="kt">float</span> <span class="n">yPos</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>  <span class="c1">// transform touch coordinate into component coordinate</span>
+</span><span class='line'>  <span class="kt">float</span> <span class="n">x</span> <span class="o">=</span> <span class="n">xPos</span> <span class="o">-</span> <span class="n">mTranslateX</span><span class="o">;</span>
+</span><span class='line'>  <span class="kt">float</span> <span class="n">y</span> <span class="o">=</span> <span class="n">yPos</span> <span class="o">-</span> <span class="n">mTranslateY</span><span class="o">;</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">x</span> <span class="o">=</span> <span class="o">(</span><span class="n">mClockwise</span><span class="o">)</span> <span class="o">?</span> <span class="n">x</span> <span class="o">:</span> <span class="o">-</span><span class="n">x</span><span class="o">;</span>
+</span><span class='line'>  <span class="kt">double</span> <span class="n">angle</span> <span class="o">=</span> <span class="n">Math</span><span class="o">.</span><span class="na">toDegrees</span><span class="o">(</span><span class="n">Math</span><span class="o">.</span><span class="na">atan2</span><span class="o">(</span><span class="n">y</span><span class="o">,</span> <span class="n">x</span><span class="o">)</span> <span class="o">+</span> <span class="o">(</span><span class="n">Math</span><span class="o">.</span><span class="na">PI</span> <span class="o">/</span> <span class="mi">2</span><span class="o">));</span>
+</span><span class='line'>  <span class="n">angle</span> <span class="o">=</span> <span class="o">(</span><span class="n">angle</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="o">)</span> <span class="o">?</span> <span class="o">(</span><span class="n">angle</span> <span class="o">+</span> <span class="mi">360</span><span class="o">)</span> <span class="o">:</span> <span class="n">angle</span><span class="o">;</span>
+</span><span class='line'>  <span class="k">return</span> <span class="n">angle</span><span class="o">;</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Final demo</h2>
+
+<center><img src="http://Solarex.github.io/images/custom_view_final_demo.gif"/></center>
+
+
+<h2>Open source at GitHub:</h2>
+
+<p>So you just finish a android custom view project, great! Let’s put on GitHub to get more developers to use you project. However, before you share your GitHub link to others, just make sure you have a nice document first. When developers are looking at you project, there are some points they care about:</p>
+
+<ul>
+<li><p>Does this project fit my requirement or solve my problem?</p></li>
+<li><p>If the answer is YES, how can I get starting right now?</p></li>
+</ul>
+
+
+<p>A nice document is like a salesman for you project. The README plays this important role to give the first impression to the developers who are looking at your project, so providing a well-documented README is necessary and gives you more chance to promote you project.</p>
+
+<p>Knowing how to write a REAME is equivalently important to write a clean code or design a great architecture.</p>
+
+<h3>1. Provide a screenshot and short description:</h3>
+
+<p>A picture is worth a thousand words, especially in a UI widget project, make sure that you provide a photo, GIF or video with a short description to demonstrate how your UI looks like or works. (If you are familiar with some design software, i.e. Sketch or PhotoShop, try to use them to help you make a great cover with the screenshot for your project)</p>
+
+<center><img src="http://Solarex.github.io/images/custom_view_screensot.png"/></center>
+
+
+<h3>Give easy installation/usage instruction</h3>
+
+<p>Before using you project, developer have to install it first, make sure to give a clean and easy installation instruction to get started. After installing you project successfully, just give some example code snippet to show what your project does, and how the developers can customize what they want, maybe just give a list of customizable attributes or provide an APK to install or sample module to run.</p>
+
+<h2>Publish your library:</h2>
+
+<p>After finish pushing your project to GitHub, there is the last step to get done: publish it so that developers can just add dependency</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>dependencies <span class="o">{</span>
+</span><span class='line'>    ...
+</span><span class='line'>    compile <span class="s1">&#39;com.dualcores.swagpoints:swagpoints:1.0.0&#39;</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>to use you project. Here we go:</p>
+
+<h3>1. Sign-up or sign-in at JFrog Bintray.</h3>
+
+<h3>2. Go to profile page to create a repository, package, and version:</h3>
+
+<p>The repository is the place to host your several projects. You can choose any repository name whatever you want, it doesn’t matter for other developers.</p>
+
+<center><img src="http://Solarex.github.io/images/custom_view_frog_new_repo.png"/></center>
+
+
+<p>Inside the new repository, you can create a package, that is place to host your project. Your project also can import from GitHub.</p>
+
+<center><img src="http://Solarex.github.io/images/custom_view_frog_import_github.png"/></center>
+
+
+<p>For each package, you can create several versions, again, you can choose whatever name you want, not restricted to the traditional version number major.minor.patch rule.</p>
+
+<center><img src="http://Solarex.github.io/images/custom_view_frog_create_new_version.png"/></center>
+
+
+<h3>3. Generate and upload the aar files:</h3>
+
+<p>We use gradle to do this job, here I use this library to help <a href="https://github.com/blundell/release-android-library.">https://github.com/blundell/release-android-library.</a>
+Open you library module gradle file, add the following code snippet to buttom of module build.gradle file:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>// or use the remote copy to keep update with latest changes
+</span><span class='line'>apply from: <span class="s1">&#39;https://raw.githubusercontent.com/blundell/release-android-library/master/android-release-aar.gradle&#39;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>and JCenter configuration:</p>
+
+<center><img src="http://Solarex.github.io/images/custom_view_frog_build_gradle.png"/></center>
+
+
+<p>then, sync your project and open your terminal, go to your project root path, execute the command:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>./gradlew clean build generateRelease
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>If success, you will see the result in you terminal and you can upload the zip file from <code>PROJECT_ROOT/library/build/release/1.0.0/</code>:</p>
+
+<center><img src="http://Solarex.github.io/images/custom_view_frog_generate_aar.png"/></center>
+
+
+<h3>4. Add to JCenter:</h3>
+
+<p>Go back to your project page in bintray, there will be a Add to JCenter button in right-hand column, just click it to fill out a message and wait to be accepted. It takes hours or several days to be accepted, just be patient. This step is required so that to make your project downloadable and discoverable by gradle dependencies.</p>
+
+<center><img src="http://Solarex.github.io/images/custom_view_frog_add_jcenter.png"/></center>
+
+
+<h3>5. Project is accepted and test if everything is all right:</h3>
+
+<p>You will receive an email to inform you that your Add to JCenter request is accepted.Once it is accepted, test if gradle dependency works well by adding the dependency to sample module and sync. If it builds successfully, congratulation!!!! You’ve done. Good job~</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>compile <span class="s1">&#39;com.dualcores.swagpoints:swagpoints:1.0.0&#39;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Mobile Apps Offline Support]]></title>
@@ -9103,442 +9707,6 @@ Unlike Ubuntu shipped with GNU command line tools,Mac OS X shipped with the BSD 
 <p>which is a bit more elegant.</p>
 
 <p>Bare in mind, you still have to use Handler if you need to do UI operations.</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Dealing with AsyncTask and Screen Orientation]]></title>
-    <link href="http://Solarex.github.io/blog/2014/10/26/android-dealing-with-asynctask-and-screen-orientation/"/>
-    <updated>2014-10-26T19:31:00+08:00</updated>
-    <id>http://Solarex.github.io/blog/2014/10/26/android-dealing-with-asynctask-and-screen-orientation</id>
-    <content type="html"><![CDATA[<p><center><img src="http://Solarex.github.io/images/android_logo.jpg"/></center></p>
-
-
-<p>A common task in Android is to perform some background activity in another thread, meanwhile displaying a ProgressDialog to the user. Example of these tasks include downloading some data from internet, logging into an application, etc. Implementing an AsyncTask is fairly a simple job, the big challenge is how to handle it properly when an orientation change occurs.</p>
-
-<!-- more -->
-
-
-<p>In this article I will walk though a series of potential solutions to address the screen orientation issues when using an AsyncTask.</p>
-
-<p>So, lets create a proof of concept application that makes use of an AsyncTask which does not handle configuration changes yet, and then present a few solutions.</p>
-
-<p>Here’s the AsyncTask implementation that we will be using during the tutorial:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-<span class='line-number'>31</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">AsyncTaskExample</span> <span class="kd">extends</span> <span class="n">AsyncTask</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">Integer</span><span class="o">,</span> <span class="n">String</span><span class="o">&gt;</span> <span class="o">{</span>
-</span><span class='line'><span class="err"> </span>
-</span><span class='line'><span class="err">    </span><span class="kd">private</span> <span class="kd">final</span> <span class="n">TaskListener</span> <span class="n">listener</span><span class="o">;</span>
-</span><span class='line'><span class="err"> </span>
-</span><span class='line'><span class="err">    </span><span class="kd">public</span> <span class="n">AsyncTaskExample</span><span class="o">(</span><span class="n">TaskListener</span> <span class="n">listener</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'><span class="err">        </span><span class="k">this</span><span class="o">.</span><span class="na">listener</span> <span class="o">=</span> <span class="n">listener</span><span class="o">;</span>
-</span><span class='line'><span class="err">    </span><span class="o">}</span>
-</span><span class='line'><span class="err"> </span>
-</span><span class='line'><span class="err">    </span><span class="nd">@Override</span>
-</span><span class='line'><span class="err">    </span><span class="kd">protected</span> <span class="kt">void</span> <span class="n">onPreExecute</span><span class="o">()</span> <span class="o">{</span>
-</span><span class='line'><span class="err">        </span><span class="n">listener</span><span class="o">.</span><span class="na">onTaskStarted</span><span class="o">();</span>
-</span><span class='line'><span class="err">    </span><span class="o">}</span>
-</span><span class='line'><span class="err"> </span>
-</span><span class='line'><span class="err">    </span><span class="nd">@Override</span>
-</span><span class='line'><span class="err">    </span><span class="kd">protected</span> <span class="n">String</span> <span class="n">doInBackground</span><span class="o">(</span><span class="n">String</span><span class="o">...</span> <span class="n">params</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'><span class="err">        </span><span class="k">for</span> <span class="o">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">1</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;=</span> <span class="mi">10</span><span class="o">;</span> <span class="n">i</span><span class="o">++)</span> <span class="o">{</span>
-</span><span class='line'><span class="err">            </span><span class="n">Log</span><span class="o">.</span><span class="na">d</span><span class="o">(</span><span class="s">&quot;GREC&quot;</span><span class="o">,</span> <span class="s">&quot;AsyncTask is working: &quot;</span> <span class="o">+</span> <span class="n">i</span><span class="o">);</span>
-</span><span class='line'><span class="err">            </span><span class="k">try</span> <span class="o">{</span>
-</span><span class='line'><span class="err">                </span><span class="n">Thread</span><span class="o">.</span><span class="na">sleep</span><span class="o">(</span><span class="mi">1000</span><span class="o">);</span>
-</span><span class='line'><span class="err">            </span><span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">InterruptedException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'><span class="err">                </span><span class="n">e</span><span class="o">.</span><span class="na">printStackTrace</span><span class="o">();</span>
-</span><span class='line'><span class="err">            </span><span class="o">}</span>
-</span><span class='line'><span class="err">        </span><span class="o">}</span>
-</span><span class='line'><span class="err">        </span><span class="k">return</span> <span class="s">&quot;All Done!&quot;</span><span class="o">;</span>
-</span><span class='line'><span class="err">    </span><span class="o">}</span>
-</span><span class='line'><span class="err"> </span>
-</span><span class='line'><span class="err">    </span><span class="nd">@Override</span>
-</span><span class='line'><span class="err">    </span><span class="kd">protected</span> <span class="kt">void</span> <span class="n">onPostExecute</span><span class="o">(</span><span class="n">String</span> <span class="n">result</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'><span class="err">        </span><span class="n">listener</span><span class="o">.</span><span class="na">onTaskFinished</span><span class="o">(</span><span class="n">result</span><span class="o">);</span>
-</span><span class='line'><span class="err">    </span><span class="o">}</span>
-</span><span class='line'><span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<ul>
-<li><code>doInBackground()</code> – this will be called by the AsyncTask on a background thread, and performs all the heavy work. For the sake of this example, I just wrote a simple loop  with a delay of 1 sec between iterations to simulate a task that takes some time.</li>
-<li>The constructor of the class takes a listener as a parameter. The listener will be used to delegate the work of <code>onPreExecute()/onPostExecute()</code> to the calling Activity.</li>
-</ul>
-
-
-<p>This is the interface definition used by AsyncTaskExample:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kd">interface</span> <span class="nc">TaskListener</span> <span class="o">{</span>
-</span><span class='line'><span class="err">    </span><span class="kt">void</span> <span class="n">onTaskStarted</span><span class="o">();</span>
-</span><span class='line'><span class="err"> </span>
-</span><span class='line'><span class="err">    </span><span class="kt">void</span> <span class="n">onTaskFinished</span><span class="o">(</span><span class="n">String</span> <span class="n">result</span><span class="o">);</span>
-</span><span class='line'><span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>And here’s the usage of AsyncTaskExample (the problematic case):</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">MainActivity</span> <span class="kd">extends</span> <span class="n">Activity</span> <span class="kd">implements</span> <span class="n">TaskListener</span><span class="o">,</span> <span class="n">OnClickListener</span> <span class="o">{</span>
-</span><span class='line'><span class="err"> </span>
-</span><span class='line'><span class="err">    </span><span class="kd">private</span> <span class="n">ProgressDialog</span> <span class="n">progressDialog</span><span class="o">;</span>
-</span><span class='line'><span class="err"> </span>
-</span><span class='line'><span class="err">    </span><span class="nd">@Override</span>
-</span><span class='line'><span class="err">    </span><span class="kd">public</span> <span class="kt">void</span> <span class="n">onCreate</span><span class="o">(</span><span class="n">Bundle</span> <span class="n">savedInstanceState</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'><span class="err">        </span><span class="kd">super</span><span class="o">.</span><span class="na">onCreate</span><span class="o">(</span><span class="n">savedInstanceState</span><span class="o">);</span>
-</span><span class='line'><span class="err">        </span><span class="n">setContentView</span><span class="o">(</span><span class="n">R</span><span class="o">.</span><span class="na">layout</span><span class="o">.</span><span class="na">main</span><span class="o">);</span>
-</span><span class='line'><span class="err">        </span><span class="n">findViewById</span><span class="o">(</span><span class="n">R</span><span class="o">.</span><span class="na">id</span><span class="o">.</span><span class="na">start</span><span class="o">).</span><span class="na">setOnClickListener</span><span class="o">(</span><span class="k">this</span><span class="o">);</span>
-</span><span class='line'><span class="err">    </span><span class="o">}</span>
-</span><span class='line'><span class="err"> </span>
-</span><span class='line'><span class="err">    </span><span class="nd">@Override</span>
-</span><span class='line'><span class="err">    </span><span class="kd">public</span> <span class="kt">void</span> <span class="n">onClick</span><span class="o">(</span><span class="n">View</span> <span class="n">v</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'><span class="err">        </span><span class="k">if</span> <span class="o">(</span><span class="n">v</span><span class="o">.</span><span class="na">getId</span><span class="o">()</span> <span class="o">==</span> <span class="n">R</span><span class="o">.</span><span class="na">id</span><span class="o">.</span><span class="na">start</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'><span class="err">            </span><span class="k">new</span> <span class="n">AsyncTaskExample</span><span class="o">(</span><span class="k">this</span><span class="o">).</span><span class="na">execute</span><span class="o">();</span>
-</span><span class='line'><span class="err">        </span><span class="o">}</span>
-</span><span class='line'><span class="err">    </span><span class="o">}</span>
-</span><span class='line'><span class="err"> </span>
-</span><span class='line'><span class="err">    </span><span class="nd">@Override</span>
-</span><span class='line'><span class="err">    </span><span class="kd">public</span> <span class="kt">void</span> <span class="n">onTaskStarted</span><span class="o">()</span> <span class="o">{</span>
-</span><span class='line'><span class="err">        </span><span class="n">progressDialog</span> <span class="o">=</span> <span class="n">ProgressDialog</span><span class="o">.</span><span class="na">show</span><span class="o">(</span><span class="n">CopyOfMainActivity</span><span class="o">.</span><span class="na">this</span><span class="o">,</span> <span class="s">&quot;Loading&quot;</span><span class="o">,</span> <span class="s">&quot;Please wait a moment!&quot;</span><span class="o">);</span>
-</span><span class='line'><span class="err">    </span><span class="o">}</span>
-</span><span class='line'><span class="err"> </span>
-</span><span class='line'><span class="err">    </span><span class="nd">@Override</span>
-</span><span class='line'><span class="err">    </span><span class="kd">public</span> <span class="kt">void</span> <span class="n">onTaskFinished</span><span class="o">(</span><span class="n">String</span> <span class="n">result</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'><span class="err">        </span><span class="k">if</span> <span class="o">(</span><span class="n">progressDialog</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'><span class="err">            </span><span class="n">progressDialog</span><span class="o">.</span><span class="na">dismiss</span><span class="o">();</span>
-</span><span class='line'><span class="err">        </span><span class="o">}</span>
-</span><span class='line'><span class="err">    </span><span class="o">}</span>
-</span><span class='line'><span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>The Activity implements the TaskListener interface and provides appropriate implementation for its methods,  displaying the ProgressDialog when the task is started, and dismissing it when the task is finished. The AsyncTask is fired when clicking on a button.</p>
-
-<p>Now, if you run this example without changing the screen orientation, the AsyncTask will start and finish its work normally. Problems begin to appear when the device orientation is changed while the AsyncTask is in the middle of the work. The application will crash, and an exception similar to these ones will be thrown: java.lang.IllegalArgumentException: View not attached to window manager, or Activity has leaked window com.android.internal.policy….</p>
-
-<p>The cause relies in the Activity life cycle. A change in device orientation is interpreted as a configuration change which causes the current activity to be destroyed and then recreated. Android calls onPause(), onStop(), and onDestroy() on currently instance of activity, then a new instance of the same activity is recreated calling onCreate(), onStart(), and onResume(). The reason why Android have to do this, is because depending of screen orientation, portrait or landscape, we may need to load and display different resources, and only through re-creation Android can guarantee that all our resources will be re-requested.</p>
-
-<p>But don’t panic, you are not alone, there are several solutions that will help us to deal with this situation.</p>
-
-<h3>Solution 1 – Think twice if you really need an AsyncTask.</h3>
-
-<p>AsyncTasks are good for performing background work, but they are bound to the Activity which adds some complexity. For things like making HTTP requests to a server perhaps you should consider an IntentService. IntentService used in conjunction with a BroadcastReceiver or ResultReceiver to deliver results, could do a better job than an AsyncTask in certain situations.</p>
-
-<h3>Solution 2 – Put the AsyncTask in a Fragment.</h3>
-
-<p>Using fragments probably is the cleanest way to handle configuration changes. By default, Android destroys and recreates the fragments just like activities, however, fragments have the ability to retain their instances, simply by calling: <code>setRetainInstance(true)</code>, in one of its callback methods, for example in the onCreate().</p>
-
-<p>There’s however one aspect that should be taken in consideration in order to achieve the desired result. Our AsyncTask uses a ProgressDialog to signal when the AsyncTask is started, and dismisses it when the task is done. This complicates a bit the things because even if we are using <code>setRetainInstance(true)</code>, we should close all windows and dialogs when the Activity is destroyed, otherwise we will get an: <code>Activity has leaked window com.android.internal.policy…</code>  exception. This happens when you try to show a dialog after you have exited the Activity.</p>
-
-<p>In order to address this issue, we will add some logic to keep track of AsyncTask status (running/not running). We will dismiss the ProgressDialog when the fragment is detached from activity, and check in <code>onActivityCreated()</code> the status of AsyncTask. If the status is “running”, this means we are returning from a screen orientation and we will just re-create and display the ProgressDialog to show that the AsyncTask is still working.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-<span class='line-number'>31</span>
-<span class='line-number'>32</span>
-<span class='line-number'>33</span>
-<span class='line-number'>34</span>
-<span class='line-number'>35</span>
-<span class='line-number'>36</span>
-<span class='line-number'>37</span>
-<span class='line-number'>38</span>
-<span class='line-number'>39</span>
-<span class='line-number'>40</span>
-<span class='line-number'>41</span>
-<span class='line-number'>42</span>
-<span class='line-number'>43</span>
-<span class='line-number'>44</span>
-<span class='line-number'>45</span>
-<span class='line-number'>46</span>
-<span class='line-number'>47</span>
-<span class='line-number'>48</span>
-<span class='line-number'>49</span>
-<span class='line-number'>50</span>
-<span class='line-number'>51</span>
-<span class='line-number'>52</span>
-<span class='line-number'>53</span>
-<span class='line-number'>54</span>
-<span class='line-number'>55</span>
-<span class='line-number'>56</span>
-<span class='line-number'>57</span>
-<span class='line-number'>58</span>
-<span class='line-number'>59</span>
-<span class='line-number'>60</span>
-<span class='line-number'>61</span>
-<span class='line-number'>62</span>
-<span class='line-number'>63</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">ExampleFragment</span> <span class="kd">extends</span> <span class="n">Fragment</span> <span class="kd">implements</span> <span class="n">TaskListener</span><span class="o">,</span> <span class="n">OnClickListener</span> <span class="o">{</span>
-</span><span class='line'><span class="err"> </span>
-</span><span class='line'><span class="err">    </span><span class="kd">private</span> <span class="n">ProgressDialog</span> <span class="n">progressDialog</span><span class="o">;</span>
-</span><span class='line'><span class="err">    </span><span class="kd">private</span> <span class="kt">boolean</span> <span class="n">isTaskRunning</span> <span class="o">=</span> <span class="kc">false</span><span class="o">;</span>
-</span><span class='line'><span class="err">    </span><span class="kd">private</span> <span class="n">AsyncTaskExample</span> <span class="n">asyncTask</span><span class="o">;</span>
-</span><span class='line'><span class="err"> </span>
-</span><span class='line'><span class="err">    </span><span class="nd">@Override</span>
-</span><span class='line'><span class="err">    </span><span class="kd">public</span> <span class="kt">void</span> <span class="n">onCreate</span><span class="o">(</span><span class="n">Bundle</span> <span class="n">savedInstanceState</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'><span class="err">        </span><span class="kd">super</span><span class="o">.</span><span class="na">onCreate</span><span class="o">(</span><span class="n">savedInstanceState</span><span class="o">);</span>
-</span><span class='line'><span class="err">        </span><span class="n">setRetainInstance</span><span class="o">(</span><span class="kc">true</span><span class="o">);</span>
-</span><span class='line'><span class="err">    </span><span class="o">}</span>
-</span><span class='line'><span class="err"> </span>
-</span><span class='line'><span class="err">    </span><span class="nd">@Override</span>
-</span><span class='line'><span class="err">    </span><span class="kd">public</span> <span class="kt">void</span> <span class="n">onActivityCreated</span><span class="o">(</span><span class="n">Bundle</span> <span class="n">savedInstanceState</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'><span class="err">        </span><span class="kd">super</span><span class="o">.</span><span class="na">onActivityCreated</span><span class="o">(</span><span class="n">savedInstanceState</span><span class="o">);</span>
-</span><span class='line'><span class="err">        </span><span class="c1">// If we are returning here from a screen orientation</span>
-</span><span class='line'><span class="err">        </span><span class="c1">// and the AsyncTask is still working, re-create and display the</span>
-</span><span class='line'><span class="err">        </span><span class="c1">// progress dialog.</span>
-</span><span class='line'><span class="err">        </span><span class="k">if</span> <span class="o">(</span><span class="n">isTaskRunning</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'><span class="err">            </span><span class="n">progressDialog</span> <span class="o">=</span> <span class="n">ProgressDialog</span><span class="o">.</span><span class="na">show</span><span class="o">(</span><span class="n">getActivity</span><span class="o">(),</span> <span class="s">&quot;Loading&quot;</span><span class="o">,</span> <span class="s">&quot;Please wait a moment!&quot;</span><span class="o">);</span>
-</span><span class='line'><span class="err">        </span><span class="o">}</span>
-</span><span class='line'><span class="err">    </span><span class="o">}</span>
-</span><span class='line'><span class="err"> </span>
-</span><span class='line'><span class="err">    </span><span class="nd">@Override</span>
-</span><span class='line'><span class="err">    </span><span class="kd">public</span> <span class="n">View</span> <span class="n">onCreateView</span><span class="o">(</span><span class="n">LayoutInflater</span> <span class="n">inflater</span><span class="o">,</span> <span class="n">ViewGroup</span> <span class="n">container</span><span class="o">,</span> <span class="n">Bundle</span> <span class="n">savedInstanceState</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'><span class="err">        </span><span class="n">View</span> <span class="n">view</span> <span class="o">=</span> <span class="n">inflater</span><span class="o">.</span><span class="na">inflate</span><span class="o">(</span><span class="n">R</span><span class="o">.</span><span class="na">layout</span><span class="o">.</span><span class="na">fragment_layout</span><span class="o">,</span> <span class="n">container</span><span class="o">,</span> <span class="kc">false</span><span class="o">);</span>
-</span><span class='line'><span class="err">        </span><span class="n">Button</span> <span class="n">button</span> <span class="o">=</span> <span class="o">(</span><span class="n">Button</span><span class="o">)</span> <span class="n">view</span><span class="o">.</span><span class="na">findViewById</span><span class="o">(</span><span class="n">R</span><span class="o">.</span><span class="na">id</span><span class="o">.</span><span class="na">start</span><span class="o">);</span>
-</span><span class='line'><span class="err">        </span><span class="n">button</span><span class="o">.</span><span class="na">setOnClickListener</span><span class="o">(</span><span class="k">this</span><span class="o">);</span>
-</span><span class='line'><span class="err">        </span><span class="k">return</span> <span class="n">view</span><span class="o">;</span>
-</span><span class='line'><span class="err">    </span><span class="o">}</span>
-</span><span class='line'><span class="err"> </span>
-</span><span class='line'><span class="err">    </span><span class="nd">@Override</span>
-</span><span class='line'><span class="err">    </span><span class="kd">public</span> <span class="kt">void</span> <span class="n">onClick</span><span class="o">(</span><span class="n">View</span> <span class="n">v</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'><span class="err">        </span><span class="k">if</span> <span class="o">(!</span><span class="n">isTaskRunning</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'><span class="err">            </span><span class="n">asyncTask</span> <span class="o">=</span> <span class="k">new</span> <span class="n">AsyncTaskExample</span><span class="o">(</span><span class="k">this</span><span class="o">);</span>
-</span><span class='line'><span class="err">            </span><span class="n">asyncTask</span><span class="o">.</span><span class="na">execute</span><span class="o">();</span>
-</span><span class='line'><span class="err">        </span><span class="o">}</span>
-</span><span class='line'><span class="err">    </span><span class="o">}</span>
-</span><span class='line'><span class="err"> </span>
-</span><span class='line'><span class="err">    </span><span class="nd">@Override</span>
-</span><span class='line'><span class="err">    </span><span class="kd">public</span> <span class="kt">void</span> <span class="n">onTaskStarted</span><span class="o">()</span> <span class="o">{</span>
-</span><span class='line'><span class="err">        </span><span class="n">isTaskRunning</span> <span class="o">=</span> <span class="kc">true</span><span class="o">;</span>
-</span><span class='line'><span class="err">        </span><span class="n">progressDialog</span> <span class="o">=</span> <span class="n">ProgressDialog</span><span class="o">.</span><span class="na">show</span><span class="o">(</span><span class="n">getActivity</span><span class="o">(),</span> <span class="s">&quot;Loading&quot;</span><span class="o">,</span> <span class="s">&quot;Please wait a moment!&quot;</span><span class="o">);</span>
-</span><span class='line'><span class="err">    </span><span class="o">}</span>
-</span><span class='line'><span class="err"> </span>
-</span><span class='line'><span class="err">    </span><span class="nd">@Override</span>
-</span><span class='line'><span class="err">    </span><span class="kd">public</span> <span class="kt">void</span> <span class="n">onTaskFinished</span><span class="o">(</span><span class="n">String</span> <span class="n">result</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'><span class="err">        </span><span class="k">if</span> <span class="o">(</span><span class="n">progressDialog</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'><span class="err">            </span><span class="n">progressDialog</span><span class="o">.</span><span class="na">dismiss</span><span class="o">();</span>
-</span><span class='line'><span class="err">        </span><span class="o">}</span>
-</span><span class='line'><span class="err">        </span><span class="n">isTaskRunning</span> <span class="o">=</span> <span class="kc">false</span><span class="o">;</span>
-</span><span class='line'><span class="err">    </span><span class="o">}</span>
-</span><span class='line'><span class="err"> </span>
-</span><span class='line'><span class="err">    </span><span class="nd">@Override</span>
-</span><span class='line'><span class="err">    </span><span class="kd">public</span> <span class="kt">void</span> <span class="n">onDetach</span><span class="o">()</span> <span class="o">{</span>
-</span><span class='line'><span class="err">        </span><span class="c1">// All dialogs should be closed before leaving the activity in order to avoid</span>
-</span><span class='line'><span class="err">        </span><span class="c1">// the: Activity has leaked window com.android.internal.policy... exception</span>
-</span><span class='line'><span class="err">        </span><span class="k">if</span> <span class="o">(</span><span class="n">progressDialog</span> <span class="o">!=</span> <span class="kc">null</span> <span class="o">&amp;&amp;</span> <span class="n">progressDialog</span><span class="o">.</span><span class="na">isShowing</span><span class="o">())</span> <span class="o">{</span>
-</span><span class='line'><span class="err">            </span><span class="n">progressDialog</span><span class="o">.</span><span class="na">dismiss</span><span class="o">();</span>
-</span><span class='line'><span class="err">        </span><span class="o">}</span>
-</span><span class='line'><span class="err">        </span><span class="kd">super</span><span class="o">.</span><span class="na">onDetach</span><span class="o">();</span>
-</span><span class='line'><span class="err">    </span><span class="o">}</span>
-</span><span class='line'><span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>Solution 3 – Lock the screen orientation</h3>
-
-<p>You could do this in 2 ways:</p>
-
-<p>a) permanently locking the screen orientation of the activity, specifying the screenOrientation attribute in the AndroidManifest with “portrait” or “landscape” values:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='xml'><span class='line'><span class="nt">&lt;activity</span>
-</span><span class='line'>   <span class="na">android:screenOrientation=</span><span class="s">&quot;portrait&quot;</span>
-</span><span class='line'>   <span class="err">...</span>  <span class="nt">/&gt;</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>b) or, temporarily locking the screen in <code>onPreExecute()</code>, and unlocking it in <code>onPostExecute()</code>, thus preventing any orientation change while the AsyncTask is working:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="nd">@Override</span>
-</span><span class='line'><span class="kd">public</span> <span class="kt">void</span> <span class="nf">onTaskStarted</span><span class="o">()</span> <span class="o">{</span>
-</span><span class='line'><span class="err">    </span><span class="n">lockScreenOrientation</span><span class="o">();</span>
-</span><span class='line'><span class="err">    </span><span class="n">progressDialog</span> <span class="o">=</span> <span class="n">ProgressDialog</span><span class="o">.</span><span class="na">show</span><span class="o">(</span><span class="n">CopyOfCopyOfMainActivity</span><span class="o">.</span><span class="na">this</span><span class="o">,</span> <span class="s">&quot;Loading&quot;</span><span class="o">,</span> <span class="s">&quot;Please wait a moment!&quot;</span><span class="o">);</span>
-</span><span class='line'><span class="o">}</span>
-</span><span class='line'><span class="err"> </span>
-</span><span class='line'><span class="nd">@Override</span>
-</span><span class='line'><span class="kd">public</span> <span class="kt">void</span> <span class="nf">onTaskFinished</span><span class="o">(</span><span class="n">String</span> <span class="n">result</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'><span class="err">    </span><span class="k">if</span> <span class="o">(</span><span class="n">progressDialog</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'><span class="err">        </span><span class="n">progressDialog</span><span class="o">.</span><span class="na">dismiss</span><span class="o">();</span>
-</span><span class='line'><span class="err">    </span><span class="o">}</span>
-</span><span class='line'><span class="err">    </span><span class="n">unlockScreenOrientation</span><span class="o">();</span>
-</span><span class='line'><span class="o">}</span>
-</span><span class='line'><span class="err"> </span>
-</span><span class='line'><span class="kd">private</span> <span class="kt">void</span> <span class="nf">lockScreenOrientation</span><span class="o">()</span> <span class="o">{</span>
-</span><span class='line'><span class="err">    </span><span class="kt">int</span> <span class="n">currentOrientation</span> <span class="o">=</span> <span class="n">getResources</span><span class="o">().</span><span class="na">getConfiguration</span><span class="o">().</span><span class="na">orientation</span><span class="o">;</span>
-</span><span class='line'><span class="err">    </span><span class="k">if</span> <span class="o">(</span><span class="n">currentOrientation</span> <span class="o">==</span> <span class="n">Configuration</span><span class="o">.</span><span class="na">ORIENTATION_PORTRAIT</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'><span class="err">        </span><span class="n">setRequestedOrientation</span><span class="o">(</span><span class="n">ActivityInfo</span><span class="o">.</span><span class="na">SCREEN_ORIENTATION_PORTRAIT</span><span class="o">);</span>
-</span><span class='line'><span class="err">    </span><span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
-</span><span class='line'><span class="err">        </span><span class="n">setRequestedOrientation</span><span class="o">(</span><span class="n">ActivityInfo</span><span class="o">.</span><span class="na">SCREEN_ORIENTATION_LANDSCAPE</span><span class="o">);</span>
-</span><span class='line'><span class="err">    </span><span class="o">}</span>
-</span><span class='line'><span class="o">}</span>
-</span><span class='line'><span class="err"> </span>
-</span><span class='line'><span class="kd">private</span> <span class="kt">void</span> <span class="nf">unlockScreenOrientation</span><span class="o">()</span> <span class="o">{</span>
-</span><span class='line'><span class="err">    </span><span class="n">setRequestedOrientation</span><span class="o">(</span><span class="n">ActivityInfo</span><span class="o">.</span><span class="na">SCREEN_ORIENTATION_SENSOR</span><span class="o">);</span>
-</span><span class='line'><span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h4>Solution 4 – Prevent the Activity from being recreated.</h4>
-
-<p>This is the easiest way to handle configuration changes, but the less advised. The only thing you need to do is to specify the configChanges attribute followed by a list of values that specifies when the activity should prevent itself from restarting.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class='xml'><span class='line'><span class="nt">&lt;activity</span>
-</span><span class='line'>   <span class="na">android:configChanges=</span><span class="s">&quot;orientation|keyboardHidden&quot;</span>
-</span><span class='line'>   <span class="na">android:name=</span><span class="s">&quot;.MainActivity&quot;</span>
-</span><span class='line'>   <span class="err">....</span> <span class="nt">/&gt;</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Using this approach however, is not recommended, and this is clearly stated in the Android documentation: Using this attribute should be avoided and used only as a last-resort.</p>
-
-<p>You may ask what’s wrong with this approach. Well, if you build the above example against Android 2.2 it will work fine, but if you build it against Android 3.0 and higher, you may notice that the application still crashes on orientation change. This is because starting  with Android 3.0 you need also to handle the <code>screenSize</code>, and <code>smallestScreenSize</code>:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class='xml'><span class='line'><span class="nt">&lt;activity</span>
-</span><span class='line'>   <span class="na">android:configChanges=</span><span class="s">&quot;orientation|keyboardHidden|screenSize|smallestScreenSize&quot;</span>
-</span><span class='line'>   <span class="na">android:name=</span><span class="s">&quot;.MainActivity&quot;</span>
-</span><span class='line'>   <span class="err">....</span> <span class="nt">/&gt;</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>As it turns out, not only a screen orientation causes the Activity to recreate, there are also other events which may produce configuration changes and restart the Activity, and there’s a good chance that we won’t handle them all. This is why the use of this technique is discouraged.</p>
-
-<p><embed src="http://player.youku.com/player.php/sid/XODExOTY3MzY0/v.swf" allowFullScreen="true" quality="high" width="480" height="400" align="middle" allowScriptAccess="always" type="application/x-shockwave-flash"></embed></p>
-
-<p><embed src="http://player.youku.com/player.php/sid/XODExOTg2MTgw/v.swf" allowFullScreen="true" quality="high" width="480" height="400" align="middle" allowScriptAccess="always" type="application/x-shockwave-flash"></embed></p>
-
-<p>REF:</p>
-
-<ul>
-<li><a href="http://androidresearch.wordpress.com/2013/05/10/dealing-with-asynctask-and-screen-orientation/">Dealing with AsyncTask and Screen Orientation</a></li>
-</ul>
-
 ]]></content>
   </entry>
   
