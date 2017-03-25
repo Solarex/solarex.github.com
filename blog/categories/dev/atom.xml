@@ -4,7 +4,7 @@
   <title><![CDATA[Category: dev | Solarex's Blog]]></title>
   <link href="http://Solarex.github.io/blog/categories/dev/atom.xml" rel="self"/>
   <link href="http://Solarex.github.io/"/>
-  <updated>2016-12-29T09:57:49+08:00</updated>
+  <updated>2017-03-26T07:38:45+08:00</updated>
   <id>http://Solarex.github.io/</id>
   <author>
     <name><![CDATA[Solarex]]></name>
@@ -12,6 +12,432 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Make an android custom view,Publish and Open Source]]></title>
+    <link href="http://Solarex.github.io/blog/2016/05/28/make-an-android-custom-view-publish-and-open-source/"/>
+    <updated>2016-05-28T14:34:00+08:00</updated>
+    <id>http://Solarex.github.io/blog/2016/05/28/make-an-android-custom-view-publish-and-open-source</id>
+    <content type="html"><![CDATA[<p>Today I’m going to create an android custom view to implement circular <code>SeekBar</code> like the mockup below, make it as a library, open source at GitHub, and publish it to JCenter. In this post, I will cover several fundamental concepts of android custom view, write a helpful README on GitHub, and how to publish your library.</p>
+
+<center><img src="http://Solarex.github.io/images/custom_view_seekbar.png"/></center>
+
+
+<h2>Before you start…</h2>
+
+<p>Try to understand the requirement or design specification, take a look at this widget first, the user can touch the indicator icon through this arc to set the current progress level. The indicator icon will stop dragging when exceeding max or min progress. It works like an extension of circular <code>SeekBar</code> with customized appearances and motion event.</p>
+
+<!-- more -->
+
+
+<h2>Get started:</h2>
+
+<p>All the android view widgets are based on <code>View</code>, to implement custom view, you will start a subclass of <code>View</code> and override several lifecycle callback methods of view, so you need to understand the view lifecycle at first. The following diagram shows some important methods to override:</p>
+
+<center><img src="http://Solarex.github.io/images/custom_view_lifecycle.png"/></center>
+
+
+<p>To get started, the first thing we have to do is to create a class that extends <code>View</code>, and provide two default constructors which allows us to create the view programmatically (1st constructor) or in XML layout (2nd constructor). The <code>SwagPoint(Context context, AttributeSet attrs)</code> constructor is more important here because it is used when Android inflates the view from XML layout file, otherwise you will get exception.</p>
+
+<p>```java
+public class SwagPoints extends View {</p>
+
+<pre><code>// used in view creation programmatically
+public SwagPoints(Context context) {
+    super(context);
+}
+
+// used in XML layout file
+public SwagPoints(Context context, AttributeSet attrs) {
+    super(context, attrs);
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<p>Then, there are several things we have to control or modify in our custom view:</p>
+
+<ul>
+<li><p><strong>Attributes</strong>: What things are customizable in your view? Determine custom attributes that allow developer to change its appearance and behavior in XML layout file according to their design.</p></li>
+<li><p><strong>Size</strong>: Determine the dimensions of the view and every components in this custom view on the screen.</p></li>
+<li><p><strong>Drawing</strong>: Determine how the view and components to render on the screen which contains the shape, location, appearance.</p></li>
+<li><p><strong>Touch</strong>: Determine the way the user can interact with the view by touching.</p></li>
+</ul>
+
+
+<h2>1. Attribute:</h2>
+
+<p>Here we provide several customizable attributes for developer: the initial progress <code>points</code>, the range of progress <code>max/min</code>, the interval when user change the progress <code>step</code>, the color and size of progress/arc/text. To define custom attributes, we create <code>res/values/attrs.xml</code> file and define custom attributes for your view in a <code>&lt;declare-styleable&gt;</code> resource element as below.</p>
+
+<p>```xml
+<resources></p>
+
+<pre><code>&lt;declare-styleable name="SwagPoints"&gt;
+    &lt;attr name="points" format="integer" /&gt;
+    &lt;attr name="max" format="integer" /&gt;
+    &lt;attr name="min" format="integer"/&gt;
+    &lt;attr name="step" format="integer"/&gt;
+
+    &lt;attr name="indicatorIcon" format="reference" /&gt;
+
+    &lt;attr name="progressWidth" format="dimension" /&gt;
+    &lt;attr name="progressColor" format="color" /&gt;
+
+    &lt;attr name="arcWidth" format="dimension" /&gt;
+    &lt;attr name="arcColor" format="color" /&gt;
+
+    &lt;attr name="textSize" format="dimension"/&gt;
+    &lt;attr name="textColor" format="color"/&gt;
+
+    &lt;attr name="clockwise" format="boolean" /&gt;
+    &lt;attr name="enabled" format="boolean" /&gt;
+
+&lt;/declare-styleable&gt;
+</code></pre>
+
+<p></resources>
+```</p>
+
+<p>After adding <code>res/values/attrs.xml</code> file, to use <code>TypedArray</code> to retrieve attribute value in class and define instance variables (the following variable with <code>m</code> as prefix name) to store. Here we add a <code>init()</code> method to put <code>init()</code> inside the constructor after <code>super()</code> method to do this job:</p>
+
+<p>```java
+private void init(Context context, AttributeSet attrs) {</p>
+
+<pre><code>float density = getResources().getDisplayMetrics().density;
+
+// Defaults, may need to link this into theme settings
+int arcColor = ContextCompat.getColor(context, R.color.color_arc);
+int progressColor = ContextCompat.getColor(context, R.color.color_progress);
+int textColor = ContextCompat.getColor(context, R.color.color_text);
+mProgressWidth = (int) (mProgressWidth * density);
+mArcWidth = (int) (mArcWidth * density);
+mTextSize = (int) (mTextSize * density);
+
+mIndicatorIcon = ContextCompat.getDrawable(context, R.drawable.indicator);
+
+if (attrs != null) {
+    // Attribute initialization
+    final TypedArray a = context.obtainStyledAttributes(attrs,
+            R.styleable.SwagPoints, 0, 0);
+
+    Drawable indicatorIcon = a.getDrawable(R.styleable.SwagPoints_indicatorIcon);
+    if (indicatorIcon != null)
+        mIndicatorIcon = indicatorIcon;
+
+    int indicatorIconHalfWidth = mIndicatorIcon.getIntrinsicWidth() / 2;
+    int indicatorIconHalfHeight = mIndicatorIcon.getIntrinsicHeight() / 2;
+    mIndicatorIcon.setBounds(-indicatorIconHalfWidth, -indicatorIconHalfHeight, indicatorIconHalfWidth,
+            indicatorIconHalfHeight);
+
+    mPoints = a.getInteger(R.styleable.SwagPoints_points, mPoints);
+    mMin = a.getInteger(R.styleable.SwagPoints_min, mMin);
+    mMax = a.getInteger(R.styleable.SwagPoints_max, mMax);
+    mStep = a.getInteger(R.styleable.SwagPoints_step, mStep);
+
+    mProgressWidth = (int) a.getDimension(R.styleable.SwagPoints_progressWidth, mProgressWidth);
+    progressColor = a.getColor(R.styleable.SwagPoints_progressColor, progressColor);
+
+    mArcWidth = (int) a.getDimension(R.styleable.SwagPoints_arcWidth, mArcWidth);
+    arcColor = a.getColor(R.styleable.SwagPoints_arcColor, arcColor);
+
+    mTextSize = (int) a.getDimension(R.styleable.SwagPoints_textSize, mTextSize);
+    mTextColor = a.getColor(R.styleable.SwagPoints_textColor, mTextColor);
+
+    mClockwise = a.getBoolean(R.styleable.SwagPoints_clockwise,
+            mClockwise);
+    mEnabled = a.getBoolean(R.styleable.SwagPoints_enabled, mEnabled);
+    a.recycle();
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<h2>2. Size:</h2>
+
+<p>In order to control the view dimension, we have to override <code>View.onMeasure()</code> method and calculate the size of each components. Here we have to define the arc radius according to the width/height of our view.</p>
+
+<p>```java
+@Override
+protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {</p>
+
+<pre><code>final int width = getDefaultSize(getSuggestedMinimumWidth(), widthMeasureSpec);
+final int height = getDefaultSize(getSuggestedMinimumHeight(), heightMeasureSpec);
+final int min = Math.min(width, height);
+
+mTranslateX = (int) (width * 0.5f);
+mTranslateY = (int) (height * 0.5f);
+
+int arcDiameter = min - getPaddingLeft();
+mArcRadius = arcDiameter / 2;
+float top = height / 2 - (arcDiameter / 2);
+float left = width / 2 - (arcDiameter / 2);
+mArcRect.set(left, top, left + arcDiameter, top + arcDiameter);
+
+updateIndicatorIconPosition();
+super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+</code></pre>
+
+<p>}
+```</p>
+
+<h2>3. Drawing:</h2>
+
+<p>Give you a pen and a paper, you can draw what you want. To draw the view, you have to override the <code>onDraw(Canvas canvas)</code> method.
+Before that, we have to know what to draw and how to draw. Android provides two classes to do this job:</p>
+
+<ul>
+<li><p>What to draw, handled by <code>Canvas</code> which is provided as parameter in <code>onDraw()</code> method.</p></li>
+<li><p>How to draw, handled by <code>Paint</code>.</p></li>
+</ul>
+
+
+<p>Before you use <code>Canvas</code> to draw anything, it’s necessary to create <code>Paint</code> objects. For performance optimization, creating the <code>Paint</code> objects ahead is quite important, because the <code>onDraw()</code> method is called when redrawn is needed at anytime, we won’t create the <code>Paint</code> objects inside the <code>onDraw()</code> method, we should avoid any allocation in <code>onDraw()</code> method. Here we define these objects (one for arc, another for progress and the other for text) as instance variables and initialize at <code>init()</code> method:</p>
+
+<p>```java
+private void init(Context context, AttributeSet attrs) {</p>
+
+<pre><code>// ...
+
+mArcPaint = new Paint();
+mArcPaint.setColor(arcColor);
+mArcPaint.setAntiAlias(true);
+mArcPaint.setStyle(Paint.Style.STROKE);
+mArcPaint.setStrokeWidth(mArcWidth);
+
+mProgressPaint = new Paint();
+mProgressPaint.setColor(progressColor);
+mProgressPaint.setAntiAlias(true);
+mProgressPaint.setStyle(Paint.Style.STROKE);
+mProgressPaint.setStrokeWidth(mProgressWidth);
+
+mTextPaint = new Paint();
+mTextPaint.setColor(textColor);
+mTextPaint.setAntiAlias(true);
+mTextPaint.setStyle(Paint.Style.FILL);
+mTextPaint.setTextSize(mTextSize);
+</code></pre>
+
+<p>}
+```</p>
+
+<p>Once we have <code>Paint</code> objects defined, we can start to implement the <code>onDraw(Canvas canvas)</code> method, here we’re going to draw the text to display current progress number, the arc and current progress:</p>
+
+<p>```java
+@Override
+protected void onDraw(Canvas canvas) {</p>
+
+<pre><code>if (!mClockwise) {
+    canvas.scale(-1, 1, mArcRect.centerX(), mArcRect.centerY());
+}
+
+// draw the text
+String textPoint = String.valueOf(mPoints);
+mTextPaint.getTextBounds(textPoint, 0, textPoint.length(), mTextRect);
+// center the text
+int xPos = canvas.getWidth() / 2 - mTextRect.width() / 2;
+int yPos = (int)((mArcRect.centerY()) - ((mTextPaint.descent() + mTextPaint.ascent()) / 2));
+canvas.drawText(String.valueOf(mPoints), xPos, yPos, mTextPaint);
+
+// draw the arc and progress
+canvas.drawArc(mArcRect, ANGLE_OFFSET, 360, false, mArcPaint);
+canvas.drawArc(mArcRect, ANGLE_OFFSET, mProgressSweep, false, mProgressPaint);
+
+if (mEnabled) {
+    // draw the indicator icon
+    canvas.translate(mTranslateX - mIndicatorIconX, mTranslateY - mIndicatorIconY);
+    mIndicatorIcon.draw(canvas);
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<p>After overriding <code>onDraw()</code> method, there is one more important method about drawing to introduce: <code>invalidate()</code>, this method is used when any redrawing is needed, we won’t call <code>onDraw()</code> directly, we just call this method instead, you can use this method anywhere inside your custom view, however, for performance optimization, make sure it’s called as infrequently as possible.</p>
+
+<h2>4. Touching:</h2>
+
+<p>When the user touch the screen, Android calls the <code>onTouchEvent()</code> method, so we override <code>View.onTouchEvent()</code> to handle the user input gestures:</p>
+
+<p>```java
+@Override
+public boolean onTouchEvent(MotionEvent event) {</p>
+
+<pre><code>if (mEnabled) {
+    this.getParent().requestDisallowInterceptTouchEvent(true);
+
+    switch (event.getAction()) {
+        case MotionEvent.ACTION_DOWN:
+            if (mOnSwagPointsChangeListener != null)
+                mOnSwagPointsChangeListener.onStartTrackingTouch(this);
+            updateOnTouch(event);
+            break;
+        case MotionEvent.ACTION_MOVE:
+            updateOnTouch(event);
+            break;
+        case MotionEvent.ACTION_UP:
+            if (mOnSwagPointsChangeListener != null)
+                mOnSwagPointsChangeListener.onStopTrackingTouch(this);
+            setPressed(false);
+            this.getParent().requestDisallowInterceptTouchEvent(false);
+            break;
+        case MotionEvent.ACTION_CANCEL:
+            if (mOnSwagPointsChangeListener != null)
+                mOnSwagPointsChangeListener.onStopTrackingTouch(this);
+            setPressed(false);
+            this.getParent().requestDisallowInterceptTouchEvent(false);
+            break;
+    }
+    return true;
+}
+return false;
+</code></pre>
+
+<p>}
+```</p>
+
+<p>There are several things we have to control when user touches the indicator or other place of view:</p>
+
+<ul>
+<li><p>Update the indicator icon position and progress text.</p></li>
+<li><p>Draw the current progress on the arc.</p></li>
+<li><p>Stop when reaching max or min.</p></li>
+</ul>
+
+
+<p>To know the indicator icon position and the current progress to draw, we have to convert the touch coordinate on the screen to the angle of arc.</p>
+
+<p>In our custom view, we consider the center of arc as origin <code>(0, 0)</code>, and use trigonometric functions to transform the touch coordinate into the angle of the arc in degree <code>(0, 360)</code>, and map to the current progress value of given range <code>(min, max)</code>.</p>
+
+<center><img src="http://Solarex.github.io/images/custom_view_touch.png"/></center>
+
+
+<p>Here we have a method to convert from touch coordinate to the arc angle:</p>
+
+<p>```java
+private double convertTouchEventPointToAngle(float xPos, float yPos) {</p>
+
+<pre><code>// transform touch coordinate into component coordinate
+float x = xPos - mTranslateX;
+float y = yPos - mTranslateY;
+
+x = (mClockwise) ? x : -x;
+double angle = Math.toDegrees(Math.atan2(y, x) + (Math.PI / 2));
+angle = (angle &lt; 0) ? (angle + 360) : angle;
+return angle;
+</code></pre>
+
+<p>}
+```</p>
+
+<h2>Final demo</h2>
+
+<center><img src="http://Solarex.github.io/images/custom_view_final_demo.gif"/></center>
+
+
+<h2>Open source at GitHub:</h2>
+
+<p>So you just finish a android custom view project, great! Let’s put on GitHub to get more developers to use you project. However, before you share your GitHub link to others, just make sure you have a nice document first. When developers are looking at you project, there are some points they care about:</p>
+
+<ul>
+<li><p>Does this project fit my requirement or solve my problem?</p></li>
+<li><p>If the answer is YES, how can I get starting right now?</p></li>
+</ul>
+
+
+<p>A nice document is like a salesman for you project. The README plays this important role to give the first impression to the developers who are looking at your project, so providing a well-documented README is necessary and gives you more chance to promote you project.</p>
+
+<p>Knowing how to write a REAME is equivalently important to write a clean code or design a great architecture.</p>
+
+<h3>1. Provide a screenshot and short description:</h3>
+
+<p>A picture is worth a thousand words, especially in a UI widget project, make sure that you provide a photo, GIF or video with a short description to demonstrate how your UI looks like or works. (If you are familiar with some design software, i.e. Sketch or PhotoShop, try to use them to help you make a great cover with the screenshot for your project)</p>
+
+<center><img src="http://Solarex.github.io/images/custom_view_screensot.png"/></center>
+
+
+<h3>Give easy installation/usage instruction</h3>
+
+<p>Before using you project, developer have to install it first, make sure to give a clean and easy installation instruction to get started. After installing you project successfully, just give some example code snippet to show what your project does, and how the developers can customize what they want, maybe just give a list of customizable attributes or provide an APK to install or sample module to run.</p>
+
+<h2>Publish your library:</h2>
+
+<p>After finish pushing your project to GitHub, there is the last step to get done: publish it so that developers can just add dependency</p>
+
+<p>```bash
+dependencies {</p>
+
+<pre><code>...
+compile 'com.dualcores.swagpoints:swagpoints:1.0.0'
+</code></pre>
+
+<p>}
+```</p>
+
+<p>to use you project. Here we go:</p>
+
+<h3>1. Sign-up or sign-in at JFrog Bintray.</h3>
+
+<h3>2. Go to profile page to create a repository, package, and version:</h3>
+
+<p>The repository is the place to host your several projects. You can choose any repository name whatever you want, it doesn’t matter for other developers.</p>
+
+<center><img src="http://Solarex.github.io/images/custom_view_frog_new_repo.png"/></center>
+
+
+<p>Inside the new repository, you can create a package, that is place to host your project. Your project also can import from GitHub.</p>
+
+<center><img src="http://Solarex.github.io/images/custom_view_frog_import_github.png"/></center>
+
+
+<p>For each package, you can create several versions, again, you can choose whatever name you want, not restricted to the traditional version number major.minor.patch rule.</p>
+
+<center><img src="http://Solarex.github.io/images/custom_view_frog_create_new_version.png"/></center>
+
+
+<h3>3. Generate and upload the aar files:</h3>
+
+<p>We use gradle to do this job, here I use this library to help <a href="https://github.com/blundell/release-android-library.">https://github.com/blundell/release-android-library.</a>
+Open you library module gradle file, add the following code snippet to buttom of module build.gradle file:</p>
+
+<p><code>bash
+// or use the remote copy to keep update with latest changes
+apply from: 'https://raw.githubusercontent.com/blundell/release-android-library/master/android-release-aar.gradle'
+</code></p>
+
+<p>and JCenter configuration:</p>
+
+<center><img src="http://Solarex.github.io/images/custom_view_frog_build_gradle.png"/></center>
+
+
+<p>then, sync your project and open your terminal, go to your project root path, execute the command:</p>
+
+<p><code>bash
+./gradlew clean build generateRelease
+</code></p>
+
+<p>If success, you will see the result in you terminal and you can upload the zip file from <code>PROJECT_ROOT/library/build/release/1.0.0/</code>:</p>
+
+<center><img src="http://Solarex.github.io/images/custom_view_frog_generate_aar.png"/></center>
+
+
+<h3>4. Add to JCenter:</h3>
+
+<p>Go back to your project page in bintray, there will be a Add to JCenter button in right-hand column, just click it to fill out a message and wait to be accepted. It takes hours or several days to be accepted, just be patient. This step is required so that to make your project downloadable and discoverable by gradle dependencies.</p>
+
+<center><img src="http://Solarex.github.io/images/custom_view_frog_add_jcenter.png"/></center>
+
+
+<h3>5. Project is accepted and test if everything is all right:</h3>
+
+<p>You will receive an email to inform you that your Add to JCenter request is accepted.Once it is accepted, test if gradle dependency works well by adding the dependency to sample module and sync. If it builds successfully, congratulation!!!! You’ve done. Good job~</p>
+
+<p><code>bash
+compile 'com.dualcores.swagpoints:swagpoints:1.0.0'
+</code></p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Mobile Apps Offline Support]]></title>
@@ -1048,105 +1474,6 @@ static class ChainedRef {
 
 <ul>
 <li><a href="http://www.birbit.com/recyclerview-animations-part-2-behind-the-scenes/">RecyclerView Animations Part 2 – Behind The Scenes</a></li>
-</ul>
-
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[RecyclerView Animation part I]]></title>
-    <link href="http://Solarex.github.io/blog/2016/02/11/recyclerview-animation-part-i/"/>
-    <updated>2016-02-11T00:47:00+08:00</updated>
-    <id>http://Solarex.github.io/blog/2016/02/11/recyclerview-animation-part-i</id>
-    <content type="html"><![CDATA[<p>ListView is one of the most popular widgets of the Android Framework. It has many features, yet it is fairly complex and hard to modify. As the UX paradigms evolved and phones got faster, its limitations started to overshadow its feature set.</p>
-
-<p>With Lollipop, the Android team decided to release a new widget that will make writing different collection views much easier with a pluggable architecture. Many different behaviors can be controlled easily by implementing simple contracts to change:</p>
-
-<ul>
-<li>how items are laid out</li>
-<li>animations!</li>
-<li>item decorations</li>
-<li>recycling strategy</li>
-</ul>
-
-
-<p>This great flexibility comes with the additional complexity of a bigger architecture. Also, there are more things to learn.</p>
-
-<!-- more -->
-
-
-<p>In this post, I want to deep dive into RecyclerView internals, particularly on how animations work.</p>
-
-<p>On Honeycomb, the Android Framework introduced LayoutTransition, which was a very easy way to animate changes inside a ViewGroup. It works by taking a snapshot of the ViewGroup before and after the layout changes, then creating Animators to move between these two states. This process is fairly similar to what RecyclerView needs to do to animate changes in the adapter.</p>
-
-<center><img src="http://Solarex.github.io/images/trans_man_default.gif" alt="LayoutTransition example"></center>
-
-
-<p>Unfortunately, lists have one major difference which makes LayoutTransitions a bad fit for their animations. Specifically, items in lists are not the same as views in a ViewGroup. This is an important distinction that needs to be understood to handle animations on “items” while using mechanisms that animate the “views” that show the item contents.</p>
-
-<p>In a normal ViewGroup, if a View is newly added to the View hierarchy, it can be treated like a newly added View and thus it can be animated accordingly (e.g. fade in). For collections, it is a bit different. For example, a View for an item may become visible just because an item before it has been removed from the Adapter. In this case, running a fade in animation for the new item would be misleading because it was already in the list though the view is new because the item just entered the viewport. RecyclerView knows if the item is new or not but it does not know where it was if the item is not new. The same case is valid for disappearing Views, RecyclerView does not know where the view went if it is not removed from the Adapter.</p>
-
-<center><img src="http://Solarex.github.io/images/trans_man_bad.gif" alt="LayoutTransition failure for a list"></center>
-
-
-<p>To overcome this problem, <code>RecyclerView</code> could ask <code>LayoutManager</code> for the previous location of the new View. Although this would work, it would require some bookkeeping on the <code>LayoutManager</code> end and may not be trivial to calculate for more complex <code>LayoutManagers</code>.</p>
-
-<p>The way that <code>RecyclerView</code> handles animating appearing and disappearing items (that is, animating the appearance and disappearance of views that refer to items that were and are still in the list) is by relying on the <code>LayoutManager</code> to handle predictive layout logic. One one hand, the <code>RecyclerView</code> wants to know where views would have been had they been laid out prior to this change. On the other hand, the <code>RecyclerView</code> wants to know where views would be laid out after this change if the <code>LayoutManager</code> went to the trouble of laying out items that are not currently visible.</p>
-
-<p>To make it easy for the <code>LayoutManager</code> to provide this information, <code>RecyclerView</code> uses a two step layout process when there are adapter changes which should be animated. The mechanisms for handling these predictive layout passes are described below.</p>
-
-<ul>
-<li>In the first layout pass (preLayout), RecyclerView asks LayoutManager to layout the previous state with the knowledge of the additional information. For the example above, it would be like requesting “Layout items again, btw, ‘C’ has been removed”. The LayoutManager runs its usual layout step but knowing that ‘C’ will be removed, it lays out View(s) to fill the space left by ‘C’.The cool part of this contract is that RecyclerView still behaves as if ‘C’ is still in the backing Adapter. For example, when LayoutManager asks for the View for position 2, RecyclerView returns ‘C’ (<code>getViewForPosition(2) == View('C')</code>) and if LayoutManager asks for position 4, RecyclerView returns the View for ‘E’ (although ‘D’ is the 4th item in the Adapter). LayoutParams of the returned View has an <code>isItemRemoved</code> method which LayoutManager can use to check if this is a disappearing item.</li>
-<li>In the second layout pass (postLayout), RecyclerView asks LayoutManager to re-layout its items. This time, ‘C’ is not in the Adapter anymore. <code>getViewForPosition(2)</code> will return ‘D’ and <code>getViewForPosition(4)</code> will return ‘F’.Keep in mind that the backing item for ‘C’ was already removed from the Adapter, but since RecyclerView has the View representation of it, it can behave as if ‘C’ is still there. In other words, RecyclerView does the bookkeeping for the LayoutManager.</li>
-</ul>
-
-
-<p>Every time <code>onLayoutChildren</code> is called on the <code>LayoutManager</code>, it temporarily detaches all views and lays them out from scratch again. Unchanged Views are returned from the scrap cache so their measurements stay valid, making this relayout fairly cheap and simple.</p>
-
-<center><img src="http://Solarex.github.io/images/pre-layout.jpeg" alt="LinearLayoutManager pre layout result"></center>
-
-
-
-
-<center><img src="http://Solarex.github.io/images/post-layout.jpeg" alt="LinearLayoutManager post layout result"></center>
-
-
-<p>After these two layout passes, RecyclerView knows where the Views came from so it can run the correct animation.</p>
-
-<center><img src="http://Solarex.github.io/images/predictive_animations.gif" alt="predictive animations"></center>
-
-
-<p>You might ask: The View ‘C’ was not laid out by the LayoutManager, how come it is still visible?</p>
-
-<p>To be clear, ‘C’ was laid out by the LayoutManager in the pre-layout pass because it looked like it was in the Adapter. It is true that ‘C’ was not laid out by the LayoutManager in the post-layout pass because it does not exist in the Adapter anymore. It is also true for the LayoutManager that ‘C’ is not its child anymore but not true for the RecyclerView. When a View is removed by the LayoutManager, if ItemAnimator wants to animate it, RecyclerView keeps it as a child (so that animations can run properly). More details on this in Part2.</p>
-
-<h2>Disappearing Items</h2>
-
-<p>With these two layout passes, RecyclerView is able to animate new Views properly. But now, there is another problem with Views that are disappearing. Consider the following case where a new item is added to the list, pushing some other items outside the visible area. This is how it would look with LayoutTransitions:</p>
-
-<center><img src="http://Solarex.github.io/images/layout_transition_add.gif" alt="layout transition add"></center>
-
-
-<p>When ‘X’ was added after ‘A’, it pushed ‘F’ outside the screen. Since LayoutManager will not layout ‘F’, LayoutTransition thinks it has been removed from the UI and runs a fade out animation for it. In reality, ‘F’ is still in the adapter but has been pushed out of bounds.</p>
-
-<p>To solve this issue, RecyclerView provides an additional API to LayoutManager to get this information. At the end of a postLayout pass, LayoutManager can call <code>getScrapList</code> to get list of Views which are in this situation (not laid out by the <code>LayoutManager</code> but still present in the <code>Adapter</code>). Then, it lays out these views as well, as if the size of RecyclerView was big enough to show them.</p>
-
-<center><img src="http://Solarex.github.io/images/add_post_layout_with_frame.png"></center>
-
-
-<p>One important detail is that, since these Views are not necessary after their animations are complete, <code>LayoutManager</code> calls <code>addDisappearingView</code> instead of <code>addView</code>. This gives the clue to the RecyclerView that this View should be removed after its animations is complete. RecyclerView also adds the View to the list of hidden views so that it will disappear from LayoutManager’s children list as soon as postLayout method returns. This way, LayoutManager can forget about it.</p>
-
-<center><img src="http://Solarex.github.io/images/predictive_add.gif"></center>
-
-
-<p>Initially, at least for a LinearLayoutManager, you might think that it can calculate where the Views came from or where they went (if disappeared) and thus won’t need a two pass layout calculation. Unfortunately, there are many edge cases when multiple types of adapter changes happen in the same layout pass. In addition to that, for a more complex LayoutManager, it is not always trivial to calculate where an item would be placed (e.g. StaggeredGridLayout). This approach removes all burden from the LayoutManager and it can support proper animations with little effort.</p>
-
-<p>So far, I’ve covered the main idea on how predictive animations run in RecyclerView. There is actually a lot more going on to achieve this simplicity (for the LayoutManager). You can read about how all this works in Part 2 – Behind The Scenes.</p>
-
-<h2>reference</h2>
-
-<ul>
-<li><a href="http://www.birbit.com/recyclerview-animations-part-1-how-animations-work/">RecyclerView Animations Part 1 – How Animations Work</a></li>
 </ul>
 
 ]]></content>

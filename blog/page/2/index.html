@@ -1,89 +1,138 @@
 
-<!DOCTYPE html>
-<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
-<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
-<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<!DOCTYPE HTML>
+<html>
 <head>
-  <meta charset="utf-8">
-  <title>Solarex's Blog</title>
-  <meta name="author" content="Solarex">
+	<meta charset="utf-8">
+	<title>Solarex's Blog</title>
+    <meta name="author" content="Solarex">
+    
+	<meta name="description" content="Published on: Feb 11th, 2016 Tags: android, dev ListView is one of the most popular widgets of the Android Framework. It has many features, yet it &hellip;">
+	
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
-  
-  <meta name="description" content="ListView is one of the most popular widgets of the Android Framework. It has many features, yet it is fairly complex and hard to modify. As the UX &hellip;">
-  
+	<link href="/atom.xml" rel="alternate" title="Solarex's Blog" type="application/atom+xml">
+	<link rel="canonical" href="">
+	<link href="/favicon.ico" rel="shortcut icon">
+    <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
 
-  <!-- http://t.co/dKP3o1e -->
-  <meta name="HandheldFriendly" content="True">
-  <meta name="MobileOptimized" content="320">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href='http://fonts.googleapis.com/css?family=Slackey' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Amethysta' rel='stylesheet' type='text/css'>
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+    <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
 
-  
-  <link rel="canonical" href="http://Solarex.github.io/blog/page/2">
-  <link href="/favicon.ico" rel="icon">
-  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
-  <link href="/atom.xml" rel="alternate" title="Solarex's Blog" type="application/atom+xml">
-  <script src="/javascripts/modernizr-2.0.js"></script>
-  <!--
-  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
-  -->
-  <script src="http://libs.baidu.com/jquery/1.9.1/jquery.min.js"></script>
-  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
-  <script src="/javascripts/octopress.js" type="text/javascript"></script>
-  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
-<link href="http://fonts.useso.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
-<link href='http://fonts.useso.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
-<link href='http://fonts.useso.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+    <script type="text/javascript" src="/javascripts/jquery-tapir.js"></script>
+
+    <!-- remove or comment it to disable ajaxification -->   
+    <script src="/javascripts/ajaxify.js"></script>
+   
+    <script>
+var _hmt = _hmt || [];
+(function() {
+      var hm = document.createElement("script");
+        hm.src = "https://hm.baidu.com/hm.js?2574e8b2c205dfe8ff89e239fa38ca27";
+          var s = document.getElementsByTagName("script")[0]; 
+            s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+    
+	<script type="text/javascript">
+		var _gaq = _gaq || [];
+		_gaq.push(['_setAccount', 'UA-42746457-1']);
+		_gaq.push(['_trackPageview']);
+
+		(function() {
+			var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+			ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+			var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+		})();
+	</script>
+
 
 </head>
 
-<body   class="collapse-sidebar sidebar-footer" >
-  <header role="banner"><hgroup>
-  <h1><a href="/">Solarex's Blog</a></h1>
+
+<body>
+    <div id="wrapper">
+    <header id="header" class="inner"><!-- for more effects see _animate.scss -->
+<h1 class="animated bounceInDown">
+    <div id="headerbg">
+        Solarex
+    </div>
+</h1>
+<br>
+
+<ul id="social-links" style="text-align:center">
   
-    <h2>Yet Another Blog 4 Solarex</h2>
+  <!-- GitHub -->
+  <li>
+  <a href="https://github.com/flyfire" class="github" title="Github"></a>
+  </li>
   
-</hgroup>
+  
+  <!-- Google Plus -->
+  <li>
+  <a href="http://plus.google.com/107384356964511479070?rel=author" class="google" title="Google+"></a>
+  </li>
+  
+  
+  
+  <!-- Twitter -->
+  <li>
+  <a href="http://www.twitter.com/hrhflyfire" class="twitter" title="Twitter"></a>
+  </li>
+  
+  
+  
+  
+  
+</ul>
+
+
+<!-- use full url including 'index.html' for navigation bar if you are using ajax -->
+<ul id="nav">
+	<li id="ajax"><a href="/index.html">Home</a></li>
+	<li id="ajax"><a href="/blog/archives/index.html">Archives</a></li>
+    <li><a href="http://solarex.github.io/wiki">Wiki</a></li>
+    <li id="ajax"><a href="/about">About</a></li>
+    <li><a href="http://solarex.github.io/resume">Resume</a></li>
+    
+    <li>
+    <div id="dark">
+        <form method="get" action="http://google.com/search" id="search">
+            <input type="hidden" name="q" value="site:solarex.github.io">
+            <input name="q" type="text" results="0" placeholder="Search..." x-webkit-speech />
+        </form>
+    </div>
+    </li>
+        
+</ul>
+
+
+
 
 </header>
-  <nav role="navigation"><ul class="subscription" data-subscription="rss">
-  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
-  
-</ul>
-  
-<form action="http://google.com/search" method="get">
-  <fieldset role="search">
-    <input type="hidden" name="q" value="site:Solarex.github.io" />
-    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
-  </fieldset>
-</form>
-  
-<ul class="main-navigation">
-    <li><a href="/">Blog</a></li>
-    <li><a href="/blog/archives">Archives</a></li>
-    <li><a href="/projects">Projects</a></li>
-	<li><a href="https://solarex.github.io/wiki">Wiki</a></li>
-    <li><a href="/about">About</a></li>
-	<li><a href="https://solarex.github.io/resume">Resume</a></li>
-</ul>
 
-</nav>
-  <div id="main">
-    <div id="content">
-      <div class="blog-index">
-  
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2016/02/11/recyclerview-animation-part-i/">RecyclerView Animation Part I</a></h1>
-    
-    
-      <p class="meta">
+<div id="toload">
+<!-- begin toload --> 
+    <div id="content" class="inner">
         
 
 
+    <article class="post">
+	<h2 class="title">
+		
+		<a href="/blog/2016/02/11/recyclerview-animation-part-i/">
+		
+			RecyclerView Animation Part I</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: 
+
+
 
 
 
@@ -93,14 +142,16 @@
   
 
 
-<time datetime="2016-02-11T00:47:00+08:00" pubdate data-updated="true">Feb 11<span>th</span>, 2016</time>
-        
-      </p>
-    
-  </header>
+<time datetime="2016-02-11T00:47:00+08:00" pubdate data-updated="true">Feb 11<span>th</span>, 2016</time></div>
+      <div class="tags">Tags: 
 
 
-  <div class="entry-content"><p>ListView is one of the most popular widgets of the Android Framework. It has many features, yet it is fairly complex and hard to modify. As the UX paradigms evolved and phones got faster, its limitations started to overshadow its feature set.</p>
+	<a class='category' href='/blog/categories/android/'>android</a>, <a class='category' href='/blog/categories/dev/'>dev</a>
+
+
+</div>
+    </div>
+		<p>ListView is one of the most popular widgets of the Android Framework. It has many features, yet it is fairly complex and hard to modify. As the UX paradigms evolved and phones got faster, its limitations started to overshadow its feature set.</p>
 
 <p>With Lollipop, the Android team decided to release a new widget that will make writing different collection views much easier with a pluggable architecture. Many different behaviors can be controlled easily by implementing simple contracts to change:</p>
 
@@ -114,27 +165,29 @@
 
 <p>This great flexibility comes with the additional complexity of a bigger architecture. Also, there are more things to learn.</p>
 
+
+		
+		<a href="/blog/2016/02/11/recyclerview-animation-part-i/" class="more-link">Read on &rarr;</a>
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="/blog/2016/02/11/recyclerview-animation-part-i//blog/page/2/index.html#disqus_thread">Comments</a></span>
+	
 </div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2016/02/11/recyclerview-animation-part-i/">Read on &rarr;</a>
-    </footer>
-  
+</article>
 
 
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2016/01/15/building-a-recyclerview-layoutmanager-part-iv/">Building a RecyclerView LayoutManager Part IV</a></h1>
-    
-    
-      <p class="meta">
-        
+    <article class="post">
+	<h2 class="title">
+		
+		<a href="/blog/2016/01/15/building-a-recyclerview-layoutmanager-part-iv/">
+		
+			Building a RecyclerView LayoutManager Part IV</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: 
 
 
 
@@ -146,14 +199,16 @@
   
 
 
-<time datetime="2016-01-15T16:14:00+08:00" pubdate data-updated="true">Jan 15<span>th</span>, 2016</time>
-        
-      </p>
-    
-  </header>
+<time datetime="2016-01-15T16:14:00+08:00" pubdate data-updated="true">Jan 15<span>th</span>, 2016</time></div>
+      <div class="tags">Tags: 
 
 
-  <div class="entry-content"><p>While writing what was intended to be the final post of this series, a discussion of predictive animations, I ran into a number of interesting challenges that I thought warranted their own discussion. This series began as an investigation into whether RecyclerView could easily handle a layout structure that could scroll in both the horizontal and vertical axes, and how difficult it would be for the developer to build their own LayoutManager. I chose a basic grid of uniform items as the structure, thinking it would be the most straightforward to implement.</p>
+	<a class='category' href='/blog/categories/android/'>android</a>, <a class='category' href='/blog/categories/dev/'>dev</a>
+
+
+</div>
+    </div>
+		<p>While writing what was intended to be the final post of this series, a discussion of predictive animations, I ran into a number of interesting challenges that I thought warranted their own discussion. This series began as an investigation into whether RecyclerView could easily handle a layout structure that could scroll in both the horizontal and vertical axes, and how difficult it would be for the developer to build their own LayoutManager. I chose a basic grid of uniform items as the structure, thinking it would be the most straightforward to implement.</p>
 
 <p>The following graphic represents the basic goal of what the implementation ought to achieve while the user scrolls around the screen.</p>
 
@@ -162,27 +217,29 @@
 
 
 
+
+		
+		<a href="/blog/2016/01/15/building-a-recyclerview-layoutmanager-part-iv/" class="more-link">Read on &rarr;</a>
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="/blog/2016/01/15/building-a-recyclerview-layoutmanager-part-iv//blog/page/2/index.html#disqus_thread">Comments</a></span>
+	
 </div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2016/01/15/building-a-recyclerview-layoutmanager-part-iv/">Read on &rarr;</a>
-    </footer>
-  
+</article>
 
 
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2016/01/13/building-a-recyclerview-layoutmanager-part-iii/">Building a RecyclerView LayoutManager Part III</a></h1>
-    
-    
-      <p class="meta">
-        
+    <article class="post">
+	<h2 class="title">
+		
+		<a href="/blog/2016/01/13/building-a-recyclerview-layoutmanager-part-iii/">
+		
+			Building a RecyclerView LayoutManager Part III</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: 
 
 
 
@@ -194,14 +251,16 @@
   
 
 
-<time datetime="2016-01-13T00:48:00+08:00" pubdate data-updated="true">Jan 13<span>th</span>, 2016</time>
-        
-      </p>
-    
-  </header>
+<time datetime="2016-01-13T00:48:00+08:00" pubdate data-updated="true">Jan 13<span>th</span>, 2016</time></div>
+      <div class="tags">Tags: 
 
 
-  <div class="entry-content"><p>In the previous post, we discussed adding proper support for data set changes and targeted scrolling. In this installment of the series, we will focus on properly supporting animations in your fancy new LayoutManager.In case you’ve forgotten, the code samples are <a href="https://github.com/devunwired/recyclerview-playground">on GitHub</a>.</p>
+	<a class='category' href='/blog/categories/android/'>android</a>, <a class='category' href='/blog/categories/dev/'>dev</a>
+
+
+</div>
+    </div>
+		<p>In the previous post, we discussed adding proper support for data set changes and targeted scrolling. In this installment of the series, we will focus on properly supporting animations in your fancy new LayoutManager.In case you’ve forgotten, the code samples are <a href="https://github.com/devunwired/recyclerview-playground">on GitHub</a>.</p>
 
 <h2>The Problem With Free</h2>
 
@@ -222,27 +281,29 @@
 
 
 
+
+		
+		<a href="/blog/2016/01/13/building-a-recyclerview-layoutmanager-part-iii/" class="more-link">Read on &rarr;</a>
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="/blog/2016/01/13/building-a-recyclerview-layoutmanager-part-iii//blog/page/2/index.html#disqus_thread">Comments</a></span>
+	
 </div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2016/01/13/building-a-recyclerview-layoutmanager-part-iii/">Read on &rarr;</a>
-    </footer>
-  
+</article>
 
 
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2016/01/11/building-a-recyclerview-layoutmanager-part-ii/">Building a RecyclerView LayoutManager Part II</a></h1>
-    
-    
-      <p class="meta">
-        
+    <article class="post">
+	<h2 class="title">
+		
+		<a href="/blog/2016/01/11/building-a-recyclerview-layoutmanager-part-ii/">
+		
+			Building a RecyclerView LayoutManager Part II</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: 
 
 
 
@@ -254,40 +315,44 @@
   
 
 
-<time datetime="2016-01-11T00:48:00+08:00" pubdate data-updated="true">Jan 11<span>th</span>, 2016</time>
-        
-      </p>
-    
-  </header>
+<time datetime="2016-01-11T00:48:00+08:00" pubdate data-updated="true">Jan 11<span>th</span>, 2016</time></div>
+      <div class="tags">Tags: 
 
 
-  <div class="entry-content"><p>In the last post,  we walked through the core functionality necessary for building a RecyclerView LayoutManager. In this post, we are going to add support for a few additional features that the average adapter-based view is expected to have.A reminder that the entire sample application can be found <a href="https://github.com/devunwired/recyclerview-playground">here on GitHub</a>.</p>
+	<a class='category' href='/blog/categories/android/'>android</a>, <a class='category' href='/blog/categories/dev/'>dev</a>
+
+
+</div>
+    </div>
+		<p>In the last post,  we walked through the core functionality necessary for building a RecyclerView LayoutManager. In this post, we are going to add support for a few additional features that the average adapter-based view is expected to have.A reminder that the entire sample application can be found <a href="https://github.com/devunwired/recyclerview-playground">here on GitHub</a>.</p>
 
 <h2>Supporting Item Decorations</h2>
 
 <p><code>RecyclerView</code> has a really neat feature in which an <code>RecyclerView.ItemDecoration</code> instance can be supplied to do custom drawing alongside the child view content, as well as provide insets (margins) that will apply to the child views without the need for modifying layout parameters. The latter places a constraint on how the children should be laid out that the <code>LayoutManager</code> implementation must support.The <a href="https://github.com/devunwired/recyclerview-playground">RecyclerPlayground</a> repository uses a few different decorators in the examples to illustrate how they are implemented.</p>
 
+
+		
+		<a href="/blog/2016/01/11/building-a-recyclerview-layoutmanager-part-ii/" class="more-link">Read on &rarr;</a>
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="/blog/2016/01/11/building-a-recyclerview-layoutmanager-part-ii//blog/page/2/index.html#disqus_thread">Comments</a></span>
+	
 </div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2016/01/11/building-a-recyclerview-layoutmanager-part-ii/">Read on &rarr;</a>
-    </footer>
-  
+</article>
 
 
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2016/01/10/building-a-recyclerview-layoutmanager-part-i/">Building a RecyclerView LayoutManager Part I</a></h1>
-    
-    
-      <p class="meta">
-        
+    <article class="post">
+	<h2 class="title">
+		
+		<a href="/blog/2016/01/10/building-a-recyclerview-layoutmanager-part-i/">
+		
+			Building a RecyclerView LayoutManager Part I</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: 
 
 
 
@@ -299,14 +364,16 @@
   
 
 
-<time datetime="2016-01-10T00:48:00+08:00" pubdate data-updated="true">Jan 10<span>th</span>, 2016</time>
-        
-      </p>
-    
-  </header>
+<time datetime="2016-01-10T00:48:00+08:00" pubdate data-updated="true">Jan 10<span>th</span>, 2016</time></div>
+      <div class="tags">Tags: 
 
 
-  <div class="entry-content"><p>By now, if you’re an Android developer paying any attention, you’ve at least heard of RecyclerView; a new component that will be added to the support library to facilitate custom implementations of high-performance view collections by facilitating view recycling. Others have already done a remarkable job describing the basics of how to use RecyclerView with the built-in pieces already provided, including item animations. So rather than dive into all that again, here are some resources to get you up to speed:</p>
+	<a class='category' href='/blog/categories/android/'>android</a>, <a class='category' href='/blog/categories/dev/'>dev</a>
+
+
+</div>
+    </div>
+		<p>By now, if you’re an Android developer paying any attention, you’ve at least heard of RecyclerView; a new component that will be added to the support library to facilitate custom implementations of high-performance view collections by facilitating view recycling. Others have already done a remarkable job describing the basics of how to use RecyclerView with the built-in pieces already provided, including item animations. So rather than dive into all that again, here are some resources to get you up to speed:</p>
 
 <ul>
 <li><a href="http://www.grokkingandroid.com/first-glance-androids-recyclerview/">A First Glance at Android’s RecyclerView</a></li>
@@ -320,92 +387,74 @@
 <pre><code>Before going any further, a warning is in order. The LayoutManager API allows powerful and complex layout recycling because it doesn’t do much for you; these implementations involve a fair amount of code you have to write yourself. As with any project involving custom views, don’t get caught in a trap of over-optimizing or over-generalizing your code. Build the features you need for the application use case you’re concerned with.
 </code></pre>
 
+
+		
+		<a href="/blog/2016/01/10/building-a-recyclerview-layoutmanager-part-i/" class="more-link">Read on &rarr;</a>
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="/blog/2016/01/10/building-a-recyclerview-layoutmanager-part-i//blog/page/2/index.html#disqus_thread">Comments</a></span>
+	
 </div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2016/01/10/building-a-recyclerview-layoutmanager-part-i/">Read on &rarr;</a>
-    </footer>
-  
+</article>
 
-
-    </article>
-  
-  <div class="pagination">
+<nav id="pagenavi">
     
-      <a class="prev" href="/blog/page/3/">&larr; Older</a>
+        <a href="/" class="prev">Prev</a>
     
-    <a href="/blog/archives">Blog Archives</a>
     
-    <a class="next" href="/">Newer &rarr;</a>
+        <a href="/blog/page/3/" class="next">Next</a>
     
-  </div>
-</div>
-<aside class="sidebar">
-  
-    <section>
-  <h1>Recent Posts</h1>
-  <ul id="recent_posts">
-    
-      <li class="post">
-        <a href="/blog/2016/05/28/make-an-android-custom-view-publish-and-open-source/">Make an android custom view,Publish and Open Source</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2016/03/14/mobile-apps-offline-support/">Mobile Apps Offline Support</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2016/03/13/the-clean-architecture/">The Clean Architecture</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2016/02/25/android-handler-memory-leaks/">Android Handler Memory Leaks</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2016/02/12/recyclerview-animation-part-ii/">RecyclerView Animation part II</a>
-      </li>
-    
-  </ul>
-</section>
-
-
-
-
-
-  
-</aside>
+    <div class="center"><a href="/blog/archives">Blog Archives</a></div>
+</nav>
 
     </div>
-  </div>
-  <footer role="contentinfo"><p>
-  Copyright &copy; 2016 - Solarex -
-  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a> | Themed with <a href="https://github.com/lucaslew/whitespace">Whitespace</a></span>
-</p>
+    <footer id="footer">
+    <div style="display:inline">
+    Copyright &copy; 2017
+
+    Solarex
+. Powered by <a href="http://octopress.org">Octopress</a> | 
+    Theme <a href="http://github.com/panks/fabric">fabric</a> by <a href="http://panks.me">Pankaj Kumar</a>
+</div>
+
+
+    </footer>
+    <script src="/javascripts/fabric.js"></script>
+<script src="/javascripts/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+	$('.fancybox').fancybox();
+})(jQuery);
+</script> <!-- Delete or comment this line to disable Fancybox -->
 
 
 <script type="text/javascript">
-    var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
-    document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/h.js%3F2574e8b2c205dfe8ff89e239fa38ca27' type='text/javascript'%3E%3C/script%3E"));
+      var disqus_shortname = 'flyfire';
+      
+        
+        var disqus_script = 'count.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
 </script>
 
 
-</footer>
-  
 
 
 
-
-
-
-
-
-
-
-
-
-
-
+<!-- end toload --> 
+</div>
+</div>
+<script src="/javascripts/jquery.ui.totop.js" type="text/javascript"></script>
+<script type="text/javascript">
+/*<![CDATA[*/
+;(function($){$().UItoTop({easingType:'easeOutCirc'});})(jQuery); 
+/*]]>*/
+</script><!-- remove it to remove the scroll to top button -->
 </body>
 </html>
