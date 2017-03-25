@@ -1,0 +1,3 @@
+[submodule ".themes/fabric"]
+	path = .themes/fabric
+	url = git@github.com:flyfire/fabric.git

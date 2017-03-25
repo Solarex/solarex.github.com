@@ -4,6 +4,8 @@ title: "Make an android custom view,Publish and Open Source"
 date: 2016-05-28 14:34
 comments: true
 categories: 
+- android
+- dev
 ---
 Today I’m going to create an android custom view to implement circular ``SeekBar`` like the mockup below, make it as a library, open source at GitHub, and publish it to JCenter. In this post, I will cover several fundamental concepts of android custom view, write a helpful README on GitHub, and how to publish your library.
 
