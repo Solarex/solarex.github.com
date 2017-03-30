@@ -6,7 +6,7 @@
 	<title>Solarex's Blog</title>
     <meta name="author" content="Solarex">
     
-	<meta name="description" content="Published on: Feb 11th, 2016 Tags: android, dev ListView is one of the most popular widgets of the Android Framework. It has many features, yet it &hellip;">
+	<meta name="description" content="Published on: Feb 12th, 2016 Tags: android, dev In the first article, I’ve covered the main idea on how predictive animations run in RecyclerView. &hellip;">
 	
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
@@ -119,6 +119,62 @@ var _hmt = _hmt || [];
 <!-- begin toload --> 
     <div id="content" class="inner">
         
+
+
+    <article class="post">
+	<h2 class="title">
+		
+		<a href="/blog/2016/02/12/recyclerview-animation-part-ii/">
+		
+			RecyclerView Animation Part II</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: 
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2016-02-12T00:47:00+08:00" pubdate data-updated="true">Feb 12<span>th</span>, 2016</time></div>
+      <div class="tags">Tags: 
+
+
+	<a class='category' href='/blog/categories/android/'>android</a>, <a class='category' href='/blog/categories/dev/'>dev</a>
+
+
+</div>
+    </div>
+		<p>In the first article, I’ve covered the main idea on how predictive animations run in RecyclerView. There is actually a lot more going on to achieve this simplicity (for the LayoutManager). Here are some important points that you should know about.</p>
+
+<p>RecyclerView keeps some children attached although they have been removed by the LayoutManager. How does it work? Does it invalidate the contract between the LayoutManager and RecyclerView?</p>
+
+<p>Yes it does ‘kind of’ violate the contract with LayoutManager, but:</p>
+
+<p>RecyclerView does keep the View as a child of the ViewGroup but hides it from the LayoutManager. Each time LayoutManager calls a method to access its children, RecyclerView takes into account the hidden Views. Lets look at the example at Part 1 where ‘C’ was being removed from the adapter.</p>
+
+<center><img src="/images/predictive_animations.gif"></center>
+
+
+
+
+
+		
+		<a href="/blog/2016/02/12/recyclerview-animation-part-ii/" class="more-link">Read on &rarr;</a>
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="/blog/2016/02/12/recyclerview-animation-part-ii//blog/page/2/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
 
 
     <article class="post">
@@ -338,63 +394,6 @@ var _hmt = _hmt || [];
 <div class="meta">
 	
 		<span class="comments"><a href="/blog/2016/01/11/building-a-recyclerview-layoutmanager-part-ii//blog/page/2/index.html#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-
-    <article class="post">
-	<h2 class="title">
-		
-		<a href="/blog/2016/01/10/building-a-recyclerview-layoutmanager-part-i/">
-		
-			Building a RecyclerView LayoutManager Part I</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: 
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2016-01-10T00:48:00+08:00" pubdate data-updated="true">Jan 10<span>th</span>, 2016</time></div>
-      <div class="tags">Tags: 
-
-
-	<a class='category' href='/blog/categories/android/'>android</a>, <a class='category' href='/blog/categories/dev/'>dev</a>
-
-
-</div>
-    </div>
-		<p>By now, if you’re an Android developer paying any attention, you’ve at least heard of RecyclerView; a new component that will be added to the support library to facilitate custom implementations of high-performance view collections by facilitating view recycling. Others have already done a remarkable job describing the basics of how to use RecyclerView with the built-in pieces already provided, including item animations. So rather than dive into all that again, here are some resources to get you up to speed:</p>
-
-<ul>
-<li><a href="http://www.grokkingandroid.com/first-glance-androids-recyclerview/">A First Glance at Android’s RecyclerView</a></li>
-<li><a href="http://lucasr.org/2014/07/31/the-new-twowayview/">The new TwoWayView</a></li>
-<li><a href="https://github.com/gabrielemariotti/RecyclerViewItemAnimators">RecyclerViewItemAnimators</a></li>
-</ul>
-
-
-<p>In this series of posts, we will be focused on the low-level details involved in building your own LayoutManager implementation, to do something a bit more complex than a simple vertical or horizontal scrolling list.</p>
-
-<pre><code>Before going any further, a warning is in order. The LayoutManager API allows powerful and complex layout recycling because it doesn’t do much for you; these implementations involve a fair amount of code you have to write yourself. As with any project involving custom views, don’t get caught in a trap of over-optimizing or over-generalizing your code. Build the features you need for the application use case you’re concerned with.
-</code></pre>
-
-
-		
-		<a href="/blog/2016/01/10/building-a-recyclerview-layoutmanager-part-i/" class="more-link">Read on &rarr;</a>
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="/blog/2016/01/10/building-a-recyclerview-layoutmanager-part-i//blog/page/2/index.html#disqus_thread">Comments</a></span>
 	
 </div>
 </article>

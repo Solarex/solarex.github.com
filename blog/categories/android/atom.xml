@@ -4,7 +4,7 @@
   <title><![CDATA[Category: android | Solarex's Blog]]></title>
   <link href="http://Solarex.github.io/blog/categories/android/atom.xml" rel="self"/>
   <link href="http://Solarex.github.io/"/>
-  <updated>2017-03-26T07:38:45+08:00</updated>
+  <updated>2017-03-30T16:17:20+08:00</updated>
   <id>http://Solarex.github.io/</id>
   <author>
     <name><![CDATA[Solarex]]></name>
@@ -12,6 +12,307 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Writing Better Adapters]]></title>
+    <link href="http://Solarex.github.io/blog/2016/12/26/writing-better-adapters/"/>
+    <updated>2016-12-26T16:11:00+08:00</updated>
+    <id>http://Solarex.github.io/blog/2016/12/26/writing-better-adapters</id>
+    <content type="html"><![CDATA[<p>Implementing adapters is one of the most frequent tasks for an Android developer. It’s the base for every list. Looking at apps, lists are the base of most apps.</p>
+
+<p>The schema we follow to implement list views is often the same: a View with an adapter that holds the data. Doing this all the time can make us blind to what we are writing, even to ugly code. Even worse, we end up repeating that ugly code.</p>
+
+<p>It’s time to take a close look into adapters.</p>
+
+<h2>RecyclerView Basics</h2>
+
+<p>The basic operations for RecyclerViews (but also applicable for ListView) are:</p>
+
+<ul>
+<li>Creating the view and the ViewHolder that holds the view information.</li>
+<li>Binding the ViewHolder to the data that the adapter holds, probably a list of model classes.</li>
+</ul>
+
+
+<p>Implementing this is pretty straightforward and not much can be done wrong here.</p>
+
+<!-- more -->
+
+
+<h2>RecyclerView With Different Types</h2>
+
+<p>It gets trickier when you need to have different kind of items in your views. It might be different kind of cards in case you use CardViews or could be ads stitched in between your elements. You might even have a list of completely different kind of objects (this article uses Kotlin but it can be easily applied to Java as no language specific feature are used)</p>
+
+<p><code>
+interface Animal
+class Mouse: Animal
+class Duck: Animal
+class Dog: Animal
+class Car
+</code></p>
+
+<p>You have various animals and then suddenly something like a car that is totally unrelated.</p>
+
+<p>In those use cases you have probably different view types you need to show. Means you need to create different ViewHolders and probably inflate different layouts in each. The API defines type identifier as integers, that’s where the ugliness starts!</p>
+
+<p>But let’s look at some code. When you have more than one item type you announce this by overriding:</p>
+
+<p><code>
+override fun getItemViewType(position: Int) : Int
+</code></p>
+
+<p>as the default implementation always returns zero. The implementer needs to translate the types into Integer values.</p>
+
+<p>Next step: create the ViewHolders. So you have to implement:</p>
+
+<p><code>
+override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder
+</code></p>
+
+<p>In this method the API tells the Integer type you passed earlier as parameter.
+The implementation is pretty trivial: a switch statement, or something similar, can be used to create ViewHolders for every given type.</p>
+
+<p>The difference comes when binding the newly created (or recycled) ViewHolder:</p>
+
+<p><code>
+override fun onBindViewHolder(holder: ViewHolder, position: Int): Any
+</code></p>
+
+<p>Notice that here there is no type parameter. You could use getItemViewType if needed but normally it’s not needed. You could have some bind() method in a base class of all our different ViewHolders that you can call.</p>
+
+<h2>The Uglyness</h2>
+
+<p>So what is the problem now? Looks straightforward to implement, isn’t it?</p>
+
+<p>Let’s look once again into getItemViewType().</p>
+
+<p>The system needs the type for every position. So you have to translate an item in your backing model list to a view type.</p>
+
+<p>You might want to write something like:</p>
+
+<p>```
+if (things.get(position) is Duck) {</p>
+
+<pre><code>return TYPE_DUCK
+</code></pre>
+
+<p>} else if (things.get(position) is Mouse) {</p>
+
+<pre><code>return TYPE_MOUSE
+</code></pre>
+
+<p>}
+```</p>
+
+<p>Can we agree on how ugly this is?</p>
+
+<p>It might get even worse if your ViewHolders don’t share a common base class. If they are totally different types, in your lists you have the same ugly code when binding the ViewHolder:</p>
+
+<p>```
+override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {</p>
+
+<pre><code>val thing = things.get(position)
+if (thing is Animal) {
+    (holder as AnimalViewHolder).bind(thing as Animal)
+} else if (thing is Car) {
+    (holder as CarViewHolder).bind(thing as Car)
+}
+</code></pre>
+
+<p>&hellip;
+}
+```</p>
+
+<p>This is a mess. instance-of checks and dozens of casting. Both are code smells and should be even considered anti-patterns.</p>
+
+<p>Many years ago I had a couple of quotes attached to my monitor. One of them was from Effective C++ by Scott Meyers (one of the best IT books ever written) and goes like this:</p>
+
+<p><code>
+Anytime you find yourself writing code of the form “if the object is of type T1, then do something, but if it’s of type T2, then do something else,” slap yourself.
+</code></p>
+
+<p>If you look at those adapter implementation, there is a lot of slapping to be done.</p>
+
+<ul>
+<li>We have type checks and we have lots of ugly casts!</li>
+<li>This is simply not object orientated code! OO just celebrated its 50th birthday so we should try to use more of its strengths.</li>
+<li>In addition, the way we implemented those adapters is a violation of the “Open-Closed” rule from the SOLID principles. It says: “open for extension but closed for modifications”.</li>
+</ul>
+
+
+<p>But when we would add another type to our classes, another Model, let’s say Rabbit and therefore RabbitViewHolder, we have to change lots of methods in the adapter. A clear violation of the principle. A new kind of object should not lead to modifications in existing methods.</p>
+
+<p>So let’s try to solve this.</p>
+
+<h2>Let’s Fix It</h2>
+
+<p>One alternative would be to put something in the middle to do the translation for us. It could be as simple as putting your Class types in some Map and retrieve the type with one call. It would be something like:</p>
+
+<p><code>
+override fun getItemViewType(position: Int) : Int
+   = types.get(things.javaClass)
+</code></p>
+
+<p>It’s much better now isn’t it?
+The sad answer is: not really! In the end this just hides instance-of.</p>
+
+<p>How would you implement the onBindViewholder() we’ve seen above? It would be something like: if object is of type T1 then do.. else… so still slapping to be done here.</p>
+
+<p>The goal should be to be able to <strong>add new view types without even touching the adapter</strong>.</p>
+
+<p>Therefore: don’t create your own type mapping in the adapter between the models and the views in the first place. Google suggests using layout ids. With this trick you don’t need the artificial type mappings by simply using the layout id you’re inflating. And of course you probably save another enum as #perfmatters.</p>
+
+<p>But still you need to map those to each other? How?</p>
+
+<p>In the end end you need to map models to views. Could this knowledge move to the model?</p>
+
+<p>It would be tempting to put the type into your model, something like.</p>
+
+<p><code>
+fun getType() : Int = R.layout.item_duck
+</code></p>
+
+<p>This way the adapter implementation for type could be totally generic:</p>
+
+<p><code>
+override fun getItemViewType(pos: Int) = things[pos].getType()
+</code></p>
+
+<p>Open-Closed principle is applied, no changes needed when adding new models.</p>
+
+<p>But now you totally mixed our layers and indeed broke the complete architecture. Entities know about presentation, arrows pointing into the wrong direction. This must be unacceptable for us.</p>
+
+<p>And again: adding a method into an object to asks for it’s type is not object orientated. You again would just hide the instance-of check.</p>
+
+<h2>The ViewModel</h2>
+
+<p>One way to approach this, is to have separat ViewModels instead of using our Model directly. In the end our problem was that our models are disjoint, they don’t share a common base: a car is not an animal. And this is correct. Only for the presentation layer you need to show them in on list. So when you introduce models for this layer you don’t have this problem, they can have a common base.</p>
+
+<p>```
+abstract class ViewModel {</p>
+
+<pre><code>abstract fun type(): Int
+</code></pre>
+
+<p>}
+class DuckViewModel(val duck: Duck): ViewModel() {</p>
+
+<pre><code>override fun type() = R.layout.duck
+</code></pre>
+
+<p>}
+class CarViewModel(val car: Car): ViewModel() {</p>
+
+<pre><code>override fun type() = R.layout.car
+</code></pre>
+
+<p>}
+```</p>
+
+<p>So you simply wrapped the models. You don’t need to modify them at all and keep view specific code in those new ViewModels.</p>
+
+<p>This way you can also add all formatting logic into there and use Android’s new Data Binding Library.</p>
+
+<p>The idea of using list of ViewModels in the adapter instead of the Models helps especially when you need artificial items like dividers, section headers or simply advertisement items.</p>
+
+<p>This is one approach to solve the problem. But not the only one.</p>
+
+<h2>The Visitor</h2>
+
+<p>Let’s go back to our initial idea of only using the Model. If you would have lots of model classes, maybe you don’t want to create lots of ViewModel one each.</p>
+
+<p>Thinking of the type() method that you added in the first place into the model, you missed some decoupling. You need to avoid having the presentation code in there directly. You need to indirect it, move the actual type knowledge to somewhere else. How about adding an interface into this type() method:</p>
+
+<p>```
+interface Visitable {</p>
+
+<pre><code>fun type(typeFactory: TypeFactory) : Int
+</code></pre>
+
+<p>}
+```</p>
+
+<p>Now you might ask what have you won here as the factory would still need to branch between types like the adapter did in the first place, right?</p>
+
+<p>No it does not! This approach will be based on the Visitor pattern, one of the classic Gang-of-Four pattern. All the model will do, is forwarding this type call:</p>
+
+<p>```
+interface Animal : Visitable
+interface Car : Visitable
+class Mouse: Animal {</p>
+
+<pre><code>override fun type(typeFactory: TypeFactory) 
+    = typeFactory.type(this)
+</code></pre>
+
+<p>}
+```</p>
+
+<p>The factory has variations you need:</p>
+
+<p>```
+interface TypeFactory {</p>
+
+<pre><code>fun type(duck: Duck): Int
+fun type(mouse: Mouse): Int
+fun type(dog: Dog): Int
+fun type(car: Car): Int
+</code></pre>
+
+<p>}
+```</p>
+
+<p>This way it’s totally type safe, no instance-of, no casts needed at all.</p>
+
+<p>And the responsibility of the factory is clear: it knows about the view types:</p>
+
+<p>```
+class TypeFactoryForList : TypeFactory {</p>
+
+<pre><code>override fun type(duck: Duck) = R.layout.duck
+override fun type(mouse: Mouse) = R.layout.mouse
+override fun type(dog: Dog) = R.layout.dog
+override fun type(car: Car) = R.layout.car
+</code></pre>
+
+<p>```</p>
+
+<p>I could even also create ViewHolders to keep the knowledge about the ids in one place. So when adding a new view, this is the place to add. This should be pretty SOLID. You might need another method for new types but not modify any existing method: Open for Extension, Closed for Modification.</p>
+
+<p>Now you might ask: why not use the factory directly from adapter instead using the indirection of the model?</p>
+
+<p>Only with this path you get the type safety without need of casts and type checks. Take a moment to realize this here, there is not a single cast needed!This indirection is the magic behind Visitor Pattern.</p>
+
+<p>Following this approach leaves the adapter with a very generic implementation that hardly ever needs to be changed.</p>
+
+<h2>Conclusion</h2>
+
+<ul>
+<li>Try to keep your presentation code clean.</li>
+<li>Instance-of checks should be a red flag!</li>
+<li>Look out for down casting as it’s a code smell.</li>
+<li>Try to replace those two with correct OO usage. Think about interfaces and inheritance.</li>
+<li>Try to use generics to prevent castings.</li>
+<li>Use ViewModels.</li>
+<li>Check out for usages for the Visitor pattern.</li>
+</ul>
+
+
+<p>I would be happy to learn other ideas to make our Adapters cleaner.</p>
+
+<p>PS: thanks to Jan M and Dmitri Kudrenko who crated examples on Github for Java and Kotlin:
+<a href="https://github.com/dmitrikudrenko/BetterAdapters">https://github.com/dmitrikudrenko/BetterAdapters</a>
+<a href="https://github.com/meierjan/BetterAdapters">https://github.com/meierjan/BetterAdapters</a></p>
+
+<h2>reference</h2>
+
+<ul>
+<li><a href="https://medium.com/@dpreussler/writing-better-adapters-1b09758407d2#.vc2pos5tm">Writing Better Adapters</a></li>
+<li><a href="https://juejin.im/entry/57fda1fe5bbb50005b3fef76?utm_source=gold-miner&amp;utm_medium=readme&amp;utm_campaign=github">关于 Android Adapter，你的实现方式可能一直都有问题</a></li>
+</ul>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Make an android custom view,Publish and Open Source]]></title>
@@ -1392,88 +1693,6 @@ static class ChainedRef {
 
 <ul>
 <li><a href="https://techblog.badoo.com/blog/2014/08/28/android-handler-memory-leaks">Android Handler Memory Leaks</a></li>
-</ul>
-
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[RecyclerView Animation part II]]></title>
-    <link href="http://Solarex.github.io/blog/2016/02/12/recyclerview-animation-part-ii/"/>
-    <updated>2016-02-12T00:47:00+08:00</updated>
-    <id>http://Solarex.github.io/blog/2016/02/12/recyclerview-animation-part-ii</id>
-    <content type="html"><![CDATA[<p>In the first article, I’ve covered the main idea on how predictive animations run in RecyclerView. There is actually a lot more going on to achieve this simplicity (for the LayoutManager). Here are some important points that you should know about.</p>
-
-<p>RecyclerView keeps some children attached although they have been removed by the LayoutManager. How does it work? Does it invalidate the contract between the LayoutManager and RecyclerView?</p>
-
-<p>Yes it does ‘kind of’ violate the contract with LayoutManager, but:</p>
-
-<p>RecyclerView does keep the View as a child of the ViewGroup but hides it from the LayoutManager. Each time LayoutManager calls a method to access its children, RecyclerView takes into account the hidden Views. Lets look at the example at Part 1 where ‘C’ was being removed from the adapter.</p>
-
-<center><img src="http://Solarex.github.io/images/predictive_animations.gif"></center>
-
-
-
-
-<!-- more -->
-
-
-<p>While ‘C’ is fading out, if LayoutManager calls <code>getChildCount()</code>, RecyclerView returns 6 although it has 7 children. If <code>LayoutManager</code> calls <code>getChildAt(int)</code>, RecyclerView offsets that call properly to skip child ‘C’ (or any hidden children). If LayoutManager calls <code>addView(View, position)</code>, RecyclerView offsets the index properly before calling <code>ViewGroup#addView</code>.</p>
-
-<p>When the animation ends, RecyclerView will remove the View and recycle it.</p>
-
-<p>For more details, you can check <code>ChildHelper</code> internal class.</p>
-
-<p>How does RecyclerView handle item positions in the preLayout pass since they don’t match Adapter contents?</p>
-
-<p>This is doable thanks to the specific notify events added to the Adapter. When Adapter dispatches <code>notify**</code> events, RecyclerView records them and requests a layout to apply them. Any events that arrives before the next layout pass will be applied together.</p>
-
-<p>When <code>onLayout</code> is called by the system, RecyclerView does the following:</p>
-
-<ul>
-<li>Reorder update events such that move events are pushed to the end of the list of update ops. Moving move events to the end of the list is a simplification step so I’ll not go into details here. You can check <code>OpReorderer</code> class for details if you are interested.</li>
-<li>Process events one by one and update existing ViewHolders’ positions with respect to the update. If a ViewHolder is removed, it is also marked as <code>removed</code>. While doing this, RecyclerView also decides whether the adapter change should be dispatched to the LayoutManager before or after the preLayout step. This decision process is as follows:
-
-<ul>
-<li>If it is an <code>add</code> operation, it is deferred because item should not exist in preLayout.</li>
-<li>If it is an <code>update</code> or <code>remove</code> operation and if it affects existing ViewHolders, it is postponed. If it does not effect existing ViewHolders, it is dispatched to the LayoutManager because RecyclerView cannot resurrect the previous state of the item (because it does not have a ViewHolder that represents the previous state of that Item).</li>
-<li>If it is a <code>move</code> operation, it is deferred because RecyclerView can fake its location in the pre-layout pass. For example, if item at position 3 moved to position 5, RecyclerView can return the View for position 5 in pre-layout when View for position 3 is asked.</li>
-<li>RecyclerView rewrites update operations as necessary. For example, if an update or delete operation affects some of the ViewHolders, RecyclerView divides that operation. If an operation should be dispatched to LayoutManager but a deferred operation may affect it, RecyclerView re-orders these operations so that they are still consistent.</li>
-</ul>
-</li>
-</ul>
-
-
-<p>For example, if there is an Add 1 at 3 operation which is deferred followed by a Remove 1 at 5 operation which cannot be deferred, RecyclerView dispatches it to the LayoutManager as Remove 1 at 4. This is done because the original Remove 1 at 5 was notified by the Adapter after Add 1 at 3 so it includes that item. Since RecyclerView did not tell LayoutManager about the Add 1 at 3, it rewrites the remove operation to be consistent.</p>
-
-<p>This approach makes tracking items dead simple for a LayoutManager. The abstraction between the Adapter and the LayoutManager makes all of this possible, which is why RecyclerView never passes the Adapter to the LayoutManager, instead, provides methods to access Adapter via State and Recycler.</p>
-
-<p>ViewHolders also have their old position, pre layout position and final adapter positions. When <code>ViewHolder#getPosition</code> is called, they return either preLayout position or final adapter position depending on the current layout state (pre or post). LayoutManager doesn’t need to know about this because it will always be consistent with the previous events that were dispatched to the LayoutManager.</p>
-
-<ul>
-<li>After Adapter updates are processed, RecyclerView saves positions and dimensions of existing Views which will later be used for animations.</li>
-<li>RecyclerView calls <code>LayoutManager#onLayoutChildren</code> for the preLayout step. As I’ve mentioned in the first article, LayoutManager runs its regular layout logic. All it has to do is to layout more items for those which are being deleted or changed (<code>LayoutParams#isItemRemoved</code> , <code>LayoutParams#isItemChanged</code>). As a reminder, the deleted or changed item still ‘appears’ in the Adapter API given to the LayoutManager. This way, LayoutManager simply treats it as any other View (adds, measures, positions etc).</li>
-<li>After preLayout is complete, RecyclerView records the positions of the Views again and dispatches the remaining Adapter updates to the LayoutManager.</li>
-<li>RecyclerView calls LayoutManager’s <code>onLayout</code> again (postLayout). This time, all item positions match the current contents of the Adapter. LayoutManager runs its regular layout logic again.</li>
-<li>After post layout is complete, RecyclerView checks positions of Views again and decides which items are added, removed, changed and moved. It ‘hides’ removed Views and for views not added by the LayoutManager, adds them to the RecyclerView (because they should be animated).</li>
-<li>Items which require an animation are passed to the <code>ItemAnimator</code> to start their animations. After the animation is complete, Item Animator calls a callback in RecyclerView which removes and recycles the View if it is no longer necessary.</li>
-</ul>
-
-
-<h3>What happens if LayoutManager keeps some internal data structure using item positions?</h3>
-
-<p>Everything works… kind of :). Thanks to the re-writing of Adapter updates by the RecyclerView, all LayoutManager has to do is to update its own bookkeeping when one of its adapter data changed callbacks is called due to Adapter changes. RecyclerView ensures that these updates are called at the appropriate time and order.</p>
-
-<p>At any time during a layout, if LayoutManager needs to access the adapter for additional data (some custom API), it can call <code>Recycler#convertPreLayoutPositionToPostLayout</code> to get the item’s Adapter position. For example, GridLayoutManager uses this API to get the span size of items.</p>
-
-<h3>What happens if notifyDataSetChanged is called? How do predictive animations run?</h3>
-
-<p>They don’t, which is why <code>notifyDataSetChanged</code> should be your last resort. When <code>notifyDataSetChanged</code> is called on the adapter, RecyclerView does not know where items moved so it cannot properly fake <code>getViewForPosition</code> calls. It simply runs animations as a LayoutTransition would do.</p>
-
-<h2>reference</h2>
-
-<ul>
-<li><a href="http://www.birbit.com/recyclerview-animations-part-2-behind-the-scenes/">RecyclerView Animations Part 2 – Behind The Scenes</a></li>
 </ul>
 
 ]]></content>

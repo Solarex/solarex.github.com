@@ -6,7 +6,7 @@
 	<title>Solarex's Blog</title>
     <meta name="author" content="Solarex">
     
-	<meta name="description" content="Published on: May 28th, 2016 Tags: android, dev Today I’m going to create an android custom view to implement circular SeekBar like the mockup below &hellip;">
+	<meta name="description" content="Published on: Dec 26th, 2016 Tags: android, dev Implementing adapters is one of the most frequent tasks for an Android developer. It’s the base for &hellip;">
 	
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
@@ -119,6 +119,67 @@ var _hmt = _hmt || [];
 <!-- begin toload --> 
     <div id="content" class="inner">
         
+
+
+    <article class="post">
+	<h2 class="title">
+		
+		<a href="/blog/2016/12/26/writing-better-adapters/">
+		
+			Writing Better Adapters</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: 
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2016-12-26T16:11:00+08:00" pubdate data-updated="true">Dec 26<span>th</span>, 2016</time></div>
+      <div class="tags">Tags: 
+
+
+	<a class='category' href='/blog/categories/android/'>android</a>, <a class='category' href='/blog/categories/dev/'>dev</a>
+
+
+</div>
+    </div>
+		<p>Implementing adapters is one of the most frequent tasks for an Android developer. It’s the base for every list. Looking at apps, lists are the base of most apps.</p>
+
+<p>The schema we follow to implement list views is often the same: a View with an adapter that holds the data. Doing this all the time can make us blind to what we are writing, even to ugly code. Even worse, we end up repeating that ugly code.</p>
+
+<p>It’s time to take a close look into adapters.</p>
+
+<h2>RecyclerView Basics</h2>
+
+<p>The basic operations for RecyclerViews (but also applicable for ListView) are:</p>
+
+<ul>
+<li>Creating the view and the ViewHolder that holds the view information.</li>
+<li>Binding the ViewHolder to the data that the adapter holds, probably a list of model classes.</li>
+</ul>
+
+
+<p>Implementing this is pretty straightforward and not much can be done wrong here.</p>
+
+
+		
+		<a href="/blog/2016/12/26/writing-better-adapters/" class="more-link">Read on &rarr;</a>
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="/blog/2016/12/26/writing-better-adapters//index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
 
 
     <article class="post">
@@ -331,62 +392,6 @@ var _hmt = _hmt || [];
 <div class="meta">
 	
 		<span class="comments"><a href="/blog/2016/02/25/android-handler-memory-leaks//index.html#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-
-    <article class="post">
-	<h2 class="title">
-		
-		<a href="/blog/2016/02/12/recyclerview-animation-part-ii/">
-		
-			RecyclerView Animation Part II</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: 
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2016-02-12T00:47:00+08:00" pubdate data-updated="true">Feb 12<span>th</span>, 2016</time></div>
-      <div class="tags">Tags: 
-
-
-	<a class='category' href='/blog/categories/android/'>android</a>, <a class='category' href='/blog/categories/dev/'>dev</a>
-
-
-</div>
-    </div>
-		<p>In the first article, I’ve covered the main idea on how predictive animations run in RecyclerView. There is actually a lot more going on to achieve this simplicity (for the LayoutManager). Here are some important points that you should know about.</p>
-
-<p>RecyclerView keeps some children attached although they have been removed by the LayoutManager. How does it work? Does it invalidate the contract between the LayoutManager and RecyclerView?</p>
-
-<p>Yes it does ‘kind of’ violate the contract with LayoutManager, but:</p>
-
-<p>RecyclerView does keep the View as a child of the ViewGroup but hides it from the LayoutManager. Each time LayoutManager calls a method to access its children, RecyclerView takes into account the hidden Views. Lets look at the example at Part 1 where ‘C’ was being removed from the adapter.</p>
-
-<center><img src="/images/predictive_animations.gif"></center>
-
-
-
-
-
-		
-		<a href="/blog/2016/02/12/recyclerview-animation-part-ii/" class="more-link">Read on &rarr;</a>
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="/blog/2016/02/12/recyclerview-animation-part-ii//index.html#disqus_thread">Comments</a></span>
 	
 </div>
 </article>

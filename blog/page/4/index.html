@@ -6,7 +6,8 @@
 	<title>Solarex's Blog</title>
     <meta name="author" content="Solarex">
     
-	<meta name="description" content=" Published on: May 5th, 2015 Tags: android, dev Read on &rarr; Comments ">
+	<meta name="description" content="Published on: May 5th, 2015 Tags: dev, tools System preferences In Apple Icon > System Preferences: Trackpad > Tap to click
+Keyboard > Key Repeat > &hellip;">
 	
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
@@ -119,6 +120,67 @@ var _hmt = _hmt || [];
 <!-- begin toload --> 
     <div id="content" class="inner">
         
+
+
+    <article class="post">
+	<h2 class="title">
+		
+		<a href="/blog/2015/05/05/mac-dev-setup/">
+		
+			Setup Mac Development Environment</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: 
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2015-05-05T12:04:00+08:00" pubdate data-updated="true">May 5<span>th</span>, 2015</time></div>
+      <div class="tags">Tags: 
+
+
+	<a class='category' href='/blog/categories/dev/'>dev</a>, <a class='category' href='/blog/categories/tools/'>tools</a>
+
+
+</div>
+    </div>
+		<p><center><img src="/images/apple_mac_logo.jpg" width=225 height=225/></center></p>
+
+
+
+
+<h2 id="system-preferences">System preferences</h2>
+
+
+<p>In Apple Icon > System Preferences:</p>
+
+<ul>
+<li>Trackpad > Tap to click</li>
+<li>Keyboard > Key Repeat > Fast (all the way to the right)</li>
+<li>Keyboard > Delay Until Repeat > Short (all the way to the right)</li>
+<li>Dock > Automatically hide and show the Dock</li>
+</ul>
+
+
+
+		
+		<a href="/blog/2015/05/05/mac-dev-setup/" class="more-link">Read on &rarr;</a>
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="/blog/2015/05/05/mac-dev-setup//blog/page/4/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
 
 
     <article class="post">
@@ -536,127 +598,6 @@ Unlike Ubuntu shipped with GNU command line tools,Mac OS X shipped with the BSD 
 <div class="meta">
 	
 		<span class="comments"><a href="/blog/2014/10/31/android-best-practices-for-background-jobs//blog/page/4/index.html#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-
-    <article class="post">
-	<h2 class="title">
-		
-		<a href="/blog/2014/10/31/android-multithreading-in-a-ui-environment/">
-		
-			Multithreading in a UI Environment</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: 
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-10-31T09:14:00+08:00" pubdate data-updated="true">Oct 31<span>st</span>, 2014</time></div>
-      <div class="tags">Tags: 
-
-
-	<a class='category' href='/blog/categories/android/'>android</a>, <a class='category' href='/blog/categories/dev/'>dev</a>
-
-
-</div>
-    </div>
-		<p><p><center><img src="/images/android_threads.png"></center></p>
-
-<h2>Why do we need multithreading in Android applications?</h2>
-
-<p>Let’s say you want to do a very long operation when the user pushes a button.If you are not using another thread, it will look something like this:</p>
-
-<p><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="o">((</span><span class="n">Button</span><span class="o">)</span><span class="n">findViewById</span><span class="o">(</span><span class="n">R</span><span class="o">.</span><span class="na">id</span><span class="o">.</span><span class="na">Button01</span><span class="o">)).</span><span class="na">setOnClickListener</span><span class="o">(</span>
-</span><span class='line'>             <span class="k">new</span> <span class="nf">OnClickListener</span><span class="o">()</span> <span class="o">{</span>
-</span><span class='line'>
-</span><span class='line'>          <span class="nd">@Override</span>
-</span><span class='line'>          <span class="kd">public</span> <span class="kt">void</span> <span class="nf">onClick</span><span class="o">(</span><span class="n">View</span> <span class="n">v</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'>            <span class="kt">int</span> <span class="n">result</span> <span class="o">=</span> <span class="n">doLongOperation</span><span class="o">();</span>
-</span><span class='line'>            <span class="n">updateUI</span><span class="o">(</span><span class="n">result</span><span class="o">);</span>
-</span><span class='line'>          <span class="o">}</span>
-</span><span class='line'>      <span class="o">});</span>
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>What will happen?The UI freezes. This is a really bad UI experience. The program may even crash.</p>
-
-<h2>The problem in using threads in a UI environment</h2>
-
-<p>So what will happen if we use a Thread for a long running operation.Let’s try a simple example:</p>
-
-<p><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="o">((</span><span class="n">Button</span><span class="o">)</span><span class="n">findViewById</span><span class="o">(</span><span class="n">R</span><span class="o">.</span><span class="na">id</span><span class="o">.</span><span class="na">Button01</span><span class="o">)).</span><span class="na">setOnClickListener</span><span class="o">(</span>
-</span><span class='line'><span class="k">new</span> <span class="nf">OnClickListener</span><span class="o">()</span> <span class="o">{</span>
-</span><span class='line'>
-</span><span class='line'>          <span class="nd">@Override</span>
-</span><span class='line'>          <span class="kd">public</span> <span class="kt">void</span> <span class="nf">onClick</span><span class="o">(</span><span class="n">View</span> <span class="n">v</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'>
-</span><span class='line'>              <span class="o">(</span><span class="k">new</span> <span class="n">Thread</span><span class="o">(</span><span class="k">new</span> <span class="n">Runnable</span><span class="o">()</span> <span class="o">{</span>
-</span><span class='line'>
-</span><span class='line'>                  <span class="nd">@Override</span>
-</span><span class='line'>                  <span class="kd">public</span> <span class="kt">void</span> <span class="nf">run</span><span class="o">()</span> <span class="o">{</span>
-</span><span class='line'>                    <span class="kt">int</span> <span class="n">result</span> <span class="o">=</span> <span class="n">doLongOperation</span><span class="o">();</span>
-</span><span class='line'>                    <span class="n">updateUI</span><span class="o">(</span><span class="n">result</span><span class="o">);</span>
-</span><span class='line'>                  <span class="o">}</span>
-</span><span class='line'>              <span class="o">})).</span><span class="na">start</span><span class="o">();</span>
-</span><span class='line'>
-</span><span class='line'>          <span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>The result in this case is that the application crashes.</p>
-
-<p><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>12-07 16:24:29.089: ERROR/AndroidRuntime<span class="o">(</span>315<span class="o">)</span>: FATAL EXCEPTION: Thread-8
-</span><span class='line'>12-07 16:24:29.089: ERROR/AndroidRuntime<span class="o">(</span>315<span class="o">)</span>: android.view.ViewRoot<span class="nv">$CalledFromWrongThreadException</span>: Only the original thread that created a view hierarchy can touch its views.
-</span><span class='line'>12-07 16:24:29.089: ERROR/AndroidRuntime<span class="o">(</span>315<span class="o">)</span>: at &hellip;Clearly the Android OS wont <span class="nb">let </span>threads other than the main thread change UI elements.
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>But why?Android UI toolkit, like many other UI environments, is not thread-safe.</p>
-
-<p>
-		
-		<a href="/blog/2014/10/31/android-multithreading-in-a-ui-environment/" class="more-link">Read on &rarr;</a>
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="/blog/2014/10/31/android-multithreading-in-a-ui-environment//blog/page/4/index.html#disqus_thread">Comments</a></span>
 	
 </div>
 </article>

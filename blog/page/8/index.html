@@ -6,7 +6,12 @@
 	<title>Solarex's Blog</title>
     <meta name="author" content="Solarex">
     
-	<meta name="description" content=" Published on: Sep 21st, 2014 Tags: android, dev, guides TL,DR; Read on &rarr; Comments ">
+	<meta name="description" content="Published on: Sep 27th, 2014 Tags: android, dev CheckingWifiConnectivity
+ParseJson
+GetLauncherApplication
+GetSdcardSize
+AndroidBootupTime
+JsonParser &hellip;">
 	
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
@@ -119,6 +124,100 @@ var _hmt = _hmt || [];
 <!-- begin toload --> 
     <div id="content" class="inner">
         
+
+
+    <article class="post">
+	<h2 class="title">
+		
+		<a href="/blog/2014/09/27/android-snippets/">
+		
+			Android Snippets</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: 
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-09-27T12:50:00+08:00" pubdate data-updated="true">Sep 27<span>th</span>, 2014</time></div>
+      <div class="tags">Tags: 
+
+
+	<a class='category' href='/blog/categories/android/'>android</a>, <a class='category' href='/blog/categories/dev/'>dev</a>
+
+
+</div>
+    </div>
+		<center><p><img src="/images/android_robot.png" width="255" height="300"></p></center>
+
+
+<ul>
+<li><a href="#checking-wifi-connectivity">CheckingWifiConnectivity</a></li>
+<li><a href="#parse-json">ParseJson</a></li>
+<li><a href="#get-launcher-applications">GetLauncherApplication</a></li>
+<li><a href="#get-sdcard-size">GetSdcardSize</a></li>
+<li><a href="#android-bootup-time">AndroidBootupTime</a></li>
+<li><a href="#json-parser">JsonParser</a></li>
+<li><a href="#full-screen">FullScreen</a></li>
+<li><a href="#restore-listview-position">RestoreListViewPosition</a></li>
+<li><a href="#start-application">StartApplication</a></li>
+<li><a href="#string-utils">StringUtils</a></li>
+<li><a href="#checking-external-storage-state">CheckingExternalStorageState</a></li>
+<li><a href="#saving-view-as-bitmap">SavingViewAsBitmap</a></li>
+<li><a href="#convert-view-to-bitmap">ConvertViewToBitmap</a></li>
+<li><a href="#hide-window-keyboard">HideKeyboard</a></li>
+</ul>
+
+
+<h2 id="checking-wifi-connectivity">CheckingWifiConnectivity</h2>
+
+
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kd">static</span> <span class="kt">boolean</span> <span class="nf">isConnected</span><span class="o">(</span><span class="n">Context</span> <span class="n">context</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>    <span class="n">ConnectivityManager</span> <span class="n">connectivityManager</span> <span class="o">=</span> <span class="o">(</span><span class="n">ConnectivityManager</span><span class="o">)</span>
+</span><span class='line'>        <span class="n">context</span><span class="o">.</span><span class="na">getSystemService</span><span class="o">(</span><span class="n">Context</span><span class="o">.</span><span class="na">CONNECTIVITY_SERVICE</span><span class="o">);</span>
+</span><span class='line'>    <span class="n">NetworkInfo</span> <span class="n">networkInfo</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+</span><span class='line'>    <span class="k">if</span> <span class="o">(</span><span class="n">connectivityManager</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="n">networkInfo</span> <span class="o">=</span>
+</span><span class='line'>            <span class="n">connectivityManager</span><span class="o">.</span><span class="na">getNetworkInfo</span><span class="o">(</span><span class="n">ConnectivityManager</span><span class="o">.</span><span class="na">TYPE_WIFI</span><span class="o">);</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>    <span class="k">return</span> <span class="n">networkInfo</span> <span class="o">==</span> <span class="kc">null</span> <span class="o">?</span> <span class="kc">false</span> <span class="o">:</span> <span class="n">networkInfo</span><span class="o">.</span><span class="na">isConnected</span><span class="o">();</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+
+		
+		<a href="/blog/2014/09/27/android-snippets/" class="more-link">Read on &rarr;</a>
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="/blog/2014/09/27/android-snippets//blog/page/8/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
 
 
     <article class="post">
@@ -504,94 +603,6 @@ var _hmt = _hmt || [];
 <div class="meta">
 	
 		<span class="comments"><a href="/blog/2014/09/12/java-annotations//blog/page/8/index.html#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-
-    <article class="post">
-	<h2 class="title">
-		
-		<a href="/blog/2014/09/04/java-class-loaded-and-initialized/">
-		
-			Java Class Loaded and Initialized</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: 
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-09-04T13:05:00+08:00" pubdate data-updated="true">Sep 4<span>th</span>, 2014</time></div>
-      <div class="tags">Tags: 
-
-
-	<a class='category' href='/blog/categories/dev/'>dev</a>, <a class='category' href='/blog/categories/java/'>java</a>
-
-
-</div>
-    </div>
-		<center><p><img src="/images/java_logo.svg" width="150" height="275" alt="java"></p></center>
-
-
-<h2>class loaded and initialized</h2>
-
-<p><code>java -verbose:class -classpath . org.solarex.TestClassLoader</code> get information about each class loaded.The “-verbose:class” option displays information about each class loaded.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kn">package</span> <span class="n">org</span><span class="o">.</span><span class="na">solarex</span><span class="o">.</span><span class="na">test</span><span class="o">;</span>
-</span><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">A</span><span class="o">{</span>
-</span><span class='line'>  <span class="kd">public</span> <span class="kt">void</span> <span class="nf">method</span><span class="o">(){</span>
-</span><span class='line'>      <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">&quot;inside of A&quot;</span><span class="o">);</span>
-</span><span class='line'>  <span class="o">}</span>
-</span><span class='line'><span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kn">package</span> <span class="n">org</span><span class="o">.</span><span class="na">solarex</span><span class="o">.</span><span class="na">test</span><span class="o">;</span>
-</span><span class='line'><span class="kd">public</span> <span class="kt">void</span> <span class="n">TestLoader</span><span class="o">{</span>
-</span><span class='line'>  <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">args</span><span class="o">){</span>
-</span><span class='line'>      <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">&quot;Hello,world\n&quot;</span><span class="o">);</span>
-</span><span class='line'>      <span class="c1">// A aInstance = new A();</span>
-</span><span class='line'>      <span class="c1">// aInstance.method();</span>
-</span><span class='line'>  <span class="o">}</span>
-</span><span class='line'><span class="o">}</span>  
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p><code>javac -d . *.java</code>,<code>java -verbose:class -classpath . org.solarex.test.TestLoader</code>得到结果:</p>
-
-
-		
-		<a href="/blog/2014/09/04/java-class-loaded-and-initialized/" class="more-link">Read on &rarr;</a>
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="/blog/2014/09/04/java-class-loaded-and-initialized//blog/page/8/index.html#disqus_thread">Comments</a></span>
 	
 </div>
 </article>

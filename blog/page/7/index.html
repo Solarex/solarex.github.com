@@ -6,7 +6,7 @@
 	<title>Solarex's Blog</title>
     <meta name="author" content="Solarex">
     
-	<meta name="description" content="Published on: Oct 13th, 2014 Tags: android, dev What can you do with Loopers and Handlers? Basically, they implement a common concurrency pattern &hellip;">
+	<meta name="description" content="Published on: Oct 13th, 2014 Tags: android, dev When facing bugs that were related to how we interact with the main thread, I decided to get a &hellip;">
 	
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
@@ -119,6 +119,68 @@ var _hmt = _hmt || [];
 <!-- begin toload --> 
     <div id="content" class="inner">
         
+
+
+    <article class="post">
+	<h2 class="title">
+		
+		<a href="/blog/2014/10/13/android-main-thread/">
+		
+			A Journey on the Android Main Thread</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: 
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-10-13T16:51:00+08:00" pubdate data-updated="true">Oct 13<span>th</span>, 2014</time></div>
+      <div class="tags">Tags: 
+
+
+	<a class='category' href='/blog/categories/android/'>android</a>, <a class='category' href='/blog/categories/dev/'>dev</a>
+
+
+</div>
+    </div>
+		<p>When facing bugs that were related to how we interact with the main thread, I decided to get a closer look at what the main thread really is.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">BigBang</span> <span class="o">{</span>
+</span><span class='line'>  <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="n">String</span><span class="o">...</span> <span class="n">args</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>    <span class="c1">// The Java universe starts here.</span>
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>All Java programs start with a call to a <code>public static void main()</code> method. This is true for Java Desktop programs, JEE servlet containers, and Android applications.</p>
+
+<p>When the Android system boots, it starts a Linux process called <code>ZygoteInit</code>. This process is a Dalvik VM that loads the <a href="https://android.googlesource.com/platform/frameworks/base/+/refs/heads/master/preloaded-classes">most common classes</a> of the Android SDK on a thread, and then waits.</p>
+
+
+		
+		<a href="/blog/2014/10/13/android-main-thread/" class="more-link">Read on &rarr;</a>
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="/blog/2014/10/13/android-main-thread//blog/page/7/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
 
 
     <article class="post">
@@ -319,100 +381,6 @@ var _hmt = _hmt || [];
 <div class="meta">
 	
 		<span class="comments"><a href="/blog/2014/09/28/android-guide-animation-and-graphics//blog/page/7/index.html#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-
-    <article class="post">
-	<h2 class="title">
-		
-		<a href="/blog/2014/09/27/android-snippets/">
-		
-			Android Snippets</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: 
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-09-27T12:50:00+08:00" pubdate data-updated="true">Sep 27<span>th</span>, 2014</time></div>
-      <div class="tags">Tags: 
-
-
-	<a class='category' href='/blog/categories/android/'>android</a>, <a class='category' href='/blog/categories/dev/'>dev</a>
-
-
-</div>
-    </div>
-		<center><p><img src="/images/android_robot.png" width="255" height="300"></p></center>
-
-
-<ul>
-<li><a href="#checking-wifi-connectivity">CheckingWifiConnectivity</a></li>
-<li><a href="#parse-json">ParseJson</a></li>
-<li><a href="#get-launcher-applications">GetLauncherApplication</a></li>
-<li><a href="#get-sdcard-size">GetSdcardSize</a></li>
-<li><a href="#android-bootup-time">AndroidBootupTime</a></li>
-<li><a href="#json-parser">JsonParser</a></li>
-<li><a href="#full-screen">FullScreen</a></li>
-<li><a href="#restore-listview-position">RestoreListViewPosition</a></li>
-<li><a href="#start-application">StartApplication</a></li>
-<li><a href="#string-utils">StringUtils</a></li>
-<li><a href="#checking-external-storage-state">CheckingExternalStorageState</a></li>
-<li><a href="#saving-view-as-bitmap">SavingViewAsBitmap</a></li>
-<li><a href="#convert-view-to-bitmap">ConvertViewToBitmap</a></li>
-<li><a href="#hide-window-keyboard">HideKeyboard</a></li>
-</ul>
-
-
-<h2 id="checking-wifi-connectivity">CheckingWifiConnectivity</h2>
-
-
-
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kd">static</span> <span class="kt">boolean</span> <span class="nf">isConnected</span><span class="o">(</span><span class="n">Context</span> <span class="n">context</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'>    <span class="n">ConnectivityManager</span> <span class="n">connectivityManager</span> <span class="o">=</span> <span class="o">(</span><span class="n">ConnectivityManager</span><span class="o">)</span>
-</span><span class='line'>        <span class="n">context</span><span class="o">.</span><span class="na">getSystemService</span><span class="o">(</span><span class="n">Context</span><span class="o">.</span><span class="na">CONNECTIVITY_SERVICE</span><span class="o">);</span>
-</span><span class='line'>    <span class="n">NetworkInfo</span> <span class="n">networkInfo</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
-</span><span class='line'>    <span class="k">if</span> <span class="o">(</span><span class="n">connectivityManager</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'>        <span class="n">networkInfo</span> <span class="o">=</span>
-</span><span class='line'>            <span class="n">connectivityManager</span><span class="o">.</span><span class="na">getNetworkInfo</span><span class="o">(</span><span class="n">ConnectivityManager</span><span class="o">.</span><span class="na">TYPE_WIFI</span><span class="o">);</span>
-</span><span class='line'>    <span class="o">}</span>
-</span><span class='line'>    <span class="k">return</span> <span class="n">networkInfo</span> <span class="o">==</span> <span class="kc">null</span> <span class="o">?</span> <span class="kc">false</span> <span class="o">:</span> <span class="n">networkInfo</span><span class="o">.</span><span class="na">isConnected</span><span class="o">();</span>
-</span><span class='line'><span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-
-
-
-		
-		<a href="/blog/2014/09/27/android-snippets/" class="more-link">Read on &rarr;</a>
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="/blog/2014/09/27/android-snippets//blog/page/7/index.html#disqus_thread">Comments</a></span>
 	
 </div>
 </article>

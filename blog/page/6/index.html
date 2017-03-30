@@ -6,7 +6,11 @@
 	<title>Solarex's Blog</title>
     <meta name="author" content="Solarex">
     
-	<meta name="description" content="Published on: Oct 18th, 2014 Tags: dev OAuth是一个关于授权（authorization）的开放网络标准，在全世界得到广泛应用，目前的版本是2.0版。本文对OAuth 2.0的设计思路和运行流程，做一个简明通俗的解释，主要参考材料为RFC 6749。 &hellip;">
+	<meta name="description" content="Published on: Oct 19th, 2014 Tags: android, dev Android Tips and Tricks Part I
+Part II
+Part III
+Part IV
+Part V Android Tips and Tricks Part I &hellip;">
 	
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
@@ -119,6 +123,83 @@ var _hmt = _hmt || [];
 <!-- begin toload --> 
     <div id="content" class="inner">
         
+
+
+    <article class="post">
+	<h2 class="title">
+		
+		<a href="/blog/2014/10/19/android-tips/">
+		
+			Android Tips</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: 
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-10-19T13:00:00+08:00" pubdate data-updated="true">Oct 19<span>th</span>, 2014</time></div>
+      <div class="tags">Tags: 
+
+
+	<a class='category' href='/blog/categories/android/'>android</a>, <a class='category' href='/blog/categories/dev/'>dev</a>
+
+
+</div>
+    </div>
+		<p><center><img src="/images/android_training.jpg"/></center></p>
+
+
+<ul>
+<li><a href="#overview">Android Tips and Tricks</a>
+
+<ul>
+<li><a href="#part1">Part I</a></li>
+<li><a href="#part2">Part II</a></li>
+<li><a href="#part3">Part III</a></li>
+<li><a href="#part4">Part IV</a></li>
+<li><a href="#part5">Part V</a></li>
+</ul>
+</li>
+</ul>
+
+
+<h2 id="overview">Android Tips and Tricks</h2>
+
+
+
+
+<h3 id="part1">Part I</h3>
+
+
+<ul>
+<li><p><code>Activity.startActivities()</code> &ndash; Nice for launching to the middle of an app flow.</p></li>
+<li><p><code>TextUtils.isEmpty()</code> &ndash; Simple utility I use everywhere.</p></li>
+<li><p><code>Html.fromHtml()</code> &ndash; Quick method for formatting Html. It&rsquo;s not particularly fast so I wouldn&rsquo;t use it constantly (e.g., don&rsquo;t use it just to bold part of a string &ndash; construct the Spannable manually instead), but it&rsquo;s fine for rendering text obtained from the web.</p></li>
+<li><p><code>TextView.setError()</code> &ndash; Nice UI when validating user input.</p></li>
+<li><p><code>Build.VERSION_CODES</code> &ndash; Not only is it handy for routing code, it&rsquo;s also summarizes behavioral differences between each version of Android.</p></li>
+</ul>
+
+
+
+		
+		<a href="/blog/2014/10/19/android-tips/" class="more-link">Read on &rarr;</a>
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="/blog/2014/10/19/android-tips//blog/page/6/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
 
 
     <article class="post">
@@ -361,68 +442,6 @@ var _hmt = _hmt || [];
 <div class="meta">
 	
 		<span class="comments"><a href="/blog/2014/10/14/java-thread-tutorial//blog/page/6/index.html#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-
-    <article class="post">
-	<h2 class="title">
-		
-		<a href="/blog/2014/10/13/android-main-thread/">
-		
-			A Journey on the Android Main Thread</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: 
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-10-13T16:51:00+08:00" pubdate data-updated="true">Oct 13<span>th</span>, 2014</time></div>
-      <div class="tags">Tags: 
-
-
-	<a class='category' href='/blog/categories/android/'>android</a>, <a class='category' href='/blog/categories/dev/'>dev</a>
-
-
-</div>
-    </div>
-		<p>When facing bugs that were related to how we interact with the main thread, I decided to get a closer look at what the main thread really is.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">BigBang</span> <span class="o">{</span>
-</span><span class='line'>  <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="n">String</span><span class="o">...</span> <span class="n">args</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'>    <span class="c1">// The Java universe starts here.</span>
-</span><span class='line'>  <span class="o">}</span>
-</span><span class='line'><span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>All Java programs start with a call to a <code>public static void main()</code> method. This is true for Java Desktop programs, JEE servlet containers, and Android applications.</p>
-
-<p>When the Android system boots, it starts a Linux process called <code>ZygoteInit</code>. This process is a Dalvik VM that loads the <a href="https://android.googlesource.com/platform/frameworks/base/+/refs/heads/master/preloaded-classes">most common classes</a> of the Android SDK on a thread, and then waits.</p>
-
-
-		
-		<a href="/blog/2014/10/13/android-main-thread/" class="more-link">Read on &rarr;</a>
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="/blog/2014/10/13/android-main-thread//blog/page/6/index.html#disqus_thread">Comments</a></span>
 	
 </div>
 </article>

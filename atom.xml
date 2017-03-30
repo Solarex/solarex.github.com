@@ -4,7 +4,7 @@
   <title><![CDATA[Solarex's Blog]]></title>
   <link href="http://Solarex.github.io/atom.xml" rel="self"/>
   <link href="http://Solarex.github.io/"/>
-  <updated>2017-03-26T07:38:45+08:00</updated>
+  <updated>2017-03-30T16:17:20+08:00</updated>
   <id>http://Solarex.github.io/</id>
   <author>
     <name><![CDATA[Solarex]]></name>
@@ -12,6 +12,318 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Writing Better Adapters]]></title>
+    <link href="http://Solarex.github.io/blog/2016/12/26/writing-better-adapters/"/>
+    <updated>2016-12-26T16:11:00+08:00</updated>
+    <id>http://Solarex.github.io/blog/2016/12/26/writing-better-adapters</id>
+    <content type="html"><![CDATA[<p>Implementing adapters is one of the most frequent tasks for an Android developer. It’s the base for every list. Looking at apps, lists are the base of most apps.</p>
+
+<p>The schema we follow to implement list views is often the same: a View with an adapter that holds the data. Doing this all the time can make us blind to what we are writing, even to ugly code. Even worse, we end up repeating that ugly code.</p>
+
+<p>It’s time to take a close look into adapters.</p>
+
+<h2>RecyclerView Basics</h2>
+
+<p>The basic operations for RecyclerViews (but also applicable for ListView) are:</p>
+
+<ul>
+<li>Creating the view and the ViewHolder that holds the view information.</li>
+<li>Binding the ViewHolder to the data that the adapter holds, probably a list of model classes.</li>
+</ul>
+
+
+<p>Implementing this is pretty straightforward and not much can be done wrong here.</p>
+
+<!-- more -->
+
+
+<h2>RecyclerView With Different Types</h2>
+
+<p>It gets trickier when you need to have different kind of items in your views. It might be different kind of cards in case you use CardViews or could be ads stitched in between your elements. You might even have a list of completely different kind of objects (this article uses Kotlin but it can be easily applied to Java as no language specific feature are used)</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>interface Animal
+</span><span class='line'>class Mouse: Animal
+</span><span class='line'>class Duck: Animal
+</span><span class='line'>class Dog: Animal
+</span><span class='line'>class Car</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You have various animals and then suddenly something like a car that is totally unrelated.</p>
+
+<p>In those use cases you have probably different view types you need to show. Means you need to create different ViewHolders and probably inflate different layouts in each. The API defines type identifier as integers, that’s where the ugliness starts!</p>
+
+<p>But let’s look at some code. When you have more than one item type you announce this by overriding:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>override fun getItemViewType(position: Int) : Int</span></code></pre></td></tr></table></div></figure>
+
+
+<p>as the default implementation always returns zero. The implementer needs to translate the types into Integer values.</p>
+
+<p>Next step: create the ViewHolders. So you have to implement:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder</span></code></pre></td></tr></table></div></figure>
+
+
+<p>In this method the API tells the Integer type you passed earlier as parameter.
+The implementation is pretty trivial: a switch statement, or something similar, can be used to create ViewHolders for every given type.</p>
+
+<p>The difference comes when binding the newly created (or recycled) ViewHolder:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>override fun onBindViewHolder(holder: ViewHolder, position: Int): Any</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Notice that here there is no type parameter. You could use getItemViewType if needed but normally it’s not needed. You could have some bind() method in a base class of all our different ViewHolders that you can call.</p>
+
+<h2>The Uglyness</h2>
+
+<p>So what is the problem now? Looks straightforward to implement, isn’t it?</p>
+
+<p>Let’s look once again into getItemViewType().</p>
+
+<p>The system needs the type for every position. So you have to translate an item in your backing model list to a view type.</p>
+
+<p>You might want to write something like:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>if (things.get(position) is Duck) {
+</span><span class='line'>    return TYPE_DUCK
+</span><span class='line'>} else if (things.get(position) is Mouse) {
+</span><span class='line'>    return TYPE_MOUSE
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Can we agree on how ugly this is?</p>
+
+<p>It might get even worse if your ViewHolders don’t share a common base class. If they are totally different types, in your lists you have the same ugly code when binding the ViewHolder:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+</span><span class='line'>    val thing = things.get(position)
+</span><span class='line'>    if (thing is Animal) {
+</span><span class='line'>        (holder as AnimalViewHolder).bind(thing as Animal)
+</span><span class='line'>    } else if (thing is Car) {
+</span><span class='line'>        (holder as CarViewHolder).bind(thing as Car)
+</span><span class='line'>    }
+</span><span class='line'>...
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This is a mess. instance-of checks and dozens of casting. Both are code smells and should be even considered anti-patterns.</p>
+
+<p>Many years ago I had a couple of quotes attached to my monitor. One of them was from Effective C++ by Scott Meyers (one of the best IT books ever written) and goes like this:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>Anytime you find yourself writing code of the form “if the object is of type T1, then do something, but if it’s of type T2, then do something else,” slap yourself.</span></code></pre></td></tr></table></div></figure>
+
+
+<p>If you look at those adapter implementation, there is a lot of slapping to be done.</p>
+
+<ul>
+<li>We have type checks and we have lots of ugly casts!</li>
+<li>This is simply not object orientated code! OO just celebrated its 50th birthday so we should try to use more of its strengths.</li>
+<li>In addition, the way we implemented those adapters is a violation of the “Open-Closed” rule from the SOLID principles. It says: “open for extension but closed for modifications”.</li>
+</ul>
+
+
+<p>But when we would add another type to our classes, another Model, let’s say Rabbit and therefore RabbitViewHolder, we have to change lots of methods in the adapter. A clear violation of the principle. A new kind of object should not lead to modifications in existing methods.</p>
+
+<p>So let’s try to solve this.</p>
+
+<h2>Let’s Fix It</h2>
+
+<p>One alternative would be to put something in the middle to do the translation for us. It could be as simple as putting your Class types in some Map and retrieve the type with one call. It would be something like:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>override fun getItemViewType(position: Int) : Int 
+</span><span class='line'>   = types.get(things.javaClass)</span></code></pre></td></tr></table></div></figure>
+
+
+<p>It’s much better now isn’t it?
+The sad answer is: not really! In the end this just hides instance-of.</p>
+
+<p>How would you implement the onBindViewholder() we’ve seen above? It would be something like: if object is of type T1 then do.. else… so still slapping to be done here.</p>
+
+<p>The goal should be to be able to <strong>add new view types without even touching the adapter</strong>.</p>
+
+<p>Therefore: don’t create your own type mapping in the adapter between the models and the views in the first place. Google suggests using layout ids. With this trick you don’t need the artificial type mappings by simply using the layout id you’re inflating. And of course you probably save another enum as #perfmatters.</p>
+
+<p>But still you need to map those to each other? How?</p>
+
+<p>In the end end you need to map models to views. Could this knowledge move to the model?</p>
+
+<p>It would be tempting to put the type into your model, something like.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>fun getType() : Int = R.layout.item_duck</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This way the adapter implementation for type could be totally generic:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>override fun getItemViewType(pos: Int) = things[pos].getType()</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Open-Closed principle is applied, no changes needed when adding new models.</p>
+
+<p>But now you totally mixed our layers and indeed broke the complete architecture. Entities know about presentation, arrows pointing into the wrong direction. This must be unacceptable for us.</p>
+
+<p>And again: adding a method into an object to asks for it’s type is not object orientated. You again would just hide the instance-of check.</p>
+
+<h2>The ViewModel</h2>
+
+<p>One way to approach this, is to have separat ViewModels instead of using our Model directly. In the end our problem was that our models are disjoint, they don’t share a common base: a car is not an animal. And this is correct. Only for the presentation layer you need to show them in on list. So when you introduce models for this layer you don’t have this problem, they can have a common base.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>abstract class ViewModel {
+</span><span class='line'>    abstract fun type(): Int
+</span><span class='line'>}
+</span><span class='line'>class DuckViewModel(val duck: Duck): ViewModel() {
+</span><span class='line'>    override fun type() = R.layout.duck
+</span><span class='line'>}
+</span><span class='line'>class CarViewModel(val car: Car): ViewModel() {
+</span><span class='line'>    override fun type() = R.layout.car
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>So you simply wrapped the models. You don’t need to modify them at all and keep view specific code in those new ViewModels.</p>
+
+<p>This way you can also add all formatting logic into there and use Android’s new Data Binding Library.</p>
+
+<p>The idea of using list of ViewModels in the adapter instead of the Models helps especially when you need artificial items like dividers, section headers or simply advertisement items.</p>
+
+<p>This is one approach to solve the problem. But not the only one.</p>
+
+<h2>The Visitor</h2>
+
+<p>Let’s go back to our initial idea of only using the Model. If you would have lots of model classes, maybe you don’t want to create lots of ViewModel one each.</p>
+
+<p>Thinking of the type() method that you added in the first place into the model, you missed some decoupling. You need to avoid having the presentation code in there directly. You need to indirect it, move the actual type knowledge to somewhere else. How about adding an interface into this type() method:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>interface Visitable {
+</span><span class='line'>    fun type(typeFactory: TypeFactory) : Int
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Now you might ask what have you won here as the factory would still need to branch between types like the adapter did in the first place, right?</p>
+
+<p>No it does not! This approach will be based on the Visitor pattern, one of the classic Gang-of-Four pattern. All the model will do, is forwarding this type call:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>interface Animal : Visitable
+</span><span class='line'>interface Car : Visitable
+</span><span class='line'>class Mouse: Animal {
+</span><span class='line'>    override fun type(typeFactory: TypeFactory) 
+</span><span class='line'>        = typeFactory.type(this)
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The factory has variations you need:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>interface TypeFactory {
+</span><span class='line'>    fun type(duck: Duck): Int
+</span><span class='line'>    fun type(mouse: Mouse): Int
+</span><span class='line'>    fun type(dog: Dog): Int
+</span><span class='line'>    fun type(car: Car): Int
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This way it’s totally type safe, no instance-of, no casts needed at all.</p>
+
+<p>And the responsibility of the factory is clear: it knows about the view types:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>class TypeFactoryForList : TypeFactory {
+</span><span class='line'>    override fun type(duck: Duck) = R.layout.duck
+</span><span class='line'>    override fun type(mouse: Mouse) = R.layout.mouse
+</span><span class='line'>    override fun type(dog: Dog) = R.layout.dog
+</span><span class='line'>    override fun type(car: Car) = R.layout.car</span></code></pre></td></tr></table></div></figure>
+
+
+<p>I could even also create ViewHolders to keep the knowledge about the ids in one place. So when adding a new view, this is the place to add. This should be pretty SOLID. You might need another method for new types but not modify any existing method: Open for Extension, Closed for Modification.</p>
+
+<p>Now you might ask: why not use the factory directly from adapter instead using the indirection of the model?</p>
+
+<p>Only with this path you get the type safety without need of casts and type checks. Take a moment to realize this here, there is not a single cast needed!This indirection is the magic behind Visitor Pattern.</p>
+
+<p>Following this approach leaves the adapter with a very generic implementation that hardly ever needs to be changed.</p>
+
+<h2>Conclusion</h2>
+
+<ul>
+<li>Try to keep your presentation code clean.</li>
+<li>Instance-of checks should be a red flag!</li>
+<li>Look out for down casting as it’s a code smell.</li>
+<li>Try to replace those two with correct OO usage. Think about interfaces and inheritance.</li>
+<li>Try to use generics to prevent castings.</li>
+<li>Use ViewModels.</li>
+<li>Check out for usages for the Visitor pattern.</li>
+</ul>
+
+
+<p>I would be happy to learn other ideas to make our Adapters cleaner.</p>
+
+<p>PS: thanks to Jan M and Dmitri Kudrenko who crated examples on Github for Java and Kotlin:
+<a href="https://github.com/dmitrikudrenko/BetterAdapters">https://github.com/dmitrikudrenko/BetterAdapters</a>
+<a href="https://github.com/meierjan/BetterAdapters">https://github.com/meierjan/BetterAdapters</a></p>
+
+<h2>reference</h2>
+
+<ul>
+<li><a href="https://medium.com/@dpreussler/writing-better-adapters-1b09758407d2#.vc2pos5tm">Writing Better Adapters</a></li>
+<li><a href="https://juejin.im/entry/57fda1fe5bbb50005b3fef76?utm_source=gold-miner&amp;utm_medium=readme&amp;utm_campaign=github">关于 Android Adapter，你的实现方式可能一直都有问题</a></li>
+</ul>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Make an android custom view,Publish and Open Source]]></title>
@@ -9214,499 +9526,6 @@ Unlike Ubuntu shipped with GNU command line tools,Mac OS X shipped with the BSD 
 </span><span class='line'>        <span class="n">PackageManager</span><span class="o">.</span><span class="na">COMPONENT_ENABLED_STATE_DISABLED</span><span class="o">,</span>
 </span><span class='line'>        <span class="n">PackageManager</span><span class="o">.</span><span class="na">DONT_KILL_APP</span><span class="o">);</span>
 </span></code></pre></td></tr></table></div></figure></p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Multithreading in a UI Environment]]></title>
-    <link href="http://Solarex.github.io/blog/2014/10/31/android-multithreading-in-a-ui-environment/"/>
-    <updated>2014-10-31T09:14:00+08:00</updated>
-    <id>http://Solarex.github.io/blog/2014/10/31/android-multithreading-in-a-ui-environment</id>
-    <content type="html"><![CDATA[<p><p><center><img src="http://Solarex.github.io/images/android_threads.png"></center></p>
-
-<h2>Why do we need multithreading in Android applications?</h2>
-
-<p>Let’s say you want to do a very long operation when the user pushes a button.If you are not using another thread, it will look something like this:</p>
-
-<p><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="o">((</span><span class="n">Button</span><span class="o">)</span><span class="n">findViewById</span><span class="o">(</span><span class="n">R</span><span class="o">.</span><span class="na">id</span><span class="o">.</span><span class="na">Button01</span><span class="o">)).</span><span class="na">setOnClickListener</span><span class="o">(</span>
-</span><span class='line'>             <span class="k">new</span> <span class="nf">OnClickListener</span><span class="o">()</span> <span class="o">{</span>
-</span><span class='line'>
-</span><span class='line'>          <span class="nd">@Override</span>
-</span><span class='line'>          <span class="kd">public</span> <span class="kt">void</span> <span class="nf">onClick</span><span class="o">(</span><span class="n">View</span> <span class="n">v</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'>            <span class="kt">int</span> <span class="n">result</span> <span class="o">=</span> <span class="n">doLongOperation</span><span class="o">();</span>
-</span><span class='line'>            <span class="n">updateUI</span><span class="o">(</span><span class="n">result</span><span class="o">);</span>
-</span><span class='line'>          <span class="o">}</span>
-</span><span class='line'>      <span class="o">});</span>
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>What will happen?The UI freezes. This is a really bad UI experience. The program may even crash.</p>
-
-<h2>The problem in using threads in a UI environment</h2>
-
-<p>So what will happen if we use a Thread for a long running operation.Let’s try a simple example:</p>
-
-<p><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="o">((</span><span class="n">Button</span><span class="o">)</span><span class="n">findViewById</span><span class="o">(</span><span class="n">R</span><span class="o">.</span><span class="na">id</span><span class="o">.</span><span class="na">Button01</span><span class="o">)).</span><span class="na">setOnClickListener</span><span class="o">(</span>
-</span><span class='line'><span class="k">new</span> <span class="nf">OnClickListener</span><span class="o">()</span> <span class="o">{</span>
-</span><span class='line'>
-</span><span class='line'>          <span class="nd">@Override</span>
-</span><span class='line'>          <span class="kd">public</span> <span class="kt">void</span> <span class="nf">onClick</span><span class="o">(</span><span class="n">View</span> <span class="n">v</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'>
-</span><span class='line'>              <span class="o">(</span><span class="k">new</span> <span class="n">Thread</span><span class="o">(</span><span class="k">new</span> <span class="n">Runnable</span><span class="o">()</span> <span class="o">{</span>
-</span><span class='line'>
-</span><span class='line'>                  <span class="nd">@Override</span>
-</span><span class='line'>                  <span class="kd">public</span> <span class="kt">void</span> <span class="nf">run</span><span class="o">()</span> <span class="o">{</span>
-</span><span class='line'>                    <span class="kt">int</span> <span class="n">result</span> <span class="o">=</span> <span class="n">doLongOperation</span><span class="o">();</span>
-</span><span class='line'>                    <span class="n">updateUI</span><span class="o">(</span><span class="n">result</span><span class="o">);</span>
-</span><span class='line'>                  <span class="o">}</span>
-</span><span class='line'>              <span class="o">})).</span><span class="na">start</span><span class="o">();</span>
-</span><span class='line'>
-</span><span class='line'>          <span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>The result in this case is that the application crashes.</p>
-
-<p><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>12-07 16:24:29.089: ERROR/AndroidRuntime<span class="o">(</span>315<span class="o">)</span>: FATAL EXCEPTION: Thread-8
-</span><span class='line'>12-07 16:24:29.089: ERROR/AndroidRuntime<span class="o">(</span>315<span class="o">)</span>: android.view.ViewRoot<span class="nv">$CalledFromWrongThreadException</span>: Only the original thread that created a view hierarchy can touch its views.
-</span><span class='line'>12-07 16:24:29.089: ERROR/AndroidRuntime<span class="o">(</span>315<span class="o">)</span>: at &hellip;Clearly the Android OS wont <span class="nb">let </span>threads other than the main thread change UI elements.
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>But why?Android UI toolkit, like many other UI environments, is not thread-safe.</p>
-
-<p><!-- more --></p>
-
-<p>The solution</p>
-
-<ul>
-<li>A queue of messages. Each message is a job to be handled.</li>
-<li>Threads can add messages.</li>
-<li>Only a single thread pulls messages one by one from the queue.</li>
-</ul>
-
-
-<p>The same solution was implemented in swing (<a href="http://en.wikipedia.org/wiki/Event_dispatching_thread">Event dispatching thread</a> and <a href="http://download.oracle.com/javase/1.4.2/docs/api/javax/swing/SwingUtilities.html#invokeLater%28java.lang.Runnable%29">SwingUtilities.invokeLater()</a> )</p>
-
-<h2>Handler</h2>
-
-<p>The Handler is the middleman between a new thread and the message queue.</p>
-
-<ul>
-<li>Option 1 – Run the new thread and use the handler to send messages for ui changes</li>
-</ul>
-
-
-<p><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">final</span> <span class="n">Handler</span> <span class="n">myHandler</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Handler</span><span class="o">(){</span>
-</span><span class='line'>  <span class="nd">@Override</span>
-</span><span class='line'><span class="kd">public</span> <span class="kt">void</span> <span class="nf">handleMessage</span><span class="o">(</span><span class="n">Message</span> <span class="n">msg</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'>      <span class="n">updateUI</span><span class="o">((</span><span class="n">String</span><span class="o">)</span><span class="n">msg</span><span class="o">.</span><span class="na">obj</span><span class="o">);</span>
-</span><span class='line'><span class="o">}</span>
-</span><span class='line'>
-</span><span class='line'><span class="o">};</span>
-</span><span class='line'>
-</span><span class='line'><span class="o">(</span><span class="k">new</span> <span class="n">Thread</span><span class="o">(</span><span class="k">new</span> <span class="n">Runnable</span><span class="o">()</span> <span class="o">{</span>
-</span><span class='line'>
-</span><span class='line'>  <span class="nd">@Override</span>
-</span><span class='line'>  <span class="kd">public</span> <span class="kt">void</span> <span class="nf">run</span><span class="o">()</span> <span class="o">{</span>
-</span><span class='line'>      <span class="n">Message</span> <span class="n">msg</span> <span class="o">=</span> <span class="n">myHandler</span><span class="o">.</span><span class="na">obtainMessage</span><span class="o">();</span>
-</span><span class='line'>
-</span><span class='line'>      <span class="n">msg</span><span class="o">.</span><span class="na">obj</span> <span class="o">=</span> <span class="n">doLongOperation</span><span class="o">();</span>
-</span><span class='line'>
-</span><span class='line'>      <span class="n">myHandler</span><span class="o">.</span><span class="na">sendMessage</span><span class="o">(</span><span class="n">msg</span><span class="o">);</span>
-</span><span class='line'>  <span class="o">}</span>
-</span><span class='line'><span class="o">})).</span><span class="na">start</span><span class="o">();</span>
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>keep in mind that updating the UI should still be a short operation, since the UI freezes during the updating process.</p>
-
-<p>Other possibilities:</p>
-
-<ul>
-<li><code>handler.obtainMessage</code> with parameters</li>
-<li><code>handler.sendMessageAtFrontOfQueue()</code></li>
-<li><code>handler.sendMessageAtTime()</code></li>
-<li><code>handler.sendMessageDelayed()</code></li>
-<li><p><code>handler.sendEmptyMessage()</code></p></li>
-<li><p>Option 2 – run the new thread and use the handler to post a runnable which updates the GUI.</p></li>
-</ul>
-
-
-<p><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">final</span> <span class="n">Handler</span> <span class="n">myHandler</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Handler</span><span class="o">();</span>
-</span><span class='line'>
-</span><span class='line'>              <span class="o">(</span><span class="k">new</span> <span class="n">Thread</span><span class="o">(</span><span class="k">new</span> <span class="n">Runnable</span><span class="o">()</span> <span class="o">{</span>
-</span><span class='line'>
-</span><span class='line'>                  <span class="nd">@Override</span>
-</span><span class='line'>                  <span class="kd">public</span> <span class="kt">void</span> <span class="nf">run</span><span class="o">()</span> <span class="o">{</span>
-</span><span class='line'>                      <span class="kd">final</span> <span class="n">String</span> <span class="n">res</span> <span class="o">=</span> <span class="n">doLongOperation</span><span class="o">();</span>
-</span><span class='line'>                      <span class="n">myHandler</span><span class="o">.</span><span class="na">post</span><span class="o">(</span><span class="k">new</span> <span class="n">Runnable</span><span class="o">()</span> <span class="o">{</span>
-</span><span class='line'>
-</span><span class='line'>                          <span class="nd">@Override</span>
-</span><span class='line'>                          <span class="kd">public</span> <span class="kt">void</span> <span class="nf">run</span><span class="o">()</span> <span class="o">{</span>
-</span><span class='line'>                              <span class="n">updateUI</span><span class="o">(</span><span class="n">res</span><span class="o">);</span>
-</span><span class='line'>                          <span class="o">}</span>
-</span><span class='line'>                      <span class="o">});</span>
-</span><span class='line'>                  <span class="o">}</span>
-</span><span class='line'>              <span class="o">})).</span><span class="na">start</span><span class="o">();</span>
-</span><span class='line'>
-</span><span class='line'>          <span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p><p><center><img src="http://Solarex.github.io/images/android_looper.png"></center></p>
-
-<h2>Looper</h2>
-
-<p>If we want to dive a bit deeper into the android mechanism we have to understand what is a Looper.We have talked about the message queue that the main thread pulls messages and runnables from it and executes them.We also said that each handler you create has a reference to this queue.What we haven’t said yet is that the main thread has a reference to an object named Looper.</p>
-
-<p>The Looper gives the Thread the access to the message queue.Only the main thread has executes to the Looper by default.</p>
-
-<p>Lets say you would like to create a new thread and you also want to take advantage of the message queue functionality in that thread.</p>
-
-<p><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="o">(</span><span class="k">new</span> <span class="n">Thread</span><span class="o">(</span><span class="k">new</span> <span class="n">Runnable</span><span class="o">()</span> <span class="o">{</span>
-</span><span class='line'>
-</span><span class='line'>                      <span class="nd">@Override</span>
-</span><span class='line'>                      <span class="kd">public</span> <span class="kt">void</span> <span class="nf">run</span><span class="o">()</span> <span class="o">{</span>
-</span><span class='line'>
-</span><span class='line'>                          <span class="n">innerHandler</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Handler</span><span class="o">();</span>
-</span><span class='line'>
-</span><span class='line'>                          <span class="n">Message</span> <span class="n">message</span> <span class="o">=</span> <span class="n">innerHandler</span><span class="o">.</span><span class="na">obtainMessage</span><span class="o">();</span>
-</span><span class='line'>                          <span class="n">innerHandler</span><span class="o">.</span><span class="na">dispatchMessage</span><span class="o">(</span><span class="n">message</span><span class="o">);</span>
-</span><span class='line'>                      <span class="o">}</span>
-</span><span class='line'>                  <span class="o">})).</span><span class="na">start</span><span class="o">();</span>
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>Here we created a new thread which uses the handler to put a message in the messages queue.</p>
-
-<p>This will be the result:</p>
-
-<p><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>12-10 20:41:51.807: ERROR/AndroidRuntime<span class="o">(</span>254<span class="o">)</span>: Uncaught handler: thread Thread-8 exiting due to uncaught exception
-</span><span class='line'>12-10 20:41:51.817: ERROR/AndroidRuntime<span class="o">(</span>254<span class="o">)</span>: java.lang.RuntimeException: Can<span class="err">&#39;</span>t create handler inside thread that has not called Looper.prepare<span class="o">()</span>
-</span><span class='line'>12-10 20:41:51.817: ERROR/AndroidRuntime<span class="o">(</span>254<span class="o">)</span>: at android.os.Handler.<span class="o">(</span>Handler.java:121<span class="o">)</span>
-</span><span class='line'>12-10 20:41:51.817: ERROR/AndroidRuntime<span class="o">(</span>254<span class="o">)</span>: at &hellip;
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>The new created thread does not have a <code>Looper</code> with a queue attached to it. Only the UI thread has a <code>Looper</code>.We can however create a <code>Looper</code> for the new thread.In order to do that we need to use 2 functions: <code>Looper.prepare()</code> and <code>Looper.loop()</code>.</p>
-
-<p><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="o">(</span><span class="k">new</span> <span class="n">Thread</span><span class="o">(</span><span class="k">new</span> <span class="n">Runnable</span><span class="o">()</span> <span class="o">{</span>
-</span><span class='line'>
-</span><span class='line'>                  <span class="nd">@Override</span>
-</span><span class='line'>                  <span class="kd">public</span> <span class="kt">void</span> <span class="nf">run</span><span class="o">()</span> <span class="o">{</span>
-</span><span class='line'>
-</span><span class='line'>                      <span class="n">Looper</span><span class="o">.</span><span class="na">prepare</span><span class="o">();</span>
-</span><span class='line'>                      <span class="n">innerHandler</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Handler</span><span class="o">();</span>
-</span><span class='line'>
-</span><span class='line'>                      <span class="n">Message</span> <span class="n">message</span> <span class="o">=</span> <span class="n">innerHandler</span><span class="o">.</span><span class="na">obtainMessage</span><span class="o">();</span>
-</span><span class='line'>                      <span class="n">innerHandler</span><span class="o">.</span><span class="na">dispatchMessage</span><span class="o">(</span><span class="n">message</span><span class="o">);</span>
-</span><span class='line'>                      <span class="n">Looper</span><span class="o">.</span><span class="na">loop</span><span class="o">();</span>
-</span><span class='line'>                  <span class="o">}</span>
-</span><span class='line'>              <span class="o">})).</span><span class="na">start</span><span class="o">();</span>
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>If you use this option, don’t forget to use also the <code>quit()</code> function so the Looper will not loop for ever.</p>
-
-<p><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="nd">@Override</span>
-</span><span class='line'>  <span class="kd">protected</span> <span class="kt">void</span> <span class="nf">onDestroy</span><span class="o">()</span> <span class="o">{</span>
-</span><span class='line'>      <span class="n">innerHandler</span><span class="o">.</span><span class="na">getLooper</span><span class="o">().</span><span class="na">quit</span><span class="o">();</span>
-</span><span class='line'>      <span class="kd">super</span><span class="o">.</span><span class="na">onDestroy</span><span class="o">();</span>
-</span><span class='line'>  <span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure></p>
-
-<h2>AsyncTask</h2>
-
-<p>I have explained to you that a Handler is the new thread’s way to communicate with the UI thread.If while reading this you were thinking to yourself, isn’t there an easier way to do all of that… well, you know what?! There is.</p>
-
-<p>Android team has created a class called AsyncTask which is in short a thread that can handle UI.</p>
-
-<p>Just like in java you extend the class Thread and a SwingWorker in Swing, in Android you extend the class AsyncTask.There is no interface here like Runnable to implement I’m afraid.</p>
-
-<p><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-<span class='line-number'>31</span>
-<span class='line-number'>32</span>
-<span class='line-number'>33</span>
-<span class='line-number'>34</span>
-<span class='line-number'>35</span>
-<span class='line-number'>36</span>
-<span class='line-number'>37</span>
-<span class='line-number'>38</span>
-<span class='line-number'>39</span>
-<span class='line-number'>40</span>
-<span class='line-number'>41</span>
-<span class='line-number'>42</span>
-<span class='line-number'>43</span>
-<span class='line-number'>44</span>
-<span class='line-number'>45</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">class</span> <span class="nc">MyAsyncTask</span> <span class="kd">extends</span> <span class="n">AsyncTask</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">,</span> <span class="n">String</span><span class="o">,</span> <span class="n">Long</span><span class="o">&gt;</span> <span class="o">{</span>
-</span><span class='line'>
-</span><span class='line'>      <span class="nd">@Override</span>
-</span><span class='line'>      <span class="kd">protected</span> <span class="n">Long</span> <span class="nf">doInBackground</span><span class="o">(</span><span class="n">Integer</span><span class="o">&hellip;</span> <span class="n">params</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'>
-</span><span class='line'>          <span class="kt">long</span> <span class="n">start</span> <span class="o">=</span> <span class="n">System</span><span class="o">.</span><span class="na">currentTimeMillis</span><span class="o">();</span>
-</span><span class='line'>          <span class="k">for</span> <span class="o">(</span><span class="n">Integer</span> <span class="n">integer</span> <span class="o">:</span> <span class="n">params</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'>              <span class="n">publishProgress</span><span class="o">(</span><span class="s">&quot;start processing &quot;</span><span class="o">+</span><span class="n">integer</span><span class="o">);</span>
-</span><span class='line'>              <span class="n">doLongOperation</span><span class="o">();</span>
-</span><span class='line'>              <span class="n">publishProgress</span><span class="o">(</span><span class="s">&quot;done processing &quot;</span><span class="o">+</span><span class="n">integer</span><span class="o">);</span>
-</span><span class='line'>          <span class="o">}</span>
-</span><span class='line'>
-</span><span class='line'>          <span class="k">return</span> <span class="n">start</span> <span class="o">&ndash;</span> <span class="n">System</span><span class="o">.</span><span class="na">currentTimeMillis</span><span class="o">();</span>
-</span><span class='line'>      <span class="o">}</span>
-</span><span class='line'>
-</span><span class='line'>
-</span><span class='line'>
-</span><span class='line'>      <span class="nd">@Override</span>
-</span><span class='line'>      <span class="kd">protected</span> <span class="kt">void</span> <span class="nf">onProgressUpdate</span><span class="o">(</span><span class="n">String</span><span class="o">&hellip;</span> <span class="n">values</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'>          <span class="n">updateUI</span><span class="o">(</span><span class="n">values</span><span class="o">[</span><span class="mi">0</span><span class="o">]);</span>
-</span><span class='line'>      <span class="o">}</span>
-</span><span class='line'>
-</span><span class='line'>      <span class="nd">@Override</span>
-</span><span class='line'>      <span class="kd">protected</span> <span class="kt">void</span> <span class="nf">onPostExecute</span><span class="o">(</span><span class="n">Long</span> <span class="n">time</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'>          <span class="n">updateUI</span><span class="o">(</span><span class="s">&quot;Done with all the operations, it took:&quot;</span> <span class="o">+</span>
-</span><span class='line'>                                     <span class="n">time</span> <span class="o">+</span> <span class="s">&quot; millisecondes&quot;</span><span class="o">);</span>
-</span><span class='line'>      <span class="o">}</span>
-</span><span class='line'>
-</span><span class='line'>      <span class="nd">@Override</span>
-</span><span class='line'>      <span class="kd">protected</span> <span class="kt">void</span> <span class="nf">onPreExecute</span><span class="o">()</span> <span class="o">{</span>
-</span><span class='line'>          <span class="n">updateUI</span><span class="o">(</span><span class="s">&quot;Starting process&quot;</span><span class="o">);</span>
-</span><span class='line'>      <span class="o">}</span>
-</span><span class='line'>
-</span><span class='line'>
-</span><span class='line'>      <span class="kd">public</span> <span class="kt">void</span> <span class="nf">doLongOperation</span><span class="o">()</span> <span class="o">{</span>
-</span><span class='line'>
-</span><span class='line'>          <span class="k">try</span> <span class="o">{</span>
-</span><span class='line'>              <span class="n">Thread</span><span class="o">.</span><span class="na">sleep</span><span class="o">(</span><span class="mi">1000</span><span class="o">);</span>
-</span><span class='line'>          <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">InterruptedException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'>              <span class="n">e</span><span class="o">.</span><span class="na">printStackTrace</span><span class="o">();</span>
-</span><span class='line'>          <span class="o">}</span>
-</span><span class='line'>
-</span><span class='line'>      <span class="o">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>This is how you start this thread:</p>
-
-<p><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">MyAsyncTask</span> <span class="n">aTask</span> <span class="o">=</span> <span class="k">new</span> <span class="n">MyAsyncTask</span><span class="o">();</span>
-</span><span class='line'><span class="n">aTask</span><span class="o">.</span><span class="na">execute</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span> <span class="mi">2</span><span class="o">,</span> <span class="mi">3</span><span class="o">,</span> <span class="mi">4</span><span class="o">,</span> <span class="mi">5</span><span class="o">);</span>
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>AsyncTask defines 3 generic types:<code>AsyncTask&lt;{type of the input}, {type of the update unit}, {type of the result}&gt;</code>,You don’t have to use all of them – simply use ‘Void’ for any of them.</p>
-
-<p>Notice that <code>AsyncTask</code> has 4 operations, which are executed by order.</p>
-
-<ul>
-<li><code>onPreExecute()</code> – is invoked before the execution.</li>
-<li><code>onPostExecute()</code> – is invoked after the execution.</li>
-<li><code>doInBackground()</code> – the main operation. Write your heavy operation here.</li>
-<li><code>onProgressUpdate()</code> – Indication to the user on progress. It is invoked every time publishProgress() is called.</li>
-</ul>
-
-
-<p><strong>Notice: doInBackground() is invoked on a background thread where onPreExecute(), onPostExecute() and onProgressUpdate() are invoked on the UI thread since their purpose is to update the UI.</strong></p>
-
-<p>Android developer website also mentions these 4 rules regarding the <code>AsyncTask</code>:</p>
-
-<ul>
-<li>The task instance must be created on the UI thread.</li>
-<li><code>execute(Params…)</code> must be invoked on the UI thread.</li>
-<li>Do not call <code>onPreExecute()</code>, <code>onPostExecute(Result)</code>, <code>doInBackground(Params…)</code>, <code>onProgressUpdate(Progress…)</code> manually.</li>
-<li>The task can be executed only once (an exception will be thrown if a second execution is attempted.)</li>
-</ul>
-
-
-<h2>Timer + TimerTask</h2>
-
-<p>Another option is to use a Timer.Timer is a comfortable way to dispatch a thread in the future, be it once or more.</p>
-
-<p>Instead of doing this:</p>
-
-<p><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">Runnable</span> <span class="n">threadTask</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Runnable</span><span class="o">()</span> <span class="o">{</span>
-</span><span class='line'>
-</span><span class='line'>  <span class="nd">@Override</span>
-</span><span class='line'>  <span class="kd">public</span> <span class="kt">void</span> <span class="nf">run</span><span class="o">()</span> <span class="o">{</span>
-</span><span class='line'>
-</span><span class='line'>      <span class="k">while</span><span class="o">(</span><span class="kc">true</span><span class="o">){</span>
-</span><span class='line'>          <span class="k">try</span> <span class="o">{</span>
-</span><span class='line'>              <span class="n">Thread</span><span class="o">.</span><span class="na">sleep</span><span class="o">(</span><span class="mi">2000</span><span class="o">);</span>
-</span><span class='line'>          <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">InterruptedException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'>              <span class="n">e</span><span class="o">.</span><span class="na">printStackTrace</span><span class="o">();</span>
-</span><span class='line'>          <span class="o">}</span>
-</span><span class='line'>
-</span><span class='line'>          <span class="n">doSomething</span><span class="o">();</span>
-</span><span class='line'>      <span class="o">}</span>
-</span><span class='line'>  <span class="o">}</span>
-</span><span class='line'><span class="o">};</span>
-</span><span class='line'>
-</span><span class='line'><span class="o">(</span><span class="k">new</span> <span class="n">Thread</span><span class="o">(</span><span class="n">threadTask</span><span class="o">)).</span><span class="na">start</span><span class="o">();</span>
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>do this:</p>
-
-<p><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">TimerTask</span> <span class="n">timerTask</span> <span class="o">=</span> <span class="k">new</span> <span class="n">TimerTask</span><span class="o">()</span> <span class="o">{</span>
-</span><span class='line'>  <span class="nd">@Override</span>
-</span><span class='line'>  <span class="kd">public</span> <span class="kt">void</span> <span class="nf">run</span><span class="o">()</span> <span class="o">{</span>
-</span><span class='line'>      <span class="n">doSomething</span><span class="o">();</span>
-</span><span class='line'>  <span class="o">}</span>
-</span><span class='line'><span class="o">};</span>
-</span><span class='line'>
-</span><span class='line'><span class="n">Timer</span> <span class="n">timer</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Timer</span><span class="o">();</span>
-</span><span class='line'><span class="n">timer</span><span class="o">.</span><span class="na">schedule</span><span class="o">(</span><span class="n">timerTask</span><span class="o">,</span> <span class="mi">2000</span><span class="o">,</span><span class="mi">2000</span><span class="o">);</span>
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>which is a bit more elegant.</p>
-
-<p>Bare in mind, you still have to use Handler if you need to do UI operations.</p>
 ]]></content>
   </entry>
   
