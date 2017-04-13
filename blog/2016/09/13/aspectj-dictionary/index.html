@@ -1,0 +1,233 @@
+
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>AspectJ - Dictionary - Solarex's Blog</title>
+    <meta name="author" content="Solarex">
+    
+	<meta name="description" content="What is AOP Every time someone tries to explain AOP (Aspect Oriented Programming) they often use words like “magic” or “black magic”. And that’s &hellip;">
+	
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+	<link href="/atom.xml" rel="alternate" title="Solarex's Blog" type="application/atom+xml">
+	<link rel="canonical" href="">
+	<link href="/favicon.ico" rel="shortcut icon">
+    <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+
+    <link href='http://fonts.googleapis.com/css?family=Slackey' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Amethysta' rel='stylesheet' type='text/css'>
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+    <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+
+    <script type="text/javascript" src="/javascripts/jquery-tapir.js"></script>
+
+    <!-- remove or comment it to disable ajaxification -->   
+    <script src="/javascripts/ajaxify.js"></script>
+   
+    <script>
+var _hmt = _hmt || [];
+(function() {
+      var hm = document.createElement("script");
+        hm.src = "https://hm.baidu.com/hm.js?2574e8b2c205dfe8ff89e239fa38ca27";
+          var s = document.getElementsByTagName("script")[0]; 
+            s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+    
+	<script type="text/javascript">
+		var _gaq = _gaq || [];
+		_gaq.push(['_setAccount', 'UA-42746457-1']);
+		_gaq.push(['_trackPageview']);
+
+		(function() {
+			var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+			ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+			var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+		})();
+	</script>
+
+
+</head>
+
+
+<body>
+    <div id="wrapper">
+    <header id="header" class="inner"><!-- for more effects see _animate.scss -->
+<h1 class="animated bounceInDown">
+    <div id="headerbg">
+        Solarex
+    </div>
+</h1>
+<br>
+
+<ul id="social-links" style="text-align:center">
+  
+  <!-- GitHub -->
+  <li>
+  <a href="https://github.com/flyfire" class="github" title="Github"></a>
+  </li>
+  
+  
+  <!-- Google Plus -->
+  <li>
+  <a href="http://plus.google.com/107384356964511479070?rel=author" class="google" title="Google+"></a>
+  </li>
+  
+  
+  
+  <!-- Twitter -->
+  <li>
+  <a href="http://www.twitter.com/hrhflyfire" class="twitter" title="Twitter"></a>
+  </li>
+  
+  
+  
+  
+  
+</ul>
+
+
+<!-- use full url including 'index.html' for navigation bar if you are using ajax -->
+<ul id="nav">
+	<li id="ajax"><a href="/index.html">Home</a></li>
+	<li id="ajax"><a href="/blog/archives/index.html">Archives</a></li>
+    <li><a href="http://solarex.github.io/wiki">Wiki</a></li>
+    <li id="ajax"><a href="/projects">Project</a></li>
+    <li><a href="http://solarex.github.io/resume">Resume</a></li>
+    
+    <li>
+    <div id="dark">
+        <form method="get" action="http://google.com/search" id="search">
+            <input type="hidden" name="q" value="site:solarex.github.io">
+            <input name="q" type="text" results="0" placeholder="Search..." x-webkit-speech />
+        </form>
+    </div>
+    </li>
+        
+</ul>
+
+
+
+
+</header>
+
+<div id="toload">
+<!-- begin toload --> 
+    <div id="content" class="inner">
+        <article class="post">
+	<h2 class="title">AspectJ - Dictionary</h2>
+	<div class="entry-content"><h2>What is <a href="https://en.wikipedia.org/wiki/Aspect-oriented_programming">AOP</a></h2>
+
+<p>Every time someone tries to explain AOP (Aspect Oriented Programming) they often use words like “magic” or “black magic”. And that’s understandable, especially if you come from an OOP world and come across AOP it really feels like “magic”: something is happening and you as a developer usually don’t know why, what or how.</p>
+
+<p>AspectJ is one of the more well-known implementations for AOP in Java and is developed by the Eclipse Foundation. In this series of articles we will be concentrating on AspectJ’s implementation of AOP and how it works in Java.So, let’s dive into AspectJ and make an effort of dispersing the mystic around the so-called “black magic”. Let’s start by building a dictionary with short explanations of some key terms.</p>
+
+<!-- more -->
+
+
+<h2>AspectJ – Dictionary</h2>
+
+<ul>
+<li><p>Aspects:The easiest way to describe aspects is as a funky Java Class. An Aspect contains other things than a normal class such as; pointcuts, advice, advice bodies and inner-type declarations. An aspect may also contain regular java classes and methods.</p></li>
+<li><p>Pointcuts:Defines, in a multitude of different ways, a point in the code. The pointcut defines when an advice should be run.</p></li>
+<li><p>Advice / Advice Body:Similar to a java method; contains the code that will be run once a pointcut has been triggered.</p></li>
+<li><p>Annotation – Not AOP specific:Consists of meta-data and can be used at methods, classes, parameters, packages and in variables.Annotations can contain an optional list of element-value pairs,In AspectJ we can define a pointcut by looking for annotations. The pointcut and advice can then use the element-value pairs from the annotation.</p></li>
+<li><p>Weaving / Aspect weaving:There are a few different ways to inject the AOP code in our application, but one common denominator is that they all require some type of extra step to be applied to our code. This extra step is called weaving.</p></li>
+<li><p>Compile-time weaving:If you have both the source code of the aspect and the code that you are using aspects in, you can compile your source-code and the aspect directly with an AspectJ compiler.</p></li>
+<li><p>Post-compile weaving / Binary weaving:If you can’t, or don’t want to use source-code transforms to weave the aspects into the code, you can take already compiled classes or jars and inject aspects.</p></li>
+<li><p>Load-time weaving:Acts the same way as post-compile weaving / binary weaving but waits to inject aspects into the code until the class loader loads the class file. This requires one or more weaving class loaders.</p></li>
+</ul>
+
+
+<h2>reference</h2>
+
+<ul>
+<li><a href="http://blog.jayway.com/2015/09/03/aspectj-and-aop-the-black-magic-of-programming/">AspectJ &ndash; Dictionary</a></li>
+</ul>
+
+</div>
+    <div class="entry-content"><center>除非另有声明，本网站采用<a href="http://creativecommons.org/licenses/by/3.0/cn/" rel="license">知识共享“署名 3.0 中国大陆”许可协议</a>授权。</center></div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="/blog/2016/09/13/aspectj-dictionary/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+	<div class="share">
+	<div class="addthis_toolbox addthis_default_style ">
+	
+	
+	
+	<a class="addthis_button_google_plusone" g:plusone:size="medium"></a>
+	
+	<a class="addthis_counter addthis_pill_style"></a>
+	</div>
+  <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid="></script>
+</div>
+
+
+
+<section id="comment">
+    <h2 class="title">Comments</h2>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+</section>
+
+    </div>
+    <footer id="footer">
+    <div style="display:inline">
+    Copyright &copy; 2017
+
+    Solarex
+. Powered by <a href="http://octopress.org">Octopress</a> | 
+    Theme <a href="http://github.com/panks/fabric">fabric</a> by <a href="http://panks.me">Pankaj Kumar</a>
+</div>
+
+
+    </footer>
+    <script src="/javascripts/fabric.js"></script>
+<script src="/javascripts/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+	$('.fancybox').fancybox();
+})(jQuery);
+</script> <!-- Delete or comment this line to disable Fancybox -->
+
+
+<script type="text/javascript">
+      var disqus_shortname = 'flyfire';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://Solarex.github.io/blog/2016/09/13/aspectj-dictionary/';
+        var disqus_url = 'http://Solarex.github.io/blog/2016/09/13/aspectj-dictionary/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+<!-- end toload --> 
+</div>
+</div>
+<script src="/javascripts/jquery.ui.totop.js" type="text/javascript"></script>
+<script type="text/javascript">
+/*<![CDATA[*/
+;(function($){$().UItoTop({easingType:'easeOutCirc'});})(jQuery); 
+/*]]>*/
+</script><!-- remove it to remove the scroll to top button -->
+</body>
+</html>

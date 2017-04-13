@@ -1,0 +1,443 @@
+
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Using annotations element-value pairs in AspectJ - Solarex's Blog</title>
+    <meta name="author" content="Solarex">
+    
+	<meta name="description" content="Annotations with element-value pairs Annotations by themselves are really powerful. They give direct control over when an aspect should be run to the &hellip;">
+	
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+	<link href="/atom.xml" rel="alternate" title="Solarex's Blog" type="application/atom+xml">
+	<link rel="canonical" href="">
+	<link href="/favicon.ico" rel="shortcut icon">
+    <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+
+    <link href='http://fonts.googleapis.com/css?family=Slackey' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Amethysta' rel='stylesheet' type='text/css'>
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+    <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+
+    <script type="text/javascript" src="/javascripts/jquery-tapir.js"></script>
+
+    <!-- remove or comment it to disable ajaxification -->   
+    <script src="/javascripts/ajaxify.js"></script>
+   
+    <script>
+var _hmt = _hmt || [];
+(function() {
+      var hm = document.createElement("script");
+        hm.src = "https://hm.baidu.com/hm.js?2574e8b2c205dfe8ff89e239fa38ca27";
+          var s = document.getElementsByTagName("script")[0]; 
+            s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+    
+	<script type="text/javascript">
+		var _gaq = _gaq || [];
+		_gaq.push(['_setAccount', 'UA-42746457-1']);
+		_gaq.push(['_trackPageview']);
+
+		(function() {
+			var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+			ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+			var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+		})();
+	</script>
+
+
+</head>
+
+
+<body>
+    <div id="wrapper">
+    <header id="header" class="inner"><!-- for more effects see _animate.scss -->
+<h1 class="animated bounceInDown">
+    <div id="headerbg">
+        Solarex
+    </div>
+</h1>
+<br>
+
+<ul id="social-links" style="text-align:center">
+  
+  <!-- GitHub -->
+  <li>
+  <a href="https://github.com/flyfire" class="github" title="Github"></a>
+  </li>
+  
+  
+  <!-- Google Plus -->
+  <li>
+  <a href="http://plus.google.com/107384356964511479070?rel=author" class="google" title="Google+"></a>
+  </li>
+  
+  
+  
+  <!-- Twitter -->
+  <li>
+  <a href="http://www.twitter.com/hrhflyfire" class="twitter" title="Twitter"></a>
+  </li>
+  
+  
+  
+  
+  
+</ul>
+
+
+<!-- use full url including 'index.html' for navigation bar if you are using ajax -->
+<ul id="nav">
+	<li id="ajax"><a href="/index.html">Home</a></li>
+	<li id="ajax"><a href="/blog/archives/index.html">Archives</a></li>
+    <li><a href="http://solarex.github.io/wiki">Wiki</a></li>
+    <li id="ajax"><a href="/projects">Project</a></li>
+    <li><a href="http://solarex.github.io/resume">Resume</a></li>
+    
+    <li>
+    <div id="dark">
+        <form method="get" action="http://google.com/search" id="search">
+            <input type="hidden" name="q" value="site:solarex.github.io">
+            <input name="q" type="text" results="0" placeholder="Search..." x-webkit-speech />
+        </form>
+    </div>
+    </li>
+        
+</ul>
+
+
+
+
+</header>
+
+<div id="toload">
+<!-- begin toload --> 
+    <div id="content" class="inner">
+        <article class="post">
+	<h2 class="title">Using Annotations Element-value Pairs in AspectJ</h2>
+	<div class="entry-content"><h2>Annotations with element-value pairs</h2>
+
+<p>Annotations by themselves are really powerful. They give direct control over when an aspect should be run to the developer. Adding element-value pairs makes the already powerful annotations even more powerful, since it enables you to pass information into the aspect.</p>
+
+<!-- more -->
+
+
+<h2>Description</h2>
+
+<p>Creating an annotation with an element-value pair is in itself quite simple. It can take different parameters and it’s up to the aspect developer to use these in their aspects. The syntax is  <code>@annotation(elementValuePairs)</code> and the <code>elementValuePairs</code> is defined by <code>[keyName] = [value]</code>. If you want more than one <code>elementValuePairs</code>  you use the <code>,</code>  as a delimiter.</p>
+
+<p>You can get the code for this blog series at the Git repository here.</p>
+
+<p>Let’s start coding!</p>
+
+<p>Requirements: Maven, Java 8, (preferably) an IDE (I’m using IntelliJ)</p>
+
+<p>Adding a element-value pair is quite simple. Getting access to it from the aspect and advice body is a little bit tricky. Let’s start with a example.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>package com.jayway.blog;
+</span><span class='line'>
+</span><span class='line'>import java.lang.annotation.ElementType;
+</span><span class='line'>import java.lang.annotation.Retention;
+</span><span class='line'>import java.lang.annotation.RetentionPolicy;
+</span><span class='line'>import java.lang.annotation.Target;
+</span><span class='line'>
+</span><span class='line'>/**
+</span><span class='line'> * Created by Steve on 2015-09-07.
+</span><span class='line'> */
+</span><span class='line'>@Retention(RetentionPolicy.RUNTIME)
+</span><span class='line'>@Target(ElementType.METHOD)
+</span><span class='line'>public @interface YourAnnotation {
+</span><span class='line'>    public boolean isRun() default true;
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The <code>@Retention</code>  and <code>@Target</code>  define the scope of the annotation and you can add multiple <code>@Target</code>  values. We have a boolean with the name <code>isRun()</code> with a default value of <code>true</code> . So let’s continue and access the <code>isRun()</code>  from the aspect.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+<span class='line-number'>55</span>
+<span class='line-number'>56</span>
+<span class='line-number'>57</span>
+<span class='line-number'>58</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>package com.jayway.blog;
+</span><span class='line'>
+</span><span class='line'>import org.aspectj.lang.ProceedingJoinPoint;
+</span><span class='line'>import org.aspectj.lang.annotation.*;
+</span><span class='line'>import org.aspectj.lang.JoinPoint;
+</span><span class='line'>
+</span><span class='line'>@Aspect
+</span><span class='line'>public class YourAspect {
+</span><span class='line'>
+</span><span class='line'>    //Defines a pointcut that we can use in the @Before,@After, @AfterThrowing, @AfterReturning,@Around specifications
+</span><span class='line'>    //The pointcut will look for the @YourAnnotation
+</span><span class='line'>    @Pointcut("@annotation(yourAnnotationVariableName)")
+</span><span class='line'>    public void annotationPointCutDefinition(YourAnnotation yourAnnotationVariableName){
+</span><span class='line'>    }
+</span><span class='line'>
+</span><span class='line'>    //Defines a pointcut that we can use in the @Before,@After, @AfterThrowing, @AfterReturning,@Around specifications
+</span><span class='line'>    //The pointcut is a catch-all pointcut with the scope of execution
+</span><span class='line'>    @Pointcut("execution(* *(..))")
+</span><span class='line'>    public void atExecution(){}
+</span><span class='line'>
+</span><span class='line'>    //Defines a pointcut where the @YourAnnotation exists
+</span><span class='line'>    //and combines that with an catch-all pointcut with the scope of execution
+</span><span class='line'>    @Around("annotationPointCutDefinition(yourAnnotationVariableName) && atExecution()")
+</span><span class='line'>    //ProceedingJointPoint = the reference of the call to the method.
+</span><span class='line'>    //The difference between ProceedingJointPoint and JointPoint is that a JointPoint can't be continued (proceeded)
+</span><span class='line'>    //A ProceedingJointPoint can be continued (proceeded) and is needed for an Around advice
+</span><span class='line'>    public Object aroundAdvice(ProceedingJoinPoint joinPoint, YourAnnotation yourAnnotationVariableName) throws Throwable {
+</span><span class='line'>        if(yourAnnotationVariableName.isRun()) {
+</span><span class='line'>            //Default Object that we can use to return to the consumer
+</span><span class='line'>            Object returnObject = null;
+</span><span class='line'>
+</span><span class='line'>            try {
+</span><span class='line'>                System.out.println("YourAspect's aroundAdvice's body is now executed Before yourMethodAround is called.");
+</span><span class='line'>                //We choose to continue the call to the method in question
+</span><span class='line'>                returnObject = joinPoint.proceed();
+</span><span class='line'>                //If no exception is thrown we should land here and we can modify the returnObject, if we want to.
+</span><span class='line'>            } catch (Throwable throwable) {
+</span><span class='line'>                //Here we can catch and modify any exceptions that are called
+</span><span class='line'>                //We could potentially not throw the exception to the caller and instead return "null" or a default object.
+</span><span class='line'>                throw throwable;
+</span><span class='line'>            } finally {
+</span><span class='line'>                //If we want to be sure that some of our code is executed even if we get an exception
+</span><span class='line'>                System.out.println("YourAspect's aroundAdvice's body is now executed After yourMethodAround is called.");
+</span><span class='line'>            }
+</span><span class='line'>            return returnObject;
+</span><span class='line'>        }
+</span><span class='line'>        else{
+</span><span class='line'>            return joinPoint.proceed();
+</span><span class='line'>        }
+</span><span class='line'>    }
+</span><span class='line'>
+</span><span class='line'>    @After("annotationPointCutDefinition(yourAnnotationVariableName) && atExecution()")
+</span><span class='line'>    //JointPoint = the reference of the call to the method
+</span><span class='line'>    public void printNewLine(JoinPoint pointcut, YourAnnotation yourAnnotationVariableName){
+</span><span class='line'>        //Just prints new lines after each method that's executed in
+</span><span class='line'>        System.out.print("\n\r");
+</span><span class='line'>    }
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>We specify that the  <code>annotationPointCutDefinition(YourAnnotation yourAnnotationVariableName)</code> contains a <code>YourAnnotation</code> reference. The variable reference is then used in the <code>@Pointcut("@annotation(yourAnnotationVariableName")</code>  instead of the generic <code>YourAnnotation</code> that were used in the earlier examples. By passing the variable to the <code>@annotation</code> we gain access to it. We need to pass the variable into the <code>@Around</code>  advice to gain access to the variable in the advice body.  Once in the advice body we can use it like a normal method parameter.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>package com.jayway.blog;
+</span><span class='line'>
+</span><span class='line'>public class YourClass {
+</span><span class='line'>
+</span><span class='line'>    public static void main(String[] args) {
+</span><span class='line'>        YourClass yourClass = new YourClass();
+</span><span class='line'>        yourClass.yourMethodAroundDontRun();
+</span><span class='line'>        yourClass.yourMethodAroundRunTrue();
+</span><span class='line'>        yourClass.yourMethodAroundRun();
+</span><span class='line'>    }
+</span><span class='line'>
+</span><span class='line'>    @YourAnnotation(isRun = false)
+</span><span class='line'>    public void yourMethodAroundDontRun(){
+</span><span class='line'>        System.out.println("Executing TestTarget.yourMethodAroundDontRun()");
+</span><span class='line'>    }
+</span><span class='line'>
+</span><span class='line'>    @YourAnnotation(isRun = true)
+</span><span class='line'>    public void yourMethodAroundRunTrue(){
+</span><span class='line'>        System.out.println("Executing TestTarget.yourMethodAroundRunTrue()");
+</span><span class='line'>    }
+</span><span class='line'>
+</span><span class='line'>    @YourAnnotation()
+</span><span class='line'>    public void yourMethodAroundRun(){
+</span><span class='line'>        System.out.println("Executing TestTarget.yourMethodAroundRun()");
+</span><span class='line'>    }
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>We add the annotation to our methods and have the option to omit the parameter or directly specify the value of the parameter. If the parameter is omitted the parameter will get it’s default value specified in the annotation.</p>
+
+<h2>Conclusion</h2>
+
+<p>Annotations with element-value pairs can be really powerful for both the developer who is using the aspects and as the one developing them. It gives the ability to send parameters into the aspect code. By adding the ability to send parameters we open up the code to be more configurable. By having aspects that are configurable we open up the code to be separated into it’s own independent framework or library.</p>
+
+<h2>reference</h2>
+
+<ul>
+<li><a href="http://blog.jayway.com/2015/09/09/using-annotations-element-value-pairs-in-aspectj/">Using annotations element-value pairs in AspectJ </a></li>
+</ul>
+
+</div>
+    <div class="entry-content"><center>除非另有声明，本网站采用<a href="http://creativecommons.org/licenses/by/3.0/cn/" rel="license">知识共享“署名 3.0 中国大陆”许可协议</a>授权。</center></div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="/blog/2016/09/17/using-annotations-element-value-pairs-in-aspectj/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+	<div class="share">
+	<div class="addthis_toolbox addthis_default_style ">
+	
+	
+	
+	<a class="addthis_button_google_plusone" g:plusone:size="medium"></a>
+	
+	<a class="addthis_counter addthis_pill_style"></a>
+	</div>
+  <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid="></script>
+</div>
+
+
+
+<section id="comment">
+    <h2 class="title">Comments</h2>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+</section>
+
+    </div>
+    <footer id="footer">
+    <div style="display:inline">
+    Copyright &copy; 2017
+
+    Solarex
+. Powered by <a href="http://octopress.org">Octopress</a> | 
+    Theme <a href="http://github.com/panks/fabric">fabric</a> by <a href="http://panks.me">Pankaj Kumar</a>
+</div>
+
+
+    </footer>
+    <script src="/javascripts/fabric.js"></script>
+<script src="/javascripts/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+	$('.fancybox').fancybox();
+})(jQuery);
+</script> <!-- Delete or comment this line to disable Fancybox -->
+
+
+<script type="text/javascript">
+      var disqus_shortname = 'flyfire';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://Solarex.github.io/blog/2016/09/17/using-annotations-element-value-pairs-in-aspectj/';
+        var disqus_url = 'http://Solarex.github.io/blog/2016/09/17/using-annotations-element-value-pairs-in-aspectj/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+<!-- end toload --> 
+</div>
+</div>
+<script src="/javascripts/jquery.ui.totop.js" type="text/javascript"></script>
+<script type="text/javascript">
+/*<![CDATA[*/
+;(function($){$().UItoTop({easingType:'easeOutCirc'});})(jQuery); 
+/*]]>*/
+</script><!-- remove it to remove the scroll to top button -->
+</body>
+</html>

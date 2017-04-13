@@ -6,7 +6,8 @@
 	<title>Solarex's Blog</title>
     <meta name="author" content="Solarex">
     
-	<meta name="description" content="Published on: Oct 31st, 2014 Tags: android, dev Why do we need multithreading in Android applications? Let’s say you want to do a very long &hellip;">
+	<meta name="description" content="Published on: May 5th, 2015 Tags: dev, tools System preferences In Apple Icon > System Preferences: Trackpad > Tap to click
+Keyboard > Key Repeat > &hellip;">
 	
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
@@ -96,7 +97,7 @@ var _hmt = _hmt || [];
 	<li id="ajax"><a href="/index.html">Home</a></li>
 	<li id="ajax"><a href="/blog/archives/index.html">Archives</a></li>
     <li><a href="http://solarex.github.io/wiki">Wiki</a></li>
-    <li id="ajax"><a href="/about">About</a></li>
+    <li id="ajax"><a href="/projects">Project</a></li>
     <li><a href="http://solarex.github.io/resume">Resume</a></li>
     
     <li>
@@ -124,9 +125,9 @@ var _hmt = _hmt || [];
     <article class="post">
 	<h2 class="title">
 		
-		<a href="/blog/2014/10/31/android-multithreading-in-a-ui-environment/">
+		<a href="/blog/2015/05/05/mac-dev-setup/">
 		
-			Multithreading in a UI Environment</a>
+			Setup Mac Development Environment</a>
 	</h2>
     <div class="entry-content">
     <div class="meta">
@@ -142,7 +143,68 @@ var _hmt = _hmt || [];
   
 
 
-<time datetime="2014-10-31T09:14:00+08:00" pubdate data-updated="true">Oct 31<span>st</span>, 2014</time></div>
+<time datetime="2015-05-05T12:04:00+08:00" pubdate data-updated="true">May 5<span>th</span>, 2015</time></div>
+      <div class="tags">Tags: 
+
+
+	<a class='category' href='/blog/categories/dev/'>dev</a>, <a class='category' href='/blog/categories/tools/'>tools</a>
+
+
+</div>
+    </div>
+		<p><center><img src="/images/apple_mac_logo.jpg" width=225 height=225/></center></p>
+
+
+
+
+<h2 id="system-preferences">System preferences</h2>
+
+
+<p>In Apple Icon > System Preferences:</p>
+
+<ul>
+<li>Trackpad > Tap to click</li>
+<li>Keyboard > Key Repeat > Fast (all the way to the right)</li>
+<li>Keyboard > Delay Until Repeat > Short (all the way to the right)</li>
+<li>Dock > Automatically hide and show the Dock</li>
+</ul>
+
+
+
+		
+		<a href="/blog/2015/05/05/mac-dev-setup/" class="more-link">Read on &rarr;</a>
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="/blog/2015/05/05/mac-dev-setup//blog/page/5/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+
+    <article class="post">
+	<h2 class="title">
+		
+		<a href="/blog/2015/05/05/android-custom-view/">
+		
+			Android Custom View</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: 
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2015-05-05T11:45:00+08:00" pubdate data-updated="true">May 5<span>th</span>, 2015</time></div>
       <div class="tags">Tags: 
 
 
@@ -151,92 +213,311 @@ var _hmt = _hmt || [];
 
 </div>
     </div>
-		<p><p><center><img src="/images/android_threads.png"></center></p>
+		<p><center><img src="/images/android_training.jpg"/></center></p>
 
-<h2>Why do we need multithreading in Android applications?</h2>
 
-<p>Let’s say you want to do a very long operation when the user pushes a button.If you are not using another thread, it will look something like this:</p>
 
-<p><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="o">((</span><span class="n">Button</span><span class="o">)</span><span class="n">findViewById</span><span class="o">(</span><span class="n">R</span><span class="o">.</span><span class="na">id</span><span class="o">.</span><span class="na">Button01</span><span class="o">)).</span><span class="na">setOnClickListener</span><span class="o">(</span>
-</span><span class='line'>             <span class="k">new</span> <span class="nf">OnClickListener</span><span class="o">()</span> <span class="o">{</span>
-</span><span class='line'>
-</span><span class='line'>          <span class="nd">@Override</span>
-</span><span class='line'>          <span class="kd">public</span> <span class="kt">void</span> <span class="nf">onClick</span><span class="o">(</span><span class="n">View</span> <span class="n">v</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'>            <span class="kt">int</span> <span class="n">result</span> <span class="o">=</span> <span class="n">doLongOperation</span><span class="o">();</span>
-</span><span class='line'>            <span class="n">updateUI</span><span class="o">(</span><span class="n">result</span><span class="o">);</span>
-</span><span class='line'>          <span class="o">}</span>
-</span><span class='line'>      <span class="o">});</span>
-</span></code></pre></td></tr></table></div></figure></p>
 
-<p>What will happen?The UI freezes. This is a really bad UI experience. The program may even crash.</p>
 
-<h2>The problem in using threads in a UI environment</h2>
+		
+		<a href="/blog/2015/05/05/android-custom-view/" class="more-link">Read on &rarr;</a>
+	</div>
 
-<p>So what will happen if we use a Thread for a long running operation.Let’s try a simple example:</p>
+<div class="meta">
+	
+		<span class="comments"><a href="/blog/2015/05/05/android-custom-view//blog/page/5/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
 
-<p><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="o">((</span><span class="n">Button</span><span class="o">)</span><span class="n">findViewById</span><span class="o">(</span><span class="n">R</span><span class="o">.</span><span class="na">id</span><span class="o">.</span><span class="na">Button01</span><span class="o">)).</span><span class="na">setOnClickListener</span><span class="o">(</span>
-</span><span class='line'><span class="k">new</span> <span class="nf">OnClickListener</span><span class="o">()</span> <span class="o">{</span>
-</span><span class='line'>
-</span><span class='line'>          <span class="nd">@Override</span>
-</span><span class='line'>          <span class="kd">public</span> <span class="kt">void</span> <span class="nf">onClick</span><span class="o">(</span><span class="n">View</span> <span class="n">v</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'>
-</span><span class='line'>              <span class="o">(</span><span class="k">new</span> <span class="n">Thread</span><span class="o">(</span><span class="k">new</span> <span class="n">Runnable</span><span class="o">()</span> <span class="o">{</span>
-</span><span class='line'>
-</span><span class='line'>                  <span class="nd">@Override</span>
-</span><span class='line'>                  <span class="kd">public</span> <span class="kt">void</span> <span class="nf">run</span><span class="o">()</span> <span class="o">{</span>
-</span><span class='line'>                    <span class="kt">int</span> <span class="n">result</span> <span class="o">=</span> <span class="n">doLongOperation</span><span class="o">();</span>
-</span><span class='line'>                    <span class="n">updateUI</span><span class="o">(</span><span class="n">result</span><span class="o">);</span>
-</span><span class='line'>                  <span class="o">}</span>
-</span><span class='line'>              <span class="o">})).</span><span class="na">start</span><span class="o">();</span>
-</span><span class='line'>
-</span><span class='line'>          <span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure></p>
 
-<p>The result in this case is that the application crashes.</p>
+    <article class="post">
+	<h2 class="title">
+		
+		<a href="/blog/2015/03/29/python-tutorial/">
+		
+			Python Tutorial</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: 
 
-<p><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>12-07 16:24:29.089: ERROR/AndroidRuntime<span class="o">(</span>315<span class="o">)</span>: FATAL EXCEPTION: Thread-8
-</span><span class='line'>12-07 16:24:29.089: ERROR/AndroidRuntime<span class="o">(</span>315<span class="o">)</span>: android.view.ViewRoot<span class="nv">$CalledFromWrongThreadException</span>: Only the original thread that created a view hierarchy can touch its views.
-</span><span class='line'>12-07 16:24:29.089: ERROR/AndroidRuntime<span class="o">(</span>315<span class="o">)</span>: at &hellip;Clearly the Android OS wont <span class="nb">let </span>threads other than the main thread change UI elements.
-</span></code></pre></td></tr></table></div></figure></p>
 
-<p>But why?Android UI toolkit, like many other UI environments, is not thread-safe.</p>
+
+
+
+
+
+
+  
+
+
+<time datetime="2015-03-29T11:17:00+08:00" pubdate data-updated="true">Mar 29<span>th</span>, 2015</time></div>
+      <div class="tags">Tags: 
+
+
+	<a class='category' href='/blog/categories/dev/'>dev</a>, <a class='category' href='/blog/categories/python/'>python</a>
+
+
+</div>
+    </div>
+		<center><p><img src="/images/python_logo.png"></p></center>
+
+
+<ul>
+<li><a href="#1">Whetting Your Appetite</a></li>
+<li><a href="#2">Using the Python Interpreter</a>
+
+<ul>
+<li><a href="#2.1">Invoking the Interpreter</a>
+
+<ul>
+<li><a href="#2.1.1">Argument Passing</a></li>
+<li><a href="#2.1.2">Interactive Mode</a></li>
+</ul>
+</li>
+<li><a href="#2.2">The Interpreter and Its Environment</a>
+
+<ul>
+<li><a href="#2.2.1">Source Code Encoding</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#3">An Informal Introduction to Python</a>
+
+<ul>
+<li><a href="#3.1">Using Python as Calculator</a>
+
+<ul>
+<li><a href="#3.1.1">Numbers</a></li>
+<li><a href="#3.1.2">Strings</a></li>
+<li><a href="#3.1.3">Lists</a></li>
+</ul>
+</li>
+<li><a href="#3.2">First Steps Towards Programming</a></li>
+</ul>
+</li>
+<li><a href="#4">More Control Flow Tools</a>
+
+<ul>
+<li><a href="#4.1">if Statements</a></li>
+<li><a href="#4.2">for Statements</a></li>
+<li><a href="#4.3">The range() Function</a></li>
+<li><a href="#4.4">break and continue Statements,and else Clauses and Loops</a></li>
+<li><a href="#4.5">pass Statements</a></li>
+<li><a href="#4.6">Defining Functions</a></li>
+<li><a href="#4.7">More on Defining Functions</a>
+
+<ul>
+<li><a href="#4.7.1">Default Argument Values</a></li>
+<li><a href="#4.7.2">Keyword Arguments</a></li>
+<li><a href="#4.7.3">Arbitrary Argument Lists</a></li>
+<li><a href="#4.7.4">Unpacking Argument Lists</a></li>
+<li><a href="#4.7.5">Lambda Expressions</a></li>
+<li><a href="#4.7.6">Documentation Strings</a></li>
+<li><a href="#4.7.7">Function Annotations</a></li>
+</ul>
+</li>
+<li><a href="#4.8">Intermezzo: Coding Style</a></li>
+</ul>
+</li>
+<li><a href="#5">Data Structures</a>
+
+<ul>
+<li><a href="#5.1">More on Lists</a>
+
+<ul>
+<li><a href="#5.1.1">Using Lists as Stacks</a></li>
+<li><a href="#5.1.2">Using Lists as Queues</a></li>
+<li><a href="#5.1.3">List Comprehensions</a></li>
+<li><a href="#5.1.4">Nested List Comprehensions</a></li>
+</ul>
+</li>
+<li><a href="#.5.2">The del Statement</a></li>
+<li><a href="#5.3">Tuples and Sequences</a></li>
+<li><a href="#5.4">Sets</a></li>
+<li><a href="#5.5">Dictionaries</a></li>
+<li><a href="#5.6">Looping Techniques</a></li>
+<li><a href="#5.7">More on Conditions</a></li>
+<li><a href="#5.8">Comparing Sequences and Other Types</a></li>
+</ul>
+</li>
+<li><a href="#6">Modules</a>
+
+<ul>
+<li><a href="#6.1">More on Modules</a>
+
+<ul>
+<li><a href="#6.1.1">Executing modules as scripts</a></li>
+<li><a href="#6.1.2">The Module Search Path</a></li>
+<li><a href="#6.1.3">&ldquo;Compiled&rdquo; Python files</a></li>
+</ul>
+</li>
+<li><a href="#6.2">Standard Modules</a></li>
+<li><a href="#6.3">The dir() Function</a></li>
+<li><a href="#6.4">Packages</a>
+
+<ul>
+<li><a href="#6.4.1">Importing * From a Package</a></li>
+<li><a href="#6.4.2">Intra-package References</a></li>
+<li><a href="#6.4.3">Packages in Multiple Directories</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#7">Input and Output</a>
+
+<ul>
+<li><a href="#7.1">Fancier Output Formatting</a>
+
+<ul>
+<li><a href="#7.1.1">Old String Formatting</a></li>
+</ul>
+</li>
+<li><a href="#7.2">Reading and Writing Files</a>
+
+<ul>
+<li><a href="#7.2.1">Methods of File Objects</a></li>
+<li><a href="#7.2.2">Saving structured data with json</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#8">Errors and Exceptions</a>
+
+<ul>
+<li><a href="#8.1">Syntax Errors</a></li>
+<li><a href="#8.2">Exceptions</a></li>
+<li><a href="#8.3">Handling Exceptions</a></li>
+<li><a href="#8.4">Raising Exceptions</a></li>
+<li><a href="#8.5">User-defined Exceptions</a></li>
+<li><a href="#8.6">Defining Clean-up Actions</a></li>
+<li><a href="#8.7">Predefined Clean-up Actions</a></li>
+</ul>
+</li>
+<li><a href="#9">Classes</a>
+
+<ul>
+<li><a href="#9.1">A Word About Names and Objects</a></li>
+<li><a href="#9.2">Python Scopes and Namespaces</a>
+
+<ul>
+<li><a href="#9.2.1">Scopes and Namespacs Example</a></li>
+</ul>
+</li>
+<li><a href="#9.3">A First Look at Classes</a>
+
+<ul>
+<li><a href="#9.3.1">Class Definition Syntax</a></li>
+<li><a href="#9.3.2">Class Objects</a></li>
+<li><a href="#9.3.3">Instance Objects</a></li>
+<li><a href="#9.3.4">Method Objects</a></li>
+<li><a href="#9.3.5">Class and Instance Variables</a></li>
+</ul>
+</li>
+<li><a href="#9.4">Random Remarks</a></li>
+<li><a href="#9.5">Inheritance</a>
+
+<ul>
+<li><a href="#9.5.1">Multiple Inheritance</a></li>
+</ul>
+</li>
+<li><a href="#9.6">Private Variables</a></li>
+<li><a href="#9.7">Odds and Ends</a></li>
+<li><a href="#9.8">Exceptions Are Classes Too</a></li>
+<li><a href="#9.9">Iterators</a></li>
+<li><a href="#9.10">Generators</a></li>
+<li><a href="#9.11">Generator Expressions</a></li>
+</ul>
+</li>
+<li><a href="#10">Brief Tour of the Standard Library</a>
+
+<ul>
+<li><a href="#10.1">Operating System Interface</a></li>
+<li><a href="#10.2">File Wildcards</a></li>
+<li><a href="#10.3">Command Line Arguments</a></li>
+<li><a href="#10.4">Error Output Redirection and Program Termination</a></li>
+<li><a href="#10.5">String Pattern Matching</a></li>
+<li><a href="#10.6">Mathematics</a></li>
+<li><a href="#10.7">Internet Access</a></li>
+<li><a href="#10.8">Dates and Times</a></li>
+<li><a href="#10.9">Data Compression</a></li>
+<li><a href="#10.10">Performance Measurement</a></li>
+<li><a href="#10.11">Quality Control</a></li>
+<li><a href="#10.12">Batteries Included</a></li>
+</ul>
+</li>
+<li><a href="#11">Brief Tour of the Standard Library &ndash; Part II</a>
+
+<ul>
+<li><a href="#11.1">Output Formatting</a></li>
+<li><a href="#11.2">Templating</a></li>
+<li><a href="#11.3">Working with Binary Data Record Layouts</a></li>
+<li><a href="#11.4">Multi-threading</a></li>
+<li><a href="#11.5">Logging</a></li>
+<li><a href="#11.6">Weak References</a></li>
+<li><a href="#11.7">Tools for Working with Lists</a></li>
+<li><a href="#11.8">Decimal Floating Point Arithmetic</a></li>
+</ul>
+</li>
+</ul>
+
+
+
+		
+		<a href="/blog/2015/03/29/python-tutorial/" class="more-link">Read on &rarr;</a>
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="/blog/2015/03/29/python-tutorial//blog/page/5/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+
+    <article class="post">
+	<h2 class="title">
+		
+		<a href="/blog/2015/03/22/using-gnu-command-line-tools-on-mac-os-x/">
+		
+			Using GNU Command Line Tools on Mac OS X</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: 
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2015-03-22T23:05:00+08:00" pubdate data-updated="true">Mar 22<span>nd</span>, 2015</time></div>
+      <div class="tags">Tags: 
+
+
+	<a class='category' href='/blog/categories/dev/'>dev</a>, <a class='category' href='/blog/categories/tools/'>tools</a>
+
+
+</div>
+    </div>
+		<p><p><center><img src="/images/apple_mac_logo.jpg" width="225" height="225"></center>
+Unlike Ubuntu shipped with GNU command line tools,Mac OS X shipped with the BSD version,which make me WTF when I encountered with some compatibility issues.Fortunately,it&rsquo;s quit easy to install gnu tools by using homebrew in Mac OS X and set them as default.</p>
 
 <p>
 		
-		<a href="/blog/2014/10/31/android-multithreading-in-a-ui-environment/" class="more-link">Read on &rarr;</a>
+		<a href="/blog/2015/03/22/using-gnu-command-line-tools-on-mac-os-x/" class="more-link">Read on &rarr;</a>
 	</div>
 
 <div class="meta">
 	
-		<span class="comments"><a href="/blog/2014/10/31/android-multithreading-in-a-ui-environment//blog/page/5/index.html#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="/blog/2015/03/22/using-gnu-command-line-tools-on-mac-os-x//blog/page/5/index.html#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -245,9 +526,9 @@ var _hmt = _hmt || [];
     <article class="post">
 	<h2 class="title">
 		
-		<a href="/blog/2014/10/26/android-dealing-with-asynctask-and-screen-orientation/">
+		<a href="/blog/2014/10/31/android-best-practices-for-background-jobs/">
 		
-			Dealing With AsyncTask and Screen Orientation</a>
+			[Training]Best Practices for Background Jobs</a>
 	</h2>
     <div class="entry-content">
     <div class="meta">
@@ -263,7 +544,7 @@ var _hmt = _hmt || [];
   
 
 
-<time datetime="2014-10-26T19:31:00+08:00" pubdate data-updated="true">Oct 26<span>th</span>, 2014</time></div>
+<time datetime="2014-10-31T10:12:00+08:00" pubdate data-updated="true">Oct 31<span>st</span>, 2014</time></div>
       <div class="tags">Tags: 
 
 
@@ -272,198 +553,51 @@ var _hmt = _hmt || [];
 
 </div>
     </div>
-		<p><center><img src="/images/android_logo.jpg"/></center></p>
-
-
-<p>A common task in Android is to perform some background activity in another thread, meanwhile displaying a ProgressDialog to the user. Example of these tasks include downloading some data from internet, logging into an application, etc. Implementing an AsyncTask is fairly a simple job, the big challenge is how to handle it properly when an orientation change occurs.</p>
-
-
-		
-		<a href="/blog/2014/10/26/android-dealing-with-asynctask-and-screen-orientation/" class="more-link">Read on &rarr;</a>
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="/blog/2014/10/26/android-dealing-with-asynctask-and-screen-orientation//blog/page/5/index.html#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-
-    <article class="post">
-	<h2 class="title">
-		
-		<a href="/blog/2014/10/24/android-contentprovider/">
-		
-			Android ContentProvider</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: 
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-10-24T12:16:00+08:00" pubdate data-updated="true">Oct 24<span>th</span>, 2014</time></div>
-      <div class="tags">Tags: 
-
-
-	<a class='category' href='/blog/categories/android/'>android</a>, <a class='category' href='/blog/categories/dev/'>dev</a>
-
-
-</div>
-    </div>
-		<center><p><img src="/images/android_logo.jpg"/></p></center>
-
+		<p><p><center><img src="/images/android_training.jpg"></center></p>
 
 <ul>
-<li><a href="#overview">Android ContentProvider</a>
+<li><a href="#overview">Background jobs best practices</a>
 
 <ul>
-<li><a href="#basics">Content Provider Basics</a></li>
-<li><a href="#using">Using Content Providers</a></li>
-<li><a href="#writing">Writing your own Content Provider</a></li>
-<li><a href="#performance">Better Performance with ContentProviderOperation</a></li>
+<li><a href="#running">Running in a background service</a></li>
+<li><a href="#loading">Loading data in the background</a></li>
+<li><a href="#managing">Managing the device awake state</a></li>
 </ul>
 </li>
 </ul>
 
 
-<h2 id="overview">Android ContentProvider</h2>
+<p><h2 id="overview">Best Practices for Background Jobs</h2></p>
 
+<p>These classes show you how to run jobs in the background to boost your application’s performance and minimize its drain on the battery.</p>
 
-<p>This is a tutorial covering Android&rsquo;s ContentProvider.</p>
+<p><h3 id="running">Running in a background service</h3></p>
 
+<p>This class describes how to implement an IntentService, send it work requests, and report its results to other components.</p>
 
-		
-		<a href="/blog/2014/10/24/android-contentprovider/" class="more-link">Read on &rarr;</a>
-	</div>
+<h4>Creating a background service</h4>
 
-<div class="meta">
-	
-		<span class="comments"><a href="/blog/2014/10/24/android-contentprovider//blog/page/5/index.html#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
+<p>The IntentService class provides a straightforward structure for running an operation on a single background thread. This allows it to handle long-running operations without affecting your user interface’s responsiveness. Also, an IntentService isn’t affected by most user interface lifecycle events, so it continues to run in circumstances that would shut down an AsyncTask.</p>
 
-
-    <article class="post">
-	<h2 class="title">
-		
-		<a href="/blog/2014/10/24/android-loader/">
-		
-			Android Loader</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: 
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-10-24T06:34:00+08:00" pubdate data-updated="true">Oct 24<span>th</span>, 2014</time></div>
-      <div class="tags">Tags: 
-
-
-	<a class='category' href='/blog/categories/android/'>android</a>, <a class='category' href='/blog/categories/dev/'>dev</a>
-
-
-</div>
-    </div>
-		<p><center><img src="/images/android_logo.jpg"/></center></p>
-
+<p>An IntentService has a few limitations:</p>
 
 <ul>
-<li><a href="#overview">Android Loader</a>
-
-<ul>
-<li><a href="#before">Life before Loaders</a></li>
-<li><a href="#loadermanager">Understanding the LoaderManager</a></li>
-<li><a href="#implementing">Implementing Loaders</a></li>
-</ul>
-</li>
+<li>It can’t interact directly with your user interface. To put its results in the UI, you have to send them to an Activity.不能直接与UI交互</li>
+<li>Work requests run sequentially. If an operation is running in an IntentService, and you send it another request, the request waits until the first operation is finished.任务顺序执行</li>
+<li>An operation running on an IntentService can’t be interrupted.任务不可被打断</li>
 </ul>
 
 
-<h2 id="overview">Android Loader</h2>
+<p>However, in most cases an IntentService is the preferred way to simple background operations.</p>
 
-
-<p>This post gives a brief introduction to Loaders and the LoaderManager. The first section describes how data was loaded prior to the release of Android 3.0, pointing out out some of the flaws of the pre-Honeycomb APIs. The second section defines the purpose of each class and summarizes their powerful ability in asynchronously loading data.</p>
-
-
+<p>
 		
-		<a href="/blog/2014/10/24/android-loader/" class="more-link">Read on &rarr;</a>
+		<a href="/blog/2014/10/31/android-best-practices-for-background-jobs/" class="more-link">Read on &rarr;</a>
 	</div>
 
 <div class="meta">
 	
-		<span class="comments"><a href="/blog/2014/10/24/android-loader//blog/page/5/index.html#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-
-    <article class="post">
-	<h2 class="title">
-		
-		<a href="/blog/2014/10/19/android-asynctask-pitfalls/">
-		
-			The Hidden Pitfalls of AsyncTask</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: 
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-10-19T15:56:00+08:00" pubdate data-updated="true">Oct 19<span>th</span>, 2014</time></div>
-      <div class="tags">Tags: 
-
-
-	<a class='category' href='/blog/categories/android/'>android</a>, <a class='category' href='/blog/categories/dev/'>dev</a>
-
-
-</div>
-    </div>
-		<p><center><img src="/images/android_logo.jpg"/></center></p>
-
-
-<p>I originally wrote this article when I was (foolishly) still using AsyncTasks. Nowadays I simply consider it a mistake in all cases. As you&rsquo;ll see from the original article, there are a lot of problems with it &ndash; and there are much better solutions.</p>
-
-<p>My preferred alternative these days are combining <a href="https://github.com/Netflix/RxJava">RxJava</a> with schedulers. You get the same effect as an <code>AsyncTask</code> with none of the problems, plus you get an awesome framework in addition. I know, recommending a library to solve a problem is irritating, but RxJava is worth looking at for many reasons.</p>
-
-<p>When <code>AsyncTask</code> was introduced to Android, it was labeled as “<a href="http://android-developers.blogspot.com/2009/05/painless-threading.html">Painless Threading</a>.” Its goal was to make background Threads which could interact with the UI thread easier. It was successful on that count, but it’s not exactly painless – there are a number of cases where <code>AsyncTask</code> is not a silver bullet. It is easy to blindly use <code>AsyncTask</code> without realizing what can go wrong if not handled with care. Below are some of the problems that can arise when using <code>AsyncTask</code> without fully understanding it.</p>
-
-
-		
-		<a href="/blog/2014/10/19/android-asynctask-pitfalls/" class="more-link">Read on &rarr;</a>
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="/blog/2014/10/19/android-asynctask-pitfalls//blog/page/5/index.html#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="/blog/2014/10/31/android-best-practices-for-background-jobs//blog/page/5/index.html#disqus_thread">Comments</a></span>
 	
 </div>
 </article>

@@ -1,0 +1,271 @@
+
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>The basics of AOP - Solarex's Blog</title>
+    <meta name="author" content="Solarex">
+    
+	<meta name="description" content="Aspect Oriented Programming AOP is both a complex and quite simple thing. There has been a lot of buzz around AOP but recently the buzz has faded. &hellip;">
+	
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+	<link href="/atom.xml" rel="alternate" title="Solarex's Blog" type="application/atom+xml">
+	<link rel="canonical" href="">
+	<link href="/favicon.ico" rel="shortcut icon">
+    <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+
+    <link href='http://fonts.googleapis.com/css?family=Slackey' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Amethysta' rel='stylesheet' type='text/css'>
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+    <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+
+    <script type="text/javascript" src="/javascripts/jquery-tapir.js"></script>
+
+    <!-- remove or comment it to disable ajaxification -->   
+    <script src="/javascripts/ajaxify.js"></script>
+   
+    <script>
+var _hmt = _hmt || [];
+(function() {
+      var hm = document.createElement("script");
+        hm.src = "https://hm.baidu.com/hm.js?2574e8b2c205dfe8ff89e239fa38ca27";
+          var s = document.getElementsByTagName("script")[0]; 
+            s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+    
+	<script type="text/javascript">
+		var _gaq = _gaq || [];
+		_gaq.push(['_setAccount', 'UA-42746457-1']);
+		_gaq.push(['_trackPageview']);
+
+		(function() {
+			var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+			ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+			var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+		})();
+	</script>
+
+
+</head>
+
+
+<body>
+    <div id="wrapper">
+    <header id="header" class="inner"><!-- for more effects see _animate.scss -->
+<h1 class="animated bounceInDown">
+    <div id="headerbg">
+        Solarex
+    </div>
+</h1>
+<br>
+
+<ul id="social-links" style="text-align:center">
+  
+  <!-- GitHub -->
+  <li>
+  <a href="https://github.com/flyfire" class="github" title="Github"></a>
+  </li>
+  
+  
+  <!-- Google Plus -->
+  <li>
+  <a href="http://plus.google.com/107384356964511479070?rel=author" class="google" title="Google+"></a>
+  </li>
+  
+  
+  
+  <!-- Twitter -->
+  <li>
+  <a href="http://www.twitter.com/hrhflyfire" class="twitter" title="Twitter"></a>
+  </li>
+  
+  
+  
+  
+  
+</ul>
+
+
+<!-- use full url including 'index.html' for navigation bar if you are using ajax -->
+<ul id="nav">
+	<li id="ajax"><a href="/index.html">Home</a></li>
+	<li id="ajax"><a href="/blog/archives/index.html">Archives</a></li>
+    <li><a href="http://solarex.github.io/wiki">Wiki</a></li>
+    <li id="ajax"><a href="/projects">Project</a></li>
+    <li><a href="http://solarex.github.io/resume">Resume</a></li>
+    
+    <li>
+    <div id="dark">
+        <form method="get" action="http://google.com/search" id="search">
+            <input type="hidden" name="q" value="site:solarex.github.io">
+            <input name="q" type="text" results="0" placeholder="Search..." x-webkit-speech />
+        </form>
+    </div>
+    </li>
+        
+</ul>
+
+
+
+
+</header>
+
+<div id="toload">
+<!-- begin toload --> 
+    <div id="content" class="inner">
+        <article class="post">
+	<h2 class="title">The Basics of AOP</h2>
+	<div class="entry-content"><h2>Aspect Oriented Programming</h2>
+
+<p>AOP is both a complex and quite simple thing. There has been a lot of buzz around AOP but recently the buzz has faded. The question that people still ask is “what do I do with it”. Hopefully you will have an idea of what it is and create your own thoughts on how you could use it.</p>
+
+<p>In this post I aim to describe what AOP actually is and how it works.</p>
+
+<!-- more -->
+
+
+<h2>Description</h2>
+
+<p>Aspect Oriented Programming circle around Aspects. An aspect contains descriptions of Joint-points and Advice bodies. The joint-points defines rules of when they should be triggered, once triggered they will execute the advice body.</p>
+
+<p>An aspect acts like a middleman/proxy between the consumer of a (method/object) and the (method/object) in question. This can be achieved in five different scenarios such as; <strong>Before, After, AfterReturn, AfterThrowing and Around</strong> a (method/object) is called.</p>
+
+<h2>The power of advice body</h2>
+
+<p>Once a joint-point has triggered the advice body will be executed. The advice body has tremendous power and here lies the actual code that so many people think is “magic”.</p>
+
+<p>Some of the powerful things that the advice body can do are</p>
+
+<ul>
+<li>modify any parameters that are passed into the call.</li>
+<li>modify the return value</li>
+<li>choose to not continue the call to the (method/object) in question</li>
+<li>call other (methods/objects)</li>
+<li>catch any exception that is thrown by the (method/object) in question</li>
+</ul>
+
+
+<h2>Before, After and Around</h2>
+
+<h3>Before – @Before</h3>
+
+<p>The before advice can only modify things before the (method/object) in question is called. The advice has the power to throw an exception and cancel the call to the (method/object) in question and modify the parameters of the call.</p>
+
+<center><img src="/images/aspectj-before.png"/></center>
+
+
+<h3>After – @After , @AfterReturning  or @AfterThrowing</h3>
+
+<p>The after advice can only intercept the eventual return value of the (method/object) that is being called. The after advice contain three different definitions for the three different use-cases. @After  let you do things after a call and can return it’s own return value.  But @After  does not give you access to any potential return value or any potential exception that the called (method/object) creates. @AfterReturning  gives you the same abilities as @After  but gives you access to the return value. @AfterThrowing  gives you the same abilities as @After  but access to any exception that is thrown.</p>
+
+<center><img src="/images/aspectj-after.png"/></center>
+
+
+<h3>Around – @Around</h3>
+
+<p>An around advice is like a combination of the Before and After advice. Once it has intercepted a call to the (method/object) in question it has the same control as the Before. The big difference is that when the (method/object) has run the advice gets access to any potential return value or exception. While it has access to the potential return or exception value it has the option to continue doing operations with/on that value. The advice specifies what to return to the caller.</p>
+
+<center><img src="/images/aspectj-around.png"/></center>
+
+
+<h2>Conclusion</h2>
+
+<p>The advice can and will intercept calls to (method/object) according to the joint-point definition. The advice can specify five different situations of when they should be run. Each situation gives the advice different options to do its operations. Before, After, AfterReturn, AfterThrowing and Around are powerful in their own ways. Figuring out when to use what advice is the tricky part.</p>
+
+<h2>Example</h2>
+
+<p>The most classical example of AOP would be logging information. Printing out information before and after a method have been called and even printing out specific exception information. By using AOP for logging we could easily create a standardized pattern that will apply to all our code.  By having the logging information in the aspect lets us modify  a few rows of code and see it take affect everywhere at the same time.  And the developers don’t need to implement their own logging for each method/class.</p>
+
+<h2>reference</h2>
+
+<ul>
+<li><a href="https://blog.jayway.com/2015/09/07/the-basics-of-aop/">The basics of AOP</a></li>
+</ul>
+
+</div>
+    <div class="entry-content"><center>除非另有声明，本网站采用<a href="http://creativecommons.org/licenses/by/3.0/cn/" rel="license">知识共享“署名 3.0 中国大陆”许可协议</a>授权。</center></div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="/blog/2016/09/14/the-basics-of-aop/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+	<div class="share">
+	<div class="addthis_toolbox addthis_default_style ">
+	
+	
+	
+	<a class="addthis_button_google_plusone" g:plusone:size="medium"></a>
+	
+	<a class="addthis_counter addthis_pill_style"></a>
+	</div>
+  <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid="></script>
+</div>
+
+
+
+<section id="comment">
+    <h2 class="title">Comments</h2>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+</section>
+
+    </div>
+    <footer id="footer">
+    <div style="display:inline">
+    Copyright &copy; 2017
+
+    Solarex
+. Powered by <a href="http://octopress.org">Octopress</a> | 
+    Theme <a href="http://github.com/panks/fabric">fabric</a> by <a href="http://panks.me">Pankaj Kumar</a>
+</div>
+
+
+    </footer>
+    <script src="/javascripts/fabric.js"></script>
+<script src="/javascripts/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+	$('.fancybox').fancybox();
+})(jQuery);
+</script> <!-- Delete or comment this line to disable Fancybox -->
+
+
+<script type="text/javascript">
+      var disqus_shortname = 'flyfire';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://Solarex.github.io/blog/2016/09/14/the-basics-of-aop/';
+        var disqus_url = 'http://Solarex.github.io/blog/2016/09/14/the-basics-of-aop/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+<!-- end toload --> 
+</div>
+</div>
+<script src="/javascripts/jquery.ui.totop.js" type="text/javascript"></script>
+<script type="text/javascript">
+/*<![CDATA[*/
+;(function($){$().UItoTop({easingType:'easeOutCirc'});})(jQuery); 
+/*]]>*/
+</script><!-- remove it to remove the scroll to top button -->
+</body>
+</html>

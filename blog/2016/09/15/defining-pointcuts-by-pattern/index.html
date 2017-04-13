@@ -1,0 +1,378 @@
+
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Defining pointcuts by pattern - Solarex's Blog</title>
+    <meta name="author" content="Solarex">
+    
+	<meta name="description" content="Pointcuts by pattern Going through all the different ways of defining pointcuts and explaining them in an easy manner would be a near impossible feat &hellip;">
+	
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+	<link href="/atom.xml" rel="alternate" title="Solarex's Blog" type="application/atom+xml">
+	<link rel="canonical" href="">
+	<link href="/favicon.ico" rel="shortcut icon">
+    <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+
+    <link href='http://fonts.googleapis.com/css?family=Slackey' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Amethysta' rel='stylesheet' type='text/css'>
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+    <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+
+    <script type="text/javascript" src="/javascripts/jquery-tapir.js"></script>
+
+    <!-- remove or comment it to disable ajaxification -->   
+    <script src="/javascripts/ajaxify.js"></script>
+   
+    <script>
+var _hmt = _hmt || [];
+(function() {
+      var hm = document.createElement("script");
+        hm.src = "https://hm.baidu.com/hm.js?2574e8b2c205dfe8ff89e239fa38ca27";
+          var s = document.getElementsByTagName("script")[0]; 
+            s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+    
+	<script type="text/javascript">
+		var _gaq = _gaq || [];
+		_gaq.push(['_setAccount', 'UA-42746457-1']);
+		_gaq.push(['_trackPageview']);
+
+		(function() {
+			var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+			ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+			var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+		})();
+	</script>
+
+
+</head>
+
+
+<body>
+    <div id="wrapper">
+    <header id="header" class="inner"><!-- for more effects see _animate.scss -->
+<h1 class="animated bounceInDown">
+    <div id="headerbg">
+        Solarex
+    </div>
+</h1>
+<br>
+
+<ul id="social-links" style="text-align:center">
+  
+  <!-- GitHub -->
+  <li>
+  <a href="https://github.com/flyfire" class="github" title="Github"></a>
+  </li>
+  
+  
+  <!-- Google Plus -->
+  <li>
+  <a href="http://plus.google.com/107384356964511479070?rel=author" class="google" title="Google+"></a>
+  </li>
+  
+  
+  
+  <!-- Twitter -->
+  <li>
+  <a href="http://www.twitter.com/hrhflyfire" class="twitter" title="Twitter"></a>
+  </li>
+  
+  
+  
+  
+  
+</ul>
+
+
+<!-- use full url including 'index.html' for navigation bar if you are using ajax -->
+<ul id="nav">
+	<li id="ajax"><a href="/index.html">Home</a></li>
+	<li id="ajax"><a href="/blog/archives/index.html">Archives</a></li>
+    <li><a href="http://solarex.github.io/wiki">Wiki</a></li>
+    <li id="ajax"><a href="/projects">Project</a></li>
+    <li><a href="http://solarex.github.io/resume">Resume</a></li>
+    
+    <li>
+    <div id="dark">
+        <form method="get" action="http://google.com/search" id="search">
+            <input type="hidden" name="q" value="site:solarex.github.io">
+            <input name="q" type="text" results="0" placeholder="Search..." x-webkit-speech />
+        </form>
+    </div>
+    </li>
+        
+</ul>
+
+
+
+
+</header>
+
+<div id="toload">
+<!-- begin toload --> 
+    <div id="content" class="inner">
+        <article class="post">
+	<h2 class="title">Defining Pointcuts by Pattern</h2>
+	<div class="entry-content"><h2>Pointcuts by pattern</h2>
+
+<p>Going through all the different ways of defining pointcuts and explaining them in an easy manner would be a near impossible feat for this post. Rather than aiming for the impossible let’s narrow down the scope, and talk about the most commonly used pointcut definitions and how we can experiment with them. We will get you started with defining your own pointcuts!</p>
+
+<p>You can get the code for this blog series at the Git repository <a href="https://github.com/Nosfert/AspectJ-Tutorial-jayway">here</a>.</p>
+
+<!-- more -->
+
+
+<p>Let’s start coding!</p>
+
+<p>Requirements: Maven, Java 8, (preferably) an IDE (I’m using IntelliJ)</p>
+
+<p>Patterns are designed by the following elements and any element in the pattern can use wildcards (*)</p>
+
+<p><strong>[modifiers] [return type] <a href="parameters">(packageName)(className)(methodName)</a></strong></p>
+
+<p><strong>[modifiers]</strong> can be left blank; that will be interpreted as <code>*</code>
+<strong>[void/object/primitive type]</strong> defined by either <code>void</code> , a specific object or a primitive type
+<strong>[(packageName)(className)(methodName)]</strong> <code>your.package.structure.ClassName.yourMethod</code>  is valid. You can add <code>*</code>anywhere in that line to extend the search pattern
+<strong>(parameters)</strong> <code>yourMetod(..)</code>  defines any method named yourMethod. The (..) is the parameter section. In this case it defines that it looks for none or any parameters.  If we replace the <code>..</code>  with <code>Integer</code>  we will only look for a method called <code>yourMethod(Integer)</code>  and that has one parameter that is an <code>Integer</code>.</p>
+
+<p>A real example:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+<span class='line-number'>55</span>
+<span class='line-number'>56</span>
+<span class='line-number'>57</span>
+<span class='line-number'>58</span>
+<span class='line-number'>59</span>
+<span class='line-number'>60</span>
+<span class='line-number'>61</span>
+<span class='line-number'>62</span>
+<span class='line-number'>63</span>
+<span class='line-number'>64</span>
+<span class='line-number'>65</span>
+<span class='line-number'>66</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>package com.jayway.blog;
+</span><span class='line'>
+</span><span class='line'>import org.aspectj.lang.ProceedingJoinPoint;
+</span><span class='line'>import org.aspectj.lang.annotation.*;
+</span><span class='line'>import org.aspectj.lang.JoinPoint;
+</span><span class='line'>
+</span><span class='line'>@Aspect
+</span><span class='line'>public class YourAspect {
+</span><span class='line'>
+</span><span class='line'>    //Patterns
+</span><span class='line'>    //blank = modifier (public/private/protected or default(blank) should be looked for
+</span><span class='line'>    //* = return type to look for. Void/Object
+</span><span class='line'>    //com.jayway.YourClass.yourMethodBefore(..) = PackageName . ClassName . methodName (parameters)
+</span><span class='line'>    @Before("execution (* com.jayway.blog.YourClass.yourMethodBefore(..))")
+</span><span class='line'>    //JointPoint = the reference of the call to the method
+</span><span class='line'>    public void beforeAdvice(JoinPoint joinPoint) {
+</span><span class='line'>        System.out.println("YourAspect's BeforeAdvice's body is now executed Before yourMethodBefore is called.");
+</span><span class='line'>    }
+</span><span class='line'>    //Patterns
+</span><span class='line'>    //public = look for the specific modifier named public
+</span><span class='line'>    //!Object = Basically we are looking for void or primitives. But if we specified Object we could get a good pattern
+</span><span class='line'>    //com.jayway.YourClass.yourMethodBefore(..) = PackageName . ClassName . methodName (parameters)
+</span><span class='line'>    @After("execution (public !Object com.jayway.blog.YourClass.yourMethodAfter(..))")
+</span><span class='line'>    public void afterAdvice(JoinPoint joinPoint) {
+</span><span class='line'>        System.out.println("YourAspect's afterAdvice's body is now executed After yourMethodAfter is called.");
+</span><span class='line'>    }
+</span><span class='line'>    //Patterns
+</span><span class='line'>    //!private = look for any modifier thats not private
+</span><span class='line'>    //void = looking for method with void
+</span><span class='line'>    //com.jayway.YourClass.yourMethodBefore(..) = PackageName . ClassName . methodName (parameters)
+</span><span class='line'>    @Around("execution (!private void com.jayway.blog.YourClass.yourMethodAround(Integer,..))")
+</span><span class='line'>    //ProceedingJointPoint = the reference of the call to the method.
+</span><span class='line'>    //Difference between ProceedingJointPoint and JointPoint is that a JointPoint cant be continued(proceeded)
+</span><span class='line'>    //A ProceedingJointPoint can be continued(proceeded) and is needed for a Around advice
+</span><span class='line'>    public Object aroundAdvice(ProceedingJoinPoint joinPoint) throws Throwable {
+</span><span class='line'>        //Default Object that we can use to return to the consumer
+</span><span class='line'>        Object returnObject = null;
+</span><span class='line'>        try {
+</span><span class='line'>            System.out.println("YourAspect's aroundAdvice's body is now executed Before yourMethodAround is called.");
+</span><span class='line'>            //We choose to continue the call to the method in question
+</span><span class='line'>            returnObject = joinPoint.proceed();
+</span><span class='line'>            //If no exception is thrown we should land here and we can modify the returnObject, if we want to.
+</span><span class='line'>        } catch (Throwable throwable) {
+</span><span class='line'>            //Here we can catch and modify any exceptions that are called
+</span><span class='line'>            //We could potentially not throw the exception to the caller and instead return "null" or a default object.
+</span><span class='line'>            throw throwable;
+</span><span class='line'>        }
+</span><span class='line'>        finally {
+</span><span class='line'>            //If we want to be sure that some of our code is executed even if we get an exception
+</span><span class='line'>            System.out.println("YourAspect's aroundAdvice's body is now executed After yourMethodAround is called.");
+</span><span class='line'>        }
+</span><span class='line'>
+</span><span class='line'>        return returnObject;
+</span><span class='line'>    }
+</span><span class='line'>    //Patterns//* = return type to look for. Void/Object/Primitive type
+</span><span class='line'>    //blank = modifier (public/private/protected or default(blank) should be looked for
+</span><span class='line'>    //* = return type to look for. Void/Object/Primitive type
+</span><span class='line'>    //com.jayway.YourClass.yourMethod*(..) = PackageName . ClassName . * (parameters)
+</span><span class='line'>    //Where the "*" will catch any method name
+</span><span class='line'>    @After("execution ( * com.jayway.blog.YourClass.*(..))")
+</span><span class='line'>    //JointPoint = the reference of the call to the method
+</span><span class='line'>    public void printNewLine(JoinPoint pointcut){
+</span><span class='line'>        //Just prints new lines after each method that's executed in
+</span><span class='line'>        System.out.print("\n\r");
+</span><span class='line'>    }
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>In this example we are using the combinator  execution([pattern])  to define when this pointcut should be triggered. There are a whole list of different <a href="https://eclipse.org/aspectj/doc/released/progguide/semantics-pointcuts.html">combinators</a> at AspectJ’s homepage. Each one of them can take different patterns to help you define when your advice should be triggered.</p>
+
+<h2>JointPoint and ProceedingJointPoint</h2>
+
+<p>A JointPoint in the code is the call to the actual (method/object) in question. The ProceedingJointPoint  extends JointPoint to add the option to continue (proceed) the call to the (method/object) in question. The JointPoint contains a lot of information (such as parameters) that can be useful when writing the advice body.</p>
+
+<h2>Conclusion</h2>
+
+<p>Patterns can difficult – that’s why there are so many threads about how to define patterns online. Patterns gives us a lot of power, but demand that we know what we are looking for. Having the options to specify modifiers, return value and parameters gives us great tools to narrow down the complexity of our patterns.</p>
+
+<h2>reference</h2>
+
+<ul>
+<li><a href="http://blog.jayway.com/2015/09/08/defining-pointcuts-by-pattern/">Defining pointcuts by pattern</a></li>
+</ul>
+
+</div>
+    <div class="entry-content"><center>除非另有声明，本网站采用<a href="http://creativecommons.org/licenses/by/3.0/cn/" rel="license">知识共享“署名 3.0 中国大陆”许可协议</a>授权。</center></div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="/blog/2016/09/15/defining-pointcuts-by-pattern/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+	<div class="share">
+	<div class="addthis_toolbox addthis_default_style ">
+	
+	
+	
+	<a class="addthis_button_google_plusone" g:plusone:size="medium"></a>
+	
+	<a class="addthis_counter addthis_pill_style"></a>
+	</div>
+  <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid="></script>
+</div>
+
+
+
+<section id="comment">
+    <h2 class="title">Comments</h2>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+</section>
+
+    </div>
+    <footer id="footer">
+    <div style="display:inline">
+    Copyright &copy; 2017
+
+    Solarex
+. Powered by <a href="http://octopress.org">Octopress</a> | 
+    Theme <a href="http://github.com/panks/fabric">fabric</a> by <a href="http://panks.me">Pankaj Kumar</a>
+</div>
+
+
+    </footer>
+    <script src="/javascripts/fabric.js"></script>
+<script src="/javascripts/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+	$('.fancybox').fancybox();
+})(jQuery);
+</script> <!-- Delete or comment this line to disable Fancybox -->
+
+
+<script type="text/javascript">
+      var disqus_shortname = 'flyfire';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://Solarex.github.io/blog/2016/09/15/defining-pointcuts-by-pattern/';
+        var disqus_url = 'http://Solarex.github.io/blog/2016/09/15/defining-pointcuts-by-pattern/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+<!-- end toload --> 
+</div>
+</div>
+<script src="/javascripts/jquery.ui.totop.js" type="text/javascript"></script>
+<script type="text/javascript">
+/*<![CDATA[*/
+;(function($){$().UItoTop({easingType:'easeOutCirc'});})(jQuery); 
+/*]]>*/
+</script><!-- remove it to remove the scroll to top button -->
+</body>
+</html>

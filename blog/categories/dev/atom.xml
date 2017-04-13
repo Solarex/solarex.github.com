@@ -4,7 +4,7 @@
   <title><![CDATA[Category: dev | Solarex's Blog]]></title>
   <link href="http://Solarex.github.io/blog/categories/dev/atom.xml" rel="self"/>
   <link href="http://Solarex.github.io/"/>
-  <updated>2017-04-02T15:59:40+08:00</updated>
+  <updated>2017-04-13T18:22:12+08:00</updated>
   <id>http://Solarex.github.io/</id>
   <author>
     <name><![CDATA[Solarex]]></name>
@@ -316,1384 +316,498 @@ override fun type(car: Car) = R.layout.car
   </entry>
   
   <entry>
-    <title type="html"><![CDATA[Make an android custom view,Publish and Open Source]]></title>
-    <link href="http://Solarex.github.io/blog/2016/05/28/make-an-android-custom-view-publish-and-open-source/"/>
-    <updated>2016-05-28T14:34:00+08:00</updated>
-    <id>http://Solarex.github.io/blog/2016/05/28/make-an-android-custom-view-publish-and-open-source</id>
-    <content type="html"><![CDATA[<p>Today I’m going to create an android custom view to implement circular <code>SeekBar</code> like the mockup below, make it as a library, open source at GitHub, and publish it to JCenter. In this post, I will cover several fundamental concepts of android custom view, write a helpful README on GitHub, and how to publish your library.</p>
+    <title type="html"><![CDATA[Using annotations element-value pairs in AspectJ]]></title>
+    <link href="http://Solarex.github.io/blog/2016/09/17/using-annotations-element-value-pairs-in-aspectj/"/>
+    <updated>2016-09-17T16:18:00+08:00</updated>
+    <id>http://Solarex.github.io/blog/2016/09/17/using-annotations-element-value-pairs-in-aspectj</id>
+    <content type="html"><![CDATA[<h2>Annotations with element-value pairs</h2>
 
-<center><img src="http://Solarex.github.io/images/custom_view_seekbar.png"/></center>
-
-
-<h2>Before you start…</h2>
-
-<p>Try to understand the requirement or design specification, take a look at this widget first, the user can touch the indicator icon through this arc to set the current progress level. The indicator icon will stop dragging when exceeding max or min progress. It works like an extension of circular <code>SeekBar</code> with customized appearances and motion event.</p>
+<p>Annotations by themselves are really powerful. They give direct control over when an aspect should be run to the developer. Adding element-value pairs makes the already powerful annotations even more powerful, since it enables you to pass information into the aspect.</p>
 
 <!-- more -->
 
 
-<h2>Get started:</h2>
+<h2>Description</h2>
 
-<p>All the android view widgets are based on <code>View</code>, to implement custom view, you will start a subclass of <code>View</code> and override several lifecycle callback methods of view, so you need to understand the view lifecycle at first. The following diagram shows some important methods to override:</p>
+<p>Creating an annotation with an element-value pair is in itself quite simple. It can take different parameters and it’s up to the aspect developer to use these in their aspects. The syntax is  <code>@annotation(elementValuePairs)</code> and the <code>elementValuePairs</code> is defined by <code>[keyName] = [value]</code>. If you want more than one <code>elementValuePairs</code>  you use the <code>,</code>  as a delimiter.</p>
 
-<center><img src="http://Solarex.github.io/images/custom_view_lifecycle.png"/></center>
+<p>You can get the code for this blog series at the Git repository here.</p>
 
+<p>Let’s start coding!</p>
 
-<p>To get started, the first thing we have to do is to create a class that extends <code>View</code>, and provide two default constructors which allows us to create the view programmatically (1st constructor) or in XML layout (2nd constructor). The <code>SwagPoint(Context context, AttributeSet attrs)</code> constructor is more important here because it is used when Android inflates the view from XML layout file, otherwise you will get exception.</p>
+<p>Requirements: Maven, Java 8, (preferably) an IDE (I’m using IntelliJ)</p>
 
-<p>```java
-public class SwagPoints extends View {</p>
+<p>Adding a element-value pair is quite simple. Getting access to it from the aspect and advice body is a little bit tricky. Let’s start with a example.</p>
 
-<pre><code>// used in view creation programmatically
-public SwagPoints(Context context) {
-    super(context);
-}
+<p>```
+package com.jayway.blog;</p>
 
-// used in XML layout file
-public SwagPoints(Context context, AttributeSet attrs) {
-    super(context, attrs);
-}
+<p>import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;</p>
+
+<p>/<em>*
+ * Created by Steve on 2015-09-07.
+ </em>/
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+public @interface YourAnnotation {</p>
+
+<pre><code>public boolean isRun() default true;
 </code></pre>
 
 <p>}
 ```</p>
 
-<p>Then, there are several things we have to control or modify in our custom view:</p>
+<p>The <code>@Retention</code>  and <code>@Target</code>  define the scope of the annotation and you can add multiple <code>@Target</code>  values. We have a boolean with the name <code>isRun()</code> with a default value of <code>true</code> . So let’s continue and access the <code>isRun()</code>  from the aspect.</p>
 
-<ul>
-<li><p><strong>Attributes</strong>: What things are customizable in your view? Determine custom attributes that allow developer to change its appearance and behavior in XML layout file according to their design.</p></li>
-<li><p><strong>Size</strong>: Determine the dimensions of the view and every components in this custom view on the screen.</p></li>
-<li><p><strong>Drawing</strong>: Determine how the view and components to render on the screen which contains the shape, location, appearance.</p></li>
-<li><p><strong>Touch</strong>: Determine the way the user can interact with the view by touching.</p></li>
-</ul>
+<p>```
+package com.jayway.blog;</p>
 
+<p>import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.annotation.*;
+import org.aspectj.lang.JoinPoint;</p>
 
-<h2>1. Attribute:</h2>
+<p>@Aspect
+public class YourAspect {</p>
 
-<p>Here we provide several customizable attributes for developer: the initial progress <code>points</code>, the range of progress <code>max/min</code>, the interval when user change the progress <code>step</code>, the color and size of progress/arc/text. To define custom attributes, we create <code>res/values/attrs.xml</code> file and define custom attributes for your view in a <code>&lt;declare-styleable&gt;</code> resource element as below.</p>
-
-<p>```xml
-<resources></p>
-
-<pre><code>&lt;declare-styleable name="SwagPoints"&gt;
-    &lt;attr name="points" format="integer" /&gt;
-    &lt;attr name="max" format="integer" /&gt;
-    &lt;attr name="min" format="integer"/&gt;
-    &lt;attr name="step" format="integer"/&gt;
-
-    &lt;attr name="indicatorIcon" format="reference" /&gt;
-
-    &lt;attr name="progressWidth" format="dimension" /&gt;
-    &lt;attr name="progressColor" format="color" /&gt;
-
-    &lt;attr name="arcWidth" format="dimension" /&gt;
-    &lt;attr name="arcColor" format="color" /&gt;
-
-    &lt;attr name="textSize" format="dimension"/&gt;
-    &lt;attr name="textColor" format="color"/&gt;
-
-    &lt;attr name="clockwise" format="boolean" /&gt;
-    &lt;attr name="enabled" format="boolean" /&gt;
-
-&lt;/declare-styleable&gt;
-</code></pre>
-
-<p></resources>
-```</p>
-
-<p>After adding <code>res/values/attrs.xml</code> file, to use <code>TypedArray</code> to retrieve attribute value in class and define instance variables (the following variable with <code>m</code> as prefix name) to store. Here we add a <code>init()</code> method to put <code>init()</code> inside the constructor after <code>super()</code> method to do this job:</p>
-
-<p>```java
-private void init(Context context, AttributeSet attrs) {</p>
-
-<pre><code>float density = getResources().getDisplayMetrics().density;
-
-// Defaults, may need to link this into theme settings
-int arcColor = ContextCompat.getColor(context, R.color.color_arc);
-int progressColor = ContextCompat.getColor(context, R.color.color_progress);
-int textColor = ContextCompat.getColor(context, R.color.color_text);
-mProgressWidth = (int) (mProgressWidth * density);
-mArcWidth = (int) (mArcWidth * density);
-mTextSize = (int) (mTextSize * density);
-
-mIndicatorIcon = ContextCompat.getDrawable(context, R.drawable.indicator);
-
-if (attrs != null) {
-    // Attribute initialization
-    final TypedArray a = context.obtainStyledAttributes(attrs,
-            R.styleable.SwagPoints, 0, 0);
-
-    Drawable indicatorIcon = a.getDrawable(R.styleable.SwagPoints_indicatorIcon);
-    if (indicatorIcon != null)
-        mIndicatorIcon = indicatorIcon;
-
-    int indicatorIconHalfWidth = mIndicatorIcon.getIntrinsicWidth() / 2;
-    int indicatorIconHalfHeight = mIndicatorIcon.getIntrinsicHeight() / 2;
-    mIndicatorIcon.setBounds(-indicatorIconHalfWidth, -indicatorIconHalfHeight, indicatorIconHalfWidth,
-            indicatorIconHalfHeight);
-
-    mPoints = a.getInteger(R.styleable.SwagPoints_points, mPoints);
-    mMin = a.getInteger(R.styleable.SwagPoints_min, mMin);
-    mMax = a.getInteger(R.styleable.SwagPoints_max, mMax);
-    mStep = a.getInteger(R.styleable.SwagPoints_step, mStep);
-
-    mProgressWidth = (int) a.getDimension(R.styleable.SwagPoints_progressWidth, mProgressWidth);
-    progressColor = a.getColor(R.styleable.SwagPoints_progressColor, progressColor);
-
-    mArcWidth = (int) a.getDimension(R.styleable.SwagPoints_arcWidth, mArcWidth);
-    arcColor = a.getColor(R.styleable.SwagPoints_arcColor, arcColor);
-
-    mTextSize = (int) a.getDimension(R.styleable.SwagPoints_textSize, mTextSize);
-    mTextColor = a.getColor(R.styleable.SwagPoints_textColor, mTextColor);
-
-    mClockwise = a.getBoolean(R.styleable.SwagPoints_clockwise,
-            mClockwise);
-    mEnabled = a.getBoolean(R.styleable.SwagPoints_enabled, mEnabled);
-    a.recycle();
-}
-</code></pre>
-
-<p>}
-```</p>
-
-<h2>2. Size:</h2>
-
-<p>In order to control the view dimension, we have to override <code>View.onMeasure()</code> method and calculate the size of each components. Here we have to define the arc radius according to the width/height of our view.</p>
-
-<p>```java
-@Override
-protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {</p>
-
-<pre><code>final int width = getDefaultSize(getSuggestedMinimumWidth(), widthMeasureSpec);
-final int height = getDefaultSize(getSuggestedMinimumHeight(), heightMeasureSpec);
-final int min = Math.min(width, height);
-
-mTranslateX = (int) (width * 0.5f);
-mTranslateY = (int) (height * 0.5f);
-
-int arcDiameter = min - getPaddingLeft();
-mArcRadius = arcDiameter / 2;
-float top = height / 2 - (arcDiameter / 2);
-float left = width / 2 - (arcDiameter / 2);
-mArcRect.set(left, top, left + arcDiameter, top + arcDiameter);
-
-updateIndicatorIconPosition();
-super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-</code></pre>
-
-<p>}
-```</p>
-
-<h2>3. Drawing:</h2>
-
-<p>Give you a pen and a paper, you can draw what you want. To draw the view, you have to override the <code>onDraw(Canvas canvas)</code> method.
-Before that, we have to know what to draw and how to draw. Android provides two classes to do this job:</p>
-
-<ul>
-<li><p>What to draw, handled by <code>Canvas</code> which is provided as parameter in <code>onDraw()</code> method.</p></li>
-<li><p>How to draw, handled by <code>Paint</code>.</p></li>
-</ul>
-
-
-<p>Before you use <code>Canvas</code> to draw anything, it’s necessary to create <code>Paint</code> objects. For performance optimization, creating the <code>Paint</code> objects ahead is quite important, because the <code>onDraw()</code> method is called when redrawn is needed at anytime, we won’t create the <code>Paint</code> objects inside the <code>onDraw()</code> method, we should avoid any allocation in <code>onDraw()</code> method. Here we define these objects (one for arc, another for progress and the other for text) as instance variables and initialize at <code>init()</code> method:</p>
-
-<p>```java
-private void init(Context context, AttributeSet attrs) {</p>
-
-<pre><code>// ...
-
-mArcPaint = new Paint();
-mArcPaint.setColor(arcColor);
-mArcPaint.setAntiAlias(true);
-mArcPaint.setStyle(Paint.Style.STROKE);
-mArcPaint.setStrokeWidth(mArcWidth);
-
-mProgressPaint = new Paint();
-mProgressPaint.setColor(progressColor);
-mProgressPaint.setAntiAlias(true);
-mProgressPaint.setStyle(Paint.Style.STROKE);
-mProgressPaint.setStrokeWidth(mProgressWidth);
-
-mTextPaint = new Paint();
-mTextPaint.setColor(textColor);
-mTextPaint.setAntiAlias(true);
-mTextPaint.setStyle(Paint.Style.FILL);
-mTextPaint.setTextSize(mTextSize);
-</code></pre>
-
-<p>}
-```</p>
-
-<p>Once we have <code>Paint</code> objects defined, we can start to implement the <code>onDraw(Canvas canvas)</code> method, here we’re going to draw the text to display current progress number, the arc and current progress:</p>
-
-<p>```java
-@Override
-protected void onDraw(Canvas canvas) {</p>
-
-<pre><code>if (!mClockwise) {
-    canvas.scale(-1, 1, mArcRect.centerX(), mArcRect.centerY());
+<pre><code>//Defines a pointcut that we can use in the @Before,@After, @AfterThrowing, @AfterReturning,@Around specifications
+//The pointcut will look for the @YourAnnotation
+@Pointcut("@annotation(yourAnnotationVariableName)")
+public void annotationPointCutDefinition(YourAnnotation yourAnnotationVariableName){
 }
 
-// draw the text
-String textPoint = String.valueOf(mPoints);
-mTextPaint.getTextBounds(textPoint, 0, textPoint.length(), mTextRect);
-// center the text
-int xPos = canvas.getWidth() / 2 - mTextRect.width() / 2;
-int yPos = (int)((mArcRect.centerY()) - ((mTextPaint.descent() + mTextPaint.ascent()) / 2));
-canvas.drawText(String.valueOf(mPoints), xPos, yPos, mTextPaint);
+//Defines a pointcut that we can use in the @Before,@After, @AfterThrowing, @AfterReturning,@Around specifications
+//The pointcut is a catch-all pointcut with the scope of execution
+@Pointcut("execution(* *(..))")
+public void atExecution(){}
 
-// draw the arc and progress
-canvas.drawArc(mArcRect, ANGLE_OFFSET, 360, false, mArcPaint);
-canvas.drawArc(mArcRect, ANGLE_OFFSET, mProgressSweep, false, mProgressPaint);
+//Defines a pointcut where the @YourAnnotation exists
+//and combines that with an catch-all pointcut with the scope of execution
+@Around("annotationPointCutDefinition(yourAnnotationVariableName) &amp;&amp; atExecution()")
+//ProceedingJointPoint = the reference of the call to the method.
+//The difference between ProceedingJointPoint and JointPoint is that a JointPoint can't be continued (proceeded)
+//A ProceedingJointPoint can be continued (proceeded) and is needed for an Around advice
+public Object aroundAdvice(ProceedingJoinPoint joinPoint, YourAnnotation yourAnnotationVariableName) throws Throwable {
+    if(yourAnnotationVariableName.isRun()) {
+        //Default Object that we can use to return to the consumer
+        Object returnObject = null;
 
-if (mEnabled) {
-    // draw the indicator icon
-    canvas.translate(mTranslateX - mIndicatorIconX, mTranslateY - mIndicatorIconY);
-    mIndicatorIcon.draw(canvas);
-}
-</code></pre>
-
-<p>}
-```</p>
-
-<p>After overriding <code>onDraw()</code> method, there is one more important method about drawing to introduce: <code>invalidate()</code>, this method is used when any redrawing is needed, we won’t call <code>onDraw()</code> directly, we just call this method instead, you can use this method anywhere inside your custom view, however, for performance optimization, make sure it’s called as infrequently as possible.</p>
-
-<h2>4. Touching:</h2>
-
-<p>When the user touch the screen, Android calls the <code>onTouchEvent()</code> method, so we override <code>View.onTouchEvent()</code> to handle the user input gestures:</p>
-
-<p>```java
-@Override
-public boolean onTouchEvent(MotionEvent event) {</p>
-
-<pre><code>if (mEnabled) {
-    this.getParent().requestDisallowInterceptTouchEvent(true);
-
-    switch (event.getAction()) {
-        case MotionEvent.ACTION_DOWN:
-            if (mOnSwagPointsChangeListener != null)
-                mOnSwagPointsChangeListener.onStartTrackingTouch(this);
-            updateOnTouch(event);
-            break;
-        case MotionEvent.ACTION_MOVE:
-            updateOnTouch(event);
-            break;
-        case MotionEvent.ACTION_UP:
-            if (mOnSwagPointsChangeListener != null)
-                mOnSwagPointsChangeListener.onStopTrackingTouch(this);
-            setPressed(false);
-            this.getParent().requestDisallowInterceptTouchEvent(false);
-            break;
-        case MotionEvent.ACTION_CANCEL:
-            if (mOnSwagPointsChangeListener != null)
-                mOnSwagPointsChangeListener.onStopTrackingTouch(this);
-            setPressed(false);
-            this.getParent().requestDisallowInterceptTouchEvent(false);
-            break;
+        try {
+            System.out.println("YourAspect's aroundAdvice's body is now executed Before yourMethodAround is called.");
+            //We choose to continue the call to the method in question
+            returnObject = joinPoint.proceed();
+            //If no exception is thrown we should land here and we can modify the returnObject, if we want to.
+        } catch (Throwable throwable) {
+            //Here we can catch and modify any exceptions that are called
+            //We could potentially not throw the exception to the caller and instead return "null" or a default object.
+            throw throwable;
+        } finally {
+            //If we want to be sure that some of our code is executed even if we get an exception
+            System.out.println("YourAspect's aroundAdvice's body is now executed After yourMethodAround is called.");
+        }
+        return returnObject;
     }
-    return true;
+    else{
+        return joinPoint.proceed();
+    }
 }
-return false;
+
+@After("annotationPointCutDefinition(yourAnnotationVariableName) &amp;&amp; atExecution()")
+//JointPoint = the reference of the call to the method
+public void printNewLine(JoinPoint pointcut, YourAnnotation yourAnnotationVariableName){
+    //Just prints new lines after each method that's executed in
+    System.out.print("\n\r");
+}
 </code></pre>
 
 <p>}
 ```</p>
 
-<p>There are several things we have to control when user touches the indicator or other place of view:</p>
+<p>We specify that the  <code>annotationPointCutDefinition(YourAnnotation yourAnnotationVariableName)</code> contains a <code>YourAnnotation</code> reference. The variable reference is then used in the <code>@Pointcut("@annotation(yourAnnotationVariableName")</code>  instead of the generic <code>YourAnnotation</code> that were used in the earlier examples. By passing the variable to the <code>@annotation</code> we gain access to it. We need to pass the variable into the <code>@Around</code>  advice to gain access to the variable in the advice body.  Once in the advice body we can use it like a normal method parameter.</p>
 
-<ul>
-<li><p>Update the indicator icon position and progress text.</p></li>
-<li><p>Draw the current progress on the arc.</p></li>
-<li><p>Stop when reaching max or min.</p></li>
-</ul>
+<p>```
+package com.jayway.blog;</p>
 
+<p>public class YourClass {</p>
 
-<p>To know the indicator icon position and the current progress to draw, we have to convert the touch coordinate on the screen to the angle of arc.</p>
+<pre><code>public static void main(String[] args) {
+    YourClass yourClass = new YourClass();
+    yourClass.yourMethodAroundDontRun();
+    yourClass.yourMethodAroundRunTrue();
+    yourClass.yourMethodAroundRun();
+}
 
-<p>In our custom view, we consider the center of arc as origin <code>(0, 0)</code>, and use trigonometric functions to transform the touch coordinate into the angle of the arc in degree <code>(0, 360)</code>, and map to the current progress value of given range <code>(min, max)</code>.</p>
+@YourAnnotation(isRun = false)
+public void yourMethodAroundDontRun(){
+    System.out.println("Executing TestTarget.yourMethodAroundDontRun()");
+}
 
-<center><img src="http://Solarex.github.io/images/custom_view_touch.png"/></center>
+@YourAnnotation(isRun = true)
+public void yourMethodAroundRunTrue(){
+    System.out.println("Executing TestTarget.yourMethodAroundRunTrue()");
+}
 
-
-<p>Here we have a method to convert from touch coordinate to the arc angle:</p>
-
-<p>```java
-private double convertTouchEventPointToAngle(float xPos, float yPos) {</p>
-
-<pre><code>// transform touch coordinate into component coordinate
-float x = xPos - mTranslateX;
-float y = yPos - mTranslateY;
-
-x = (mClockwise) ? x : -x;
-double angle = Math.toDegrees(Math.atan2(y, x) + (Math.PI / 2));
-angle = (angle &lt; 0) ? (angle + 360) : angle;
-return angle;
+@YourAnnotation()
+public void yourMethodAroundRun(){
+    System.out.println("Executing TestTarget.yourMethodAroundRun()");
+}
 </code></pre>
 
 <p>}
 ```</p>
 
-<h2>Final demo</h2>
-
-<center><img src="http://Solarex.github.io/images/custom_view_final_demo.gif"/></center>
-
-
-<h2>Open source at GitHub:</h2>
-
-<p>So you just finish a android custom view project, great! Let’s put on GitHub to get more developers to use you project. However, before you share your GitHub link to others, just make sure you have a nice document first. When developers are looking at you project, there are some points they care about:</p>
-
-<ul>
-<li><p>Does this project fit my requirement or solve my problem?</p></li>
-<li><p>If the answer is YES, how can I get starting right now?</p></li>
-</ul>
-
-
-<p>A nice document is like a salesman for you project. The README plays this important role to give the first impression to the developers who are looking at your project, so providing a well-documented README is necessary and gives you more chance to promote you project.</p>
-
-<p>Knowing how to write a REAME is equivalently important to write a clean code or design a great architecture.</p>
-
-<h3>1. Provide a screenshot and short description:</h3>
-
-<p>A picture is worth a thousand words, especially in a UI widget project, make sure that you provide a photo, GIF or video with a short description to demonstrate how your UI looks like or works. (If you are familiar with some design software, i.e. Sketch or PhotoShop, try to use them to help you make a great cover with the screenshot for your project)</p>
-
-<center><img src="http://Solarex.github.io/images/custom_view_screensot.png"/></center>
-
-
-<h3>Give easy installation/usage instruction</h3>
-
-<p>Before using you project, developer have to install it first, make sure to give a clean and easy installation instruction to get started. After installing you project successfully, just give some example code snippet to show what your project does, and how the developers can customize what they want, maybe just give a list of customizable attributes or provide an APK to install or sample module to run.</p>
-
-<h2>Publish your library:</h2>
-
-<p>After finish pushing your project to GitHub, there is the last step to get done: publish it so that developers can just add dependency</p>
-
-<p>```bash
-dependencies {</p>
-
-<pre><code>...
-compile 'com.dualcores.swagpoints:swagpoints:1.0.0'
-</code></pre>
-
-<p>}
-```</p>
-
-<p>to use you project. Here we go:</p>
-
-<h3>1. Sign-up or sign-in at JFrog Bintray.</h3>
-
-<h3>2. Go to profile page to create a repository, package, and version:</h3>
-
-<p>The repository is the place to host your several projects. You can choose any repository name whatever you want, it doesn’t matter for other developers.</p>
-
-<center><img src="http://Solarex.github.io/images/custom_view_frog_new_repo.png"/></center>
-
-
-<p>Inside the new repository, you can create a package, that is place to host your project. Your project also can import from GitHub.</p>
-
-<center><img src="http://Solarex.github.io/images/custom_view_frog_import_github.png"/></center>
-
-
-<p>For each package, you can create several versions, again, you can choose whatever name you want, not restricted to the traditional version number major.minor.patch rule.</p>
-
-<center><img src="http://Solarex.github.io/images/custom_view_frog_create_new_version.png"/></center>
-
-
-<h3>3. Generate and upload the aar files:</h3>
-
-<p>We use gradle to do this job, here I use this library to help <a href="https://github.com/blundell/release-android-library.">https://github.com/blundell/release-android-library.</a>
-Open you library module gradle file, add the following code snippet to buttom of module build.gradle file:</p>
-
-<p><code>bash
-// or use the remote copy to keep update with latest changes
-apply from: 'https://raw.githubusercontent.com/blundell/release-android-library/master/android-release-aar.gradle'
-</code></p>
-
-<p>and JCenter configuration:</p>
-
-<center><img src="http://Solarex.github.io/images/custom_view_frog_build_gradle.png"/></center>
-
-
-<p>then, sync your project and open your terminal, go to your project root path, execute the command:</p>
-
-<p><code>bash
-./gradlew clean build generateRelease
-</code></p>
-
-<p>If success, you will see the result in you terminal and you can upload the zip file from <code>PROJECT_ROOT/library/build/release/1.0.0/</code>:</p>
-
-<center><img src="http://Solarex.github.io/images/custom_view_frog_generate_aar.png"/></center>
-
-
-<h3>4. Add to JCenter:</h3>
-
-<p>Go back to your project page in bintray, there will be a Add to JCenter button in right-hand column, just click it to fill out a message and wait to be accepted. It takes hours or several days to be accepted, just be patient. This step is required so that to make your project downloadable and discoverable by gradle dependencies.</p>
-
-<center><img src="http://Solarex.github.io/images/custom_view_frog_add_jcenter.png"/></center>
-
-
-<h3>5. Project is accepted and test if everything is all right:</h3>
-
-<p>You will receive an email to inform you that your Add to JCenter request is accepted.Once it is accepted, test if gradle dependency works well by adding the dependency to sample module and sync. If it builds successfully, congratulation!!!! You’ve done. Good job~</p>
-
-<p><code>bash
-compile 'com.dualcores.swagpoints:swagpoints:1.0.0'
-</code></p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Mobile Apps Offline Support]]></title>
-    <link href="http://Solarex.github.io/blog/2016/03/14/mobile-apps-offline-support/"/>
-    <updated>2016-03-14T08:43:00+08:00</updated>
-    <id>http://Solarex.github.io/blog/2016/03/14/mobile-apps-offline-support</id>
-    <content type="html"><![CDATA[<p>Offline support for mobile applications can be thought of as the ability for the application to react gracefully to the lack of stability of the network connection. The rather new context of mobile devices introduced problems such as presence or absence of a network connection or even high latency and low bandwidth. These problems are rather new and thus not very well known to engineers starting with mobile development. Among other things building a mobile application which resilient to different network scenarios could mean:</p>
-
-<ul>
-<li>Displaying comprehensive error messages when network calls fail.</li>
-<li>Allowing the use of the application in “guest mode”, where certain features can be delayed until the user actually signs in.</li>
-<li>Visually displaying the absence of network connectivity on the UI (connected mode/offline mode).</li>
-<li>Disabling controls in the absence of network connectivity.</li>
-<li>Allowing the user to query and act on data while no network connection (offline data access).</li>
-<li>Testing the application under different network conditions!</li>
-</ul>
-
-
-<p>While all these things are extremely important from the usability point of view, there is one of these that can be particular complex, “offline data access”. There are several different scenarios or levels of offline data access that applications might need to support, and I’ll go through each next.</p>
-
-<!-- more -->
-
-
-<h2>Local Caching</h2>
-
-<p>The application needs to be able to display information even when there is no connection, however under connectivity conditions the data needs to be refreshed. This is achieved by somehow persisting the data on the mobile device, usually for a healthy period of time.</p>
-
-<center><img src="http://Solarex.github.io/images/local_cache.png"></center>
-
-
-<p>There are 3 different “strategies” for refreshing the data on the cache which I would like to cover next.</p>
-
-<h3>Network first</h3>
-
-<p>Always try to retrieve the data from the server, and whenever that is not possible, then resort to retrieve the data from the local cache. This strategy can be very useful if you are particularly interested in showing the latest and more updated information.</p>
-
-<h3>Local first</h3>
-
-<p>For a specified period of time, don’t even try to go the network, just return from local cache. This approach is very well suited when there’s no risk in showing cached data. On the other hand, it has a better user experience since there’s usually no latency involved.</p>
-
-<h3>Hybrid / Smart</h3>
-
-<p>This approach will return from local cache before fetching data from a service. It can either wait for a notification from the server or simply poll the service in background to refresh the data to cache it locally. This mechanism hits a balance between a good performance/UX, while still refreshing the local cache regularly, reducing the risk of showing “stale” data.</p>
-
-<p>Furthermore, local caching can be complemented with some way of server-side caching support as well. Just as in HTTP caching, when retrieving the data from the server, the client can send a “revision” to see if the data has been updated. The server can check the clients revision against the current one on the server, and either inform the client that there is no need to update or return the latest data.</p>
-
-<h3>Sample scenario</h3>
-
-<p>The improvement in performance and user experience makes local caching extremely useful in many scenarios. The key condition for it to be useful is that the data does not have to be displayed in real-time. The longer the data can be locally cached, the more sense this approach will make.</p>
-
-<p>Think for instance of a list of interesting locations or contacts for users on the “field”. This is information while very useful on the go, is unlikely to change very frequently, so it is ideal for being cached locally.</p>
-
-<h2>Local Queuing</h2>
-
-<p>Whenever the application does not have a network connection, server requests can be locally queued for later processing. This will allow the user to fire and forget operations and be notified whenever (and if) those operations were successfully processed by the server.</p>
-
-<center><img src="http://Solarex.github.io/images/local_queuing.png"></center>
-
-
-<p>When working with local queues of operations you should take into account the following things:</p>
-
-<ul>
-<li>Users should be notified that the operation has been queued.</li>
-<li>Users will most probably be interested in seeing the actual status of the queue. Which are the items that went through and which are the ones that are still pending?</li>
-<li>It could be important to be able to cancel or retry manually an operation while it is still in the queue.</li>
-<li>Whenever one of these operations is sent to the server, the user will want to know the outcome (success, failed).</li>
-<li>The flow or process the user initiated could potentially need to be resumed where it was left off at the time the operation was queued.</li>
-</ul>
-
-
-<p>Local queuing is particularly a good idea when having people doing auditing or field work like measuring things, and sending reports. If these operations are not updating records, but rather only inserting new ones, the implementation of this is rather simple and requires no concurrency management or conflict resolution.</p>
-
-<h3>Sample Scenario</h3>
-
-<p>Local queuing helps to not loose work while on the go. This can be extremely important in scenarios of inventory checks or audits, where the user on the field must not loose time waiting for a connection in order to use the app or submit those reports.</p>
-
-<h3>Data-Sync</h3>
-
-<p>By leveraging local caching and queuing, you can keep the data in your device and your server up to date. This is known as “synchronizing”. There are different ways to synchronize the data.</p>
-
-<center><img src="http://Solarex.github.io/images/data_sync.png"></center>
-
-
-<h3>Mobile Data up-to-date</h3>
-
-<p>In this case, you worry about the data in you mobile application being up to date. This can be achieved in two ways: by just using local caching as described above, or it can be done by querying the server for the latest changes. These latest changes, also known as “delta”, allow the mobile application to apply and reconstruct the current state of the server. In order to be able to query for the latest changes, you can leverage audit fields like <code>UpdatedOn</code>, <code>CreatedOn</code> and <code>DeletedOn</code>.</p>
-
-<p>In this second case, the data is not being modified in the device, so there is no need to resolve conflicts, so the server is always right.</p>
-
-<h3>Server Data up-to-date</h3>
-
-<p>This can be achieved by using local queues, but queuing is not enough. What happens if by the time my request is sent to the server, the data on the server was no longer in the same state as when I attempted to modify it? Delaying the execution of the request, for example due to network loss, can result in increased concurrency conflicts. At this point, the developer (or the user) must decide how to “merge” the changes on the server and the app. For every conflict in the data, the merge could be:</p>
-
-<ul>
-<li>Keep the device version</li>
-<li>Keep the server version</li>
-<li>Keep both versions</li>
-</ul>
-
-
-<p>More often than not, the logic for merging records can be automated by the mobile developer. Which algorithm is used, will be tied to the business rules of that application. Whenever this is not possible to fully automate, the user can be prompted to make a decision.</p>
-
-<h3>Keep both Mobile and Server Up-to-date</h3>
-
-<p>This is also referred to as two-way sync. As you can probably tell by now, this would be a combination of the two previous techniques. This is the most complete and powerful of the scenarios so far described. Notice however, that while it might be tempting to build applications to support two-way sync, it is by far the most complex scenario of all. Apart from being complex, as I have covered in this article, it might not always be necessary.</p>
-
-<h3>Sample Scenario</h3>
-
-<p>Two-way-sync gives the mobile application a whole new level of user experience. However, one of the key conditions for two-way sync to be a must-have is the need to keep a team or group of users up to date with everybody else’s activity. An example of such a thing could be collaborating applications with updates, comments or status changes. Think about a collaborative address book where everybody on the team is allowed to update contacts at any given time.</p>
-
-<h2>Considerations</h2>
-
-<p>Building your mobile application with support for offline scenarios, can drastically improve the user experience, however choosing the right level of support, and later on implementing this is not trivial. Below I will be listing some of the things to consider when planning to add offline support to your apps.</p>
-
-<h3>Data Size</h3>
-
-<p>When caching data locally, try to be conscious of the size of the data you’ll be storing. Striking the right balance between the amount of data that is stored and the perceived UX improvement is important. In cases where there are lots of data (ie: a full Sharepoint site), you might have to consider giving the user the option of choosing what he wants to cache for offline reading afterwards.</p>
-
-<h3>Data Storage</h3>
-
-<p>Make sure to choose wisely how and where you will be storing your data. Is that data sensitive? If so, you will want to encrypt the data while at rest (storage). If you choose to encrypt the data, make sure to also store the key for decrypting the data in a safe place and consider leveraging operating system functionality for this. Also keep in mind that in some platforms your application’s code can be read (or reflected), so consider obfuscating your code. And last but not least, make sure to have a mechanism for remotely wiping the data on the handset. Some tools like mobile device management (MDM) platforms can help to achieve this, but it can also be handled by the application itself.</p>
-
-<h3>Battery Usage</h3>
-
-<p>If you plan to have polling mechanisms and background jobs, make sure to take the battery status into account. Some processes and network usage might drain the battery in detriment of the user experience. You can check the status of the battery, and whether the device is connected to a charger before you start a rather consuming process.</p>
-
-<h3>Consuming the Data</h3>
-
-<p>Depending on your application’s needs, you might have to query and operate (create, update, delete) on your data. In non-trivial scenarios using a database as the persistence mechanism is not a bad idea. There are several things to take into account for choosing the right database:</p>
-
-<ul>
-<li>platform support: Will I be able to use this database from all the versions of my app? (iOS, Android, Web, Hybrid, etc…)</li>
-<li>relational vs NoSQL database technology</li>
-<li>ORM support for conveniently mapping the object model to the database</li>
-<li>data size</li>
-<li>existing support for sync protocols (ie: CouchDB)</li>
-</ul>
-
-
-<p>Next we will go through a list of libraries and databases that can be useful when implementing Offline Support.</p>
-
-<h2>Useful Libraries &amp; Databases</h2>
-
-<ul>
-<li>SQLite,SQLite is an Open Source relational database that works very well in mobile devices. It uses a single file to store all the data, so managing the persistence side is simple. It will not solve too much on the sync- and conflict resolution side, but it’s a simple and easy to use alternative for caching or queuing information. There are implementations for the main mobile platforms like iOS, Android, Xamarin and Windows Phone.</li>
-<li>SQLCypher,As previously said, when the data you are caching or queuing is rather sensitive, you might want to encrypt the data at rest. SQLCypher is a very robust alternative for encrypting SQLite databases. It has versions for every major mobile platform, but it is a paid library. It is available in different editions depending on the level of security and support you need.</li>
-<li>Couchbase Mobile,Originally known as Membase, Couchbase is an open source distributed NoSQL database. It is particularly interesting in offline scenarios due to its ability to synchronize back and forth with Couchbase Mobile along with the addition of a sync gateway. It supports the main mobile platforms including Xamarin and PhoneGap, and provides local file encryption.</li>
-<li>Meteor,<a href="https://www.meteor.com/">Meteor</a>is an open source platform for building web applications, with built in support for Live Updates. Meteor is based on the open source Node.js platform and MongoDB. It comes with a publish-subscriber mechanism that enables Meteor to propagate changes on the data to every connected clients in real-time.</li>
-</ul>
-
-
-<p>It supports mobile all platforms through hybrid tools like PhoneGap and Cordova.</p>
-
-<h2>Summary</h2>
-
-<p>In times where mobile users are starting to expect the same level of user experience in enterprise applications as they do on their personal consumer applications, offline Support can no longer be ignored. Providing the right level of support for offline scenarios will dramatically improve the mobile application user’s experience and be vital for employee’s productivity.</p>
-
-<p>Keep in mind the security aspects of storing data locally in your device, and try to not to underestimate the impact that your application can have on your users battery.</p>
-
-<h2>reference</h2>
-
-<ul>
-<li><a href="http://www.infoq.com/articles/mobile-apps-offline-support">Mobile Apps Offline Support</a></li>
-<li><a href="https://www.youtube.com/watch?v=BlkJzgjzL0c">Android Application Architecture</a></li>
-<li><a href="https://github.com/yigit/dev-summit-architecture-demo">dev-summit-architecture-demo</a></li>
-<li><a href="http://www.infoq.com/cn/articles/mobile-apps-offline-support">为移动应用提供离线支持</a></li>
-</ul>
-
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[The Clean Architecture]]></title>
-    <link href="http://Solarex.github.io/blog/2016/03/13/the-clean-architecture/"/>
-    <updated>2016-03-13T23:57:00+08:00</updated>
-    <id>http://Solarex.github.io/blog/2016/03/13/the-clean-architecture</id>
-    <content type="html"><![CDATA[<center><img src="http://Solarex.github.io/images/clean_arch.jpg"></center>
-
-
-<p>Over the last several years we’ve seen a whole range of ideas regarding the architecture of systems. These include:</p>
-
-<ul>
-<li><a href="http://alistair.cockburn.us/Hexagonal+architecture">Hexagonal Architecture</a> (a.k.a. Ports and Adapters) by Alistair Cockburn and adopted by Steve Freeman, and Nat Pryce in their wonderful book <a href="http://www.amazon.com/Growing-Object-Oriented-Software-Guided-Tests/dp/0321503627">Growing Object Oriented Software</a>.</li>
-<li><a href="http://jeffreypalermo.com/blog/the-onion-architecture-part-1/">Onion Architecture</a> by Jeffrey Palermo</li>
-<li><a href="http://blog.8thlight.com/uncle-bob/2011/09/30/Screaming-Architecture.html">Screaming Architecture</a> from a blog of mine last year</li>
-<li><a href="http://www.amazon.com/Lean-Architecture-Agile-Software-Development/dp/0470684208/">DCI</a> from James Coplien, and Trygve Reenskaug.</li>
-<li><a href="http://www.amazon.com/Object-Oriented-Software-Engineering-Approach/dp/0201544350">BCE</a> by Ivar Jacobson from his book Object Oriented Software Engineering: A Use-Case Driven Approach</li>
-</ul>
-
-
-<!-- more -->
-
-
-<p>Though these architectures all vary somewhat in their details, they are very similar. They all have the same objective, which is the separation of concerns. They all achieve this separation by dividing the software into layers. Each has at least one layer for business rules, and another for interfaces.</p>
-
-<p>Each of these architectures produce systems that are:</p>
-
-<ul>
-<li>Independent of Frameworks. The architecture does not depend on the existence of some library of feature laden software. This allows you to use such frameworks as tools, rather than having to cram your system into their limited constraints.</li>
-<li>Testable. The business rules can be tested without the UI, Database, Web Server, or any other external element.</li>
-<li>Independent of UI. The UI can change easily, without changing the rest of the system. A Web UI could be replaced with a console UI, for example, without changing the business rules.</li>
-<li>Independent of Database. You can swap out Oracle or SQL Server, for Mongo, BigTable, CouchDB, or something else. Your business rules are not bound to the database.</li>
-<li>Independent of any external agency. In fact your business rules simply don’t know anything at all about the outside world.</li>
-</ul>
-
-
-<p>The diagram at the top of this article is an attempt at integrating all these architectures into a single actionable idea.</p>
-
-<h2>The Dependency Rule</h2>
-
-<p>The concentric circles represent different areas of software. In general, the further in you go, the higher level the software becomes. The outer circles are mechanisms. The inner circles are policies.</p>
-
-<p>The overriding rule that makes this architecture work is The Dependency Rule. This rule says that source code dependencies can only point inwards. Nothing in an inner circle can know anything at all about something in an outer circle. In particular, the name of something declared in an outer circle must not be mentioned by the code in the an inner circle. That includes, functions, classes. variables, or any other named software entity.</p>
-
-<p>By the same token, data formats used in an outer circle should not be used by an inner circle, especially if those formats are generate by a framework in an outer circle. We don’t want anything in an outer circle to impact the inner circles.</p>
-
-<h2>Entities</h2>
-
-<p>Entities encapsulate Enterprise wide business rules. An entity can be an object with methods, or it can be a set of data structures and functions. It doesn’t matter so long as the entities could be used by many different applications in the enterprise.</p>
-
-<p>If you don’t have an enterprise, and are just writing a single application, then these entities are the business objects of the application. They encapsulate the most general and high-level rules. They are the least likely to change when something external changes. For example, you would not expect these objects to be affected by a change to page navigation, or security. No operational change to any particular application should affect the entity layer.</p>
-
-<h2>Use Cases</h2>
-
-<p>The software in this layer contains application specific business rules. It encapsulates and implements all of the use cases of the system. These use cases orchestrate the flow of data to and from the entities, and direct those entities to use their enterprise wide business rules to achieve the goals of the use case.</p>
-
-<p>We do not expect changes in this layer to affect the entities. We also do not expect this layer to be affected by changes to externalities such as the database, the UI, or any of the common frameworks. This layer is isolated from such concerns.</p>
-
-<p>We do, however, expect that changes to the operation of the application will affect the use-cases and therefore the software in this layer. If the details of a use-case change, then some code in this layer will certainly be affected.</p>
-
-<h2>Interface Adapters</h2>
-
-<p>The software in this layer is a set of adapters that convert data from the format most convenient for the use cases and entities, to the format most convenient for some external agency such as the Database or the Web. It is this layer, for example, that will wholly contain the MVC architecture of a GUI. The Presenters, Views, and Controllers all belong in here. The models are likely just data structures that are passed from the controllers to the use cases, and then back from the use cases to the presenters and views.</p>
-
-<p>Similarly, data is converted, in this layer, from the form most convenient for entities and use cases, into the form most convenient for whatever persistence framework is being used. i.e. The Database. No code inward of this circle should know anything at all about the database. If the database is a SQL database, then all the SQL should be restricted to this layer, and in particular to the parts of this layer that have to do with the database.</p>
-
-<p>Also in this layer is any other adapter necessary to convert data from some external form, such as an external service, to the internal form used by the use cases and entities.</p>
-
-<h2>Frameworks and Drivers</h2>
-
-<p>The outermost layer is generally composed of frameworks and tools such as the Database, the Web Framework, etc. Generally you don’t write much code in this layer other than glue code that communicates to the next circle inwards.</p>
-
-<p>This layer is where all the details go. The Web is a detail. The database is a detail. We keep these things on the outside where they can do little harm.</p>
-
-<h2>Only Four Circles?</h2>
-
-<p>No, the circles are schematic. You may find that you need more than just these four. There’s no rule that says you must always have just these four. However, The Dependency Rule always applies. Source code dependencies always point inwards. As you move inwards the level of abstraction increases. The outermost circle is low level concrete detail. As you move inwards the software grows more abstract, and encapsulates higher level policies. The inner most circle is the most general.</p>
-
-<h2>Crossing boundaries</h2>
-
-<p>At the lower right of the diagram is an example of how we cross the circle boundaries. It shows the Controllers and Presenters communicating with the Use Cases in the next layer. Note the flow of control. It begins in the controller, moves through the use case, and then winds up executing in the presenter. Note also the source code dependencies. Each one of them points inwards towards the use cases.</p>
-
-<p>We usually resolve this apparent contradiction by using the Dependency Inversion Principle. In a language like Java, for example, we would arrange interfaces and inheritance relationships such that the source code dependencies oppose the flow of control at just the right points across the boundary.</p>
-
-<p>For example, consider that the use case needs to call the presenter. However, this call must not be direct because that would violate The Dependency Rule: No name in an outer circle can be mentioned by an inner circle. So we have the use case call an interface (Shown here as Use Case Output Port) in the inner circle, and have the presenter in the outer circle implement it.</p>
-
-<p>The same technique is used to cross all the boundaries in the architectures. We take advantage of dynamic polymorphism to create source code dependencies that oppose the flow of control so that we can conform to The Dependency Rule no matter what direction the flow of control is going in.</p>
-
-<h2>What data crosses the boundaries.</h2>
-
-<p>Typically the data that crosses the boundaries is simple data structures. You can use basic structs or simple Data Transfer objects if you like. Or the data can simply be arguments in function calls. Or you can pack it into a hashmap, or construct it into an object. The important thing is that isolated, simple, data structures are passed across the boundaries. We don’t want to cheat and pass Entities or Database rows. We don’t want the data structures to have any kind of dependency that violates The Dependency Rule.</p>
-
-<p>For example, many database frameworks return a convenient data format in response to a query. We might call this a RowStructure. We don’t want to pass that row structure inwards across a boundary. That would violate The Dependency Rule because it would force an inner circle to know something about an outer circle.</p>
-
-<p>So when we pass data across a boundary, it is always in the form that is most convenient for the inner circle.</p>
+<p>We add the annotation to our methods and have the option to omit the parameter or directly specify the value of the parameter. If the parameter is omitted the parameter will get it’s default value specified in the annotation.</p>
 
 <h2>Conclusion</h2>
 
-<p>Conforming to these simple rules is not hard, and will save you a lot of headaches going forward. By separating the software into layers, and conforming to The Dependency Rule, you will create a system that is intrinsically testable, with all the benefits that implies. When any of the external parts of the system become obsolete, like the database, or the web framework, you can replace those obsolete elements with a minimum of fuss.</p>
+<p>Annotations with element-value pairs can be really powerful for both the developer who is using the aspects and as the one developing them. It gives the ability to send parameters into the aspect code. By adding the ability to send parameters we open up the code to be more configurable. By having aspects that are configurable we open up the code to be separated into it’s own independent framework or library.</p>
 
 <h2>reference</h2>
 
 <ul>
-<li><a href="http://blog.8thlight.com/uncle-bob/2012/08/13/the-clean-architecture.html">The Clean Architecture</a></li>
-<li><a href="http://blog.csdn.net/bboyfeiyu/article/details/44560155">一种更清晰的Android架构</a></li>
+<li><a href="http://blog.jayway.com/2015/09/09/using-annotations-element-value-pairs-in-aspectj/">Using annotations element-value pairs in AspectJ </a></li>
 </ul>
 
 ]]></content>
   </entry>
   
   <entry>
-    <title type="html"><![CDATA[Android Handler Memory Leaks]]></title>
-    <link href="http://Solarex.github.io/blog/2016/02/25/android-handler-memory-leaks/"/>
-    <updated>2016-02-25T19:58:00+08:00</updated>
-    <id>http://Solarex.github.io/blog/2016/02/25/android-handler-memory-leaks</id>
-    <content type="html"><![CDATA[<p>Android uses Java as a platform for development. This helps us with many low level issues including memory management, platform type dependencies, and so on. However we still sometimes get crashes with OutOfMemory. So where’s the garbage collector?</p>
+    <title type="html"><![CDATA[Defining pointcuts by annotations]]></title>
+    <link href="http://Solarex.github.io/blog/2016/09/16/defining-pointcuts-by-annotations/"/>
+    <updated>2016-09-16T16:17:00+08:00</updated>
+    <id>http://Solarex.github.io/blog/2016/09/16/defining-pointcuts-by-annotations</id>
+    <content type="html"><![CDATA[<h2>Pointcuts by annotations</h2>
 
-<p>I’m going to focus on one of the cases where big objects in memory can’t be cleared for a lengthy period of time. This case is not ultimately a memory leak &ndash; objects will be collected at some point &ndash; so we sometimes ignore it. This is not advisable as it can sometimes lead to OOM errors.</p>
+<p>Using annotations is more convenient than using patterns. While patterns might be anything between a big cannon and a scalpel the annotations are definitely a scalpel, by only getting the pointcuts that the developer has manually specified.</p>
 
-<p>The case I’m describing is the Handler leak, which is usually detected as a warning by Lint.</p>
+<p>You can get the code for this blog series at the Git repository <a href="https://github.com/Nosfert/AspectJ-Tutorial-jayway">here</a>.</p>
 
 <!-- more -->
 
 
-<h2>Basic Example</h2>
+<p>Let’s start coding!</p>
 
-<center><img src="http://Solarex.github.io/images/anonymous_runnable_code.png"></center>
+<p>Requirements: Maven, Java 8, (preferably) an IDE (I’m using IntelliJ)</p>
 
+<p>The use of annotations is a precise way to define when an aspect should be run. They are only run when a developer has used the annotation on an object or method.</p>
 
-<p>This is a very basic activity. Notice that this anonymous <code>Runnable</code> has been posted to the <code>Handler</code> with a very long delay. We’ll run it and rotate the phone couple of times, then dump memory and analyze it.</p>
+<p>The errors that can and will occur</p>
 
-<center><img src="http://Solarex.github.io/images/anonymous_runnable_memory_analyze.png"></center>
+<p>Using only annotations creates another problem that we don’t need to think about while using patterns; It will make our advice run twice(or more), because the annotation pointcut don’t specify if it should be run during execution or initialization. The reason for the advice in the pattern example not being executed twice is that the pattern uses the <a href="https://eclipse.org/aspectj/doc/released/progguide/semantics-pointcuts.html">combinator</a> execute(pattern) . We are practically saying that the advice should only look for code that’s executed. There are different combinators that we can use to define when we should run our advice; one of them is execute.</p>
 
+<p>So instead of only using annotations we need to use annotations and a combinator with a pattern. The simplest way is to use a catch all pattern with the combinator execution and then combine it with an annotation.</p>
 
-<p>We have seven activities in memory now. This is definitely not good. Let’s find out why GC is not able to clear them.ps.The query I made to get a list of all Activities remaining in memory was created in OQL (Object Query Language), which is very simple, yet powerful.</p>
+<p>A real example:</p>
 
-<center><img src="http://Solarex.github.io/images/anonymous_runnable_memory_explained.png"></center>
+<p>```
+package com.jayway.blog;</p>
 
+<p>import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.annotation.*;
+import org.aspectj.lang.JoinPoint;</p>
 
-<p>As you can see, one of the activities is referenced by this$0. This is an indirect reference from the anonymous class to the owner class. This$0 is referenced by callback, which is then referenced by a chain of next’s of Message back to the main thread.Any time you create a non-static class inside the owner class, Java creates an indirect reference to the owner.</p>
+<p>@Aspect
+public class YourAspect {</p>
 
-<p>Once you post <code>Runnable</code> or <code>Message</code> into Handler, it’s then stored in list of <code>Message</code> commands referenced from <code>LooperThread</code> until the message is executed. Posting delayed messages is a clear leak for at least the time of the delay value. Posting without delay may cause a temporary leak as well if the queue of messages is large.</p>
-
-<h2>Static Runnable Solution</h2>
-
-<p>Let’s try to overcome a memory leak by getting rid of <code>this$0</code>, by converting the anonymous class to static.</p>
-
-<center><img src="http://Solarex.github.io/images/static_class.png"></center>
-
-
-<p>Run, rotate and get the memory dump.</p>
-
-<center><img src="http://Solarex.github.io/images/static_class_memory_analyze.png"></center>
-
-
-<p>What, again? Let’s see who keeps referring to Activities.</p>
-
-<center><img src="http://Solarex.github.io/images/static_class_memory_analyze_explained.png"></center>
-
-
-<p>Take a look at the bottom of the tree &ndash; activity is kept as a reference to mContext inside mTextView of our DoneRunnable class. Using static inner classes is not enough to overcome memory leaks, however. We need to do more.</p>
-
-<h2>Static Runnable With WeakReference</h2>
-
-<p>Let’s continue using iterative fixes and get rid of the reference to TextView, which keeps activity from being destroyed.</p>
-
-<center><img src="http://Solarex.github.io/images/static_class_with_WeakRef.png"></center>
-
-
-<p>Note that we are keeping WeakReference to TextView, and let’s run, rotate and dump memory.Be careful with WeakReferences. They can be null at any moment, so resolve them first to a local variable (hard reference) and then check to null before use.</p>
-
-<center><img src="http://Solarex.github.io/images/static_class_with_WeakRef_memory_analyze.png"></center>
-
-
-<p>Hooray! Only one activity instance. This solves our memory problem.</p>
-
-<p>So for this approach we should:</p>
-
-<ul>
-<li>Use static inner classes (or outer classes)</li>
-<li>Use <code>WeakReference</code> to all objects manipulated from <code>Handler/Runnable</code></li>
-</ul>
-
-
-<p>If you compare this code to the initial code, you might find a big difference in readability and code clearance. The initial code is much shorter and much clearer, and you’ll see that eventually, text in textView will be changed to ‘Done’. No need to browse the code to realise that.</p>
-
-<p>Writing this much boilerplate code is very tedious, especially if postDelayed is set to a short time, such as 50ms. There are better and clearer solutions.</p>
-
-<h2>Cleanup All Messages onDestroy</h2>
-
-<p><code>Handler</code> class has an interesting feature &ndash; <code>removeCallbacksAndMessages</code> &ndash; which can accept <code>null</code> as argument. It will remove all <code>Runnables</code> and <code>Messages</code> posted to a particular handler. Let’s use it in <code>onDestroy</code>.</p>
-
-<center><img src="http://Solarex.github.io/images/removeCallbacks.png"></center>
-
-
-<p>Let’s run, rotate and dump memory.</p>
-
-<center><img src="http://Solarex.github.io/images/removeCallbacks_memory_analyze.png"></center>
-
-
-<p>Good! Only one instance.</p>
-
-<p>This approach is way better than the previous one, as it keeps code clear and readable. The only overhead is to remember to clear all messages on activity/fragment destroy.</p>
-
-<p>I have one more solution which, if you’re lazy like me, you might like even more. :)</p>
-
-<h2>Use WeakHandler</h2>
-
-<p>The Badoo team came up with the interesting idea of introducing <code>WeakHandler</code> &ndash; a class that behaves as <code>Handler</code>, but is way safer.</p>
-
-<p>It takes advantage of hard and weak references to get rid of memory leaks. I will describe the idea in detail a bit later, but let’s look at the code first:</p>
-
-<center><img src="http://Solarex.github.io/images/WeakHandler.png"></center>
-
-
-<p>Very similar to the original code apart from one small difference &ndash; instead of using <code>android.os.Handler</code>, I’ve used <code>WeakHandler</code>. Let’s run, rotate and dump memory:</p>
-
-<center><img src="http://Solarex.github.io/images/WeakHandler_memory_analyze.png"></center>
-
-
-<p>Nice, isn’t it? The code is cleaner than ever, and memory is clean as well! :)</p>
-
-<p>To use it, just add dependency to your <code>build.gradle</code>:</p>
-
-<p>```groovy
-repositories {</p>
-
-<pre><code>maven {
-    repositories {
-        url 'https://oss.sonatype.org/content/repositories/releases/'
+<pre><code>//Defines a pointcut where the @YourAnnotation exists
+//And combines that with a catch all pointcut with the scope of execution
+@Around("@annotation(YourAnnotation) &amp;&amp; execution(* *(..))")
+//ProceedingJointPoint = the reference of the call to the method.
+//Difference between ProceedingJointPoint and JointPoint is that a JointPoint can't be continued(proceeded)
+//A ProceedingJointPoint can be continued(proceeded) and is needed for a Around advice
+public Object aroundAdvice(ProceedingJoinPoint joinPoint) throws Throwable {
+    //Default Object that we can use to return to the consumer
+    Object returnObject = null;
+    try {
+        System.out.println("YourAspect's aroundAdvice's body is now executed Before yourMethodAround is called.");
+        //We choose to continue the call to the method in question
+        returnObject = joinPoint.proceed();
+        //If no exception is thrown we should land here and we can modify the returnObject, if we want to.
+    } catch (Throwable throwable) {
+        //Here we can catch and modify any exceptions that are called
+        //We could potentially not throw the exception to the caller and instead return "null" or a default object.
+        throw throwable;
     }
+    finally {
+        //If we want to be sure that some of our code is executed even if we get an exception
+        System.out.println("YourAspect's aroundAdvice's body is now executed After yourMethodAround is called.");
+    }
+    return returnObject;
 }
-</code></pre>
-
-<p>}</p>
-
-<p>dependencies {</p>
-
-<pre><code>compile 'com.badoo.mobile:android-weak-handler:1.0'
 </code></pre>
 
 <p>}
 ```</p>
 
-<p>And import it in your java class:</p>
+<p>In this example we are using the combinator execute with a catch-all pattern and annotations. Basically we are looking for any code that’s executed and has the annotation @YourAnnotation. There is a whole list of different combinators at AspectJ’s homepage. Each one of them can take different patterns to help you define when your advice should be triggered.</p>
 
-<p><code>java
-import com.badoo.mobile.util.WeakHandler;
-</code></p>
+<p>Implementing annotation in a class</p>
 
-<p>Visit Badoo’s github page, where you can fork it, or study it’s <a href="https://github.com/badoo/android-weak-handler">source code</a>.</p>
+<p>```
+package com.jayway.blog;</p>
 
-<h2>WeakHandler. How it works</h2>
+<p>public class YourClass {</p>
 
-<p>The main aim of <code>WeakHandler</code> is to keep <code>Runnables/Messages</code> hard-referenced while <code>WeakHandler</code> is also hard-referenced. Once it can be GC-ed, all messages should go away as well.</p>
-
-<p>Here is a simple diagram that demonstrates differences between using normal <code>Handler</code> and <code>WeakHandler</code> to post anonymous runnables:</p>
-
-<center><img src="http://Solarex.github.io/images/WeakHandler_how_it_works.png"></center>
-
-
-<p>Looking at the top diagram, <code>Activity</code> keeps a reference to <code>Handler</code>, which posts <code>Runnable</code> (puts it into queue of <code>Messages</code> referenced from <code>Thread</code>). Everything is fine except the indirect reference from <code>Runnable</code> to <code>Activity</code>. While <code>Message</code> is in the queue, all graphs can’t be garbage-collected.</p>
-
-<p>By comparison, in the bottom diagram <code>Activity</code> holds <code>WeakHandler</code>, which keeps <code>Handler</code> inside. When we ask it to post <code>Runnable</code>, it is wrapped into <code>WeakRunnable</code> and posted. So the <code>Message</code> queue keeps reference only to <code>WeakRunnable</code>. <code>WeakRunnable</code> keeps weak reference to the desired <code>Runnable</code>, so the <code>Runnable</code> can be garbage-collected.</p>
-
-<p>Another little trick is that <code>WeakHandler</code> still keeps a hard reference to the desired <code>Runnable</code>, to prevent it from being garbage-collected while <code>WeakRunnable</code> is active.</p>
-
-<p>The side-effect of using <code>WeakHandler</code> is that all messages and runnables may not be executed if <code>WeakHandler</code> has been garbage-collected. To prevent that, just keep a reference to it from <code>Activity</code>. Once <code>Activity</code> is ready to be collected, all graphs with <code>WeakHandler</code> will collected as well.</p>
-
-<h2>Conclusions</h2>
-
-<p>Using <code>postDelayed</code> in Android requires additional effort. To achieve it we came up with three different methods:</p>
-
-<ul>
-<li>Use a static inner <code>Runnable/Handler</code> with <code>WeakReference</code> to owner class</li>
-<li>Clear all messages from <code>Handler</code> in <code>onDestroy</code> of <code>Activity/Fragment</code></li>
-<li>Use <a href="https://github.com/badoo/android-weak-handler">WeakHandler</a> from Badoo as a silver bullet</li>
-</ul>
-
-
-<p>It’s up to you to choose your preferred technique. The second seems very reasonable, but needs some extra work. The third is my favourite, obviously, but it require some attention as well &ndash; <code>WeakHandler</code> should not be used without hard reference from outside.</p>
-
-<p>```java
-package com.badoo.mobile.util;</p>
-
-<p>import android.os.Handler;
-import android.os.Looper;
-import android.os.Message;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.annotation.VisibleForTesting;</p>
-
-<p>import java.lang.ref.WeakReference;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;</p>
-
-<p>/<em>*
- * Memory safer implementation of android.os.Handler
- * <p/>
- * Original implementation of Handlers always keeps hard reference to handler in queue of execution.
- * If you create anonymous handler and post delayed message into it, it will keep all parent class
- * for that time in memory even if it could be cleaned.
- * <p/>
- * This implementation is trickier, it will keep WeakReferences to runnables and messages,
- * and GC could collect them once WeakHandler instance is not referenced any more
- * <p/>
- *
- * @see android.os.Handler
- *
- * Created by Dmytro Voronkevych on 17/06/2014.
- </em>/
-@SuppressWarnings(&ldquo;unused&rdquo;)
-public class WeakHandler {</p>
-
-<pre><code>private final Handler.Callback mCallback; // hard reference to Callback. We need to keep callback in memory
-private final ExecHandler mExec;
-private Lock mLock = new ReentrantLock();
-@SuppressWarnings("ConstantConditions")
-@VisibleForTesting
-final ChainedRef mRunnables = new ChainedRef(mLock, null);
-
-/**
- * Default constructor associates this handler with the {@link Looper} for the
- * current thread.
- *
- * If this thread does not have a looper, this handler won't be able to receive messages
- * so an exception is thrown.
- */
-public WeakHandler() {
-    mCallback = null;
-    mExec = new ExecHandler();
+<pre><code>public static void main(String[] args) {
+    YourClass yourClass = new YourClass();
+    yourClass.yourMethodAround();
 }
 
-/**
- * Constructor associates this handler with the {@link Looper} for the
- * current thread and takes a callback interface in which you can handle
- * messages.
- *
- * If this thread does not have a looper, this handler won't be able to receive messages
- * so an exception is thrown.
- *
- * @param callback The callback interface in which to handle messages, or null.
- */
-public WeakHandler(@Nullable Handler.Callback callback) {
-    mCallback = callback; // Hard referencing body
-    mExec = new ExecHandler(new WeakReference&lt;&gt;(callback)); // Weak referencing inside ExecHandler
-}
-
-/**
- * Use the provided {@link Looper} instead of the default one.
- *
- * @param looper The looper, must not be null.
- */
-public WeakHandler(@NonNull Looper looper) {
-    mCallback = null;
-    mExec = new ExecHandler(looper);
-}
-
-/**
- * Use the provided {@link Looper} instead of the default one and take a callback
- * interface in which to handle messages.
- *
- * @param looper The looper, must not be null.
- * @param callback The callback interface in which to handle messages, or null.
- */
-public WeakHandler(@NonNull Looper looper, @NonNull Handler.Callback callback) {
-    mCallback = callback;
-    mExec = new ExecHandler(looper, new WeakReference&lt;&gt;(callback));
-}
-
-/**
- * Causes the Runnable r to be added to the message queue.
- * The runnable will be run on the thread to which this handler is
- * attached.
- *
- * @param r The Runnable that will be executed.
- *
- * @return Returns true if the Runnable was successfully placed in to the
- *         message queue.  Returns false on failure, usually because the
- *         looper processing the message queue is exiting.
- */
-public final boolean post(@NonNull Runnable r) {
-    return mExec.post(wrapRunnable(r));
-}
-
-/**
- * Causes the Runnable r to be added to the message queue, to be run
- * at a specific time given by &lt;var&gt;uptimeMillis&lt;/var&gt;.
- * &lt;b&gt;The time-base is {@link android.os.SystemClock#uptimeMillis}.&lt;/b&gt;
- * The runnable will be run on the thread to which this handler is attached.
- *
- * @param r The Runnable that will be executed.
- * @param uptimeMillis The absolute time at which the callback should run,
- *         using the {@link android.os.SystemClock#uptimeMillis} time-base.
- *
- * @return Returns true if the Runnable was successfully placed in to the
- *         message queue.  Returns false on failure, usually because the
- *         looper processing the message queue is exiting.  Note that a
- *         result of true does not mean the Runnable will be processed -- if
- *         the looper is quit before the delivery time of the message
- *         occurs then the message will be dropped.
- */
-public final boolean postAtTime(@NonNull Runnable r, long uptimeMillis) {
-    return mExec.postAtTime(wrapRunnable(r), uptimeMillis);
-}
-
-/**
- * Causes the Runnable r to be added to the message queue, to be run
- * at a specific time given by &lt;var&gt;uptimeMillis&lt;/var&gt;.
- * &lt;b&gt;The time-base is {@link android.os.SystemClock#uptimeMillis}.&lt;/b&gt;
- * The runnable will be run on the thread to which this handler is attached.
- *
- * @param r The Runnable that will be executed.
- * @param uptimeMillis The absolute time at which the callback should run,
- *         using the {@link android.os.SystemClock#uptimeMillis} time-base.
- *
- * @return Returns true if the Runnable was successfully placed in to the
- *         message queue.  Returns false on failure, usually because the
- *         looper processing the message queue is exiting.  Note that a
- *         result of true does not mean the Runnable will be processed -- if
- *         the looper is quit before the delivery time of the message
- *         occurs then the message will be dropped.
- *
- * @see android.os.SystemClock#uptimeMillis
- */
-public final boolean postAtTime(Runnable r, Object token, long uptimeMillis) {
-    return mExec.postAtTime(wrapRunnable(r), token, uptimeMillis);
-}
-
-/**
- * Causes the Runnable r to be added to the message queue, to be run
- * after the specified amount of time elapses.
- * The runnable will be run on the thread to which this handler
- * is attached.
- *
- * @param r The Runnable that will be executed.
- * @param delayMillis The delay (in milliseconds) until the Runnable
- *        will be executed.
- *
- * @return Returns true if the Runnable was successfully placed in to the
- *         message queue.  Returns false on failure, usually because the
- *         looper processing the message queue is exiting.  Note that a
- *         result of true does not mean the Runnable will be processed --
- *         if the looper is quit before the delivery time of the message
- *         occurs then the message will be dropped.
- */
-public final boolean postDelayed(Runnable r, long delayMillis) {
-    return mExec.postDelayed(wrapRunnable(r), delayMillis);
-}
-
-/**
- * Posts a message to an object that implements Runnable.
- * Causes the Runnable r to executed on the next iteration through the
- * message queue. The runnable will be run on the thread to which this
- * handler is attached.
- * &lt;b&gt;This method is only for use in very special circumstances -- it
- * can easily starve the message queue, cause ordering problems, or have
- * other unexpected side-effects.&lt;/b&gt;
- *
- * @param r The Runnable that will be executed.
- *
- * @return Returns true if the message was successfully placed in to the
- *         message queue.  Returns false on failure, usually because the
- *         looper processing the message queue is exiting.
- */
-public final boolean postAtFrontOfQueue(Runnable r) {
-    return mExec.postAtFrontOfQueue(wrapRunnable(r));
-}
-
-/**
- * Remove any pending posts of Runnable r that are in the message queue.
- */
-public final void removeCallbacks(Runnable r) {
-    final WeakRunnable runnable = mRunnables.remove(r);
-    if (runnable != null) {
-        mExec.removeCallbacks(runnable);
-    }
-}
-
-/**
- * Remove any pending posts of Runnable &lt;var&gt;r&lt;/var&gt; with Object
- * &lt;var&gt;token&lt;/var&gt; that are in the message queue.  If &lt;var&gt;token&lt;/var&gt; is null,
- * all callbacks will be removed.
- */
-public final void removeCallbacks(Runnable r, Object token) {
-    final WeakRunnable runnable = mRunnables.remove(r);
-    if (runnable != null) {
-        mExec.removeCallbacks(runnable, token);
-    }
-}
-
-/**
- * Pushes a message onto the end of the message queue after all pending messages
- * before the current time. It will be received in callback,
- * in the thread attached to this handler.
- *
- * @return Returns true if the message was successfully placed in to the
- *         message queue.  Returns false on failure, usually because the
- *         looper processing the message queue is exiting.
- */
-public final boolean sendMessage(Message msg) {
-    return mExec.sendMessage(msg);
-}
-
-/**
- * Sends a Message containing only the what value.
- *
- * @return Returns true if the message was successfully placed in to the
- *         message queue.  Returns false on failure, usually because the
- *         looper processing the message queue is exiting.
- */
-public final boolean sendEmptyMessage(int what) {
-    return mExec.sendEmptyMessage(what);
-}
-
-/**
- * Sends a Message containing only the what value, to be delivered
- * after the specified amount of time elapses.
- * @see #sendMessageDelayed(android.os.Message, long)
- *
- * @return Returns true if the message was successfully placed in to the
- *         message queue.  Returns false on failure, usually because the
- *         looper processing the message queue is exiting.
- */
-public final boolean sendEmptyMessageDelayed(int what, long delayMillis) {
-    return mExec.sendEmptyMessageDelayed(what, delayMillis);
-}
-
-/**
- * Sends a Message containing only the what value, to be delivered
- * at a specific time.
- * @see #sendMessageAtTime(android.os.Message, long)
- *
- * @return Returns true if the message was successfully placed in to the
- *         message queue.  Returns false on failure, usually because the
- *         looper processing the message queue is exiting.
- */
-public final boolean sendEmptyMessageAtTime(int what, long uptimeMillis) {
-    return mExec.sendEmptyMessageAtTime(what, uptimeMillis);
-}
-
-/**
- * Enqueue a message into the message queue after all pending messages
- * before (current time + delayMillis). You will receive it in
- * callback, in the thread attached to this handler.
- *
- * @return Returns true if the message was successfully placed in to the
- *         message queue.  Returns false on failure, usually because the
- *         looper processing the message queue is exiting.  Note that a
- *         result of true does not mean the message will be processed -- if
- *         the looper is quit before the delivery time of the message
- *         occurs then the message will be dropped.
- */
-public final boolean sendMessageDelayed(Message msg, long delayMillis) {
-    return mExec.sendMessageDelayed(msg, delayMillis);
-}
-
-/**
- * Enqueue a message into the message queue after all pending messages
- * before the absolute time (in milliseconds) &lt;var&gt;uptimeMillis&lt;/var&gt;.
- * &lt;b&gt;The time-base is {@link android.os.SystemClock#uptimeMillis}.&lt;/b&gt;
- * You will receive it in callback, in the thread attached
- * to this handler.
- *
- * @param uptimeMillis The absolute time at which the message should be
- *         delivered, using the
- *         {@link android.os.SystemClock#uptimeMillis} time-base.
- *
- * @return Returns true if the message was successfully placed in to the
- *         message queue.  Returns false on failure, usually because the
- *         looper processing the message queue is exiting.  Note that a
- *         result of true does not mean the message will be processed -- if
- *         the looper is quit before the delivery time of the message
- *         occurs then the message will be dropped.
- */
-public boolean sendMessageAtTime(Message msg, long uptimeMillis) {
-    return mExec.sendMessageAtTime(msg, uptimeMillis);
-}
-
-/**
- * Enqueue a message at the front of the message queue, to be processed on
- * the next iteration of the message loop.  You will receive it in
- * callback, in the thread attached to this handler.
- * &lt;b&gt;This method is only for use in very special circumstances -- it
- * can easily starve the message queue, cause ordering problems, or have
- * other unexpected side-effects.&lt;/b&gt;
- *
- * @return Returns true if the message was successfully placed in to the
- *         message queue.  Returns false on failure, usually because the
- *         looper processing the message queue is exiting.
- */
-public final boolean sendMessageAtFrontOfQueue(Message msg) {
-    return mExec.sendMessageAtFrontOfQueue(msg);
-}
-
-/**
- * Remove any pending posts of messages with code 'what' that are in the
- * message queue.
- */
-public final void removeMessages(int what) {
-    mExec.removeMessages(what);
-}
-
-/**
- * Remove any pending posts of messages with code 'what' and whose obj is
- * 'object' that are in the message queue.  If &lt;var&gt;object&lt;/var&gt; is null,
- * all messages will be removed.
- */
-public final void removeMessages(int what, Object object) {
-    mExec.removeMessages(what, object);
-}
-
-/**
- * Remove any pending posts of callbacks and sent messages whose
- * &lt;var&gt;obj&lt;/var&gt; is &lt;var&gt;token&lt;/var&gt;.  If &lt;var&gt;token&lt;/var&gt; is null,
- * all callbacks and messages will be removed.
- */
-public final void removeCallbacksAndMessages(Object token) {
-    mExec.removeCallbacksAndMessages(token);
-}
-
-/**
- * Check if there are any pending posts of messages with code 'what' in
- * the message queue.
- */
-public final boolean hasMessages(int what) {
-    return mExec.hasMessages(what);
-}
-
-/**
- * Check if there are any pending posts of messages with code 'what' and
- * whose obj is 'object' in the message queue.
- */
-public final boolean hasMessages(int what, Object object) {
-    return mExec.hasMessages(what, object);
-}
-
-public final Looper getLooper() {
-    return mExec.getLooper();
-}
-
-private WeakRunnable wrapRunnable(@NonNull Runnable r) {
-    //noinspection ConstantConditions
-    if (r == null) {
-        throw new NullPointerException("Runnable can't be null");
-    }
-    final ChainedRef hardRef = new ChainedRef(mLock, r);
-    mRunnables.insertAfter(hardRef);
-    return hardRef.wrapper;
-}
-
-private static class ExecHandler extends Handler {
-    private final WeakReference&lt;Handler.Callback&gt; mCallback;
-
-    ExecHandler() {
-        mCallback = null;
-    }
-
-    ExecHandler(WeakReference&lt;Handler.Callback&gt; callback) {
-        mCallback = callback;
-    }
-
-    ExecHandler(Looper looper) {
-        super(looper);
-        mCallback = null;
-    }
-
-    ExecHandler(Looper looper, WeakReference&lt;Handler.Callback&gt; callback) {
-        super(looper);
-        mCallback = callback;
-    }
-
-    @Override
-    public void handleMessage(@NonNull Message msg) {
-        if (mCallback == null) {
-            return;
-        }
-        final Handler.Callback callback = mCallback.get();
-        if (callback == null) { // Already disposed
-            return;
-        }
-        callback.handleMessage(msg);
-    }
-}
-
-static class WeakRunnable implements Runnable {
-    private final WeakReference&lt;Runnable&gt; mDelegate;
-    private final WeakReference&lt;ChainedRef&gt; mReference;
-
-    WeakRunnable(WeakReference&lt;Runnable&gt; delegate, WeakReference&lt;ChainedRef&gt; reference) {
-        mDelegate = delegate;
-        mReference = reference;
-    }
-
-    @Override
-    public void run() {
-        final Runnable delegate = mDelegate.get();
-        final ChainedRef reference = mReference.get();
-        if (reference != null) {
-            reference.remove();
-        }
-        if (delegate != null) {
-            delegate.run();
-        }
-    }
-}
-
-static class ChainedRef {
-    @Nullable
-    ChainedRef next;
-    @Nullable
-    ChainedRef prev;
-    @NonNull
-    final Runnable runnable;
-    @NonNull
-    final WeakRunnable wrapper;
-
-    @NonNull
-    Lock lock;
-
-    public ChainedRef(@NonNull Lock lock, @NonNull Runnable r) {
-        this.runnable = r;
-        this.lock = lock;
-        this.wrapper = new WeakRunnable(new WeakReference&lt;&gt;(r), new WeakReference&lt;&gt;(this));
-    }
-
-    public WeakRunnable remove() {
-        lock.lock();
-        try {
-            if (prev != null) {
-                prev.next = next;
-            }
-            if (next != null) {
-                next.prev = prev;
-            }
-            prev = null;
-            next = null;
-        } finally {
-            lock.unlock();
-        }
-        return wrapper;
-    }
-
-    public void insertAfter(@NonNull ChainedRef candidate) {
-        lock.lock();
-        try {
-            if (this.next != null) {
-                this.next.prev = candidate;
-            }
-
-            candidate.next = this.next;
-            this.next = candidate;
-            candidate.prev = this;
-        } finally {
-            lock.unlock();
-        }
-    }
-
-    @Nullable
-    public WeakRunnable remove(Runnable obj) {
-        lock.lock();
-        try {
-            ChainedRef curr = this.next; // Skipping head
-            while (curr != null) {
-                if (curr.runnable == obj) { // We do comparison exactly how Handler does inside
-                    return curr.remove();
-                }
-                curr = curr.next;
-            }
-        } finally {
-            lock.unlock();
-        }
-        return null;
-    }
+@YourAnnotation
+public void yourMethodAround(){
+    System.out.println("Executing TestTarget.yourMethodAround()");
 }
 </code></pre>
 
 <p>}
 ```</p>
+
+<p>By adding the <code>@YourAnnotation</code>  before any method the aspect will find the annotation and execute the advice body.</p>
+
+<h2>Complexity and @Pointcut</h2>
+
+<p>When there is a need to define pointcuts that are a bit more complex we can define a standalone pointcut that we can reuse. By using the @Pointcut attribute we can define a specific pointcut and when it should get run. We can then use the name of the pointcut as a reference in the @Before ,  @After, @AfterThrowing,  @AfterReturn  and @Around .</p>
+
+<p>A real example:</p>
+
+<p>```
+package com.jayway.blog;</p>
+
+<p>import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.annotation.*;
+import org.aspectj.lang.JoinPoint;</p>
+
+<p>@Aspect
+public class YourAspect {</p>
+
+<pre><code>//Defines a pointcut that we can use in the @Before,@After, @AfterThrowing, @AfterReturning,@Around specifications
+//The pointcut will look for the @YourAnnotation
+@Pointcut("@annotation(YourAnnotation)")
+public void annotationPointCutDefinition(){
+}
+
+//Defines a pointcut that we can use in the @Before,@After, @AfterThrowing, @AfterReturning,@Around specifications
+//The pointcut is a catch all pointcut with the scope of execution
+@Pointcut("execution(* *(..))")
+public void atExecution(){}
+
+@After("annotationPointCutDefinition() &amp;&amp; atExecution()")
+//JointPoint = the reference of the call to the method
+public void printNewLine(JoinPoint pointcut){
+    //Just prints new lines after each method that's executed in
+    System.out.print("\n\r");
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<p>We got the same result as the earlier example but we are using the name of the pointcuts so we can reuse them.</p>
+
+<h2>Conclusion</h2>
+
+<p>Annotations can be a precise tool, as a pointcut will not trigger if the annotations are not in the code. But there are some weak points that we need to try and cover up with the use of combinators and patterns. Combining patterns and annotations is a good middle road when we want to specify when the advice should be run.</p>
 
 <h2>reference</h2>
 
 <ul>
-<li><a href="https://techblog.badoo.com/blog/2014/08/28/android-handler-memory-leaks">Android Handler Memory Leaks</a></li>
+<li><a href="http://blog.jayway.com/2015/09/08/defining-pointcuts-by-annotations/">Defining pointcuts by annotations</a></li>
+</ul>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Defining pointcuts by pattern]]></title>
+    <link href="http://Solarex.github.io/blog/2016/09/15/defining-pointcuts-by-pattern/"/>
+    <updated>2016-09-15T16:16:00+08:00</updated>
+    <id>http://Solarex.github.io/blog/2016/09/15/defining-pointcuts-by-pattern</id>
+    <content type="html"><![CDATA[<h2>Pointcuts by pattern</h2>
+
+<p>Going through all the different ways of defining pointcuts and explaining them in an easy manner would be a near impossible feat for this post. Rather than aiming for the impossible let’s narrow down the scope, and talk about the most commonly used pointcut definitions and how we can experiment with them. We will get you started with defining your own pointcuts!</p>
+
+<p>You can get the code for this blog series at the Git repository <a href="https://github.com/Nosfert/AspectJ-Tutorial-jayway">here</a>.</p>
+
+<!-- more -->
+
+
+<p>Let’s start coding!</p>
+
+<p>Requirements: Maven, Java 8, (preferably) an IDE (I’m using IntelliJ)</p>
+
+<p>Patterns are designed by the following elements and any element in the pattern can use wildcards (*)</p>
+
+<p><strong>[modifiers] [return type] <a href="parameters">(packageName)(className)(methodName)</a></strong></p>
+
+<p><strong>[modifiers]</strong> can be left blank; that will be interpreted as <code>*</code>
+<strong>[void/object/primitive type]</strong> defined by either <code>void</code> , a specific object or a primitive type
+<strong>[(packageName)(className)(methodName)]</strong> <code>your.package.structure.ClassName.yourMethod</code>  is valid. You can add <code>*</code>anywhere in that line to extend the search pattern
+<strong>(parameters)</strong> <code>yourMetod(..)</code>  defines any method named yourMethod. The (..) is the parameter section. In this case it defines that it looks for none or any parameters.  If we replace the <code>..</code>  with <code>Integer</code>  we will only look for a method called <code>yourMethod(Integer)</code>  and that has one parameter that is an <code>Integer</code>.</p>
+
+<p>A real example:</p>
+
+<p>```
+package com.jayway.blog;</p>
+
+<p>import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.annotation.*;
+import org.aspectj.lang.JoinPoint;</p>
+
+<p>@Aspect
+public class YourAspect {</p>
+
+<pre><code>//Patterns
+//blank = modifier (public/private/protected or default(blank) should be looked for
+//* = return type to look for. Void/Object
+//com.jayway.YourClass.yourMethodBefore(..) = PackageName . ClassName . methodName (parameters)
+@Before("execution (* com.jayway.blog.YourClass.yourMethodBefore(..))")
+//JointPoint = the reference of the call to the method
+public void beforeAdvice(JoinPoint joinPoint) {
+    System.out.println("YourAspect's BeforeAdvice's body is now executed Before yourMethodBefore is called.");
+}
+//Patterns
+//public = look for the specific modifier named public
+//!Object = Basically we are looking for void or primitives. But if we specified Object we could get a good pattern
+//com.jayway.YourClass.yourMethodBefore(..) = PackageName . ClassName . methodName (parameters)
+@After("execution (public !Object com.jayway.blog.YourClass.yourMethodAfter(..))")
+public void afterAdvice(JoinPoint joinPoint) {
+    System.out.println("YourAspect's afterAdvice's body is now executed After yourMethodAfter is called.");
+}
+//Patterns
+//!private = look for any modifier thats not private
+//void = looking for method with void
+//com.jayway.YourClass.yourMethodBefore(..) = PackageName . ClassName . methodName (parameters)
+@Around("execution (!private void com.jayway.blog.YourClass.yourMethodAround(Integer,..))")
+//ProceedingJointPoint = the reference of the call to the method.
+//Difference between ProceedingJointPoint and JointPoint is that a JointPoint cant be continued(proceeded)
+//A ProceedingJointPoint can be continued(proceeded) and is needed for a Around advice
+public Object aroundAdvice(ProceedingJoinPoint joinPoint) throws Throwable {
+    //Default Object that we can use to return to the consumer
+    Object returnObject = null;
+    try {
+        System.out.println("YourAspect's aroundAdvice's body is now executed Before yourMethodAround is called.");
+        //We choose to continue the call to the method in question
+        returnObject = joinPoint.proceed();
+        //If no exception is thrown we should land here and we can modify the returnObject, if we want to.
+    } catch (Throwable throwable) {
+        //Here we can catch and modify any exceptions that are called
+        //We could potentially not throw the exception to the caller and instead return "null" or a default object.
+        throw throwable;
+    }
+    finally {
+        //If we want to be sure that some of our code is executed even if we get an exception
+        System.out.println("YourAspect's aroundAdvice's body is now executed After yourMethodAround is called.");
+    }
+
+    return returnObject;
+}
+//Patterns//* = return type to look for. Void/Object/Primitive type
+//blank = modifier (public/private/protected or default(blank) should be looked for
+//* = return type to look for. Void/Object/Primitive type
+//com.jayway.YourClass.yourMethod*(..) = PackageName . ClassName . * (parameters)
+//Where the "*" will catch any method name
+@After("execution ( * com.jayway.blog.YourClass.*(..))")
+//JointPoint = the reference of the call to the method
+public void printNewLine(JoinPoint pointcut){
+    //Just prints new lines after each method that's executed in
+    System.out.print("\n\r");
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<p>In this example we are using the combinator  execution([pattern])  to define when this pointcut should be triggered. There are a whole list of different <a href="https://eclipse.org/aspectj/doc/released/progguide/semantics-pointcuts.html">combinators</a> at AspectJ’s homepage. Each one of them can take different patterns to help you define when your advice should be triggered.</p>
+
+<h2>JointPoint and ProceedingJointPoint</h2>
+
+<p>A JointPoint in the code is the call to the actual (method/object) in question. The ProceedingJointPoint  extends JointPoint to add the option to continue (proceed) the call to the (method/object) in question. The JointPoint contains a lot of information (such as parameters) that can be useful when writing the advice body.</p>
+
+<h2>Conclusion</h2>
+
+<p>Patterns can difficult – that’s why there are so many threads about how to define patterns online. Patterns gives us a lot of power, but demand that we know what we are looking for. Having the options to specify modifiers, return value and parameters gives us great tools to narrow down the complexity of our patterns.</p>
+
+<h2>reference</h2>
+
+<ul>
+<li><a href="http://blog.jayway.com/2015/09/08/defining-pointcuts-by-pattern/">Defining pointcuts by pattern</a></li>
+</ul>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[The basics of AOP]]></title>
+    <link href="http://Solarex.github.io/blog/2016/09/14/the-basics-of-aop/"/>
+    <updated>2016-09-14T16:15:00+08:00</updated>
+    <id>http://Solarex.github.io/blog/2016/09/14/the-basics-of-aop</id>
+    <content type="html"><![CDATA[<h2>Aspect Oriented Programming</h2>
+
+<p>AOP is both a complex and quite simple thing. There has been a lot of buzz around AOP but recently the buzz has faded. The question that people still ask is “what do I do with it”. Hopefully you will have an idea of what it is and create your own thoughts on how you could use it.</p>
+
+<p>In this post I aim to describe what AOP actually is and how it works.</p>
+
+<!-- more -->
+
+
+<h2>Description</h2>
+
+<p>Aspect Oriented Programming circle around Aspects. An aspect contains descriptions of Joint-points and Advice bodies. The joint-points defines rules of when they should be triggered, once triggered they will execute the advice body.</p>
+
+<p>An aspect acts like a middleman/proxy between the consumer of a (method/object) and the (method/object) in question. This can be achieved in five different scenarios such as; <strong>Before, After, AfterReturn, AfterThrowing and Around</strong> a (method/object) is called.</p>
+
+<h2>The power of advice body</h2>
+
+<p>Once a joint-point has triggered the advice body will be executed. The advice body has tremendous power and here lies the actual code that so many people think is “magic”.</p>
+
+<p>Some of the powerful things that the advice body can do are</p>
+
+<ul>
+<li>modify any parameters that are passed into the call.</li>
+<li>modify the return value</li>
+<li>choose to not continue the call to the (method/object) in question</li>
+<li>call other (methods/objects)</li>
+<li>catch any exception that is thrown by the (method/object) in question</li>
+</ul>
+
+
+<h2>Before, After and Around</h2>
+
+<h3>Before – @Before</h3>
+
+<p>The before advice can only modify things before the (method/object) in question is called. The advice has the power to throw an exception and cancel the call to the (method/object) in question and modify the parameters of the call.</p>
+
+<center><img src="http://Solarex.github.io/images/aspectj-before.png"/></center>
+
+
+<h3>After – @After , @AfterReturning  or @AfterThrowing</h3>
+
+<p>The after advice can only intercept the eventual return value of the (method/object) that is being called. The after advice contain three different definitions for the three different use-cases. @After  let you do things after a call and can return it’s own return value.  But @After  does not give you access to any potential return value or any potential exception that the called (method/object) creates. @AfterReturning  gives you the same abilities as @After  but gives you access to the return value. @AfterThrowing  gives you the same abilities as @After  but access to any exception that is thrown.</p>
+
+<center><img src="http://Solarex.github.io/images/aspectj-after.png"/></center>
+
+
+<h3>Around – @Around</h3>
+
+<p>An around advice is like a combination of the Before and After advice. Once it has intercepted a call to the (method/object) in question it has the same control as the Before. The big difference is that when the (method/object) has run the advice gets access to any potential return value or exception. While it has access to the potential return or exception value it has the option to continue doing operations with/on that value. The advice specifies what to return to the caller.</p>
+
+<center><img src="http://Solarex.github.io/images/aspectj-around.png"/></center>
+
+
+<h2>Conclusion</h2>
+
+<p>The advice can and will intercept calls to (method/object) according to the joint-point definition. The advice can specify five different situations of when they should be run. Each situation gives the advice different options to do its operations. Before, After, AfterReturn, AfterThrowing and Around are powerful in their own ways. Figuring out when to use what advice is the tricky part.</p>
+
+<h2>Example</h2>
+
+<p>The most classical example of AOP would be logging information. Printing out information before and after a method have been called and even printing out specific exception information. By using AOP for logging we could easily create a standardized pattern that will apply to all our code.  By having the logging information in the aspect lets us modify  a few rows of code and see it take affect everywhere at the same time.  And the developers don’t need to implement their own logging for each method/class.</p>
+
+<h2>reference</h2>
+
+<ul>
+<li><a href="https://blog.jayway.com/2015/09/07/the-basics-of-aop/">The basics of AOP</a></li>
 </ul>
 
 ]]></content>

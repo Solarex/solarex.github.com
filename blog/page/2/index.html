@@ -6,7 +6,7 @@
 	<title>Solarex's Blog</title>
     <meta name="author" content="Solarex">
     
-	<meta name="description" content="Published on: Feb 12th, 2016 Tags: android, dev In the first article, I’ve covered the main idea on how predictive animations run in RecyclerView. &hellip;">
+	<meta name="description" content="Published on: Sep 13th, 2016 Tags: dev, java What is AOP Every time someone tries to explain AOP (Aspect Oriented Programming) they often use words &hellip;">
 	
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
@@ -96,7 +96,7 @@ var _hmt = _hmt || [];
 	<li id="ajax"><a href="/index.html">Home</a></li>
 	<li id="ajax"><a href="/blog/archives/index.html">Archives</a></li>
     <li><a href="http://solarex.github.io/wiki">Wiki</a></li>
-    <li id="ajax"><a href="/about">About</a></li>
+    <li id="ajax"><a href="/projects">Project</a></li>
     <li><a href="http://solarex.github.io/resume">Resume</a></li>
     
     <li>
@@ -124,9 +124,9 @@ var _hmt = _hmt || [];
     <article class="post">
 	<h2 class="title">
 		
-		<a href="/blog/2016/02/12/recyclerview-animation-part-ii/">
+		<a href="/blog/2016/09/13/aspectj-dictionary/">
 		
-			RecyclerView Animation Part II</a>
+			AspectJ - Dictionary</a>
 	</h2>
     <div class="entry-content">
     <div class="meta">
@@ -142,36 +142,29 @@ var _hmt = _hmt || [];
   
 
 
-<time datetime="2016-02-12T00:47:00+08:00" pubdate data-updated="true">Feb 12<span>th</span>, 2016</time></div>
+<time datetime="2016-09-13T16:13:00+08:00" pubdate data-updated="true">Sep 13<span>th</span>, 2016</time></div>
       <div class="tags">Tags: 
 
 
-	<a class='category' href='/blog/categories/android/'>android</a>, <a class='category' href='/blog/categories/dev/'>dev</a>
+	<a class='category' href='/blog/categories/dev/'>dev</a>, <a class='category' href='/blog/categories/java/'>java</a>
 
 
 </div>
     </div>
-		<p>In the first article, I’ve covered the main idea on how predictive animations run in RecyclerView. There is actually a lot more going on to achieve this simplicity (for the LayoutManager). Here are some important points that you should know about.</p>
+		<h2>What is <a href="https://en.wikipedia.org/wiki/Aspect-oriented_programming">AOP</a></h2>
 
-<p>RecyclerView keeps some children attached although they have been removed by the LayoutManager. How does it work? Does it invalidate the contract between the LayoutManager and RecyclerView?</p>
+<p>Every time someone tries to explain AOP (Aspect Oriented Programming) they often use words like “magic” or “black magic”. And that’s understandable, especially if you come from an OOP world and come across AOP it really feels like “magic”: something is happening and you as a developer usually don’t know why, what or how.</p>
 
-<p>Yes it does ‘kind of’ violate the contract with LayoutManager, but:</p>
-
-<p>RecyclerView does keep the View as a child of the ViewGroup but hides it from the LayoutManager. Each time LayoutManager calls a method to access its children, RecyclerView takes into account the hidden Views. Lets look at the example at Part 1 where ‘C’ was being removed from the adapter.</p>
-
-<center><img src="/images/predictive_animations.gif"></center>
-
-
-
+<p>AspectJ is one of the more well-known implementations for AOP in Java and is developed by the Eclipse Foundation. In this series of articles we will be concentrating on AspectJ’s implementation of AOP and how it works in Java.So, let’s dive into AspectJ and make an effort of dispersing the mystic around the so-called “black magic”. Let’s start by building a dictionary with short explanations of some key terms.</p>
 
 
 		
-		<a href="/blog/2016/02/12/recyclerview-animation-part-ii/" class="more-link">Read on &rarr;</a>
+		<a href="/blog/2016/09/13/aspectj-dictionary/" class="more-link">Read on &rarr;</a>
 	</div>
 
 <div class="meta">
 	
-		<span class="comments"><a href="/blog/2016/02/12/recyclerview-animation-part-ii//blog/page/2/index.html#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="/blog/2016/09/13/aspectj-dictionary//blog/page/2/index.html#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -180,9 +173,9 @@ var _hmt = _hmt || [];
     <article class="post">
 	<h2 class="title">
 		
-		<a href="/blog/2016/02/11/recyclerview-animation-part-i/">
+		<a href="/blog/2016/05/28/make-an-android-custom-view-publish-and-open-source/">
 		
-			RecyclerView Animation Part I</a>
+			Make an Android Custom view,Publish and Open Source</a>
 	</h2>
     <div class="entry-content">
     <div class="meta">
@@ -198,7 +191,7 @@ var _hmt = _hmt || [];
   
 
 
-<time datetime="2016-02-11T00:47:00+08:00" pubdate data-updated="true">Feb 11<span>th</span>, 2016</time></div>
+<time datetime="2016-05-28T14:34:00+08:00" pubdate data-updated="true">May 28<span>th</span>, 2016</time></div>
       <div class="tags">Tags: 
 
 
@@ -207,28 +200,80 @@ var _hmt = _hmt || [];
 
 </div>
     </div>
-		<p>ListView is one of the most popular widgets of the Android Framework. It has many features, yet it is fairly complex and hard to modify. As the UX paradigms evolved and phones got faster, its limitations started to overshadow its feature set.</p>
+		<p>Today I’m going to create an android custom view to implement circular <code>SeekBar</code> like the mockup below, make it as a library, open source at GitHub, and publish it to JCenter. In this post, I will cover several fundamental concepts of android custom view, write a helpful README on GitHub, and how to publish your library.</p>
 
-<p>With Lollipop, the Android team decided to release a new widget that will make writing different collection views much easier with a pluggable architecture. Many different behaviors can be controlled easily by implementing simple contracts to change:</p>
+<center><img src="/images/custom_view_seekbar.png"/></center>
+
+
+<h2>Before you start…</h2>
+
+<p>Try to understand the requirement or design specification, take a look at this widget first, the user can touch the indicator icon through this arc to set the current progress level. The indicator icon will stop dragging when exceeding max or min progress. It works like an extension of circular <code>SeekBar</code> with customized appearances and motion event.</p>
+
+
+		
+		<a href="/blog/2016/05/28/make-an-android-custom-view-publish-and-open-source/" class="more-link">Read on &rarr;</a>
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="/blog/2016/05/28/make-an-android-custom-view-publish-and-open-source//blog/page/2/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+
+    <article class="post">
+	<h2 class="title">
+		
+		<a href="/blog/2016/03/14/mobile-apps-offline-support/">
+		
+			Mobile Apps Offline Support</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: 
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2016-03-14T08:43:00+08:00" pubdate data-updated="true">Mar 14<span>th</span>, 2016</time></div>
+      <div class="tags">Tags: 
+
+
+	<a class='category' href='/blog/categories/android/'>android</a>, <a class='category' href='/blog/categories/dev/'>dev</a>
+
+
+</div>
+    </div>
+		<p>Offline support for mobile applications can be thought of as the ability for the application to react gracefully to the lack of stability of the network connection. The rather new context of mobile devices introduced problems such as presence or absence of a network connection or even high latency and low bandwidth. These problems are rather new and thus not very well known to engineers starting with mobile development. Among other things building a mobile application which resilient to different network scenarios could mean:</p>
 
 <ul>
-<li>how items are laid out</li>
-<li>animations!</li>
-<li>item decorations</li>
-<li>recycling strategy</li>
+<li>Displaying comprehensive error messages when network calls fail.</li>
+<li>Allowing the use of the application in “guest mode”, where certain features can be delayed until the user actually signs in.</li>
+<li>Visually displaying the absence of network connectivity on the UI (connected mode/offline mode).</li>
+<li>Disabling controls in the absence of network connectivity.</li>
+<li>Allowing the user to query and act on data while no network connection (offline data access).</li>
+<li>Testing the application under different network conditions!</li>
 </ul>
 
 
-<p>This great flexibility comes with the additional complexity of a bigger architecture. Also, there are more things to learn.</p>
+<p>While all these things are extremely important from the usability point of view, there is one of these that can be particular complex, “offline data access”. There are several different scenarios or levels of offline data access that applications might need to support, and I’ll go through each next.</p>
 
 
 		
-		<a href="/blog/2016/02/11/recyclerview-animation-part-i/" class="more-link">Read on &rarr;</a>
+		<a href="/blog/2016/03/14/mobile-apps-offline-support/" class="more-link">Read on &rarr;</a>
 	</div>
 
 <div class="meta">
 	
-		<span class="comments"><a href="/blog/2016/02/11/recyclerview-animation-part-i//blog/page/2/index.html#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="/blog/2016/03/14/mobile-apps-offline-support//blog/page/2/index.html#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -237,9 +282,9 @@ var _hmt = _hmt || [];
     <article class="post">
 	<h2 class="title">
 		
-		<a href="/blog/2016/01/15/building-a-recyclerview-layoutmanager-part-iv/">
+		<a href="/blog/2016/03/13/the-clean-architecture/">
 		
-			Building a RecyclerView LayoutManager Part IV</a>
+			The Clean Architecture</a>
 	</h2>
     <div class="entry-content">
     <div class="meta">
@@ -255,7 +300,7 @@ var _hmt = _hmt || [];
   
 
 
-<time datetime="2016-01-15T16:14:00+08:00" pubdate data-updated="true">Jan 15<span>th</span>, 2016</time></div>
+<time datetime="2016-03-13T23:57:00+08:00" pubdate data-updated="true">Mar 13<span>th</span>, 2016</time></div>
       <div class="tags">Tags: 
 
 
@@ -264,87 +309,28 @@ var _hmt = _hmt || [];
 
 </div>
     </div>
-		<p>While writing what was intended to be the final post of this series, a discussion of predictive animations, I ran into a number of interesting challenges that I thought warranted their own discussion. This series began as an investigation into whether RecyclerView could easily handle a layout structure that could scroll in both the horizontal and vertical axes, and how difficult it would be for the developer to build their own LayoutManager. I chose a basic grid of uniform items as the structure, thinking it would be the most straightforward to implement.</p>
-
-<p>The following graphic represents the basic goal of what the implementation ought to achieve while the user scrolls around the screen.</p>
-
-<center><img src="/images/building_recyclerview_layoutmanager_redux.gif" width="600" height="360"></center>
+		<center><img src="/images/clean_arch.jpg"></center>
 
 
-
-
-
-		
-		<a href="/blog/2016/01/15/building-a-recyclerview-layoutmanager-part-iv/" class="more-link">Read on &rarr;</a>
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="/blog/2016/01/15/building-a-recyclerview-layoutmanager-part-iv//blog/page/2/index.html#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-
-    <article class="post">
-	<h2 class="title">
-		
-		<a href="/blog/2016/01/13/building-a-recyclerview-layoutmanager-part-iii/">
-		
-			Building a RecyclerView LayoutManager Part III</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: 
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2016-01-13T00:48:00+08:00" pubdate data-updated="true">Jan 13<span>th</span>, 2016</time></div>
-      <div class="tags">Tags: 
-
-
-	<a class='category' href='/blog/categories/android/'>android</a>, <a class='category' href='/blog/categories/dev/'>dev</a>
-
-
-</div>
-    </div>
-		<p>In the previous post, we discussed adding proper support for data set changes and targeted scrolling. In this installment of the series, we will focus on properly supporting animations in your fancy new LayoutManager.In case you’ve forgotten, the code samples are <a href="https://github.com/devunwired/recyclerview-playground">on GitHub</a>.</p>
-
-<h2>The Problem With Free</h2>
-
-<p>We talked about notifyDataSetChanged() the last time, but you may have noticed that changing the data in this way doesn’t animate the change**. RecyclerView includes a new API for making animated changes, which requires you to notify the adapter which positions in the adapter have changed, and what the action was:</p>
+<p>Over the last several years we’ve seen a whole range of ideas regarding the architecture of systems. These include:</p>
 
 <ul>
-<li><code>notifyItemInserted()</code> and <code>notifyItemRangeInserted()</code>: Insertion of new item(s) at the given position(s).</li>
-<li><code>notifyItemChanged()</code> and <code>notifyItemRangeChanged()</code>: Invalidate he item(s) at the given position(s), nothing structural has changed in the data set.</li>
-<li><code>notifyItemRemoved()</code> and <code>notifyItemRangeRemoved()</code>: Removal of the item(s) at the given position(s).</li>
-<li><code>notifyItemMoved()</code>: An item has relocated to a new position in the data set.</li>
+<li><a href="http://alistair.cockburn.us/Hexagonal+architecture">Hexagonal Architecture</a> (a.k.a. Ports and Adapters) by Alistair Cockburn and adopted by Steve Freeman, and Nat Pryce in their wonderful book <a href="http://www.amazon.com/Growing-Object-Oriented-Software-Guided-Tests/dp/0321503627">Growing Object Oriented Software</a>.</li>
+<li><a href="http://jeffreypalermo.com/blog/the-onion-architecture-part-1/">Onion Architecture</a> by Jeffrey Palermo</li>
+<li><a href="http://blog.8thlight.com/uncle-bob/2011/09/30/Screaming-Architecture.html">Screaming Architecture</a> from a blog of mine last year</li>
+<li><a href="http://www.amazon.com/Lean-Architecture-Agile-Software-Development/dp/0470684208/">DCI</a> from James Coplien, and Trygve Reenskaug.</li>
+<li><a href="http://www.amazon.com/Object-Oriented-Software-Engineering-Approach/dp/0201544350">BCE</a> by Ivar Jacobson from his book Object Oriented Software Engineering: A Use-Case Driven Approach</li>
 </ul>
 
 
-<p>By default, your LayoutManager will get “simple item animations” for free when these methods are used. These animations are simply based on whether each current view position is still present in the layout after a change. New views are faded in, removed views are faded out, and other views are moved to their new location. Here’s what our grid layout looks like with the free animations:</p>
-
-<center><img src="/images/building_recyclerview_layoutmanager_animation.gif" width="380" height="674" /></center>
-
-
-
-
 
 		
-		<a href="/blog/2016/01/13/building-a-recyclerview-layoutmanager-part-iii/" class="more-link">Read on &rarr;</a>
+		<a href="/blog/2016/03/13/the-clean-architecture/" class="more-link">Read on &rarr;</a>
 	</div>
 
 <div class="meta">
 	
-		<span class="comments"><a href="/blog/2016/01/13/building-a-recyclerview-layoutmanager-part-iii//blog/page/2/index.html#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="/blog/2016/03/13/the-clean-architecture//blog/page/2/index.html#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -353,9 +339,9 @@ var _hmt = _hmt || [];
     <article class="post">
 	<h2 class="title">
 		
-		<a href="/blog/2016/01/11/building-a-recyclerview-layoutmanager-part-ii/">
+		<a href="/blog/2016/02/25/android-handler-memory-leaks/">
 		
-			Building a RecyclerView LayoutManager Part II</a>
+			Android Handler Memory Leaks</a>
 	</h2>
     <div class="entry-content">
     <div class="meta">
@@ -371,7 +357,7 @@ var _hmt = _hmt || [];
   
 
 
-<time datetime="2016-01-11T00:48:00+08:00" pubdate data-updated="true">Jan 11<span>th</span>, 2016</time></div>
+<time datetime="2016-02-25T19:58:00+08:00" pubdate data-updated="true">Feb 25<span>th</span>, 2016</time></div>
       <div class="tags">Tags: 
 
 
@@ -380,20 +366,20 @@ var _hmt = _hmt || [];
 
 </div>
     </div>
-		<p>In the last post,  we walked through the core functionality necessary for building a RecyclerView LayoutManager. In this post, we are going to add support for a few additional features that the average adapter-based view is expected to have.A reminder that the entire sample application can be found <a href="https://github.com/devunwired/recyclerview-playground">here on GitHub</a>.</p>
+		<p>Android uses Java as a platform for development. This helps us with many low level issues including memory management, platform type dependencies, and so on. However we still sometimes get crashes with OutOfMemory. So where’s the garbage collector?</p>
 
-<h2>Supporting Item Decorations</h2>
+<p>I’m going to focus on one of the cases where big objects in memory can’t be cleared for a lengthy period of time. This case is not ultimately a memory leak &ndash; objects will be collected at some point &ndash; so we sometimes ignore it. This is not advisable as it can sometimes lead to OOM errors.</p>
 
-<p><code>RecyclerView</code> has a really neat feature in which an <code>RecyclerView.ItemDecoration</code> instance can be supplied to do custom drawing alongside the child view content, as well as provide insets (margins) that will apply to the child views without the need for modifying layout parameters. The latter places a constraint on how the children should be laid out that the <code>LayoutManager</code> implementation must support.The <a href="https://github.com/devunwired/recyclerview-playground">RecyclerPlayground</a> repository uses a few different decorators in the examples to illustrate how they are implemented.</p>
+<p>The case I’m describing is the Handler leak, which is usually detected as a warning by Lint.</p>
 
 
 		
-		<a href="/blog/2016/01/11/building-a-recyclerview-layoutmanager-part-ii/" class="more-link">Read on &rarr;</a>
+		<a href="/blog/2016/02/25/android-handler-memory-leaks/" class="more-link">Read on &rarr;</a>
 	</div>
 
 <div class="meta">
 	
-		<span class="comments"><a href="/blog/2016/01/11/building-a-recyclerview-layoutmanager-part-ii//blog/page/2/index.html#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="/blog/2016/02/25/android-handler-memory-leaks//blog/page/2/index.html#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
