@@ -6,12 +6,7 @@
 	<title>Solarex's Blog</title>
     <meta name="author" content="Solarex">
     
-	<meta name="description" content="Published on: Sep 27th, 2014 Tags: android, dev CheckingWifiConnectivity
-ParseJson
-GetLauncherApplication
-GetSdcardSize
-AndroidBootupTime
-JsonParser &hellip;">
+	<meta name="description" content="Published on: Sep 28th, 2014 Tags: android, dev, guides Android provides a variety of powerful APIs for applying animation to UI elements and &hellip;">
 	
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
@@ -124,6 +119,54 @@ var _hmt = _hmt || [];
 <!-- begin toload --> 
     <div id="content" class="inner">
         
+
+
+    <article class="post">
+	<h2 class="title">
+		
+		<a href="/blog/2014/09/28/android-guide-animation-and-graphics/">
+		
+			[Guides]Animation and Graphics</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: 
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-09-28T06:21:00+08:00" pubdate data-updated="true">Sep 28<span>th</span>, 2014</time></div>
+      <div class="tags">Tags: 
+
+
+	<a class='category' href='/blog/categories/android/'>android</a>, <a class='category' href='/blog/categories/dev/'>dev</a>, <a class='category' href='/blog/categories/guides/'>guides</a>
+
+
+</div>
+    </div>
+		<center><p><img src="/images/android_robot.png" width="255" height="300"></p></center>
+
+
+<p>Android provides a variety of powerful APIs for applying animation to UI elements and drawing custom 2D and 3D graphics.</p>
+
+
+		
+		<a href="/blog/2014/09/28/android-guide-animation-and-graphics/" class="more-link">Read on &rarr;</a>
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="/blog/2014/09/28/android-guide-animation-and-graphics//blog/page/9/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
 
 
     <article class="post">
@@ -437,172 +480,6 @@ var _hmt = _hmt || [];
 <div class="meta">
 	
 		<span class="comments"><a href="/blog/2014/09/16/zhihu-intent-fileter-schema//blog/page/9/index.html#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-
-    <article class="post">
-	<h2 class="title">
-		
-		<a href="/blog/2014/09/12/java-annotations/">
-		
-			Java Annotations</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: 
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-09-12T12:52:00+08:00" pubdate data-updated="true">Sep 12<span>th</span>, 2014</time></div>
-      <div class="tags">Tags: 
-
-
-	<a class='category' href='/blog/categories/dev/'>dev</a>, <a class='category' href='/blog/categories/java/'>java</a>
-
-
-</div>
-    </div>
-		<center><p><img src="/images/java-annotations.png" width="210" height="135" alt="java"></p></center>
-
-
-<p>Ref:<a href="http://docs.oracle.com/javase/tutorial/java/annotations/">Java Annotations tutorial</a>,<a href="https://en.wikipedia.org/wiki/Java_annotation">Wiki</a>,<a href="http://java.dzone.com/articles/how-annotations-work-java">How do Annotations Work In Java?</a>,</p>
-
-<p>Annotation is special kind of Java construct used to decorate a class, method, field, parameter, variable, constructor, or package. It’s the vehicle chosen by JSR-175 to provide metadata.Java annotations are typically used for the following purposes:</p>
-
-<ul>
-<li>Compiler instructions</li>
-<li>Build-time instructions</li>
-<li>Runtime instructions</li>
-</ul>
-
-
-<h2>Basics</h2>
-
-<p>Annotations have a number of uses, among them:</p>
-
-<ul>
-<li>Information for the compiler — Annotations can be used by the compiler to detect errors or suppress warnings.</li>
-<li>Compile-time and deployment-time processing — Software tools can process annotation information to generate code, XML files, and so forth.</li>
-<li>Runtime processing — Some annotations are available to be examined at runtime.</li>
-</ul>
-
-
-<p>The format of an Annotation:In its simplest form, an annotation looks like <code>@Entity</code>,the annotation can include elements, which can be named or unnamed,if there is just one element named value, then the name can be omitted,if the annotation has no elements, then the parentheses can be omitted, as shown in the previous <code>@Override</code> example,it is also possible to use multiple annotations on the same declaration.If the annotations have the same type, then this is called a repeating annotation,repeating annotations are supported as of the Java SE 8 release.</p>
-
-<p>The predefined annotation types defined in java.lang are <code>@Deprecated</code>, <code>@Override</code>, and <code>@SuppressWarnings</code>.Note that the Javadoc tag starts with a lowercase d (<code>deprecated</code>)and the annotation starts with an uppercase D(<code>Deprecated</code>).</p>
-
-<p>Every compiler warning belongs to a category. The Java Language Specification lists two categories: <code>deprecation</code> and <code>unchecked</code>. The unchecked warning can occur when interfacing with legacy code written before the advent of generics. To suppress multiple categories of warnings, use the following syntax:<code>@SuppressWarnings({"unchecked", "deprecation"})</code>.</p>
-
-<p>Annotations can be applied to declarations: declarations of classes, fields, methods, and other program elements. When used on a declaration, each annotation often appears, by convention, on its own line.As of the Java SE 8 release, annotations can also be applied to the use of types.</p>
-
-<h2>Declaring an Annotation Type</h2>
-
-<p>Declaring an annotation type, syntax for doing this is:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="nd">@interface</span> <span class="n">ClassPreamble</span> <span class="o">{</span>
-</span><span class='line'>   <span class="n">String</span> <span class="nf">author</span><span class="o">();</span>
-</span><span class='line'>   <span class="n">String</span> <span class="nf">date</span><span class="o">();</span>
-</span><span class='line'>   <span class="kt">int</span> <span class="nf">currentRevision</span><span class="o">()</span> <span class="k">default</span> <span class="mi">1</span><span class="o">;</span>
-</span><span class='line'>   <span class="n">String</span> <span class="nf">lastModified</span><span class="o">()</span> <span class="k">default</span> <span class="s">&quot;N/A&quot;</span><span class="o">;</span>
-</span><span class='line'>   <span class="n">String</span> <span class="nf">lastModifiedBy</span><span class="o">()</span> <span class="k">default</span> <span class="s">&quot;N/A&quot;</span><span class="o">;</span>
-</span><span class='line'>   <span class="c1">// Note use of array</span>
-</span><span class='line'>   <span class="n">String</span><span class="o">[]</span> <span class="nf">reviewers</span><span class="o">();</span>
-</span><span class='line'><span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>The annotation type definition looks similar to an interface definition where the keyword interface is preceded by the at sign (@) (@ = AT, as in annotation type). Annotation types are a form of interface.The body of the previous annotation definition contains annotation type element declarations, which look a lot like methods. Note that they can define optional default values.Annotations only support primitives, string and enumerations. All attributes of annotations are defined as methods and default values can also be provided.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="nd">@Target</span><span class="o">(</span><span class="n">ElementType</span><span class="o">.</span><span class="na">METHOD</span><span class="o">)</span>
-</span><span class='line'><span class="nd">@Retention</span><span class="o">(</span><span class="n">RetentionPolicy</span><span class="o">.</span><span class="na">RUNTIME</span><span class="o">)</span>
-</span><span class='line'><span class="nd">@interface</span> <span class="n">Todo</span> <span class="o">{</span>
-</span><span class='line'>    <span class="kd">public</span> <span class="kd">enum</span> <span class="n">Priority</span> <span class="o">{</span><span class="n">LOW</span><span class="o">,</span> <span class="n">MEDIUM</span><span class="o">,</span> <span class="n">HIGH</span><span class="o">}</span>
-</span><span class='line'>    <span class="kd">public</span> <span class="kd">enum</span> <span class="n">Status</span> <span class="o">{</span><span class="n">STARTED</span><span class="o">,</span> <span class="n">NOT_STARTED</span><span class="o">}</span>
-</span><span class='line'>    <span class="n">String</span> <span class="nf">author</span><span class="o">()</span> <span class="k">default</span> <span class="s">&quot;Yash&quot;</span><span class="o">;</span>
-</span><span class='line'>    <span class="n">Priority</span> <span class="nf">priority</span><span class="o">()</span> <span class="k">default</span> <span class="n">Priority</span><span class="o">.</span><span class="na">LOW</span><span class="o">;</span>
-</span><span class='line'>    <span class="n">Status</span> <span class="nf">status</span><span class="o">()</span> <span class="k">default</span> <span class="n">Status</span><span class="o">.</span><span class="na">NOT_STARTED</span><span class="o">;</span>
-</span><span class='line'><span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p><strong>Note</strong>: To make the information in @ClassPreamble appear in Javadoc-generated documentation, you must annotate the @ClassPreamble definition with the @Documented annotation:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="c1">// import this to use @Documented</span>
-</span><span class='line'><span class="kn">import</span> <span class="nn">java.lang.annotation.*</span><span class="o">;</span>
-</span><span class='line'>
-</span><span class='line'><span class="nd">@Documented</span>
-</span><span class='line'><span class="nd">@interface</span> <span class="n">ClassPreamble</span> <span class="o">{</span>
-</span><span class='line'>
-</span><span class='line'>   <span class="c1">// Annotation element definitions</span>
-</span><span class='line'>
-</span><span class='line'><span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>You can also define that your annotation is a qualifier for the <code>@Inject</code> annotation.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="nd">@javax.inject.Qualifier</span>
-</span><span class='line'><span class="nd">@Documented</span>
-</span><span class='line'><span class="nd">@Target</span><span class="o">({</span><span class="n">ElementType</span><span class="o">.</span><span class="na">FIELD</span><span class="o">,</span> <span class="n">ElementType</span><span class="o">.</span><span class="na">PARAMETER</span><span class="o">})</span>
-</span><span class='line'><span class="nd">@Retention</span><span class="o">(</span><span class="n">RetentionPolicy</span><span class="o">.</span><span class="na">RUNTIME</span><span class="o">)</span>
-</span><span class='line'><span class="kd">public</span> <span class="nd">@interface</span> <span class="n">Checker</span> <span class="o">{</span>
-</span><span class='line'><span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-
-
-
-		
-		<a href="/blog/2014/09/12/java-annotations/" class="more-link">Read on &rarr;</a>
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="/blog/2014/09/12/java-annotations//blog/page/9/index.html#disqus_thread">Comments</a></span>
 	
 </div>
 </article>

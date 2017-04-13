@@ -6,7 +6,8 @@
 	<title>Solarex's Blog</title>
     <meta name="author" content="Solarex">
     
-	<meta name="description" content="Published on: Oct 31st, 2014 Tags: android, dev Why do we need multithreading in Android applications? Let’s say you want to do a very long &hellip;">
+	<meta name="description" content="Published on: Oct 31st, 2014 Tags: android, dev Background jobs best practices Running in a background service
+Loading data in the background &hellip;">
 	
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
@@ -119,6 +120,86 @@ var _hmt = _hmt || [];
 <!-- begin toload --> 
     <div id="content" class="inner">
         
+
+
+    <article class="post">
+	<h2 class="title">
+		
+		<a href="/blog/2014/10/31/android-best-practices-for-background-jobs/">
+		
+			[Training]Best Practices for Background Jobs</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: 
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-10-31T10:12:00+08:00" pubdate data-updated="true">Oct 31<span>st</span>, 2014</time></div>
+      <div class="tags">Tags: 
+
+
+	<a class='category' href='/blog/categories/android/'>android</a>, <a class='category' href='/blog/categories/dev/'>dev</a>
+
+
+</div>
+    </div>
+		<p><p><center><img src="/images/android_training.jpg"></center></p>
+
+<ul>
+<li><a href="#overview">Background jobs best practices</a>
+
+<ul>
+<li><a href="#running">Running in a background service</a></li>
+<li><a href="#loading">Loading data in the background</a></li>
+<li><a href="#managing">Managing the device awake state</a></li>
+</ul>
+</li>
+</ul>
+
+
+<p><h2 id="overview">Best Practices for Background Jobs</h2></p>
+
+<p>These classes show you how to run jobs in the background to boost your application’s performance and minimize its drain on the battery.</p>
+
+<p><h3 id="running">Running in a background service</h3></p>
+
+<p>This class describes how to implement an IntentService, send it work requests, and report its results to other components.</p>
+
+<h4>Creating a background service</h4>
+
+<p>The IntentService class provides a straightforward structure for running an operation on a single background thread. This allows it to handle long-running operations without affecting your user interface’s responsiveness. Also, an IntentService isn’t affected by most user interface lifecycle events, so it continues to run in circumstances that would shut down an AsyncTask.</p>
+
+<p>An IntentService has a few limitations:</p>
+
+<ul>
+<li>It can’t interact directly with your user interface. To put its results in the UI, you have to send them to an Activity.不能直接与UI交互</li>
+<li>Work requests run sequentially. If an operation is running in an IntentService, and you send it another request, the request waits until the first operation is finished.任务顺序执行</li>
+<li>An operation running on an IntentService can’t be interrupted.任务不可被打断</li>
+</ul>
+
+
+<p>However, in most cases an IntentService is the preferred way to simple background operations.</p>
+
+<p>
+		
+		<a href="/blog/2014/10/31/android-best-practices-for-background-jobs/" class="more-link">Read on &rarr;</a>
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="/blog/2014/10/31/android-best-practices-for-background-jobs//blog/page/6/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
 
 
     <article class="post">
@@ -412,58 +493,6 @@ var _hmt = _hmt || [];
 <div class="meta">
 	
 		<span class="comments"><a href="/blog/2014/10/24/android-loader//blog/page/6/index.html#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-
-    <article class="post">
-	<h2 class="title">
-		
-		<a href="/blog/2014/10/19/android-asynctask-pitfalls/">
-		
-			The Hidden Pitfalls of AsyncTask</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: 
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-10-19T15:56:00+08:00" pubdate data-updated="true">Oct 19<span>th</span>, 2014</time></div>
-      <div class="tags">Tags: 
-
-
-	<a class='category' href='/blog/categories/android/'>android</a>, <a class='category' href='/blog/categories/dev/'>dev</a>
-
-
-</div>
-    </div>
-		<p><center><img src="/images/android_logo.jpg"/></center></p>
-
-
-<p>I originally wrote this article when I was (foolishly) still using AsyncTasks. Nowadays I simply consider it a mistake in all cases. As you&rsquo;ll see from the original article, there are a lot of problems with it &ndash; and there are much better solutions.</p>
-
-<p>My preferred alternative these days are combining <a href="https://github.com/Netflix/RxJava">RxJava</a> with schedulers. You get the same effect as an <code>AsyncTask</code> with none of the problems, plus you get an awesome framework in addition. I know, recommending a library to solve a problem is irritating, but RxJava is worth looking at for many reasons.</p>
-
-<p>When <code>AsyncTask</code> was introduced to Android, it was labeled as “<a href="http://android-developers.blogspot.com/2009/05/painless-threading.html">Painless Threading</a>.” Its goal was to make background Threads which could interact with the UI thread easier. It was successful on that count, but it’s not exactly painless – there are a number of cases where <code>AsyncTask</code> is not a silver bullet. It is easy to blindly use <code>AsyncTask</code> without realizing what can go wrong if not handled with care. Below are some of the problems that can arise when using <code>AsyncTask</code> without fully understanding it.</p>
-
-
-		
-		<a href="/blog/2014/10/19/android-asynctask-pitfalls/" class="more-link">Read on &rarr;</a>
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="/blog/2014/10/19/android-asynctask-pitfalls//blog/page/6/index.html#disqus_thread">Comments</a></span>
 	
 </div>
 </article>

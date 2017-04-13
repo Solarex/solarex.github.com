@@ -6,7 +6,7 @@
 	<title>Solarex's Blog</title>
     <meta name="author" content="Solarex">
     
-	<meta name="description" content="Published on: Feb 12th, 2016 Tags: android, dev In the first article, I’ve covered the main idea on how predictive animations run in RecyclerView. &hellip;">
+	<meta name="description" content="Published on: Feb 25th, 2016 Tags: android, dev Android uses Java as a platform for development. This helps us with many low level issues including &hellip;">
 	
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
@@ -119,6 +119,55 @@ var _hmt = _hmt || [];
 <!-- begin toload --> 
     <div id="content" class="inner">
         
+
+
+    <article class="post">
+	<h2 class="title">
+		
+		<a href="/blog/2016/02/25/android-handler-memory-leaks/">
+		
+			Android Handler Memory Leaks</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: 
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2016-02-25T19:58:00+08:00" pubdate data-updated="true">Feb 25<span>th</span>, 2016</time></div>
+      <div class="tags">Tags: 
+
+
+	<a class='category' href='/blog/categories/android/'>android</a>, <a class='category' href='/blog/categories/dev/'>dev</a>
+
+
+</div>
+    </div>
+		<p>Android uses Java as a platform for development. This helps us with many low level issues including memory management, platform type dependencies, and so on. However we still sometimes get crashes with OutOfMemory. So where’s the garbage collector?</p>
+
+<p>I’m going to focus on one of the cases where big objects in memory can’t be cleared for a lengthy period of time. This case is not ultimately a memory leak &ndash; objects will be collected at some point &ndash; so we sometimes ignore it. This is not advisable as it can sometimes lead to OOM errors.</p>
+
+<p>The case I’m describing is the Handler leak, which is usually detected as a warning by Lint.</p>
+
+
+		
+		<a href="/blog/2016/02/25/android-handler-memory-leaks/" class="more-link">Read on &rarr;</a>
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="/blog/2016/02/25/android-handler-memory-leaks//blog/page/3/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
 
 
     <article class="post">
@@ -345,55 +394,6 @@ var _hmt = _hmt || [];
 <div class="meta">
 	
 		<span class="comments"><a href="/blog/2016/01/13/building-a-recyclerview-layoutmanager-part-iii//blog/page/3/index.html#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-
-    <article class="post">
-	<h2 class="title">
-		
-		<a href="/blog/2016/01/11/building-a-recyclerview-layoutmanager-part-ii/">
-		
-			Building a RecyclerView LayoutManager Part II</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: 
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2016-01-11T00:48:00+08:00" pubdate data-updated="true">Jan 11<span>th</span>, 2016</time></div>
-      <div class="tags">Tags: 
-
-
-	<a class='category' href='/blog/categories/android/'>android</a>, <a class='category' href='/blog/categories/dev/'>dev</a>
-
-
-</div>
-    </div>
-		<p>In the last post,  we walked through the core functionality necessary for building a RecyclerView LayoutManager. In this post, we are going to add support for a few additional features that the average adapter-based view is expected to have.A reminder that the entire sample application can be found <a href="https://github.com/devunwired/recyclerview-playground">here on GitHub</a>.</p>
-
-<h2>Supporting Item Decorations</h2>
-
-<p><code>RecyclerView</code> has a really neat feature in which an <code>RecyclerView.ItemDecoration</code> instance can be supplied to do custom drawing alongside the child view content, as well as provide insets (margins) that will apply to the child views without the need for modifying layout parameters. The latter places a constraint on how the children should be laid out that the <code>LayoutManager</code> implementation must support.The <a href="https://github.com/devunwired/recyclerview-playground">RecyclerPlayground</a> repository uses a few different decorators in the examples to illustrate how they are implemented.</p>
-
-
-		
-		<a href="/blog/2016/01/11/building-a-recyclerview-layoutmanager-part-ii/" class="more-link">Read on &rarr;</a>
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="/blog/2016/01/11/building-a-recyclerview-layoutmanager-part-ii//blog/page/3/index.html#disqus_thread">Comments</a></span>
 	
 </div>
 </article>

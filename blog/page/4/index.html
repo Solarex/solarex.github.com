@@ -6,7 +6,7 @@
 	<title>Solarex's Blog</title>
     <meta name="author" content="Solarex">
     
-	<meta name="description" content="Published on: Jan 10th, 2016 Tags: android, dev By now, if you’re an Android developer paying any attention, you’ve at least heard of RecyclerView; &hellip;">
+	<meta name="description" content="Published on: Jan 11th, 2016 Tags: android, dev In the last post, we walked through the core functionality necessary for building a RecyclerView &hellip;">
 	
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
@@ -119,6 +119,55 @@ var _hmt = _hmt || [];
 <!-- begin toload --> 
     <div id="content" class="inner">
         
+
+
+    <article class="post">
+	<h2 class="title">
+		
+		<a href="/blog/2016/01/11/building-a-recyclerview-layoutmanager-part-ii/">
+		
+			Building a RecyclerView LayoutManager Part II</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: 
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2016-01-11T00:48:00+08:00" pubdate data-updated="true">Jan 11<span>th</span>, 2016</time></div>
+      <div class="tags">Tags: 
+
+
+	<a class='category' href='/blog/categories/android/'>android</a>, <a class='category' href='/blog/categories/dev/'>dev</a>
+
+
+</div>
+    </div>
+		<p>In the last post,  we walked through the core functionality necessary for building a RecyclerView LayoutManager. In this post, we are going to add support for a few additional features that the average adapter-based view is expected to have.A reminder that the entire sample application can be found <a href="https://github.com/devunwired/recyclerview-playground">here on GitHub</a>.</p>
+
+<h2>Supporting Item Decorations</h2>
+
+<p><code>RecyclerView</code> has a really neat feature in which an <code>RecyclerView.ItemDecoration</code> instance can be supplied to do custom drawing alongside the child view content, as well as provide insets (margins) that will apply to the child views without the need for modifying layout parameters. The latter places a constraint on how the children should be laid out that the <code>LayoutManager</code> implementation must support.The <a href="https://github.com/devunwired/recyclerview-playground">RecyclerPlayground</a> repository uses a few different decorators in the examples to illustrate how they are implemented.</p>
+
+
+		
+		<a href="/blog/2016/01/11/building-a-recyclerview-layoutmanager-part-ii/" class="more-link">Read on &rarr;</a>
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="/blog/2016/01/11/building-a-recyclerview-layoutmanager-part-ii//blog/page/4/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
 
 
     <article class="post">
@@ -861,79 +910,6 @@ var _hmt = _hmt || [];
 <div class="meta">
 	
 		<span class="comments"><a href="/blog/2015/11/23/android-starting-window//blog/page/4/index.html#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-
-    <article class="post">
-	<h2 class="title">
-		
-		<a href="/blog/2015/09/22/android-message-handling-mechanism/">
-		
-			Android Message Handling Mechanism</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: 
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2015-09-22T17:28:00+08:00" pubdate data-updated="true">Sep 22<span>nd</span>, 2015</time></div>
-      <div class="tags">Tags: 
-
-
-	<a class='category' href='/blog/categories/android/'>android</a>, <a class='category' href='/blog/categories/dev/'>dev</a>
-
-
-</div>
-    </div>
-		<p><p><center><img src="/images/android_robot.png" width="255" height="300"></center></p>
-
-<p>Android is a message driven, message driven several elements:</p>
-
-<ul>
-<li>The message says: Message</li>
-<li>Message queue: MessageQueue</li>
-<li>The news cycle, remove the message processing for circulation: Looper</li>
-<li>Message processing, message loop out messages from the message queue should be carried out after the processing of messages: Handler</li>
-</ul>
-
-
-<p>Usually we use most often is <code>Message</code> and <code>Handler</code>, if you use <code>HandlerThread</code> or similar <code>HandlerThread</code> things may come into contact with <code>Looper</code>, while <code>MessageQueue</code> is used inside <code>Looper</code>, for the standard SDK, we are unable to instantiate and use (constructor is package visibility).
-　　
-We usually come into contact with <code>Looper</code>, <code>Message</code>, <code>Handler</code> are realized by JAVA, Android for Linux based systems, the bottom with a C, C++, and NDK exist, how could the message driven model only exists in the JAVA layer, in fact, there are corresponding to the Java layer such as <code>Looper</code>, <code>MessageQueue</code> in the Native layer.</p>
-
-<p>Android是消息驱动的，实现消息驱动有几个要素：</p>
-
-<ul>
-<li>消息的表示：Message</li>
-<li>消息队列：MessageQueue</li>
-<li>消息循环，用于循环取出消息进行处理：Looper</li>
-<li>消息处理，消息循环从消息队列中取出消息后要对消息进行处理：Handler</li>
-</ul>
-
-
-<p>平时我们最常使用的就是Message与Handler了，如果使用过HandlerThread或者自己实现类似HandlerThread的东西可能还会接触到Looper，而MessageQueue是Looper内部使用的，对于标准的SDK，我们是无法实例化并使用的（构造函数是包可见性）。</p>
-
-<p>我们平时接触到的Looper、Message、Handler都是用JAVA实现的，Android做为基于Linux的系统，底层用C、C++实现的，而且还有NDK的存在，消息驱动的模型怎么可能只存在于JAVA层，实际上，在Native层存在与Java层对应的类如Looper、MessageQueue等。</p>
-
-<p>
-		
-		<a href="/blog/2015/09/22/android-message-handling-mechanism/" class="more-link">Read on &rarr;</a>
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="/blog/2015/09/22/android-message-handling-mechanism//blog/page/4/index.html#disqus_thread">Comments</a></span>
 	
 </div>
 </article>

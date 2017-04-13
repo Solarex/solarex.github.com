@@ -6,11 +6,7 @@
 	<title>Solarex's Blog</title>
     <meta name="author" content="Solarex">
     
-	<meta name="description" content="Published on: Oct 19th, 2014 Tags: android, dev Android Tips and Tricks Part I
-Part II
-Part III
-Part IV
-Part V Android Tips and Tricks Part I &hellip;">
+	<meta name="description" content="Published on: Oct 19th, 2014 Tags: android, dev I originally wrote this article when I was (foolishly) still using AsyncTasks. Nowadays I simply &hellip;">
 	
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
@@ -123,6 +119,58 @@ var _hmt = _hmt || [];
 <!-- begin toload --> 
     <div id="content" class="inner">
         
+
+
+    <article class="post">
+	<h2 class="title">
+		
+		<a href="/blog/2014/10/19/android-asynctask-pitfalls/">
+		
+			The Hidden Pitfalls of AsyncTask</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: 
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-10-19T15:56:00+08:00" pubdate data-updated="true">Oct 19<span>th</span>, 2014</time></div>
+      <div class="tags">Tags: 
+
+
+	<a class='category' href='/blog/categories/android/'>android</a>, <a class='category' href='/blog/categories/dev/'>dev</a>
+
+
+</div>
+    </div>
+		<p><center><img src="/images/android_logo.jpg"/></center></p>
+
+
+<p>I originally wrote this article when I was (foolishly) still using AsyncTasks. Nowadays I simply consider it a mistake in all cases. As you&rsquo;ll see from the original article, there are a lot of problems with it &ndash; and there are much better solutions.</p>
+
+<p>My preferred alternative these days are combining <a href="https://github.com/Netflix/RxJava">RxJava</a> with schedulers. You get the same effect as an <code>AsyncTask</code> with none of the problems, plus you get an awesome framework in addition. I know, recommending a library to solve a problem is irritating, but RxJava is worth looking at for many reasons.</p>
+
+<p>When <code>AsyncTask</code> was introduced to Android, it was labeled as “<a href="http://android-developers.blogspot.com/2009/05/painless-threading.html">Painless Threading</a>.” Its goal was to make background Threads which could interact with the UI thread easier. It was successful on that count, but it’s not exactly painless – there are a number of cases where <code>AsyncTask</code> is not a silver bullet. It is easy to blindly use <code>AsyncTask</code> without realizing what can go wrong if not handled with care. Below are some of the problems that can arise when using <code>AsyncTask</code> without fully understanding it.</p>
+
+
+		
+		<a href="/blog/2014/10/19/android-asynctask-pitfalls/" class="more-link">Read on &rarr;</a>
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="/blog/2014/10/19/android-asynctask-pitfalls//blog/page/7/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
 
 
     <article class="post">
@@ -363,85 +411,6 @@ var _hmt = _hmt || [];
 <div class="meta">
 	
 		<span class="comments"><a href="/blog/2014/10/14/android-context//blog/page/7/index.html#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-
-    <article class="post">
-	<h2 class="title">
-		
-		<a href="/blog/2014/10/14/java-thread-tutorial/">
-		
-			Java Thread Tutorial</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: 
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-10-14T08:49:00+08:00" pubdate data-updated="true">Oct 14<span>th</span>, 2014</time></div>
-      <div class="tags">Tags: 
-
-
-	<a class='category' href='/blog/categories/dev/'>dev</a>, <a class='category' href='/blog/categories/java/'>java</a>
-
-
-</div>
-    </div>
-		<center><p><img src="/images/java-thread-tutorial.png" ></p></center>
-
-
-<ul>
-<li><a href="#overview">Java Thread and Multithreading Tutorial</a>
-
-<ul>
-<li><a href="#example">Java Thread Example</a></li>
-<li><a href="#sleep">Java Thread Sleep</a></li>
-<li><a href="#join">Java Thread Join</a></li>
-<li><a href="#states">Java Thread States</a></li>
-<li><a href="#wait">Java Thread wait, notify and notifyAll</a></li>
-<li><a href="#safety">Java Thread Safety and Java Synchronization</a></li>
-<li><a href="#exception">Java Exception in thread main</a></li>
-<li><a href="#singleton">Thread Safety in Singleton Class</a></li>
-<li><a href="#daemon">Java Daemon Thread</a></li>
-<li><a href="#threadlocal">Java Thread Local</a></li>
-<li><a href="#dump">Java Thread Dump</a></li>
-<li><a href="#deadlock">How to Analyze Deadlock and avoid it in Java</a></li>
-<li><a href="#timer">Java Timer Thread</a></li>
-<li><a href="#producer">Java Producer Consumer Problem</a></li>
-<li><a href="#pool">Java Thread Pool</a></li>
-<li><a href="#future">Java Callable Future</a></li>
-<li><a href="#futuretask">Java FutureTask Example</a></li>
-</ul>
-</li>
-</ul>
-
-
-<h2 id="overview">Java Thread and Multithreading Tutorial</h2>
-
-
-<p>There are two types of threads in an application – <code>user thread</code> and <code>daemon thread</code>. When we start an application, main is the first user thread created and we can create multiple user threads as well as daemon threads. When all the user threads are executed, JVM terminates the program.</p>
-
-<p>We can set different priorities to different Threads but it doesn’t guarantee that higher priority thread will execute first than lower priority thread. Thread scheduler is the part of Operating System implementation and when a Thread is started, it’s execution is controlled by Thread Scheduler and JVM doesn’t have any control on it’s execution.</p>
-
-
-		
-		<a href="/blog/2014/10/14/java-thread-tutorial/" class="more-link">Read on &rarr;</a>
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="/blog/2014/10/14/java-thread-tutorial//blog/page/7/index.html#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
