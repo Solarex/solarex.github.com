@@ -6,7 +6,7 @@
 	<title>Solarex's Blog</title>
     <meta name="author" content="Solarex">
     
-	<meta name="description" content="Published on: Jan 11th, 2016 Tags: android, dev In the last post, we walked through the core functionality necessary for building a RecyclerView &hellip;">
+	<meta name="description" content="Published on: Jan 15th, 2016 Tags: android, dev While writing what was intended to be the final post of this series, a discussion of predictive &hellip;">
 	
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
@@ -119,6 +119,122 @@ var _hmt = _hmt || [];
 <!-- begin toload --> 
     <div id="content" class="inner">
         
+
+
+    <article class="post">
+	<h2 class="title">
+		
+		<a href="/blog/2016/01/15/building-a-recyclerview-layoutmanager-part-iv/">
+		
+			Building a RecyclerView LayoutManager Part IV</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: 
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2016-01-15T16:14:00+08:00" pubdate data-updated="true">Jan 15<span>th</span>, 2016</time></div>
+      <div class="tags">Tags: 
+
+
+	<a class='category' href='/blog/categories/android/'>android</a>, <a class='category' href='/blog/categories/dev/'>dev</a>
+
+
+</div>
+    </div>
+		<p>While writing what was intended to be the final post of this series, a discussion of predictive animations, I ran into a number of interesting challenges that I thought warranted their own discussion. This series began as an investigation into whether RecyclerView could easily handle a layout structure that could scroll in both the horizontal and vertical axes, and how difficult it would be for the developer to build their own LayoutManager. I chose a basic grid of uniform items as the structure, thinking it would be the most straightforward to implement.</p>
+
+<p>The following graphic represents the basic goal of what the implementation ought to achieve while the user scrolls around the screen.</p>
+
+<center><img src="/images/building_recyclerview_layoutmanager_redux.gif" width="600" height="360"></center>
+
+
+
+
+
+		
+		<a href="/blog/2016/01/15/building-a-recyclerview-layoutmanager-part-iv/" class="more-link">Read on &rarr;</a>
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="/blog/2016/01/15/building-a-recyclerview-layoutmanager-part-iv//blog/page/4/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+
+    <article class="post">
+	<h2 class="title">
+		
+		<a href="/blog/2016/01/13/building-a-recyclerview-layoutmanager-part-iii/">
+		
+			Building a RecyclerView LayoutManager Part III</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: 
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2016-01-13T00:48:00+08:00" pubdate data-updated="true">Jan 13<span>th</span>, 2016</time></div>
+      <div class="tags">Tags: 
+
+
+	<a class='category' href='/blog/categories/android/'>android</a>, <a class='category' href='/blog/categories/dev/'>dev</a>
+
+
+</div>
+    </div>
+		<p>In the previous post, we discussed adding proper support for data set changes and targeted scrolling. In this installment of the series, we will focus on properly supporting animations in your fancy new LayoutManager.In case you’ve forgotten, the code samples are <a href="https://github.com/devunwired/recyclerview-playground">on GitHub</a>.</p>
+
+<h2>The Problem With Free</h2>
+
+<p>We talked about notifyDataSetChanged() the last time, but you may have noticed that changing the data in this way doesn’t animate the change**. RecyclerView includes a new API for making animated changes, which requires you to notify the adapter which positions in the adapter have changed, and what the action was:</p>
+
+<ul>
+<li><code>notifyItemInserted()</code> and <code>notifyItemRangeInserted()</code>: Insertion of new item(s) at the given position(s).</li>
+<li><code>notifyItemChanged()</code> and <code>notifyItemRangeChanged()</code>: Invalidate he item(s) at the given position(s), nothing structural has changed in the data set.</li>
+<li><code>notifyItemRemoved()</code> and <code>notifyItemRangeRemoved()</code>: Removal of the item(s) at the given position(s).</li>
+<li><code>notifyItemMoved()</code>: An item has relocated to a new position in the data set.</li>
+</ul>
+
+
+<p>By default, your LayoutManager will get “simple item animations” for free when these methods are used. These animations are simply based on whether each current view position is still present in the layout after a change. New views are faded in, removed views are faded out, and other views are moved to their new location. Here’s what our grid layout looks like with the free animations:</p>
+
+<center><img src="/images/building_recyclerview_layoutmanager_animation.gif" width="380" height="674" /></center>
+
+
+
+
+
+		
+		<a href="/blog/2016/01/13/building-a-recyclerview-layoutmanager-part-iii/" class="more-link">Read on &rarr;</a>
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="/blog/2016/01/13/building-a-recyclerview-layoutmanager-part-iii//blog/page/4/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
 
 
     <article class="post">
@@ -814,102 +930,6 @@ var _hmt = _hmt || [];
 <div class="meta">
 	
 		<span class="comments"><a href="/blog/2015/12/10/a-first-glance-at-recyclerview//blog/page/4/index.html#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-
-    <article class="post">
-	<h2 class="title">
-		
-		<a href="/blog/2015/11/23/saving-android-view-state/">
-		
-			Saving Android View State Correctly</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: 
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2015-11-23T17:40:00+08:00" pubdate data-updated="true">Nov 23<span>rd</span>, 2015</time></div>
-      <div class="tags">Tags: 
-
-
-	<a class='category' href='/blog/categories/android/'>android</a>, <a class='category' href='/blog/categories/dev/'>dev</a>
-
-
-</div>
-    </div>
-		<p><center><img src="/images/android_training.jpg"/></center></p>
-
-
-
-
-
-		
-		<a href="/blog/2015/11/23/saving-android-view-state/" class="more-link">Read on &rarr;</a>
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="/blog/2015/11/23/saving-android-view-state//blog/page/4/index.html#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-
-    <article class="post">
-	<h2 class="title">
-		
-		<a href="/blog/2015/11/23/android-starting-window/">
-		
-			Android Starting Window</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: 
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2015-11-23T12:48:00+08:00" pubdate data-updated="true">Nov 23<span>rd</span>, 2015</time></div>
-      <div class="tags">Tags: 
-
-
-	<a class='category' href='/blog/categories/android/'>android</a>, <a class='category' href='/blog/categories/dev/'>dev</a>
-
-
-</div>
-    </div>
-		<p><center><img src="/images/android_robot.png" width="255" height="300" /></center></p>
-
-
-
-
-
-		
-		<a href="/blog/2015/11/23/android-starting-window/" class="more-link">Read on &rarr;</a>
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="/blog/2015/11/23/android-starting-window//blog/page/4/index.html#disqus_thread">Comments</a></span>
 	
 </div>
 </article>

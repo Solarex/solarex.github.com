@@ -1,0 +1,236 @@
+
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Choreographer in Android - Solarex's Blog</title>
+    <meta name="author" content="Solarex">
+    
+	<meta name="description" content="Choreographer is the one which acts like a interface between application view system and lower layer display system for rendering the views. &hellip;">
+	
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+	<link href="/atom.xml" rel="alternate" title="Solarex's Blog" type="application/atom+xml">
+	<link rel="canonical" href="">
+	<link href="/favicon.ico" rel="shortcut icon">
+    <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+
+    <link href='http://fonts.googleapis.com/css?family=Slackey' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Amethysta' rel='stylesheet' type='text/css'>
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+    <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+
+    <script type="text/javascript" src="/javascripts/jquery-tapir.js"></script>
+
+    <!-- remove or comment it to disable ajaxification -->   
+    <script src="/javascripts/ajaxify.js"></script>
+   
+    <script>
+var _hmt = _hmt || [];
+(function() {
+      var hm = document.createElement("script");
+        hm.src = "https://hm.baidu.com/hm.js?2574e8b2c205dfe8ff89e239fa38ca27";
+          var s = document.getElementsByTagName("script")[0]; 
+            s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+    
+	<script type="text/javascript">
+		var _gaq = _gaq || [];
+		_gaq.push(['_setAccount', 'UA-42746457-1']);
+		_gaq.push(['_trackPageview']);
+
+		(function() {
+			var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+			ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+			var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+		})();
+	</script>
+
+
+</head>
+
+
+<body>
+    <div id="wrapper">
+    <header id="header" class="inner"><!-- for more effects see _animate.scss -->
+<h1 class="animated bounceInDown">
+    <div id="headerbg">
+        Solarex
+    </div>
+</h1>
+<br>
+
+<ul id="social-links" style="text-align:center">
+  
+  <!-- GitHub -->
+  <li>
+  <a href="https://github.com/flyfire" class="github" title="Github"></a>
+  </li>
+  
+  
+  <!-- Google Plus -->
+  <li>
+  <a href="http://plus.google.com/107384356964511479070?rel=author" class="google" title="Google+"></a>
+  </li>
+  
+  
+  
+  <!-- Twitter -->
+  <li>
+  <a href="http://www.twitter.com/hrhflyfire" class="twitter" title="Twitter"></a>
+  </li>
+  
+  
+  
+  
+  
+</ul>
+
+
+<!-- use full url including 'index.html' for navigation bar if you are using ajax -->
+<ul id="nav">
+	<li id="ajax"><a href="/index.html">Home</a></li>
+	<li id="ajax"><a href="/blog/archives/index.html">Archives</a></li>
+    <li><a href="http://solarex.github.io/wiki">Wiki</a></li>
+    <li id="ajax"><a href="/projects">Project</a></li>
+    <li><a href="http://solarex.github.io/resume">Resume</a></li>
+    
+    <li>
+    <div id="dark">
+        <form method="get" action="http://google.com/search" id="search">
+            <input type="hidden" name="q" value="site:solarex.github.io">
+            <input name="q" type="text" results="0" placeholder="Search..." x-webkit-speech />
+        </form>
+    </div>
+    </li>
+        
+</ul>
+
+
+
+
+</header>
+
+<div id="toload">
+<!-- begin toload --> 
+    <div id="content" class="inner">
+        <article class="post">
+	<h2 class="title">Choreographer in Android</h2>
+	<div class="entry-content"><p>Choreographer is the one which acts like a interface between application view system and lower layer display system for rendering the views.</p>
+
+<p>ViewRootImpl is the ViewParent or root below which only Activity window DecorView will be attached. All the view layouts set by the activity through <code>setContentView()</code> will attached the DecorView whose parent is ViewRootImpl. Actually ViewRootImpl is not a View its just a ViewParent which handled and manages the View Hierarchies for displaying, handling input events etc.</p>
+
+<p>The number of root views that are active in your process. Each root view is associated with a window, so this can help you identify memory leaks involving dialogs or other windows.</p>
+
+<!-- more -->
+
+
+<p>ViewRootImpl will get the requests for refresh or view update from its child and interact with Choreographer for drawing the view hierarchy to the display system.</p>
+
+<p>Choreographer instance will be created for each thread wise. Each application thread will have separate instance of Choreographer. When this instance is created then it itself register to for VSYNC event to the lower layer and now it ready to handle the ViewRootImpl/Application refresh request and interaction with the lower layer.</p>
+
+<p>When ever ViewRootImpl got request from View hierarchy to refresh or update or invalidate then it request Choreographer for refresh by registering a callback. When Choreographer got any request then it request for next VSYNC event from the lower layer and when it got he VSYNC event then it asks ViewRootImpl by calling the registered Callback to handle the drawing accordingly. Also when ever ViewRootImpl wants to redraw the view then this thing will repeat.</p>
+
+<p>When Choreographer receives VSYNC event then it handled the below event handling in order to handle the drawing or display.</p>
+
+<ul>
+<li><p>Input  handling : All received input event received and maintained in the query and all these input event will be processed now only.</p></li>
+<li><p>Animation : Handle all the registered animations from ViewRootImpl or from Application or Activity.</p></li>
+<li><p>View Traversal (Drawing/Rendering of Views) : Handles the View drawing if ViewRootImpl has registered for refresh.</p></li>
+</ul>
+
+
+<p>Choreographer is the main component which registers application main thread to display system and coordinate between the application view drawing component to the display system for synchronizing VSYNC with the application event, animation and draw handling.</p>
+
+<h2>reference</h2>
+
+<ul>
+<li><a href="https://nayaneshguptetechstuff.wordpress.com/2014/07/01/what-is-choreographeri-in-android/">WHAT IS CHOREOGRAPHER IN ANDROID?</a></li>
+</ul>
+
+</div>
+    <div class="entry-content"><center>除非另有声明，本网站采用<a href="http://creativecommons.org/licenses/by/3.0/cn/" rel="license">知识共享“署名 3.0 中国大陆”许可协议</a>授权。</center></div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="/blog/2016/10/10/choreographer-in-android/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+	<div class="share">
+	<div class="addthis_toolbox addthis_default_style ">
+	
+	
+	
+	<a class="addthis_button_google_plusone" g:plusone:size="medium"></a>
+	
+	<a class="addthis_counter addthis_pill_style"></a>
+	</div>
+  <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid="></script>
+</div>
+
+
+
+<section id="comment">
+    <h2 class="title">Comments</h2>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+</section>
+
+    </div>
+    <footer id="footer">
+    <div style="display:inline">
+    Copyright &copy; 2017
+
+    Solarex
+. Powered by <a href="http://octopress.org">Octopress</a> | 
+    Theme <a href="http://github.com/panks/fabric">fabric</a> by <a href="http://panks.me">Pankaj Kumar</a>
+</div>
+
+
+    </footer>
+    <script src="/javascripts/fabric.js"></script>
+<script src="/javascripts/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+	$('.fancybox').fancybox();
+})(jQuery);
+</script> <!-- Delete or comment this line to disable Fancybox -->
+
+
+<script type="text/javascript">
+      var disqus_shortname = 'flyfire';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://Solarex.github.io/blog/2016/10/10/choreographer-in-android/';
+        var disqus_url = 'http://Solarex.github.io/blog/2016/10/10/choreographer-in-android/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+<!-- end toload --> 
+</div>
+</div>
+<script src="/javascripts/jquery.ui.totop.js" type="text/javascript"></script>
+<script type="text/javascript">
+/*<![CDATA[*/
+;(function($){$().UItoTop({easingType:'easeOutCirc'});})(jQuery); 
+/*]]>*/
+</script><!-- remove it to remove the scroll to top button -->
+</body>
+</html>

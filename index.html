@@ -185,6 +185,102 @@ var _hmt = _hmt || [];
     <article class="post">
 	<h2 class="title">
 		
+		<a href="/blog/2016/10/10/choreographer-in-android/">
+		
+			Choreographer in Android</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: 
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2016-10-10T20:38:00+08:00" pubdate data-updated="true">Oct 10<span>th</span>, 2016</time></div>
+      <div class="tags">Tags: 
+
+
+	<a class='category' href='/blog/categories/android/'>android</a>, <a class='category' href='/blog/categories/dev/'>dev</a>
+
+
+</div>
+    </div>
+		<p>Choreographer is the one which acts like a interface between application view system and lower layer display system for rendering the views.</p>
+
+<p>ViewRootImpl is the ViewParent or root below which only Activity window DecorView will be attached. All the view layouts set by the activity through <code>setContentView()</code> will attached the DecorView whose parent is ViewRootImpl. Actually ViewRootImpl is not a View its just a ViewParent which handled and manages the View Hierarchies for displaying, handling input events etc.</p>
+
+<p>The number of root views that are active in your process. Each root view is associated with a window, so this can help you identify memory leaks involving dialogs or other windows.</p>
+
+
+		
+		<a href="/blog/2016/10/10/choreographer-in-android/" class="more-link">Read on &rarr;</a>
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="/blog/2016/10/10/choreographer-in-android//index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+
+    <article class="post">
+	<h2 class="title">
+		
+		<a href="/blog/2016/10/09/vsync-in-android/">
+		
+			VSYNC in Android</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: 
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2016-10-09T20:43:00+08:00" pubdate data-updated="true">Oct 9<span>th</span>, 2016</time></div>
+      <div class="tags">Tags: 
+
+
+	<a class='category' href='/blog/categories/android/'>android</a>, <a class='category' href='/blog/categories/dev/'>dev</a>
+
+
+</div>
+    </div>
+		<h2>In Android What is VSYNC and its usage?</h2>
+
+<p>VSYNC is the event posted periodically by the kernal at fixed interval where the input handling, Animation and Window drawing happening synchroniiously at the same VSYNC interval. Below have given the detail explanation about the VSYNC event before VSYNC is introduced and after VSYNC is introduced.</p>
+
+
+		
+		<a href="/blog/2016/10/09/vsync-in-android/" class="more-link">Read on &rarr;</a>
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="/blog/2016/10/09/vsync-in-android//index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+
+    <article class="post">
+	<h2 class="title">
+		
 		<a href="/blog/2016/09/20/aspect-oriented-programming-in-android/">
 		
 			Aspect Oriented Programming in Android</a>
@@ -273,104 +369,6 @@ var _hmt = _hmt || [];
 <div class="meta">
 	
 		<span class="comments"><a href="/blog/2016/09/17/using-annotations-element-value-pairs-in-aspectj//index.html#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-
-    <article class="post">
-	<h2 class="title">
-		
-		<a href="/blog/2016/09/16/defining-pointcuts-by-annotations/">
-		
-			Defining Pointcuts by Annotations</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: 
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2016-09-16T16:17:00+08:00" pubdate data-updated="true">Sep 16<span>th</span>, 2016</time></div>
-      <div class="tags">Tags: 
-
-
-	<a class='category' href='/blog/categories/dev/'>dev</a>, <a class='category' href='/blog/categories/java/'>java</a>
-
-
-</div>
-    </div>
-		<h2>Pointcuts by annotations</h2>
-
-<p>Using annotations is more convenient than using patterns. While patterns might be anything between a big cannon and a scalpel the annotations are definitely a scalpel, by only getting the pointcuts that the developer has manually specified.</p>
-
-<p>You can get the code for this blog series at the Git repository <a href="https://github.com/Nosfert/AspectJ-Tutorial-jayway">here</a>.</p>
-
-
-		
-		<a href="/blog/2016/09/16/defining-pointcuts-by-annotations/" class="more-link">Read on &rarr;</a>
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="/blog/2016/09/16/defining-pointcuts-by-annotations//index.html#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-
-    <article class="post">
-	<h2 class="title">
-		
-		<a href="/blog/2016/09/15/defining-pointcuts-by-pattern/">
-		
-			Defining Pointcuts by Pattern</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: 
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2016-09-15T16:16:00+08:00" pubdate data-updated="true">Sep 15<span>th</span>, 2016</time></div>
-      <div class="tags">Tags: 
-
-
-	<a class='category' href='/blog/categories/dev/'>dev</a>, <a class='category' href='/blog/categories/java/'>java</a>
-
-
-</div>
-    </div>
-		<h2>Pointcuts by pattern</h2>
-
-<p>Going through all the different ways of defining pointcuts and explaining them in an easy manner would be a near impossible feat for this post. Rather than aiming for the impossible let’s narrow down the scope, and talk about the most commonly used pointcut definitions and how we can experiment with them. We will get you started with defining your own pointcuts!</p>
-
-<p>You can get the code for this blog series at the Git repository <a href="https://github.com/Nosfert/AspectJ-Tutorial-jayway">here</a>.</p>
-
-
-		
-		<a href="/blog/2016/09/15/defining-pointcuts-by-pattern/" class="more-link">Read on &rarr;</a>
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="/blog/2016/09/15/defining-pointcuts-by-pattern//index.html#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
