@@ -47,6 +47,10 @@ footer: true
 <h3 id='demo'>Demo</h3>
 
 + [TuringChat](https://github.com/flyfire/TuringChat)
++ [LearningRxJava](https://github.com/flyfire/LearningRxjava)
++ [LearingRetrofit](https://github.com/flyfire/LearningRetrofit)
++ [Java8InAction](https://github.com/flyfire/Java8InAction)
 
+<h3 id='bintray'>Bintray</h3>
 
 + [Bintray](https://bintray.com/solarexsoft/maven)
