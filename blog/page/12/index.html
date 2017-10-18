@@ -6,7 +6,7 @@
 	<title>Solarex's Blog</title>
     <meta name="author" content="Solarex">
     
-	<meta name="description" content="Published on: Nov 21st, 2013 Tags: tools 之前已经在MacBook上装过Ubuntu了，不知怎么搞的，最近Ubuntu更新后，分辨率一直保持在1024×768，屏幕惨不忍睹，网上搜了好多，都是使用xrandr之类的，但是执行xrandr的时候老是报错， &hellip;">
+	<meta name="description" content="Published on: Nov 29th, 2013 Tags: git, tools 用git大概有2年多了吧，不过大都停留在add，commit，clone，push这些简单的操作上，最近看了git-scm网站的维护者，Pro.Git的作者的一个演讲，准备好好研究下git。以下是笔记， &hellip;">
 	
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
@@ -119,6 +119,89 @@ var _hmt = _hmt || [];
 <!-- begin toload --> 
     <div id="content" class="inner">
         
+
+
+    <article class="post">
+	<h2 class="title">
+		
+		<a href="/blog/2013/11/29/git-basic-config/">
+		
+			Git配置(持续更新)</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: 
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-11-29T23:14:00+08:00" pubdate data-updated="true">Nov 29<span>th</span>, 2013</time></div>
+      <div class="tags">Tags: 
+
+
+	<a class='category' href='/blog/categories/git/'>git</a>, <a class='category' href='/blog/categories/tools/'>tools</a>
+
+
+</div>
+    </div>
+		<center><p><img src="/images/git-logo-black.png" width="182" height="76" alt="git"></p></center>
+
+
+<p>用git大概有2年多了吧，不过大都停留在<code>add</code>，<code>commit</code>，<code>clone</code>，<code>push</code>这些简单的操作上，最近看了git-scm网站的维护者，Pro.Git的作者的一个演讲，准备好好研究下git。以下是笔记，会不间断更新。</p>
+
+<p>最基础的git config莫过于<code>user.name</code>和<code>user.email</code>了吧。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>git config --global user.name Solarex
+</span><span class='line'>git config --global user.email i@solarex.name
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>git <code>commit</code>的时候有时会发现在comment中需要换行，在命令行直接输入的话非常不方便，其实可以在自己喜欢的编辑器里面操作。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>git config --global core.editor vim
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这样git在执行<code>commit</code>操作时就会打开vim，就可以像编辑文本一样写comment了。</p>
+
+<p>在打印git log的时候，如果有色彩区分会好看很多。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>git config --global color.ui auto
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>看一些视频的时候，经常会看到他们输入一些非常短的命令就执行了相应的操作，其实，这些可以通过<code>alias</code>实现。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>git config --global alias.st <span class="s2">&quot;status&quot;</span>
+</span><span class='line'>git config --global alias.ci <span class="s2">&quot;commit -a -v&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>另外强烈推荐<code>tig</code>来查看git log，非常方便。Ubuntu下通过命令<code>sudo apt-get install tig</code>，Mac下通过<code>brew install tig</code>均可直接安装。</p>
+
+		
+		
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="/blog/2013/11/29/git-basic-config//blog/page/12/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
 
 
     <article class="post">

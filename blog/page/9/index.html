@@ -6,7 +6,7 @@
 	<title>Solarex's Blog</title>
     <meta name="author" content="Solarex">
     
-	<meta name="description" content="Published on: Oct 12th, 2014 Tags: android, dev 有时候在Google Play Store看到一些有趣的应用，或者对有些应用的资源图片之类的很感兴趣，这时候就需要用到Android反编译APK的一些工具了。 Read on &rarr; &hellip;">
+	<meta name="description" content="Published on: Oct 13th, 2014 Tags: android, dev What can you do with Loopers and Handlers? Basically, they implement a common concurrency pattern &hellip;">
 	
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
@@ -119,6 +119,59 @@ var _hmt = _hmt || [];
 <!-- begin toload --> 
     <div id="content" class="inner">
         
+
+
+    <article class="post">
+	<h2 class="title">
+		
+		<a href="/blog/2014/10/13/android-looper-handler/">
+		
+			Intro to Android Loopers and Handlers</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: 
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-10-13T11:24:00+08:00" pubdate data-updated="true">Oct 13<span>th</span>, 2014</time></div>
+      <div class="tags">Tags: 
+
+
+	<a class='category' href='/blog/categories/android/'>android</a>, <a class='category' href='/blog/categories/dev/'>dev</a>
+
+
+</div>
+    </div>
+		<p>What can you do with <code>Loopers</code> and <code>Handlers</code>? Basically, they implement a common concurrency pattern that I call the <code>Pipeline Thread</code>. Here’s how it works:</p>
+
+<ul>
+<li>The Pipeline Thread holds a queue of tasks which are just some units of work that can be executed or processed.</li>
+<li>Other threads can safely push new tasks into the Pipeline Thread’s queue at any time.</li>
+<li>The Pipeline Thread processes the queued tasks one after another. If there are no tasks queued, it blocks until a task appears in the queue.</li>
+<li>Sometimes tasks can called messages and other names.</li>
+</ul>
+
+
+
+		
+		<a href="/blog/2014/10/13/android-looper-handler/" class="more-link">Read on &rarr;</a>
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="/blog/2014/10/13/android-looper-handler//blog/page/9/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
 
 
     <article class="post">
@@ -360,54 +413,6 @@ var _hmt = _hmt || [];
 <div class="meta">
 	
 		<span class="comments"><a href="/blog/2014/09/27/android-snippets//blog/page/9/index.html#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-
-    <article class="post">
-	<h2 class="title">
-		
-		<a href="/blog/2014/09/21/android-guide-app-component/">
-		
-			[Guides]App Component</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: 
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-09-21T12:04:00+08:00" pubdate data-updated="true">Sep 21<span>st</span>, 2014</time></div>
-      <div class="tags">Tags: 
-
-
-	<a class='category' href='/blog/categories/android/'>android</a>, <a class='category' href='/blog/categories/dev/'>dev</a>, <a class='category' href='/blog/categories/guides/'>guides</a>
-
-
-</div>
-    </div>
-		<center><p><img src="/images/android_robot.png" width="255" height="300"></p></center>
-
-
-<p>TL,DR;</p>
-
-
-		
-		<a href="/blog/2014/09/21/android-guide-app-component/" class="more-link">Read on &rarr;</a>
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="/blog/2014/09/21/android-guide-app-component//blog/page/9/index.html#disqus_thread">Comments</a></span>
 	
 </div>
 </article>

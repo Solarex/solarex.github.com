@@ -6,7 +6,7 @@
 	<title>Solarex's Blog</title>
     <meta name="author" content="Solarex">
     
-	<meta name="description" content=" Published on: Nov 23rd, 2015 Tags: android, dev Read on &rarr; Comments ">
+	<meta name="description" content="Published on: Dec 10th, 2015 Tags: android, dev At this year’s Google I/O, Google released a preview to the upcoming Android version. The so called &hellip;">
 	
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
@@ -119,6 +119,598 @@ var _hmt = _hmt || [];
 <!-- begin toload --> 
     <div id="content" class="inner">
         
+
+
+    <article class="post">
+	<h2 class="title">
+		
+		<a href="/blog/2015/12/10/a-first-glance-at-recyclerview/">
+		
+			A First Glance at RecyclerView</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: 
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2015-12-10T00:46:00+08:00" pubdate data-updated="true">Dec 10<span>th</span>, 2015</time></div>
+      <div class="tags">Tags: 
+
+
+	<a class='category' href='/blog/categories/android/'>android</a>, <a class='category' href='/blog/categories/dev/'>dev</a>
+
+
+</div>
+    </div>
+		<p>At this year’s Google I/O, Google released a preview to the upcoming Android version. The so called L Developer Preview. This is a very big improvement over previous releases and I really love that Google is doing this. I think we all benefit by this decision. As developers and as consumers alike!</p>
+
+<p>Part of this preview are two new views: RecyclerView and CardView. This post gives you an introduction to the RecyclerView, it’s many internal classes and interfaces, how they interact and how you can use them.</p>
+
+<p>Let me start with the good news : RecyclerView is part of the support library. So you can use it right now. Ok: You can use it as soon as the final support lib accompanying the L release gets released. So better to familiarize yourself with it right away.</p>
+
+<h2>Sample project</h2>
+
+<p>The screenshots and the video at the end of the post show the sample project for this post in action. You can find the <a href="https://github.com/writtmeyer/recyclerviewdemo">source of this sample at github</a>. Keep in mind that the RecyclerView API is not yet finalized. Google might still change things that could break the sample when they release the final version of Android L.</p>
+
+<h2>What’s with this odd name? Why RecyclerView?</h2>
+
+<p>This is how Google describes RecyclerView in the API documentation of the L preview release:</p>
+
+<pre><code>A flexible view for providing a limited window into a large data set.
+</code></pre>
+
+<p>So RecyclerView is the appropriate view to use when you have multiple items of the same type and it’s very likely that your user’s device cannot present all of those items at once. Possible examples are contacts, customers, audio files and so on. The user has to scroll up and down to see more items and that’s when the recycling and reuse comes into play. As soon as a user scrolls a currently visible item out of view, this item’s view can be recycled and reused whenever a new item comes into view.</p>
+
+<p>The following screenshots of the sample app illustrate this. On the left is the sample app after the initial start. When you scroll the view up, some views become eligible for recycling. The red area on the right screenshot, for example, highlights two invisible views. The recycler can now put these views into a list of candidates to be reused should a new view be necessary.</p>
+
+<center><img src="/images/a_first_glance_of_recyclerview_recycling_of_views.png" width="624" height="474"></center>
+
+
+<p>Recycling of views is a very useful approach. It saves CPU resources in that you do not have to inflate new views all the time and it saves memory in that it doesn’t keep plenty of invisible views around.</p>
+
+<p>Now, you might say: That’s nothing new. And you’re right! We had that with ListView for a very long time. The concept of recycling views itself it not new. But while you previously had a ListView where the appearance, recycling and everything was tightly coupled, Google now follows a much better, a much more flexible approach with the new RecyclerView. I really like the approach Google has taken here!</p>
+
+<h2>RecyclerView doesn’t care about visuals</h2>
+
+<p>Here’s the thing: While with Listview we had tight coupling, Google now uses an approach where the RecyclerView itself doesn’t care about visuals at all. It doesn’t care about placing the elements at the right place, it doesn’t care about separating any items and not about the look of each individual item either. To exaggerate a bit: All RecyclerView does, is recycle stuff. Hence the name.</p>
+
+<p>Anything that has to do with layout, drawing and so on, that is anything that has to do with how your data set is presented, is delegated to pluggable classes. That makes the new RecyclerView API extremely flexible. You want another layout? Plug in another LayoutManager. You want different animations? Plug in an ItemAnimator. And so on.</p>
+
+<p>Here’s the list of the most important classes that RecyclerView makes use of to present the data. All these classes are inner classes of the RecyclerView:</p>
+
+<center><img src="/images/recyclerview_api.png" width="823" height="427" /></center>
+
+
+<p>In the next paragraphs I will briefly describe what each class or interface is about and how RecyclerView uses it. In future posts I will revisit some of these classes, write about them in detail and show you how to customize them for your project’s needs.</p>
+
+<h2>ViewHolder</h2>
+
+<p>ViewHolders are basically caches of your View objects. The Android team has been recommending using the ViewHolder pattern for a very long time, but they never actually enforced the use of it. Now with the new Adapter you finally have to use this pattern.</p>
+
+<p>It’s a bit weird that Google waited so long to enforce the usage of the ViewHolder pattern, but better late than never. If you do not know about the ViewHolder pattern, have a look at this <a href="http://developer.android.com/training/improving-layouts/smooth-scrolling.html">Android training session</a>. It uses the old Adapter, but the pattern itself hasn’t changed.</p>
+
+<p>Also searching for ViewHolder should yield plenty of hits to further blog posts. For example this post by <a href="http://antoine-merle.com/listview-optimisations-part-1-the-viewholder/">Antoine Merle about ListView optimizations</a>.</p>
+
+<p>One thing that is specific to any RecyclerView.ViewHolder subclass is that you can always access the root view of your ViewHolder by accessing the public member itemView. So there’s no need to store that within your ViewHolder subclass.</p>
+
+<p>And should you decide to override toString() have a look at the base class. Its toString() implementation prints some useful information you should consider to use for your log messages as well.</p>
+
+<p>Here’s the code for the ViewHolder of the sample project. The ViewHolder is an inner class of the sample project’s Adapter:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kd">final</span> <span class="kd">static</span> <span class="kd">class</span> <span class="nc">ListItemViewHolder</span> <span class="kd">extends</span> <span class="n">RecyclerView</span><span class="o">.</span><span class="na">ViewHolder</span> <span class="o">{</span>
+</span><span class='line'>   <span class="n">TextView</span> <span class="n">label</span><span class="o">;</span>
+</span><span class='line'>   <span class="n">TextView</span> <span class="n">dateTime</span><span class="o">;</span>
+</span><span class='line'>
+</span><span class='line'>   <span class="kd">public</span> <span class="nf">ListItemViewHolder</span><span class="o">(</span><span class="n">View</span> <span class="n">itemView</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>      <span class="kd">super</span><span class="o">(</span><span class="n">itemView</span><span class="o">);</span>
+</span><span class='line'>      <span class="n">label</span> <span class="o">=</span> <span class="o">(</span><span class="n">TextView</span><span class="o">)</span> <span class="n">itemView</span><span class="o">.</span><span class="na">findViewById</span><span class="o">(</span><span class="n">R</span><span class="o">.</span><span class="na">id</span><span class="o">.</span><span class="na">txt_label_item</span><span class="o">);</span>
+</span><span class='line'>      <span class="n">dateTime</span> <span class="o">=</span> <span class="o">(</span><span class="n">TextView</span><span class="o">)</span> <span class="n">itemView</span><span class="o">.</span><span class="na">findViewById</span><span class="o">(</span><span class="n">R</span><span class="o">.</span><span class="na">id</span><span class="o">.</span><span class="na">txt_date_time</span><span class="o">);</span>
+</span><span class='line'>   <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>RecyclerView.Adapter</h2>
+
+<p>Adapters fulfill two roles: They provide access to the underlying data set and they are responsible for creating the correct layout for individual items. Adapters always were part of Android and were used in many places. ListView, AutoCompleteTextView, Spinner and more all made use of adapters. All those classes inherit from AdapterView. But not so RecyclerView.</p>
+
+<p>For the new RecyclerView Google has decided to replace the old Adapter interface with a new <strong>RecyclerView.Adapter</strong> base class. So say good bye to things like SimpleCursorAdapter, ArrayAdapter and the like. At least in their current incarnation.</p>
+
+<p>Currently there is no default implementation of RecyclerView.Adapter available. Google might add some later on, but I wouldn’t bet on this. For Animations to work properly, cursors and arrays aren’t the best fit, so porting the current Adapter implementations might not make too much sense.</p>
+
+<p>Since RecyclerView.Adapter is abstract you will have to implement these three methods:</p>
+
+<ul>
+<li><code>public VH onCreateViewHolder(ViewGroup parent, int viewType)</code></li>
+<li><code>public void onBindViewHolder(VH holder, int position)</code></li>
+<li><code>public int getItemCount()</code></li>
+</ul>
+
+
+<p>The VH in the method signatures above is the generic type parameter. You specify the concrete type to use when you subclass the RecyclerView.Adapter. You can see this in line 3 of the next code sample.</p>
+
+<p>The most basic adapter for the sample layout looks like this:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">RecyclerViewDemoAdapter</span> <span class="kd">extends</span>
+</span><span class='line'>        <span class="n">RecyclerView</span><span class="o">.</span><span class="na">Adapter</span>
+</span><span class='line'>        <span class="o">&lt;</span><span class="n">RecyclerViewDemoAdapter</span><span class="o">.</span><span class="na">ListItemViewHolder</span><span class="o">&gt;</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="kd">private</span> <span class="n">List</span><span class="o">&lt;</span><span class="n">DemoModel</span><span class="o">&gt;</span> <span class="n">items</span><span class="o">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">RecyclerViewDemoAdapter</span><span class="o">(</span><span class="n">List</span><span class="o">&lt;</span><span class="n">DemoModel</span><span class="o">&gt;</span> <span class="n">modelData</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(</span><span class="n">modelData</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="k">throw</span> <span class="k">new</span> <span class="nf">IllegalArgumentException</span><span class="o">(</span>
+</span><span class='line'>                  <span class="s">&quot;modelData must not be null&quot;</span><span class="o">);</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>        <span class="k">this</span><span class="o">.</span><span class="na">items</span> <span class="o">=</span> <span class="n">modelData</span><span class="o">;</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="nd">@Override</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="n">ListItemViewHolder</span> <span class="nf">onCreateViewHolder</span><span class="o">(</span>
+</span><span class='line'>            <span class="n">ViewGroup</span> <span class="n">viewGroup</span><span class="o">,</span> <span class="kt">int</span> <span class="n">viewType</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="n">View</span> <span class="n">itemView</span> <span class="o">=</span> <span class="n">LayoutInflater</span><span class="o">.</span>
+</span><span class='line'>                <span class="n">from</span><span class="o">(</span><span class="n">viewGroup</span><span class="o">.</span><span class="na">getContext</span><span class="o">()).</span>
+</span><span class='line'>                <span class="n">inflate</span><span class="o">(</span><span class="n">R</span><span class="o">.</span><span class="na">layout</span><span class="o">.</span><span class="na">item_demo_01</span><span class="o">,</span>
+</span><span class='line'>                        <span class="n">viewGroup</span><span class="o">,</span>
+</span><span class='line'>                        <span class="kc">false</span><span class="o">);</span>
+</span><span class='line'>        <span class="k">return</span> <span class="k">new</span> <span class="nf">ListItemViewHolder</span><span class="o">(</span><span class="n">itemView</span><span class="o">);</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="nd">@Override</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">onBindViewHolder</span><span class="o">(</span>
+</span><span class='line'>            <span class="n">ListItemViewHolder</span> <span class="n">viewHolder</span><span class="o">,</span> <span class="kt">int</span> <span class="n">position</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="n">DemoModel</span> <span class="n">model</span> <span class="o">=</span> <span class="n">items</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="n">position</span><span class="o">);</span>
+</span><span class='line'>        <span class="n">viewHolder</span><span class="o">.</span><span class="na">label</span><span class="o">.</span><span class="na">setText</span><span class="o">(</span><span class="n">model</span><span class="o">.</span><span class="na">label</span><span class="o">);</span>
+</span><span class='line'>        <span class="n">String</span> <span class="n">dateStr</span> <span class="o">=</span> <span class="n">DateUtils</span><span class="o">.</span><span class="na">formatDateTime</span><span class="o">(</span>
+</span><span class='line'>                <span class="n">viewHolder</span><span class="o">.</span><span class="na">label</span><span class="o">.</span><span class="na">getContext</span><span class="o">(),</span>
+</span><span class='line'>                <span class="n">model</span><span class="o">.</span><span class="na">dateTime</span><span class="o">.</span><span class="na">getTime</span><span class="o">(),</span>
+</span><span class='line'>                <span class="n">DateUtils</span><span class="o">.</span><span class="na">FORMAT_ABBREV_ALL</span><span class="o">);</span>
+</span><span class='line'>        <span class="n">viewHolder</span><span class="o">.</span><span class="na">dateTime</span><span class="o">.</span><span class="na">setText</span><span class="o">(</span><span class="n">dateStr</span><span class="o">);</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="nd">@Override</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="kt">int</span> <span class="nf">getItemCount</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">items</span><span class="o">.</span><span class="na">size</span><span class="o">();</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="kd">public</span> <span class="kd">final</span> <span class="kd">static</span> <span class="kd">class</span> <span class="nc">ListItemViewHolder</span>
+</span><span class='line'>           <span class="kd">extends</span> <span class="n">RecyclerView</span><span class="o">.</span><span class="na">ViewHolder</span> <span class="o">{</span>
+</span><span class='line'>        <span class="c1">// … shown above in the ViewHolder section</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>RecyclerView.LayoutManager</h2>
+
+<p>The <code>LayoutManager</code> is probably the most interesting part of the <code>RecyclerView</code>. This class is responsible for the layout of all child views. There is one default implementation available: <code>LinearLayoutManager</code> which you can use for vertical as well as horizontal lists.</p>
+
+<p>You have to set a <code>LayoutManager</code> for your <code>RecyclerView</code> otherwise you will see an exception at Runtime:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>08-01 05:00:00.000  2453  2453 E AndroidRuntime: java.lang.NullPointerException: Attempt to invoke virtual method ‘void android.support.v7.widget.RecyclerView<span class="nv">$LayoutManager</span>.onMeasure<span class="o">(</span>android.support.v7.widget.RecyclerView<span class="nv">$Recycler</span>, android.support.v7.widget.RecyclerView<span class="nv">$State</span>, int, int<span class="o">)</span>’ on a null object reference
+</span><span class='line'>08-01 05:00:00.000  2453  2453 E AndroidRuntime:  at android.support.v7.widget.RecyclerView.onMeasure<span class="o">(</span>RecyclerView.java:1310<span class="o">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Only one method of LayoutManager is currently abstract:</p>
+
+<ul>
+<li><code>public LayoutParams generateDefaultLayoutParams()</code></li>
+</ul>
+
+
+<p>But there is another one where the code states that you should overrride it since it’s soon going to be abstract:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kt">void</span> <span class="nf">scrollToPosition</span><span class="o">(</span><span class="kt">int</span> <span class="n">position</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>   <span class="k">if</span> <span class="o">(</span><span class="n">DEBUG</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>      <span class="n">Log</span><span class="o">.</span><span class="na">e</span><span class="o">(</span><span class="n">TAG</span><span class="o">,</span> <span class="s">&quot;You MUST implement scrollToPosition. It will soon become abstract&quot;</span><span class="o">);</span>
+</span><span class='line'>   <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>That’s very weird! Why not make it abstract right away? Anyway: Better you override this one to be on the safe side for when Google releases the final version of L.</p>
+
+<p>But only overriding those two methods won’t get you very far. After all the <strong>LayoutManager</strong> is responsible for positioning the items you want to display. Thus you have to override <code>onLayoutChildren()</code> as well.</p>
+
+<p>This method also contains a log statement stating “You must override onLayoutChildren(Recycler recycler, State state)”. Ok, then make it abstract :&ndash;) Luckily there’s still plenty (?) of time to change that into a proper abstract method for the final release of L. We all make mistakes. After all, <a href="http://www.grokkingandroid.com/tag/mistakes/">my “Stupid stuff devs make” series</a> is all about blunders that I made. So don’t get me wrong. No hard feelings here!</p>
+
+<h3>LinearlayoutManager</h3>
+
+<p>The LinearLayoutManager is currently the only default implementation of LayoutManager. You can use this class to create either vertical or horizontal lists.</p>
+
+<p>The implementation of LinearLayoutManager is rather complex and I only had a look at some key aspects. I will return to this implementation in my post about custom LayoutManagers.</p>
+
+<p>To use the LinearLayoutManager you simply have to instantiate it, tell it which orientation to use and you are done:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">LinearLayoutManager</span> <span class="n">layoutManager</span> <span class="o">=</span> <span class="k">new</span> <span class="n">LinearLayoutManager</span><span class="o">(</span><span class="n">context</span><span class="o">);</span>
+</span><span class='line'><span class="n">layoutManager</span><span class="o">.</span><span class="na">setOrientation</span><span class="o">(</span><span class="n">LinearLayoutManager</span><span class="o">.</span><span class="na">VERTICAL</span><span class="o">);</span>
+</span><span class='line'><span class="n">layoutManager</span><span class="o">.</span><span class="na">scrollToPosition</span><span class="o">(</span><span class="n">currPos</span><span class="o">);</span>
+</span><span class='line'><span class="n">recyclerView</span><span class="o">.</span><span class="na">setLayoutManager</span><span class="o">(</span><span class="n">layoutManager</span><span class="o">);</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>LinearLayoutManager also offers some methods to find out about the first and last items currently on screen:</p>
+
+<ul>
+<li><code>findFirstVisibleItemPosition()</code></li>
+<li><code>findFirstCompletelyVisibleItemPosition()</code></li>
+<li><code>findLastVisibleItemPosition()</code></li>
+<li><code>findLastCompletelyVisibleItemPosition()</code></li>
+</ul>
+
+
+<p>Surprisingly these methods are not part of the source code in the SDK folder, but you can use them as they are part of the binaries. As I cannot imagine those being removed, I’m sure you’ll find these in the final L release as well.</p>
+
+<p>Other methods help you get the orientation of the layout or the current scroll state. Others will compute the scroll offset. And finally you can reverse the ordering of the items.</p>
+
+<p>Since I’m going to write an extra post about LayoutManagers this should suffice for now.</p>
+
+<h2>RecyclerView.ItemDecoration</h2>
+
+<p>With an ItemDecoration you can add an offset to each item and modify the item so that items are separated from each other, highlighted or, well, decorated.</p>
+
+<p>You do not have to use an ItemDecoration. If, for example, you use a CardView for each item, there’s no need for an ItemDecoration.</p>
+
+<p>On the other hand you can add as many ItemDecorations as you like. The RecyclerView simply iterates over all ItemDecorations and calls the respective drawing methods for each of them in the order of the decoration chain.</p>
+
+<p>The abstract base class contains these three methods:</p>
+
+<ul>
+<li><code>public void onDraw(Canvas c, RecyclerView parent)</code></li>
+<li><code>public void onDrawOver(Canvas c, RecyclerView parent)</code></li>
+<li><code>public void getItemOffsets(Rect outRect, int itemPosition, RecyclerView parent)</code></li>
+</ul>
+
+
+<p>Anything you paint in <code>onDraw()</code> might be hidden by the content of the item views but anything that you paint in <code>onDrawOver()</code> is drawn on top of the items. If you simply create a bigger offset and, for example, use this offset to paint dividers, this of course is of no importance. But if you really want to add decorations, you have to use <code>onDrawOver()</code>.</p>
+
+<p>The <code>LayoutManager</code> calls the <code>getItemOffset()</code> method during the measurement phase to calculate the correct size of each item’s views. The <code>outRect</code> parameter might look a bit odd at first. Why not use a return value instead? But it really makes a lot of sense, since this allows <code>RecyclerView</code> to reuse one <code>Rect</code> object for all children and thus save resources. Not necessarily nice — but efficient.</p>
+
+<p>One thing I didn’t expect considering the name of the class is that the <code>onDraw()/onDrawOver()</code> methods are not called for each item, but just once for every draw operation of the <code>RecyclerView</code>. You have to iterate over all child views of the <code>RecyclerView</code> yourself.</p>
+
+<p>I will explain this in more detail in a follow-up post about writing your own <code>ItemDecorations</code>.</p>
+
+<h2>RecyclerView.ItemAnimator</h2>
+
+<p>The <code>ItemAnimator</code> class helps the <code>RecyclerView</code> with animating individual items. <code>ItemAnimators</code> deal with three events:</p>
+
+<ul>
+<li>An item gets added to the data set</li>
+<li>An item gets removed from the data set</li>
+<li>An item moves as a result of one or more of the previous two operations</li>
+</ul>
+
+
+<p>Luckily there exists a default implementation aptly named <code>DefaultItemAnimator</code>. If you do not set a custom <code>ItemAnimator</code>, <code>RecyclerView</code> uses an instance of <code>DefaultItemAnimator</code>.</p>
+
+<p>Obviously for animations to work, Android needs to know about changes to the dataset. For this Android needs the support of your adapter. In earlier versions of Android you would call <code>notifyDataSetChanged()</code> whenever changes occured, this is no longer appropriate. This method triggers a complete redraw of all (visible) children at once without any animation. To see animations you have to use more specific methods.</p>
+
+<p>The <code>RecyclerView.Adapter</code> class contains plenty of <code>notifyXyz()</code> methods. The two most specific are:</p>
+
+<ul>
+<li><code>public final void notifyItemInserted(int position)</code></li>
+<li><code>public final void notifyItemRemoved(int position)</code></li>
+</ul>
+
+
+<p>The following video shows the result of an addition as well as a removal of an item in the sample app:</p>
+
+<center><video width="800" height="1600" controls><source src="/downloads/files/a_first_glance_at_recyclerview_recyclerview_animation.mp4" type="video/mp4"></video></center>
+
+
+<h2>Listeners</h2>
+
+<p>RecyclerView also offers some rather generic listeners. Once again you can safely forget everything you used to use up to now. There is no OnItemClickListener or OnItemLongClickListener. But you can use an RecyclerView.OnItemTouchListener in combination with gesture detection to identify those events. A bit more work and more code to achieve the same result. I still hope for Google to add those Listeners in the final release. But whether those Listeners will be added is as an open question.</p>
+
+<h2>Combining all classes</h2>
+
+<p>You combine the classes either in a fragment or an activity. For the sake of simplicity my sample app uses activities only.</p>
+
+<p>First of all here’s the layout file containing the RecyclerView:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+</pre></td><td class='code'><pre><code class='xml'><span class='line'><span class="nt">&lt;RelativeLayout</span> <span class="na">xmlns:android=</span><span class="s">&quot;http://schemas.android.com/apk/res/android&quot;</span>
+</span><span class='line'>    <span class="na">xmlns:tools=</span><span class="s">&quot;http://schemas.android.com/tools&quot;</span>
+</span><span class='line'>    <span class="na">android:layout_width=</span><span class="s">&quot;match_parent&quot;</span>
+</span><span class='line'>    <span class="na">android:layout_height=</span><span class="s">&quot;match_parent&quot;</span>
+</span><span class='line'>    <span class="na">android:paddingLeft=</span><span class="s">&quot;@dimen/activity_horizontal_margin&quot;</span>
+</span><span class='line'>    <span class="na">android:paddingRight=</span><span class="s">&quot;@dimen/activity_horizontal_margin&quot;</span>
+</span><span class='line'>    <span class="na">android:paddingTop=</span><span class="s">&quot;@dimen/activity_vertical_margin&quot;</span>
+</span><span class='line'>    <span class="na">android:paddingBottom=</span><span class="s">&quot;@dimen/activity_vertical_margin&quot;</span>
+</span><span class='line'>    <span class="na">tools:context=</span><span class="s">&quot;.RecyclerViewDemoActivity&quot;</span><span class="nt">&gt;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="nt">&lt;android.support.v7.widget.RecyclerView</span>
+</span><span class='line'>        <span class="na">android:id=</span><span class="s">&quot;@+id/recyclerView&quot;</span>
+</span><span class='line'>        <span class="na">android:layout_width=</span><span class="s">&quot;match_parent&quot;</span>
+</span><span class='line'>        <span class="na">android:layout_height=</span><span class="s">&quot;match_parent&quot;</span>
+</span><span class='line'>        <span class="na">tools:context=</span><span class="s">&quot;.MainActivity&quot;</span>
+</span><span class='line'>        <span class="na">tools:listitem=</span><span class="s">&quot;@layout/item_demo_01&quot;</span>
+</span><span class='line'>        <span class="nt">/&gt;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="nt">&lt;ImageButton</span>
+</span><span class='line'>        <span class="na">android:id=</span><span class="s">&quot;@+id/fab_add&quot;</span>
+</span><span class='line'>        <span class="na">android:layout_alignParentRight=</span><span class="s">&quot;true&quot;</span>
+</span><span class='line'>        <span class="na">android:layout_alignParentBottom=</span><span class="s">&quot;true&quot;</span>
+</span><span class='line'>        <span class="na">android:layout_width=</span><span class="s">&quot;@dimen/fab_size&quot;</span>
+</span><span class='line'>        <span class="na">android:layout_height=</span><span class="s">&quot;@dimen/fab_size&quot;</span>
+</span><span class='line'>        <span class="na">android:layout_gravity=</span><span class="s">&quot;bottom|right&quot;</span>
+</span><span class='line'>        <span class="na">android:layout_marginRight=</span><span class="s">&quot;16dp&quot;</span>
+</span><span class='line'>        <span class="na">android:layout_marginBottom=</span><span class="s">&quot;16dp&quot;</span>
+</span><span class='line'>        <span class="na">android:background=</span><span class="s">&quot;@drawable/ripple&quot;</span>
+</span><span class='line'>        <span class="na">android:stateListAnimator=</span><span class="s">&quot;@anim/anim&quot;</span>
+</span><span class='line'>        <span class="na">android:src=</span><span class="s">&quot;@drawable/ic_action_add&quot;</span>
+</span><span class='line'>        <span class="na">android:elevation=</span><span class="s">&quot;1dp&quot;</span>
+</span><span class='line'>        <span class="nt">/&gt;</span>
+</span><span class='line'><span class="nt">&lt;/RelativeLayout&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>As you can see, nothing special here. You do not define the orientation or stuff like that on the RecyclerView. Actually RecyclerView itself makes no use of the attributes, it passes them on to the parent (which is ViewGroup) and that’s it.</p>
+
+<p>There is one place within RecyclerView where an AttributeSet is used and that is in the <code>generateLayoutParams()</code> method:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="nd">@Override</span>
+</span><span class='line'><span class="kd">public</span> <span class="n">ViewGroup</span><span class="o">.</span><span class="na">LayoutParams</span> <span class="nf">generateLayoutParams</span><span class="o">(</span><span class="n">AttributeSet</span> <span class="n">attrs</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>   <span class="k">if</span> <span class="o">(</span><span class="n">mLayout</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>      <span class="k">throw</span> <span class="k">new</span> <span class="nf">IllegalStateException</span><span class="o">(</span><span class="s">&quot;RecyclerView has no LayoutManager&quot;</span><span class="o">);</span>
+</span><span class='line'>   <span class="o">}</span>
+</span><span class='line'>   <span class="k">return</span> <span class="n">mLayout</span><span class="o">.</span><span class="na">generateLayoutParams</span><span class="o">(</span><span class="n">getContext</span><span class="o">(),</span> <span class="n">attrs</span><span class="o">);</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>In this snippet the RecyclerView passes the AttributeSet on to the LayoutManager.</p>
+
+<p>The Java code is also pretty simple:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">setContentView</span><span class="o">(</span><span class="n">R</span><span class="o">.</span><span class="na">layout</span><span class="o">.</span><span class="na">activity_recyclerview_demo</span><span class="o">);</span>
+</span><span class='line'><span class="n">recyclerView</span> <span class="o">=</span> <span class="o">(</span><span class="n">RecyclerView</span><span class="o">)</span> <span class="n">findViewById</span><span class="o">(</span><span class="n">R</span><span class="o">.</span><span class="na">id</span><span class="o">.</span><span class="na">recyclerView</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">LinearLayoutManager</span> <span class="n">layoutManager</span> <span class="o">=</span> <span class="k">new</span> <span class="n">LinearLayoutManager</span><span class="o">(</span><span class="k">this</span><span class="o">);</span>
+</span><span class='line'><span class="n">layoutManager</span><span class="o">.</span><span class="na">setOrientation</span><span class="o">(</span><span class="n">LinearLayoutManager</span><span class="o">.</span><span class="na">VERTICAL</span><span class="o">);</span>
+</span><span class='line'><span class="n">layoutManager</span><span class="o">.</span><span class="na">scrollToPosition</span><span class="o">(</span><span class="mi">0</span><span class="o">);</span>
+</span><span class='line'><span class="n">recyclerView</span><span class="o">.</span><span class="na">setLayoutManager</span><span class="o">(</span><span class="n">layoutManager</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">// allows for optimizations if all item views are of the same size:</span>
+</span><span class='line'><span class="n">recyclerView</span><span class="o">.</span><span class="na">setHasFixedSize</span><span class="o">(</span><span class="kc">true</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">// For the sake of simplicity I misused the Application subclass as a DAO</span>
+</span><span class='line'><span class="n">List</span><span class="o">&lt;</span><span class="n">DemoModel</span><span class="o">&gt;</span> <span class="n">items</span> <span class="o">=</span> <span class="n">RecyclerViewDemoApp</span><span class="o">.</span><span class="na">getDemoData</span><span class="o">();</span>
+</span><span class='line'><span class="n">adapter</span> <span class="o">=</span> <span class="k">new</span> <span class="n">RecyclerViewDemoAdapter</span><span class="o">(</span><span class="n">items</span><span class="o">);</span>
+</span><span class='line'><span class="n">recyclerView</span><span class="o">.</span><span class="na">setAdapter</span><span class="o">(</span><span class="n">adapter</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">RecyclerView</span><span class="o">.</span><span class="na">ItemDecoration</span> <span class="n">itemDecoration</span> <span class="o">=</span>
+</span><span class='line'>        <span class="k">new</span> <span class="nf">DividerItemDecoration</span><span class="o">(</span><span class="k">this</span><span class="o">,</span> <span class="n">DividerItemDecoration</span><span class="o">.</span><span class="na">VERTICAL_LIST</span><span class="o">);</span>
+</span><span class='line'><span class="n">recyclerView</span><span class="o">.</span><span class="na">addItemDecoration</span><span class="o">(</span><span class="n">itemDecoration</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">// this is the default;</span>
+</span><span class='line'><span class="c1">// this call is actually only necessary with custom ItemAnimators</span>
+</span><span class='line'><span class="n">recyclerView</span><span class="o">.</span><span class="na">setItemAnimator</span><span class="o">(</span><span class="k">new</span> <span class="n">DefaultItemAnimator</span><span class="o">());</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">// onClickDetection is done in this Activity’s OnItemTouchListener</span>
+</span><span class='line'><span class="c1">// with the help of a GestureDetector;</span>
+</span><span class='line'><span class="c1">// Tip by Ian Lake on G+ in a comment to this post:</span>
+</span><span class='line'><span class="c1">// https://plus.google.com/+LucasRocha/posts/37U8GWtYxDE</span>
+</span><span class='line'><span class="n">recyclerView</span><span class="o">.</span><span class="na">addOnItemTouchListener</span><span class="o">(</span><span class="k">this</span><span class="o">);</span>
+</span><span class='line'><span class="n">gesturedetector</span> <span class="o">=</span>
+</span><span class='line'>        <span class="k">new</span> <span class="nf">GestureDetectorCompat</span><span class="o">(</span><span class="k">this</span><span class="o">,</span> <span class="k">new</span> <span class="n">RecyclerViewDemoOnGestureListener</span><span class="o">());</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Connecting all those elements together roughly consists of these steps:</p>
+
+<ul>
+<li>Get a reference to your RecyclerView</li>
+<li>Create a LayoutManager and add it</li>
+<li>Create an Adapter and add it</li>
+<li>Create zero or more ItemDecorations as needed and add them</li>
+<li>Create an ItemAnimator if needed and add it</li>
+<li>Create zero or more listeners as needed and add them</li>
+</ul>
+
+
+<p>All in all about 30 lines of code.</p>
+
+<p>Now of course this is misleading. That’s only the glue code. The really interesting stuff is in RecyclerView&rsquo;s many inner classes which you can subclass and tweak to your needs. That’s where the real work is done.</p>
+
+<p>But the separation of concerns Google created helps you stick to one task within one implementation and it should make reuse easier to achieve. That’s why I like RecyclerView and its ecosystem. I’m not afraid to criticize big G, but that’s well done, Google!</p>
+
+<h2>Gradle integration</h2>
+
+<p>To use RecyclerView you have to add it to your gradle file. Adding the support library alone is not enough:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='groovy'><span class='line'><span class="n">dependencies</span> <span class="o">{</span>
+</span><span class='line'>   <span class="c1">//…</span>
+</span><span class='line'>   <span class="n">compile</span> <span class="err">‘</span><span class="n">com</span><span class="o">.</span><span class="na">android</span><span class="o">.</span><span class="na">support</span><span class="o">:</span><span class="n">recyclerview</span><span class="o">-</span><span class="nl">v7:</span><span class="o">+</span><span class="err">’</span>
+</span><span class='line'>   <span class="c1">//…</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Is that the final API?</h2>
+
+<p>Of course I do not know if the concrete implementations that the preview contains will be in the final release of Android L. But I guess so. And I expect some additions as well as minor changes to the API, based on bug reports and developer feedback.</p>
+
+<p>Google itself gives one hint in the current API documentation about more stuff to come. The documentation for the RecyclerView.LayoutManager class contains this nugget:</p>
+
+<pre><code>Several stock layout managers are provided for general use.
+</code></pre>
+
+<p>So we can expect more LayoutManagers. Which, of course, is good. Furthermore I expect at least one default ItemDecoration as well. After all the support library’s sample project contains a DividerItemDecoration, which works well with the LinearLayoutManager.</p>
+
+<p>I’m more skeptical about adapters. While an ArrayAdapter (or better yet, ListAdapter) is very well possible, I am more doubtful about a CursorAdapter since cursors do not lend themself easily to the new addition and removal notifications within the Adapter.</p>
+
+<h2>reference</h2>
+
+<ul>
+<li><a href="http://www.grokkingandroid.com/first-glance-androids-recyclerview/">A First Glance at Android’s RecyclerView</a></li>
+<li><a href="http://lucasr.org/2014/07/31/the-new-twowayview/">The new TwoWayView</a></li>
+</ul>
+
+
+		
+		
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="/blog/2015/12/10/a-first-glance-at-recyclerview//blog/page/5/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
 
 
     <article class="post">
@@ -346,54 +938,6 @@ We usually come into contact with <code>Looper</code>, <code>Message</code>, <co
 <div class="meta">
 	
 		<span class="comments"><a href="/blog/2015/05/05/mac-dev-setup//blog/page/5/index.html#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-
-    <article class="post">
-	<h2 class="title">
-		
-		<a href="/blog/2015/05/05/android-custom-view/">
-		
-			Android Custom View</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: 
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2015-05-05T11:45:00+08:00" pubdate data-updated="true">May 5<span>th</span>, 2015</time></div>
-      <div class="tags">Tags: 
-
-
-	<a class='category' href='/blog/categories/android/'>android</a>, <a class='category' href='/blog/categories/dev/'>dev</a>
-
-
-</div>
-    </div>
-		<p><center><img src="/images/android_training.jpg"/></center></p>
-
-
-
-
-
-		
-		<a href="/blog/2015/05/05/android-custom-view/" class="more-link">Read on &rarr;</a>
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="/blog/2015/05/05/android-custom-view//blog/page/5/index.html#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
