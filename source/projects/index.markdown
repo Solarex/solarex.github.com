@@ -51,6 +51,7 @@ footer: true
 + [LearingRetrofit](https://github.com/flyfire/LearningRetrofit)
 + [Java8InAction](https://github.com/flyfire/Java8InAction)
 + [HelloJni](https://github.com/flyfire/HelloJni)
++ [HelloNDK](https://github.com/flyfire/HelloNDK)
 
 <h3 id='bintray'>Bintray</h3>
 
