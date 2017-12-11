@@ -52,6 +52,7 @@ footer: true
 + [Java8InAction](https://github.com/flyfire/Java8InAction)
 + [HelloJni](https://github.com/flyfire/HelloJni)
 + [HelloNDK](https://github.com/flyfire/HelloNDK)
++ [JavaWithKotlin](https://github.com/flyfire/JavaWithKotlin)
 
 <h3 id='bintray'>Bintray</h3>
 
