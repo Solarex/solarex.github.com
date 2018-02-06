@@ -40,6 +40,7 @@ footer: true
 + [TableView](https://github.com/flyfire/TableView)
 + [DisscrollView](https://github.com/flyfire/DisscrollViewDemo)
 + [SolarexProgressDemo](https://github.com/flyfire/SolarexProgressDemo)
++ [SolarexBezierDemo](https://github.com/flyfire/SolarexBezierDemo)
 
 <h3 id='practice'>Android最佳实践</h3>
 
