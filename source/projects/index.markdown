@@ -41,6 +41,8 @@ footer: true
 + [DisscrollView](https://github.com/flyfire/DisscrollViewDemo)
 + [SolarexProgressDemo](https://github.com/flyfire/SolarexProgressDemo)
 + [SolarexBezierDemo](https://github.com/flyfire/SolarexBezierDemo)
++ [WeeklyCalendarViewDemo](https://github.com/flyfire/WeeklyCalendarViewDemo)
++ [RadarViewDemo](https://github.com/flyfire/RadarViewDemo)
 
 <h3 id='practice'>Android最佳实践</h3>
 
