@@ -18,6 +18,8 @@ categories:
 
 异步的请求会将请求包装成一个``AsyncCall``，实际上就是一个Runnable，然后看``runningAsyncCalls``队列的长度是否小于``maxRequests``也即64并且同一个host的请求是否小于``maxRequestsPerHost``,如果满足则添加到``runningAsyncCalls``队列中去，并且调用线程池执行，否则添加到``readyAsyncCalls``队列中去。在``AsyncCall``这个``Runnable``的``run``方法中又会去调用``getResponseWithInterceptorChain``去获取``Response``，值得注意的是在``finally``块中，将``AsyncCall``移除出队列的时候会调用``promoteCalls``方法。
 
+<!-- more -->
+
 ```java
 synchronized void enqueue(AsyncCall call) {
     if (runningAsyncCalls.size() < maxRequests && runningCallsForHost(call) < maxRequestsPerHost) {
@@ -818,6 +820,7 @@ Response getResponseWithInterceptorChain() throws IOException {
       reportedAcquired = true;
 
       // Pool the connection.
+      // 把connection放到ConnectionPool中
       Internal.instance.put(connectionPool, result);
 
       // If another multiplexed connection to the same address was created concurrently, then
@@ -907,3 +910,267 @@ Response getResponseWithInterceptorChain() throws IOException {
 ```
 
 ```java
+/**
+   * Use this allocation to hold {@code connection}. Each call to this must be paired with a call to
+   * {@link #release} on the same connection.
+   */
+  public void acquire(RealConnection connection, boolean reportedAcquired) {
+    assert (Thread.holdsLock(connectionPool));
+    if (this.connection != null) throw new IllegalStateException();
+
+    this.connection = connection;
+    this.reportedAcquired = reportedAcquired;
+    connection.allocations.add(new StreamAllocationReference(this, callStackTrace));
+  }
+```
+
+``StreamAllocation.acquire(connection, true)``的时候将``StreamAllocaion``的弱引用加入到``connection.allocations``集合中，这将在释放``Connection``的时候用到。
+
+在将``Connection``放入``ConnectionPool``中时，调用了``ConnectionPool``的``put``方法。
+
+```java
+void put(RealConnection connection) {
+    assert (Thread.holdsLock(this));
+    if (!cleanupRunning) {
+      cleanupRunning = true;
+      executor.execute(cleanupRunnable);
+    }
+    connections.add(connection);
+  }
+```
+
+线程池执行``cleanupRunnable``
+
+```java
+    private final Runnable cleanupRunnable = new Runnable() {
+    @Override public void run() {
+      while (true) {
+        long waitNanos = cleanup(System.nanoTime());
+        if (waitNanos == -1) return;
+        if (waitNanos > 0) {
+          long waitMillis = waitNanos / 1000000L;
+          waitNanos -= (waitMillis * 1000000L);
+          synchronized (ConnectionPool.this) {
+            try {
+              ConnectionPool.this.wait(waitMillis, (int) waitNanos);
+            } catch (InterruptedException ignored) {
+            }
+          }
+        }
+      }
+    }
+  };
+
+  long cleanup(long now) {
+    int inUseConnectionCount = 0;
+    int idleConnectionCount = 0;
+    RealConnection longestIdleConnection = null;
+    long longestIdleDurationNs = Long.MIN_VALUE;
+
+    // Find either a connection to evict, or the time that the next eviction is due.
+    synchronized (this) {
+      for (Iterator<RealConnection> i = connections.iterator(); i.hasNext(); ) {
+        RealConnection connection = i.next();
+
+        // If the connection is in use, keep searching.
+        if (pruneAndGetAllocationCount(connection, now) > 0) {
+          inUseConnectionCount++;
+          continue;
+        }
+
+        idleConnectionCount++;
+
+        // If the connection is ready to be evicted, we're done.
+        long idleDurationNs = now - connection.idleAtNanos;
+        if (idleDurationNs > longestIdleDurationNs) {
+          longestIdleDurationNs = idleDurationNs;
+          longestIdleConnection = connection;
+        }
+      }
+
+      if (longestIdleDurationNs >= this.keepAliveDurationNs
+          || idleConnectionCount > this.maxIdleConnections) {
+        // We've found a connection to evict. Remove it from the list, then close it below (outside
+        // of the synchronized block).
+        connections.remove(longestIdleConnection);
+      } else if (idleConnectionCount > 0) {
+        // A connection will be ready to evict soon.
+        return keepAliveDurationNs - longestIdleDurationNs;
+      } else if (inUseConnectionCount > 0) {
+        // All connections are in use. It'll be at least the keep alive duration 'til we run again.
+        return keepAliveDurationNs;
+      } else {
+        // No connections, idle or in use.
+        cleanupRunning = false;
+        return -1;
+      }
+    }
+
+    closeQuietly(longestIdleConnection.socket());
+
+    // Cleanup again immediately.
+    return 0;
+  }
+
+  /**
+   * Prunes any leaked allocations and then returns the number of remaining live allocations on
+   * {@code connection}. Allocations are leaked if the connection is tracking them but the
+   * application code has abandoned them. Leak detection is imprecise and relies on garbage
+   * collection.
+   */
+  private int pruneAndGetAllocationCount(RealConnection connection, long now) {
+    List<Reference<StreamAllocation>> references = connection.allocations;
+    for (int i = 0; i < references.size(); ) {
+      Reference<StreamAllocation> reference = references.get(i);
+
+      if (reference.get() != null) {
+        i++;
+        continue;
+      }
+
+      // We've discovered a leaked allocation. This is an application bug.
+      StreamAllocation.StreamAllocationReference streamAllocRef =
+          (StreamAllocation.StreamAllocationReference) reference;
+      String message = "A connection to " + connection.route().address().url()
+          + " was leaked. Did you forget to close a response body?";
+      Platform.get().logCloseableLeak(message, streamAllocRef.callStackTrace);
+
+      references.remove(i);
+      connection.noNewStreams = true;
+
+      // If this was the last allocation, the connection is eligible for immediate eviction.
+      if (references.isEmpty()) {
+        connection.idleAtNanos = now - keepAliveDurationNs;
+        return 0;
+      }
+    }
+
+    return references.size();
+  }
+
+  public static final class StreamAllocationReference extends WeakReference<StreamAllocation> {
+    /**
+     * Captures the stack trace at the time the Call is executed or enqueued. This is helpful for
+     * identifying the origin of connection leaks.
+     */
+    public final Object callStackTrace;
+
+    StreamAllocationReference(StreamAllocation referent, Object callStackTrace) {
+      super(referent);
+      this.callStackTrace = callStackTrace;
+    }
+  }
+```
+
+通过判断``connection.allocations``的集合元素的弱引用指向是否为空来判断``connection``是否应该被释放。
+
+## CallServerInterceptor
+
+```java
+    @Override public Response intercept(Chain chain) throws IOException {
+    RealInterceptorChain realChain = (RealInterceptorChain) chain;
+    HttpCodec httpCodec = realChain.httpStream();
+    StreamAllocation streamAllocation = realChain.streamAllocation();
+    RealConnection connection = (RealConnection) realChain.connection();
+    Request request = realChain.request();
+
+    long sentRequestMillis = System.currentTimeMillis();
+
+    realChain.eventListener().requestHeadersStart(realChain.call());
+    httpCodec.writeRequestHeaders(request);
+    realChain.eventListener().requestHeadersEnd(realChain.call(), request);
+
+    Response.Builder responseBuilder = null;
+    if (HttpMethod.permitsRequestBody(request.method()) && request.body() != null) {
+      // If there's a "Expect: 100-continue" header on the request, wait for a "HTTP/1.1 100
+      // Continue" response before transmitting the request body. If we don't get that, return
+      // what we did get (such as a 4xx response) without ever transmitting the request body.
+      if ("100-continue".equalsIgnoreCase(request.header("Expect"))) {
+        httpCodec.flushRequest();
+        realChain.eventListener().responseHeadersStart(realChain.call());
+        responseBuilder = httpCodec.readResponseHeaders(true);
+      }
+
+      if (responseBuilder == null) {
+        // Write the request body if the "Expect: 100-continue" expectation was met.
+        realChain.eventListener().requestBodyStart(realChain.call());
+        long contentLength = request.body().contentLength();
+        CountingSink requestBodyOut =
+            new CountingSink(httpCodec.createRequestBody(request, contentLength));
+        BufferedSink bufferedRequestBody = Okio.buffer(requestBodyOut);
+
+        request.body().writeTo(bufferedRequestBody);
+        bufferedRequestBody.close();
+        realChain.eventListener()
+            .requestBodyEnd(realChain.call(), requestBodyOut.successfulCount);
+      } else if (!connection.isMultiplexed()) {
+        // If the "Expect: 100-continue" expectation wasn't met, prevent the HTTP/1 connection
+        // from being reused. Otherwise we're still obligated to transmit the request body to
+        // leave the connection in a consistent state.
+        streamAllocation.noNewStreams();
+      }
+    }
+
+    httpCodec.finishRequest();
+
+    if (responseBuilder == null) {
+      realChain.eventListener().responseHeadersStart(realChain.call());
+      responseBuilder = httpCodec.readResponseHeaders(false);
+    }
+
+    Response response = responseBuilder
+        .request(request)
+        .handshake(streamAllocation.connection().handshake())
+        .sentRequestAtMillis(sentRequestMillis)
+        .receivedResponseAtMillis(System.currentTimeMillis())
+        .build();
+
+    int code = response.code();
+    if (code == 100) {
+      // server sent a 100-continue even though we did not request one.
+      // try again to read the actual response
+      responseBuilder = httpCodec.readResponseHeaders(false);
+
+      response = responseBuilder
+              .request(request)
+              .handshake(streamAllocation.connection().handshake())
+              .sentRequestAtMillis(sentRequestMillis)
+              .receivedResponseAtMillis(System.currentTimeMillis())
+              .build();
+
+      code = response.code();
+    }
+
+    realChain.eventListener()
+            .responseHeadersEnd(realChain.call(), response);
+
+    if (forWebSocket && code == 101) {
+      // Connection is upgrading, but we need to ensure interceptors see a non-null response body.
+      response = response.newBuilder()
+          .body(Util.EMPTY_RESPONSE)
+          .build();
+    } else {
+      response = response.newBuilder()
+          .body(httpCodec.openResponseBody(response))
+          .build();
+    }
+
+    if ("close".equalsIgnoreCase(response.request().header("Connection"))
+        || "close".equalsIgnoreCase(response.header("Connection"))) {
+      streamAllocation.noNewStreams();
+    }
+
+    if ((code == 204 || code == 205) && response.body().contentLength() > 0) {
+      throw new ProtocolException(
+          "HTTP " + code + " had non-zero Content-Length: " + response.body().contentLength());
+    }
+
+    return response;
+  }
+```
+
+分别调用``httpCodec.writeRequestHeaders(request);``写请求头部，``request.body().writeTo(bufferedRequestBody);``写请求body，``httpCodec.readResponseHeaders(false);``读响应头部，``httpCodec.openResponseBody(response)``读响应body。
+
+至此，所有``interceptor``分析完毕。
+
+接下来会写一下关于okhttp的扩展，比如如何监听下载进度，appliation interceptor与network interceptor的区别，如何设置断网情况下的缓存等等。
