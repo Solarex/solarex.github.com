@@ -15,6 +15,7 @@ footer: true
 + [编译时IOC框架](https://github.com/flyfire/SolarexButterKnifeDemo)
 + [Android JSON解析框架](https://github.com/flyfire/SolarexJSONDemo)
 + [模仿Android线程间通信机制](https://github.com/flyfire/SolarexHandler)
++ [模仿Glide的图像处理框架](https://github.com/flyfire/SolarexGlideDemo)
 
 <h3 id='designpattern'>设计模式</h3>
 
