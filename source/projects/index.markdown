@@ -44,6 +44,7 @@ footer: true
 + [SolarexBezierDemo](https://github.com/flyfire/SolarexBezierDemo)
 + [WeeklyCalendarViewDemo](https://github.com/flyfire/WeeklyCalendarViewDemo)
 + [RadarViewDemo](https://github.com/flyfire/RadarViewDemo)
++ [DisplayConnectViewDemo](https://github.com/flyfire/DisplayConnectViewDemo)
 
 <h3 id='practice'>Android最佳实践</h3>
 
