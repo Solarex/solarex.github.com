@@ -46,6 +46,14 @@ footer: true
 + [RadarViewDemo](https://github.com/flyfire/RadarViewDemo)
 + [DisplayConnectViewDemo](https://github.com/flyfire/DisplayConnectViewDemo)
 
+<h3 id='algorithm'>算法</h3>
++ [LeetCodeSolutions](https://github.com/flyfire/LeetCodeSolutions)
+
+<h3 id='notebook'>读书笔记</h3>
++ [JCIP](https://github.com/flyfire/ReadJCIP)
++ [读书笔记](https://github.com/flyfire/Notebook)
++ [读书笔记gitbook](https://github.com/solarex/notes)
+
 <h3 id='practice'>Android最佳实践</h3>
 
 + [Writing Better Adapters](https://github.com/flyfire/MultitypeBaseAdapter)
