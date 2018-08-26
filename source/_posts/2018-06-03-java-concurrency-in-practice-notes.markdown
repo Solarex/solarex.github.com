@@ -139,14 +139,254 @@ public interface ConcurrentMap<K,V> extends Map<K,V> {
 }
 ```
 
+阻塞队列提供了可阻塞的put和take方法，以及支持定时的offer和poll方法。
+
+Java6增加了两种容器类型，Deque和BlockingDeque，他们分别对Queue和BlockingQueue进行了扩展。Deque是一个双端队列，实现了在队列头和队列尾的高效插入和移除。具体实现包括ArrayDeque和LinkedBlockingDeque。正如阻塞队列适用于生产者--消费者模式，双端队列同样适用于另一种相关模式，即工作密取。在生产者——消费者设计中，所有消费者有一个共享的工作队列，而在工作密取中，每个消费者都有各自的双端队列。如果一个消费者完成了自己双端队列中的全部工作，那么它可以从其他消费者双端队列末尾秘密地获取工作。密取工作模式比传统的生产者——消费者模式具有更高的可伸缩性，这是因为工作者线程不会在单个共享的任务队列上发生竞争。大多数时候，它们都只是访问自己的双端队列，从而极大地减少了竞争。当工作者线程需要访问另一个队列时，它会从队列的尾部而不是头部获取工作，因此进一步降低了队列上的竞争。工作密取非常适用于既是消费者也是生产者问题——当执行某个工作时可能导致出现更多的工作。例如，在网页爬虫程序中处理一个页面时，通常会发现有更多的页面需要处理。
+
+线程可能会阻塞或暂停执行，原因有多种：等待I/O操作结束，等待获取一个锁，等待从Thread.sleep方法中醒来，或是等待另一个线程的计算结果。当线程阻塞时，它通常被挂起，并处于某种阻塞状态(Blocked、Waiting、Timed_Waiting)。阻塞操作与执行时间很长的普通操作的差别在于，被阻塞的线程必须等待某个不受它控制的事件发生后才能继续执行，例如等待I/O操作完成，等待某个锁变成可用，或者等待外部计算的结束。当某个外部事件发生时，线程被置回Runnable，并可以再次被调度执行。
+
+当某方法抛出InterruptException时，表示该方法是一个阻塞方法，如果这个方法被中断，那么它将努力提前结束阻塞状态。Thread提供了interrupt方法，用于中断线程或查询线程是否已经被中断。每个线程都有一个boolean类型的属性，表示线程的中断状态，当中断线程时将设置这个状态。
+
+当在代码中调用了一个将抛出InterruptException异常的方法时，你自己的方法也就变成了一个阻塞方法，并且必须要处理对中断的响应。有两种基本选择：
+
++ 传递InterruptException
++ 恢复中断，有时候不能抛出InterruptException,例如当代码是Runnable的一部分时，在这些情况下，必须捕获InterruptException，并通过调用当前线程上的interrupt方法恢复中断状态，这样在调用栈中更高层的代码将看到引发了一个中断。
+
+阻塞队列可以作为同步工具类，其他类型的同步工具类还包括信号量(Semaphore)、栅栏（Barrier）、以及闭锁（Latch）。
+
+所有的同步工具类都包含一些特定的结构化属性：它们封装了一些状态，这些状态将决定执行同步工具类的线程是继续执行还是等待，此外还提供了一些方法对状态进行操作，以及另一些方法用于高效地等待同步工具类进入到预期状态。
+
+闭锁是一种同步工具类，可以延迟线程的进度直到其到达终止状态。闭锁的作用相当于一扇门：在闭锁到达结束状态之前，这扇门一直是关闭的，并且没有任何线程能通过，当到达结束状态时，这扇门会打开并允许所有线程通过。当闭锁到达结束状态后，将不会再改变状态，隐藏这扇门将永远保持打开状态。闭锁可以用来确保某些活动指导其他活动都完成后才继续执行。
+
+CountDownLatch是一种灵活的闭锁实现。
+
+```java
+public static long timeTasks(int num, final Runnable task) throws InterruptedException{
+        final CountDownLatch startGate = new CountDownLatch(1);
+        final CountDownLatch endGate = new CountDownLatch(num);
+
+        for (int i = 0; i < num; i++) {
+            Thread t = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        startGate.await();
+                        try {
+                            task.run();
+                        } finally {
+                            endGate.countDown();
+                        }
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+            t.start();
+        }
+        long start = System.nanoTime();
+        startGate.countDown();
+        endGate.await();
+        long end = System.nanoTime();
+        return end - start;
+    }
+```
+
+FutureTask也可以用作闭锁。FutureTask实现了Future语义，表示一种抽象的可生成结果的计算。FutureTask表示的计算是通过Callable来实现的，相当于一种可生成结果的Runnable，并且可以处于以下3种状态：等待运行Waiting to run，正在运行Running，运行完成Completed。运行完成表示计算的所有可能结束方式，包括正常结束、由于取消而结束和由于异常而结束等。FutureTask进入完成状态后，它会永远停留在这个状态上。
+
+计数信号量（Counting Semaphore）用来控制同时访问某个资源的操作数量，或者同时执行某个特定操作的数量。计数信号量还可以用来实现某种资源池，或者对容器施加边界。Semaphore中管理着一组虚拟的许可，许可的初始数量可通过构造函数来指定。在执行操作时可以首先获取许可（只要还有剩余的许可），并在使用以后释放许可。如果没有许可，那么acquire将阻塞直到有许可（或者直到被中断或者操作超时）。release方法将返回一个许可给Semaphore。计数信号量的一种简化形式是二值信号量，即初始值为1的Semaphore，二值信号量可以用作互斥体Mutex，并具备不可重入的加锁语义：谁拥有这个唯一的许可，谁就拥有了互斥锁。
+
+```java
+public class BoundedHashSet<T> {
+    private final Set<T> set;
+    private final Semaphore semaphore;
+
+    public BoundedHashSet(int bound) {
+        this.set = Collections.synchronizedSet(new HashSet<T>());
+        this.semaphore = new Semaphore(bound);
+    }
+
+    public boolean add(T o) throws InterruptedException {
+        semaphore.acquire();
+        boolean wasAdded = false;
+        try {
+            wasAdded = set.add(o);
+            return wasAdded;
+        } finally {
+            if (!wasAdded) {
+                semaphore.release();
+            }
+        }
+    }
+
+    public boolean remove(T o) {
+        boolean wasRemoved = set.remove(o);
+        if (wasRemoved) {
+            semaphore.release();
+        }
+        return wasRemoved;
+    }
+}
+```
+
+闭锁是一次性对象，一旦进入终止状态，就不能被重置。栅栏（Barrier）类似于闭锁，它能一直阻塞一组线程直到某个事件发生。栅栏与闭锁的关键区别在于，所有线程必须同时到达栅栏位置，才能继续执行。闭锁用于等待事件，而栅栏用于等待其他线程。
+
+CyclicBarrier可以使一定数量的参与方反复地在栅栏位置汇集，它在并行迭代算法中非常有用：这种算法通常将一个问题拆分成一系列相互独立的子问题。当线程到达栅栏位置时将调用await方法，这个方法将阻塞直到所有线程都到达栅栏位置。如果所有线程都到达了栅栏位置，那么栅栏将打开，此时所有线程都被释放，而栅栏将被重置以便下次使用。如果对await的调用超时，或者await阻塞的线程被中断，那么栅栏就被认为是打破了，所有阻塞的await调用都将终止并抛出BrokenBarrierException。如果成功地通过栅栏，那么await将为每个线程返回一个唯一的到达索引号，我们可以利用这些索引来选举产生一个领导线程，并在下一次迭代中由该领导线程执行一些特殊的工作。CyclicBarrier还可以使你将一个栅栏操作传递给构造函数，这是一个Runnable，当成功通过栅栏时会在一个子任务线程中执行它，但在阻塞线程被释放之前是不能执行的。
+
+另一种形式的栅栏是Exchanger，它是一种两方栅栏，各方在栅栏位置上交换数据。当两方执行不对称的操作时，Exchanger会非常有用，例如当一个线程向缓冲区写入数据，而另一个线程从缓冲区读取数据。这些线程可以使用Exchanger来汇合，并将满的缓冲区与空的缓冲区交换。当两个线程通过Exchanger交换对象时，这种交换就把这两个对象安全地发布给另一方。
+
+```java
+public class Memoizer<A, V> implements Computable<A, V> {
+    private final ConcurrentHashMap<A, Future<V>> cache = new ConcurrentHashMap<>();
+    private final Computable<A, V> delegate;
+
+    public Memoizer(Computable<A, V> delegate) {
+        this.delegate = delegate;
+    }
+
+    @Override
+    public V compute(A arg) throws InterruptedException {
+        while (true) {
+            Future<V> f = cache.get(arg);
+            if (f == null) {
+                Callable<V> eval = new Callable<V>() {
+                    @Override
+                    public V call() throws Exception {
+                        return delegate.compute(arg);
+                    }
+                };
+                FutureTask<V> ft = new FutureTask<V>(eval);
+                f = cache.putIfAbsent(arg, ft);
+                if (f == null) {
+                    f = ft;
+                    ft.run();
+                }
+            }
+            try {
+                return f.get();
+            } catch (CancellationException e) {
+                cache.remove(arg, f);
+            } catch (ExecutionException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+}
+
+interface Computable<A, V> {
+    V compute(A arg) throws InterruptedException;
+}
+```
+
+并发技巧清单：
+
++ 可变状态是至关重要的。所有的并发问题都可以归结为如何协调对并发状态的访问。可变状态越少，就越容易确保线程安全性。
++ 尽量将域声明为final类型，除非需要他们是可变的。
++ 不可变对象一定是线程安全的。不可变对象能极大地降低并发编程的复杂性。它们更为简单而且安全，可以任意共享而无需使用加锁或保护性复制等机制。
++ 封装有助于管理复杂性。在编写线程安全的程序时，虽然可以将所有数据都保存在全局变量中，但为什么要这么做？将数据封装在对象中，更易于维持不变性条件：将同步机制封装在对象中，更易于遵循同步策略。
++ 用锁来保护每个可变变量。
++ 当保护同一个不变性条件中的所有变量时，要使用同一把锁。
++ 在执行复合操作期间，要持有锁。
++ 如果从多个线程中访问同一个可变变量时没有使用同步机制，那么线程会出现问题。
+
 <h2 id="ch06">任务执行</h2>
+
++ 线程生命周期的开销非常高。线程的创建和销毁并不是没有代价的，根据平台的不同，实际的开销也有所不同，单线程的创建过程都会需要时间，延迟处理的请求，并且需要JVM和操作系统提供一些辅助操作。
++ 资源消耗，活跃的线程会消耗系统资源，尤其是内存。如果可运行的线程数量多于可用处理器的数量，那么有些线程将被闲置。大量空闲的线程会占用许多内存，给垃圾回收器带来压力，而且大量线程在竞争CPU资源还将产生其他的性能开销。
++ 稳定性，在创建线程的数量上存在一个限制。这个限制值将随着平台的不同而不同，并且受多个因素制约，包括JVM的启动参数，Thread构造函数中请求的栈大小，以及底层操作系统对线程的限制等。在32位机器上，其中一个主要的限制因素是线程栈的地址空间。每个线程都维护两个执行栈，一个用于Java代码，一个用于Native代码。通常，JVM在默认情况下会生成一个复合的栈，大小约为0.5MB。可以通过JVM标志-Xss或者通过Thread的构造函数来修改这个值。如果将2^32处以每个线程的栈大小，那么线程数量将被限制为几千到几万。如果破坏了这些限制，那么很可能抛出OutOfMemoryError异常。
+
+Timer类负责管理延迟任务以及周期任务。然而，Timer存在一些缺陷，应该考虑使用ScheduledThreadPoolExecutor来代替它。
+
++ Timer在执行所有的定时任务时只会创建一个线程。如果某个任务的执行时间过长，那么将破坏其他TimerTask的定时准确性。
++ 如果TimerTask抛出了一个未检查的异常，那么Timer将表现出糟糕的行为。Timer线程并不捕获异常，因此当TimerTask抛出未检查的异常时将终止定时线程。这种情况下，Timer也不会恢复线程的执行，而是会错误地认为整个Timer都被取消了。因此，已经被调度但尚未执行的TimerTask将不会再执行，新的任务也不能被调度。
+
+如果要构建自己的调度服务，那么可以使用DelayQueue，它实现了BlockingQueue，并为ScheduledThreadPoolExecutor提供调度功能。DelayQueue管理着一组Delayed对象。每个Delayed对象都有一个相应的延迟时间：在DelayQueue中，只有某个元素逾期后，才能从DelayQueue中执行take操作。从DelayQueue中返回的对象将根据他们的延迟时间进行排序。
+
+如果向Executor提交了一组计算任务，并且希望在计算完成后获得结果，那么可以保留与每个任务关联的Future，然后反复使用get方法，同时将参数timeout指定为0，从而通过轮询来判断任务是否完成。这种方法虽然可行，但却有些繁琐。幸运的是，还有一种更好的方法：CompletionService。CompletionService将Executor和BlockingQueue的功能融合在一起。可以将Callable任务提交给他来执行，然后使用类似于队列操作的take和poll等方法来获得已完成的结果，而这些结果会在完成时将被封装为Future。ExecutorCompletionService实现了CompletionService，并将计算部分委托给一个Executor。
+
+ExecutorCompletionService的实现非常简单。在构造函数中创建一个BlockingQueue来保存计算完成的结果。当计算完成时，调用FutureTask中的done方法。当提交任务时，任务将首先被包装为一个QueueingFuture，这是FutureTask的一个子类，然后再改写子类的done方法，并将结果放入BlockingQueue中。
+
 <h2 id="ch07">取消与关闭</h2>
+每个线程都有一个boolean类型的中断状态。当中断线程时，这个线程的中断状态将被设置为true。在Thread中包含了中断线程以及查询线程中断状态的方法。``interrupt``方法能中断目标线程，而``isInterrupted``方法能返回目标线程的中断状态。静态的``interrupted``方法将
+清除当前线程的中断状态，并返回它之前的状态，这也是清除中断状态的唯一方法。
+
+```java
+public class Thread {
+    public void interrupt() {...}
+    public boolean isInterrupted() {...}
+    public static boolean interrupted() {...}
+}
+```
+
+阻塞库方法，例如``Thread.sleep``和``Object.wait``等，都会检查线程何时中断，并且在发现中断时提前返回。它们在响应中断时执行的操作包括：清除中断状态，抛出InterruptedException，表示阻塞操作由于中断而提前结束。
+
+对中断操作的正确理解是：它并不会真正地中断一个正在运行的线程，而只是发出中断请求，然后由线程在下一个合适的时刻中断自己。有些方法，例如wait、sleep、join等，都严格地处理这种请求，当它们收到中断请求或者在开始执行时发现某个已被设置好的中断状态时，将抛出一个异常。设计良好的方法可以完全忽略这种请求，只要它们能使调用代码对中断请求进行某种处理。设计糟糕的方法可能会屏蔽中断请求，从而导致调用栈中的其他代码无法对中断请求做出响应。
+
+在使用静态的interrupted时应该小心，因为它会清除当前线程的中断状态。如果在调用interrupted时返回了true，那么除非你想屏蔽这个中断，否则必须对它进行处理——可以抛出InterruptedException，或者通过再次调用interrupt来恢复中断状态。
+
+ExecutorService.submit将返回一个Future来描述任务。Future拥有一个cancel方法，该方法带有一个boolean类型的参数mayInterruptIfRunning，表示取消操作是否成功（这只是表示任务是否能够接收中断，而不是表示任务是否能检测并处理中断）。如果这个参数为false，那么意味着“如果任务还没有启动，就不要运行它”，这种方式应该用于那些不处理中断的任务中。
+
+ExecutorService提供了两种关闭方法，使用shutdown正常关闭，以及使用shutdownNow强行关闭。在进行强行关闭时，shutdownNow首先关闭当前正在执行的任务，然后返回所有尚未启动的任务清单。
+
 <h2 id="ch08">线程池的使用</h2>
+线程池的基本大小Core Pool Size、最大大小Max Pool Size以及存活时间等因素共同负责线程的创建和销毁。基本大小就是线程池的目标大小，即在没有任务执行时线程池的大小，并且只有在工作队列满了的情况下才会创建超出这个数量的线程。线程池的最大大小表示可同时活动的线程数量的上限。如果某个线程的空闲时间超过了存活时间，那么将被标记为可回收的，并且当线程池的当前大小超过了基本大小时，这个线程将被终止。
+
+ThreadPoolExecutor允许提供一个BlockingQueue来保存等待执行的任务。基本的任务排队方法有3种：无界队列、有界队列和同步移交（Synchronous Handoff）。
+
+newFixedThreadPool和newSingleThreadPoolExecutor在默认情况下将使用一个无界的LinkedBlockingQueue。如果所有工作者线程都处于忙碌状态，那么任务将在队列中等待。如果任务持续快速的到达，并且超过了线程池处理他们的速度，那么队列将无限制的增加。
+
+一种更稳妥的资源管理策略是使用有界队列，例如ArrayBlockingQueue、有界的LinkedBlockingQueue、PriorityBlockingQueue。
+
+对于非常大的或者无界的线程池，可以通过使用SynchronousQueue来避免任务排队，以及直接将任务从生产者移交给工作者线程。SynchronousQueue不是一个真正的队列，而是一种在线程之间进行移交的机制。要将一个元素放入SynchronousQueue中，必须有另一个线程正在等待接收这个元素，如果没有线程正在等待，并且线程池的当先大小小于最大值，那么ThreadPoolExecutor将创建一个新的线程，否则根据饱和策略，这个任务将被拒绝。使用直接一脚将更高效，因为任务会直接移交给执行它的线程，而不是被首先放到队列中。只有当线程池是无界的或者可以拒绝任务时，SynchronousQueue才有实际价值。在newCachedThreadPool工厂方法中就使用了SynchronousQueue。
+
+当有界队列被填满后，饱和策略开始发挥作用。JDK提供了几种不同的RejectedExecutionHandler实现，有AbortPolicy、CallerRunsPolicy、DiscardPolicy、DiscardOldestPolicy。
+
 <h2 id="ch09">图形用户界面应用程序</h2>
 <h2 id="ch10">避免活跃性危险</h2>
+我们使用加锁机制来确保线程安全，单如果过度地使用加锁，则可能导致锁顺序死锁。同样，使用线程池和信号量来限制对资源的使用，单这些被限制的行为可能会导致资源死锁。
+
+在制定锁的顺序时，可以使用System.identityHashCode方法，该方法将返回由Object.hashCode返回的值。在极少数的情况下，两个对象可能拥有相同的散列值，此时必须通过某种任意的方法来决定锁的顺序，而这可能又会重新引入死锁。为了避免这种情况，可以使用“加时赛”锁。在获得两个Account锁之前，首先获得这个“加时赛”锁，从而保证每次只有一个线程以未知的顺序获得这两个锁，从而消除了死锁发生的可能性。
+
+当使用内置锁的时候，只要没有获取锁，就会永远等待下去，而显式锁则可以指定一个超时时限，在等待超过该时间后tryLock会返回一个失败信息。
+
+当线程由于无法访问它所需要的资源而不能继续执行时，就发生了饥饿。
+
+活锁时另一种形式的活跃性问题，该问题尽管不会阻塞线程，但也不能继续执行，因为线程将不断重复执行相同的操作，而且总会失败。活锁通常发生在处理事务消息的应用程序中：如果不能成功地处理某个信息，那么消息处理机制将回滚整个事务，并将它重新放到队列的开头。如果消息处理器在处理某种特定类型的消息时存在错误并导致它失败，那么每当这个消息从队列中取出并传递到存在错误的处理器时，都会发生事务回滚。由于这条消息又被放回到队列开头，隐藏处理器将被反复调用，并返回相同的结果（有时候也被称为毒丸消息）。虽然处理消息的线程并没有阻塞，但也无法继续执行下去。这种形式的活锁通常是由过度的错误恢复代码造成的，因为它错误地将不可修复的错误作为可修复的错误。要解决这种活锁问题，需要在重试机制中引入随机性。在并发应用程序中，通过等待随机长度的时间和回退可以有效地避免活锁的发生。
+
 <h2 id="ch11">性能和可伸缩性</h2>
+同步操作的性能开销包括多个方面。在synchronized和volatile提供的可见性保证中可能会使用一些特殊指令，即内存栅栏。内存栅栏可以刷新缓存，使缓存无效，刷新硬件的写缓冲，以及停止执行管道。内存栅栏可能同样会对性能带来间接地影响，因为他们将抑制一些编译器优化操作。在内存栅栏中，大多数操作都是不能被重排序的。
+
+缩小所得范围，快进快出。
+
+减小锁的粒度，锁分段。
 <h2 id="ch12">并发程序的测试</h2>
 <h2 id="ch13">显式锁</h2>
+
+```java
+public interface Lock {
+    void lock();
+    void lockInterruptibly() throws InterruptedException;
+    boolean tryLock();
+    boolean tryLock(long timeout, TimeUnit unit) throws InterruptedException;
+    void unlock();
+    Condition newCondition();
+}
+```
+
+在大多数情况下：内置锁都能很好地工作，但在功能上存在一些局限性，例如，无法中断一个正在等待获得锁的线程，或者无法在请求获取一个锁时无限地等待下去。内置锁必须在等待获取所得代码块中释放，这就简化了编码工作，并且与异常处理操作实现了很好地交互，但却无法实现非阻塞结构的加锁规则。
+
+```java
+Lock lock = new ReentrantLock();
+...
+lock.lock();
+try {
+    // 更新对象状态
+    // 捕获异常，并在必要时恢复不变性条件
+} finally {
+    lock.unlock();
+}
+```
+
+
 <h2 id="ch14">构建自定义的同步工具</h2>
 <h2 id="ch15">原子变量与非阻塞同步机制</h2>
 <h2 id="ch16">Java内存模型</h2>
