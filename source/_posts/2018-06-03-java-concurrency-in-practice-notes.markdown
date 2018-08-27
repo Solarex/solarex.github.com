@@ -386,7 +386,93 @@ try {
 }
 ```
 
+ReentrantLock的构造函数中提供了两种公平性选择：创建一个非公平的锁（默认）或者一个公平的锁。在公平的锁上，线程将按照他们发出请求的顺序来获得锁，但在非公平的锁上，则允许插队：当一个线程请求非公平的锁时，如果在发出请求的同时该锁的状态变为可用，那么这个线程将跳过队列中所有的等待线程并获得这个锁。（在Semaphore中同样可以选择采用公平的或者非公平的获取顺序）非公平的ReentrantLock并不提倡插队行为，但无法防止某个线程在合适的时候进行插队。在公平的锁中，如果有另一个线程持有这个锁或者有其他线程在队列中等待这个锁，那么发出请求的线程将被放入队列中。在非公平的锁中，只有当锁被某个线程持有时，新发出请求的线程才会被放入队列中。
 
+在大多数情况下，非公平锁的性能要高于公平锁的性能。
+
+当持有锁的时间相对较长，或者请求锁的平均时间间隔较长，那么应该使用公平锁。在这些情况下，插队带来的吞吐量提升（当锁处于可用状态时，线程还处于被唤醒的过程中）则可能不会出现。
+
+在一些内置锁无法满足需求的情况下，ReentrantLock可以作为一种高级工具。当需要一些高级功能时才应该使用ReentrantLock，这些功能包括：可定时的、可轮询的与可中断的锁获取操作，公平队列，以及非块结构的锁。否则，还是应该优先使用synchronized。
+
+读写锁：一个资源可以被多个读操作访问，或者被一个写操作访问，但两者不能同时进行。
+
+```java
+public interface ReadWriterLock {
+    Lock readLock();
+    Lock writeLock();
+}
+```
+
+ReentrantReadWriteLock为这两种锁都提供了可重入的加锁语义。与ReentrantLock泪水，ReentrantReadWriteLock在构造时也可以选择是一个非公平的锁（默认）还是一个公平的锁。在公平锁上，等待时间最长的线程将优先获得锁。如果这个锁由读线程持有，而另一个线程请求写入锁，那么其他读线程都不能获得读取锁，直到写线程使用完并释放了写入锁。在非公平的锁中，线程获得访问许可的顺序是不确定的。写线程可以降级为读线程，但从读线程升级为写线程是不可以的（这样做会导致死锁）。与ReentrantLock类似的是，ReentrantReadWriteLock中的写入锁只能有唯一的所有者，并且只能由获得该锁的线程来释放。在Java5.0中，读取锁的行为更类似于一个Semaphore而不是锁，它只维护活跃的读线程的数量，而不考虑它们的标识。在Java6.0中修改了这个行为：记录那些线程已经获得了读者锁。做出这种修改的原因是：在Java5.0的锁实现中，无法区别一个线程是首次请求读取锁，还是可重入锁请求，从而可能使公平的读——写锁发生死锁。
+
+当锁的持有时间较长并且大部分操作都不会修改被守护的资源时，那么读——写锁能提高并发性。
 <h2 id="ch14">构建自定义的同步工具</h2>
+要想正确地使用条件队列，关键是找出对象在哪个条件谓词上等待。条件谓词是使某个操作成为状态依赖操作的前提条件。在有界缓存中，只有当缓存不为空时，take方法才能执行，否则必须等待。对take方法来说，它的条件谓词就是“缓存不为空”，take方法在执行之前必须首先测试该条件谓词。同样，put方法的条件谓词是“缓存不满”。条件谓词是由类中各个状态变量构成的表达式。
+
+当使用条件等待时（例如Object.wait或Condition.await）:
+
++ 通常都有一个条件谓词——包括一些对象状态的测试，线程在执行前必须首先通过这些测试。
++ 在调用wait之前测试条件谓词，并且从wait中返回时再次进行测试
++ 在一个循环中调用wait
++ 确保使用与条件队列相关的锁来保护构成条件谓词的各个状态变量
++ 当调用wait、notify、notifyAll等方法时，一定要持有与条件队列相关的锁
++ 在检查条件谓词之后以及开始执行相应的操作之前，不要释放锁。
+
+在等待一个条件时，一定要确保在条件谓词变为真时通过某种方式发出通知。
+
+在条件队列API中有两个发出通知的方法，即notify和notifyAll。无论调用哪一个，都必须持有与条件队列对象相关联的锁。在调用notify时，JVM会从这个条件队列上等待的多个线程中选择一个唤醒，而调用notifyAll则会唤醒所有在这个条件队列上等待的线程。由于在调用notify或notifyAll时必须持有条件队列对象的锁，而如果这些等待中线程此时不能重新获得锁，那么无法从wait返回，因此发出通知的线程应该尽快地释放锁，从而确保正在等待的线程尽可能快地解除阻塞。
+
+```java
+public class ConditionBoundedBuffer<T> {
+    private final int BUFFER_SIZE = 50;
+    protected final Lock lock = new ReentrantLock();
+    // 条件谓词 notFull (count < items.length)
+    private final Condition notFull = lock.newCondition();
+    // 条件谓词 notEmpty (count > 0)
+    private final Condition notEmpty = lock.newCondition();
+    private final T[] items = (T[])new Object[BUFFER_SIZE];
+    private int tail,head,count;
+
+    // 阻塞并直到notFull
+    public void put(T x) throws InterruptedException {
+        lock.lock();
+        try {
+            while (count == items.length) {
+                notFull.await();
+            }
+            items[tail] = x;
+            if (++tail == items.length) {
+                tail = 0;
+            }
+            ++count;
+            notEmpty.signal();
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    // 阻塞直到notEmpty
+    public T take() throws InterruptedException {
+        lock.lock();
+        try {
+            while (count == 0) {
+                notEmpty.await();
+            }
+            T x = items[head];
+            items[head] = null;
+            if (++head == items.length) {
+                head = 0;
+            }
+            --count;
+            notFull.signal();
+            return x;
+        } finally {
+            lock.unlock();
+        }
+    }
+}
+```
+
+在基于AQS构建的同步器类中，最基本的操作包括各种形式的获取操作和释放操作。获取操作时一种依赖状态的操作，通常会阻塞。当使用锁或信号量时，获取操作的含义就很直观，即获取的是锁或者许可，并且调用者可能会一直等待直到同步器类处于可被获取的状态。在使用CountDownLatch时，获取操作意味着“等待并直到闭锁到达结束状态”，而在使用FutureTask
 <h2 id="ch15">原子变量与非阻塞同步机制</h2>
 <h2 id="ch16">Java内存模型</h2>
