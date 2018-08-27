@@ -473,6 +473,121 @@ public class ConditionBoundedBuffer<T> {
 }
 ```
 
-在基于AQS构建的同步器类中，最基本的操作包括各种形式的获取操作和释放操作。获取操作时一种依赖状态的操作，通常会阻塞。当使用锁或信号量时，获取操作的含义就很直观，即获取的是锁或者许可，并且调用者可能会一直等待直到同步器类处于可被获取的状态。在使用CountDownLatch时，获取操作意味着“等待并直到闭锁到达结束状态”，而在使用FutureTask
+在基于AQS构建的同步器类中，最基本的操作包括各种形式的获取操作和释放操作。获取操作时一种依赖状态的操作，通常会阻塞。当使用锁或信号量时，获取操作的含义就很直观，即获取的是锁或者许可，并且调用者可能会一直等待直到同步器类处于可被获取的状态。在使用CountDownLatch时，获取操作意味着“等待并直到闭锁到达结束状态”，而在使用FutureTask时，则意味着“等待并直到任务已经完成”。“释放”并不是一个可阻塞的操作，当执行“释放”操作时，所有在请求时被阻塞的线程都会开始执行。
+
+如果一个类想成为状态依赖的类，那么它必须拥有一些状态。AQS负责管理同步器类中的状态，它管理了一个整数状态信息，可以通过getState，setState以及compareAndSetState等protected类型方法来进行操作。这个整数可以用于表示任意状态。例如，ReentrantLock用它来表示所有者线程已经重复获取该锁的次数，Semaphore用它来表示剩余的许可数量，FutureTask用它来表示任务的状态（尚未开始、正在运行、已完成以及已取消）。在同步器类中还可以自行管理一些额外的状态变量，例如，ReentrantLock保存了锁的当前所有者的信息，这样就能区分某个获取操作时重入的还是竞争的。
+
+```java
+boolean acquire() throws InterruptedException {
+    while (当前状态不允许获取操作) {
+        if(需要阻塞获取请求){
+            如果当前线程不在队列中，则将其插入队列
+            阻塞当前线程
+        } else {
+            返回失败
+        }
+    }
+    可能更新同步器的状态
+    如果线程位于队列中，则将其移出队列
+    返回成功
+}
+
+void release() {
+    更新同步器的状态
+    if(新的状态允许某个被阻塞的线程获取成功) {
+        解除队列中一个或多个线程的阻塞状态
+    }
+}
+```
+
+ReadWriteLock接口表示存在两个锁：一个读取锁和一个写入锁，但在基于AQS实现的ReentrantReadWriteLock中，单个AQS子类将同时管理读取加锁和写入加锁。ReentrantReadWriteLock使用了一个16位的状态来表示写入锁的计数，并且使用了另一个16位的状态来表示读取锁的计数。在读取锁上的操作将使用共享的获取方式与释放方法，在写入锁上的操作将使用独占的获取方法与释放方法。
+
+在AQS内部维护一个等待线程队列，其中记录了某个线程请求的事独占访问还是共享访问。在ReentrantReadWriteLock中，当锁可用时，如果位于队列头部的线程执行写入操作，那么线程会得到这个锁，如果位于队列头部的线程执行读取访问，那么队列中在第一个写入线程之前的所有都将获取这个锁。
+
 <h2 id="ch15">原子变量与非阻塞同步机制</h2>
+原子变量提供了与volatile类型变量相同的内存语义，此外还支持原子的更新操作，从而使他们更适用于实现计数器、序列发生器和统计数据收集等，同时还能比基于锁的方法提供更高的可伸缩性。
+
+CAS包含了3个操作数——需要读写的内存位置V、进行比较的值A和拟写入的新值B，当且仅当V的值等于A时，CAS才会通过原子方式用新值B来更新V的值，否则不会执行任何操作。无论位置V的值是否等于A，都将返回V原有的值。
+
+当多个线程尝试使用CAS同时更新同一个变量时，只有一个线程能更新变量的值，而其他的线程都将失败。然而，失败的线程并不会被挂起（这与获取锁的情况不同：当获取锁失败时，线程将被挂起），而是被告知在这次竞争中失败，并可以再次尝试。由于一个线程在竞争CAS时失败不会阻塞，因此它可以决定是否重新尝试，或者执行一些恢复操作，也或者不执行任何操作。
+
+CAS的主要缺点是，它将使调用者处理竞争问题（通过重试、回退、放弃），而在锁中能自动处理竞争问题（线程获取锁之前将一直阻塞）。
+
+```java
+public class ConcurrentStack<E> {
+    private static class Node<E> {
+        public final E item;
+        public Node<E> next;
+
+        public Node(E item) {
+            this.item = item;
+        }
+    }
+
+    AtomicReference<Node<E>> top = new AtomicReference<>();
+
+    public void push(E item) {
+        Node<E> newHead = new Node<>(item);
+        Node<E> oldHead;
+        do {
+            oldHead = top.get();
+            newHead.next = oldHead;
+        } while (!top.compareAndSet(oldHead, newHead));
+    }
+
+    public E pop() {
+        Node<E> oldHead;
+        Node<E> newHead;
+        do {
+            oldHead = top.get();
+            if (oldHead == null) {
+                return null;
+            }
+            newHead = oldHead.next;
+        } while (!top.compareAndSet(oldHead, newHead));
+        return oldHead.item;
+    }
+}
+```
+
+```java
+public class LinkedQueue<E> {
+    private static class Node<E> {
+        final E item;
+        final AtomicReference<Node<E>> next;
+
+        public Node(E item, Node<E> next) {
+            this.item = item;
+            this.next = new AtomicReference<>(next);
+        }
+    }
+
+    private final Node<E> dummy = new Node<E>(null, null);
+    private final AtomicReference<Node<E>> head = new AtomicReference<>(dummy);
+    private final AtomicReference<Node<E>> tail = new AtomicReference<>(dummy);
+
+    public boolean put(E item) {
+        Node<E> newNode = new Node<>(item, null);
+        while (true) {
+            Node<E> curTail = tail.get();
+            Node<E> curTailNext = curTail.next.get();
+            if (curTail == tail.get()) {
+                if (curTailNext != null) {
+                    tail.compareAndSet(curTail, curTailNext);
+                } else {
+                    if (curTail.next.compareAndSet(null, newNode)) {
+                        tail.compareAndSet(curTail, newNode);
+                        return true;
+                    }
+                }
+            }
+        }
+
+    }
+}
+```
+
+解决ABA问题，不是更新某个引用的值，而是更新两个值，包括一个引用和一个版本号。
+
+在基于锁的算法中可能会发生活跃性故障。如果线程在持有锁时由于阻塞I/O，内存也缺失或其他延迟而导致推迟执行，那么很可能所有线程都不能继续执行下去。如果在某种算法中，一个线程的失败或挂起不会导致其他线程也失败或挂起，那么这种算法就被称为非阻塞算法。如果在算法的每个步骤中都存在某个线程能够执行下去，那么这种算法也被称为无锁算法。如果在算法中仅将CAS用于协调线程之间的操作，并且能正确地实现，那么它既是一种无阻塞算法又是一种无锁算法。
 <h2 id="ch16">Java内存模型</h2>
