@@ -591,3 +591,57 @@ public class LinkedQueue<E> {
 
 在基于锁的算法中可能会发生活跃性故障。如果线程在持有锁时由于阻塞I/O，内存也缺失或其他延迟而导致推迟执行，那么很可能所有线程都不能继续执行下去。如果在某种算法中，一个线程的失败或挂起不会导致其他线程也失败或挂起，那么这种算法就被称为非阻塞算法。如果在算法的每个步骤中都存在某个线程能够执行下去，那么这种算法也被称为无锁算法。如果在算法中仅将CAS用于协调线程之间的操作，并且能正确地实现，那么它既是一种无阻塞算法又是一种无锁算法。
 <h2 id="ch16">Java内存模型</h2>
+Java内存模型是通过各种操作来定义的，包括对变量的读、写操作，监视器的加锁和释放操作，以及线程的启动和合并操作。JMM为程序中所有的操作定义了一个偏序关系，称之为Happens-Before。
+
+Happens-Before的规则包括：
+
++ 程序顺序规则。如果程序中操作A在操作B之前，那么在线程中A操作将在B操作之前执行。
++ 监视器锁规则。在监视器上的解锁操作必须在同一个监视器锁上的加锁操作之前执行。显式锁和内置锁在加锁和解锁等操作上有着相同的内存语义
++ volatile变量规则。对volatile变量的写入操作必须在对该变量的读操作之前执行。
++ 线程启动规则。在线程上对Thread.start的调用必须在该线程中执行任何操作之前执行。
++ 线程结束规则。线程中的任何操作都必须在其他线程检测到该线程已经结束之前执行，或者从Thread.join中成功返回，或者在调用Thread.isAlive时返回false
++ 中断规则。当一个线程在另一个线程上调用interrupt时，必须在被中断线程检测到interrupt调用之前执行（通过抛出InterruptedException，或者调用isInterrupted和interrupted）。
++ 终结器规则。对象的构造函数必须在启动该对象的终结器之前执行完成。
++ 传递性。如果操作A在操作B之前执行，并且操作B在操作C之前执行，那么操作A必须在操作C之前执行。
+
+在类库中提供的其他Happens-Before排序包括：
+
++ 将一个元素放入一个线程安全容器的操作将在另一个线程从该容器中获取这个元素的操作之前执行
++ 在CountDownLatch上的倒数操作将在线程从闭锁上的await方法中返回之前执行
++ 释放Semaphore许可的操作将在从该Semaphore上获取一个许可之前执行。
++ Future表示的任务的所有操作将在从Future.get中返回之前执行。
++ 向Executor提交一个Runnable或Callable的操作将在任务开始执行之前执行
++ 一个线程到达CyclicBarrier或Exchanger的操作将在其他到达该栅栏或交换点的线程被释放之前执行。如果CyclicBarrier使用一个栅栏操作，那么到达栅栏的操作将在栅栏操作之前执行，而栅栏操作又会在线程从栅栏中释放之前执行。
+
+延迟初始化占位。JVM将推迟ResourceHolder的初始化操作，知道开始使用这个类时才初始化，并且由于通过一个静态初始化来初始化Resource，因此不需要额外的同步。当任何一个线程第一次调用getResource时，都会使ResourceHolder被加载和被初始化，此时静态初始化器将执行Resource的初始化操作。
+
+```java
+public class ResourceFactory {
+    private static class ResourceHolder {
+        public static Resource resource = new Resource();
+    }
+
+    public static Resource getResource() {
+        return ResourceHolder.resource;
+    }
+}
+```
+
+```java
+public class DoubleCheckedLocking {
+    private static volatile Resource resource;
+
+    public static Resource getInstance() {
+        if(resource == null) {
+            synchronized(DoubleCheckedLocking.class) {
+                if(resource == null) {
+                    resource = new Resource();
+                }
+            }
+        }
+        return resource;
+    }
+}
+```
+
+DCL的真正问题在于：当在没有同步的情况下读取一个共享对象时，可能发生的最糟糕事情只是看到一个失效值（在这种情况下是一个空值），此时DCL方法将通过在持有锁的情况下再次尝试来避免这种风险。然而，实际情况远比这种情况糟糕——线程可能看到引用的当前值，但对象的状态值却是失效的，这意味着线程可以看到对象处于无效或错误的状态。在JMM的后续版本（Java5.0以及更高的版本）中，如果把resource声明为volatile类型，那么就能启用DCL，并且这种方式对性能的影响很小。
