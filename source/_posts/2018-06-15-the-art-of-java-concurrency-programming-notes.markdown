@@ -116,13 +116,92 @@ JSR-133 使用happens-before的概念来阐述操作之间的内存可见性。�
 
 <h2 id="ch04">Java并发编程基础</h2>
 
+![](https://ws2.sinaimg.cn/large/006tNbRwgy1fv3mv5q2gsj31400u00tz.jpg)
+
+中断可以理解为线程的一个标识位属性，它表示一个运行中的线程是否被其他线程进行了中断操作。中断好比其他线程对该线程打了个招呼，其他线程通过调用该线程的``interrupt``方法对其进行中断操作。线程通过检查自身是否被中断来进行响应，线程通过方法``isInterrupted``来进行判断是否被中断，也可以调用静态方法``Thread.interrupted()``对当前线程的中断标识位进行复位。
+
+
+
+等待通知的经典范式，该范式分为两部分，分别针对等待方（消费者）和通知方（生产者）。
+
+等待方遵循如下原则：
+
+
+
++ 获取对象的锁
++ 如果条件不满足，那么调用对象的wait()方法，被通知后仍要检查条件
++ 条件满足时则执行对应的逻辑
+
+```java
+synchronized(对象) {
+    while(条件不满足) {
+        对象.wait();
+    }
+    对应的处理逻辑
+}
+```
+
+通知方遵循如下原则：
+
+
+
++ 获得对象的锁
++ 改变条件
++ 通知所有等待在对象上的线程
+
+```java
+synchronized(对象) {
+    改变条件
+    对象.notifyAll();
+}
+```
+
+``ThreadLocal``，即线程变量，是一个以``ThreadLocal``对象为键、任意对象为值的存储结构。这个结构被附带在线程上，也就是说一个线程可以根据一个``ThreadLocal``对象查询到绑定在这个线程上的一个值。
+
+等待超时模式
+
+```java
+// 对当前对象加锁
+public synchronized Object get(long mills) throws InterruptedException {
+    long future = System.currentTimeMillis() + mills;
+    long remaining = mills;
+    while ((result == null) && remaining > 0) {
+        wait(remaining);
+        remaining = future - System.currentTimeMillis();
+    }
+    return result;
+}
+```
+
 
 
 <h2 id="ch05">Java中的锁</h2>
 
+Java 1.5之后，并发包中新增了Lock接口以及相关实现类用来实现锁功能，它提供了与``synchronized``关键字类似的同步功能，只是在使用时需要显式地获取锁和释放锁。虽然他缺少了通过synchronized块或者方法提供的隐式获取释放锁的便捷性，但是却拥有了锁获取与释放的可操作性、可中断的获取锁以及超时获取锁等多种synchronized关键字所不具备的同步特性。
+
+AQS的主要使用方式是继承，子类通过继承AQS并实现它的抽象方法来管理同步状态，在抽象方法的实现过程中免不了要对同步状态进行更改，这时就需要使用AQS提供的3个方法——``getState()``,``setState(int newState)``,``compareAndSetState(int expect, int update)``来进行操作，因为他们能够保证状态的改变是安全的。
+
+当需要阻塞或唤醒一个线程的时候，都会使用``LockSupport``工具类来完成相应工作。``LockSupport``定义了一组公共静态方法，这些方法提供了最基本的线程阻塞和唤醒功能，而LockSupport也成为构建同步组件的基础工具。
+
+任意一个Java对象，都拥有一组监视器方法（定义在java.lang.Object上），主要包括``wait()``,``wait(long timeout)``,``notify()``和``notifyAll()``方法，这些方法和``synchronized``关键字配合，可以实现等待、通知模式。
+
+![](https://ws3.sinaimg.cn/large/006tNbRwgy1fv3ogb2axgj31kw16okjm.jpg)
+
+
+
 <h2 id="ch06">Java并发容器和框架</h2>
 
+ConcurrentHashMap 分段锁
+
+ConcurrentHashMap的size操作，先尝试2次不锁住Segment的方式来统计各个Segment的大小，如果统计的过程中，容器的count发生了变化，则再采用加锁的方式来统计所有Segment的大小。
+
+ConcurrentLinkedQueue
+
+阻塞队列
+
 <h2 id="ch07">Java中的13个原子操作类</h2>
+
+原子更新基本类型类：``AtomicBoolean``，``AtomicInteger``，``AtomicLong``
 
 <h2 id="ch08">Java中的并发工具类</h2>
 
