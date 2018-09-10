@@ -203,11 +203,52 @@ ConcurrentLinkedQueue
 
 原子更新基本类型类：``AtomicBoolean``，``AtomicInteger``，``AtomicLong``
 
+原子更新数组：``AtomicIntegerArray``,``AtomicLongArray``,``AtomicReferenceArray``
+
+原子更新引用类型：``AtomicReference``,``AtomicReferenceFieldUpdater``,``AtomicMarkableReference``
+
+原子更新字段类：``AtomicIntegerFieldUpdater``，``AtomicLongFieldUpdater``,``AtomicStampedReference``
+
 <h2 id="ch08">Java中的并发工具类</h2>
+
+等待多线程完成的``CountDownLatch``
+
+同步屏障``CyclicBarrier``
+
+``CountDownLatch``的计数器只能使用一次，而``CyclicBarrier``的计数器可以使用``reset()``方法重置。所以``CyclicBarrier``能处理更为复杂的业务场景。例如，如果计算发生错误，可以重置计数器，并让线程重新执行一次。``CyclicBarrier``还提供其他有用的方法，比如``getNumberWaiting``方法可以获得``CyclicBarrier``阻塞的线程数量，``isBroken``方法用来了解阻塞的线程是否被中断。
+
+控制并发线程数的``Semaphore``
+
+线程间交换数据的``Exchanger``
 
 <h2 id="ch09">Java中的线程池</h2>
 
+当提交一个新任务到线程池时，线程池的处理流程如下：
+
+
+
++ 线程池判断核心线程池里的线程是否都在执行任务，如果不是，则创建一个新的工作线程来执行任务。如果核心线程池里的线程都在执行任务，则进入下个流程。
++ 线程池判断工作队列是否已满，如果工作队列没有满，则将新提交的任务存储在这个工作队列里。如果工作队列满了，则进入下个流程。
++ 线程池判断线程池的线程数是否小于maxPoolSize，如果没有，则创建一个新的工作线程来执行任务。如果已经满了，则交给饱和策略来处理这个任务。
+
+``ThreadPoolExecutor(corePoolSize, maxPoolSize, keepAliveTime, milliseconds, runnableTaskQueue, handler)``
+
+
+
++ corePoolSize 核心线程数
++ runnableTaskQueue任务队列，用于保存等待执行的任务的阻塞队列，可以选择``ArrayBlockingQueue``,``LinkedBlockingQueue``,``SynchronousQueue``,``PriorityBlockingQueue``
++ maxPoolSize 线程池允许创建的最大线程数
++ ThreadFactory 创建线程的工厂
++ RejectExecutionHandler 饱和策略 ``AbortPolicy``,``CallerRunsPolicy``,``DiscardOldestPolicy``,``DiscardPolicy``
+
 <h2 id="ch10">Executor框架</h2>
+
+Executor框架主要由3大部分组成如下：
+
+
+
++ 任务。包括被执行任务需要实现的接口：Runnable或Callable
++ 任务的执行。包括任务执行机制的核心接口Executor，以及继承自Executor的ExecutorService接口。Executor框架有两个
 
 <h2 id="ch11">Java并发编程实践</h2>
 
