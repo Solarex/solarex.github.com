@@ -45,6 +45,7 @@ footer: true
 + [WeeklyCalendarViewDemo](https://github.com/flyfire/WeeklyCalendarViewDemo)
 + [RadarViewDemo](https://github.com/flyfire/RadarViewDemo)
 + [DisplayConnectViewDemo](https://github.com/flyfire/DisplayConnectViewDemo)
++ [SolarexZoomImageViewDemo](https://github.com/flyfire/SolarexZoomImageViewDemo)
 
 <h3 id='algorithm'>算法</h3>
 + [LeetCodeSolutions](https://github.com/flyfire/LeetCodeSolutions)
