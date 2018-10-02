@@ -1,10 +1,11 @@
 ---
 layout: post
-title: "[Algo]ArrayList vs LinkedList"
+title: "数据结构与算法"
 date: 2018-07-01 19:06
 comments: true
 categories: 
 - algorithm
+- notes
 ---
 
 ## ArrayList
@@ -18,4 +19,10 @@ categories:
 
 + 头插，中间插，删除效率高
 + 不支持随机访问
-+ MessageQueue中Message根据msg.when来进行插入，mMessages指向头结点s
++ MessageQueue中Message根据msg.when来进行插入，mMessages指向头结点
+
+## Vector
+
++ 底层使用数组实现，增长看``capacityIncrement``，若``capacityIncrement``小于0，翻倍增长
++ 方法有``synchronized``修饰，线程安全
++ ``Stack``栈底层实现使用的``Vector``
