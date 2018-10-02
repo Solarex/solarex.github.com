@@ -24,6 +24,8 @@ footer: true
 <h3 id='algorithm'>算法</h3>
 
 + [Java常用算法实现](https://github.com/flyfire/JavaAlgorithms)
++ [数据结构和算法](https://github.com/flyfire/DataStructureAndAlgorithms)
++ [LeetCodeSolutions](https://github.com/flyfire/LeetCodeSolutions)
 
 <h3 id='advancedjava'>Java高级特性</h3>
 
@@ -47,9 +49,6 @@ footer: true
 + [DisplayConnectViewDemo](https://github.com/flyfire/DisplayConnectViewDemo)
 + [SolarexZoomImageViewDemo](https://github.com/flyfire/SolarexZoomImageViewDemo)
 + [SolarexNumberProgressbarDemo](https://github.com/flyfire/SolarexNumberProgressbarDemo)
-
-<h3 id='algorithm'>算法</h3>
-+ [LeetCodeSolutions](https://github.com/flyfire/LeetCodeSolutions)
 
 <h3 id='notebook'>读书笔记</h3>
 + [JCIP](https://github.com/flyfire/ReadJCIP)
