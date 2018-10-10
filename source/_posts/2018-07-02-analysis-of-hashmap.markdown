@@ -173,7 +173,7 @@ void createEntry(int hash, K key, V value, int bucketIndex) {
 
 ```Entry``的``addBefore``将元素添加至双向循环链表的尾部，``recordAccess``将元素从双向循环链表原来的位置移除，重新添加到链表尾部。如果key元素已经存在Map中，在``put``时会替换value，同时``recordAccess``，``recordAccess``在``HashMap``的``Entry``中是空实现，在``LinkedHashMap``中进行移除到链表尾部的操作。``recordAccess``还在``LinkedHashMap``的``get``方法中被调用，这样每次执行``get``操作返回元素的同时将``Entry``移动到链表尾部。
 
-``WeakHashMap``的``Entry``是``WeakReference``的子类，创建的时候和``ReferenceQueue``进行关联。
+``WeakHashMap``的``Entry``是``WeakReference``的子类，创建的时候和``ReferenceQueue``进行关联，referent是key，当key被回收时将移除key对应的entry。
 
 ```java
 /**
@@ -208,7 +208,11 @@ void createEntry(int hash, K key, V value, int bucketIndex) {
         }
 ```
 
-``Entry``被回收时会被放入``ReferenceQueue``中。在调用``size()``和``resize()``方法时会调用``expungeStaleEntries``方法。
+key被回收时``Entry``会被放入``ReferenceQueue``中。在调用``size()``和``resize()``方法时会调用``expungeStaleEntries``方法。
+
+一般情况下，一个对象被标记为垃圾（并不代表被回收了）后会被加入引用队列。
+
+对于虚引用来说，它指向的对象只有被回收后才会加入引用队列，所以可以作为记录该引用指向的对象是否被回收。
 
 ## reference
 
