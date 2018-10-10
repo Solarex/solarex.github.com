@@ -122,7 +122,7 @@ final Entry<K,V> getEntry(Object key) {
     }
 ```
 
-```table``数组的长度是2^n，这样2^n-1的二进制表示每一位都是1，方便进行index计算。
+``table``数组的长度是2^n，这样2^n-1的二进制表示每一位都是1，方便进行index计算。
 
 ```java
 static int indexFor(int h, int length) {
@@ -171,7 +171,7 @@ void createEntry(int hash, K key, V value, int bucketIndex) {
         }
 ```
 
-```Entry``的``addBefore``将元素添加至双向循环链表的尾部，``recordAccess``将元素从双向循环链表原来的位置移除，重新添加到链表尾部。如果key元素已经存在Map中，在``put``时会替换value，同时``recordAccess``，``recordAccess``在``HashMap``的``Entry``中是空实现，在``LinkedHashMap``中进行移除到链表尾部的操作。``recordAccess``还在``LinkedHashMap``的``get``方法中被调用，这样每次执行``get``操作返回元素的同时将``Entry``移动到链表尾部。
+``Entry``的``addBefore``将元素添加至双向循环链表的尾部，``recordAccess``将元素从双向循环链表原来的位置移除，重新添加到链表尾部。如果key元素已经存在Map中，在``put``时会替换value，同时``recordAccess``，``recordAccess``在``HashMap``的``Entry``中是空实现，在``LinkedHashMap``中进行移除到链表尾部的操作。``recordAccess``还在``LinkedHashMap``的``get``方法中被调用，这样每次执行``get``操作返回元素的同时将``Entry``移动到链表尾部。
 
 ``WeakHashMap``的``Entry``是``WeakReference``的子类，创建的时候和``ReferenceQueue``进行关联，referent是key，当key被回收时将移除key对应的entry。
 
