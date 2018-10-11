@@ -49,6 +49,7 @@ footer: true
 + [DisplayConnectViewDemo](https://github.com/flyfire/DisplayConnectViewDemo)
 + [SolarexZoomImageViewDemo](https://github.com/flyfire/SolarexZoomImageViewDemo)
 + [SolarexNumberProgressbarDemo](https://github.com/flyfire/SolarexNumberProgressbarDemo)
++ [SolarexSwipeBackDemo](https://github.com/flyfire/SolarexSwipeBackDemo)
 
 <h3 id='notebook'>读书笔记</h3>
 + [JCIP](https://github.com/flyfire/ReadJCIP)
