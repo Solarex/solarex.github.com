@@ -4,7 +4,7 @@
   <title><![CDATA[Category: android | Solarex's Blog]]></title>
   <link href="http://Solarex.github.io/blog/categories/android/atom.xml" rel="self"/>
   <link href="http://Solarex.github.io/"/>
-  <updated>2017-10-18T22:21:39+08:00</updated>
+  <updated>2018-11-02T20:32:54+08:00</updated>
   <id>http://Solarex.github.io/</id>
   <author>
     <name><![CDATA[Solarex]]></name>
@@ -12,6 +12,1843 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[RecyclerView平滑滑动到指定位置]]></title>
+    <link href="http://Solarex.github.io/blog/2018/05/30/recyclerview-smooth-scoll-to-position/"/>
+    <updated>2018-05-30T14:33:00+08:00</updated>
+    <id>http://Solarex.github.io/blog/2018/05/30/recyclerview-smooth-scoll-to-position</id>
+    <content type="html"><![CDATA[<p>最近在做一个周日历的新需求，其中有个要求是要RecyclerView平滑的滑动到指定位置，刚开始的时候我以为只要调用<code>smoothScrollToPosition</code>这个方法就可以了，测试的时候发现，<code>smoothScrollToPosition</code>只会对不可见的item有效，对于已经可见的item滑动没有效果，于是翻看了一下<code>smoothScrollToPosition</code>的源码，发现是调用了<code>LayoutManger</code>的<code>smoothScrollToPosition</code>方法。</p>
+
+<!-- more -->
+
+
+<p>```java
+// LinearLayoutManager</p>
+
+<pre><code>@Override
+public void smoothScrollToPosition(RecyclerView recyclerView, RecyclerView.State state,
+        int position) {
+    LinearSmoothScroller linearSmoothScroller =
+            new LinearSmoothScroller(recyclerView.getContext());
+    linearSmoothScroller.setTargetPosition(position);
+    startSmoothScroll(linearSmoothScroller);
+}
+</code></pre>
+
+<p>```</p>
+
+<p>发现其实是实例化了一个<code>LinearSmoothScroller</code>，然后调用<code>startSmoothScroll</code>将<code>LinearSmoothScroller</code>传入进去。在<a href="https://stackoverflow.com/questions/31235183/recyclerview-how-to-smooth-scroll-to-top-of-item-on-a-certain-position/32819067">StackOverflow</a>上看到一个回答，复写了<code>getVerticalSnapPreference</code>方法，返回<code>SNAP_START</code>，由于我的<code>RecyclerView</code>是水平滑动的，于是复写了<code>getHorizontalSnapPreference</code>返回<code>SNAP_START</code>，测试发现对可见的item也有滑动效果了，可是会有闪烁的现象。</p>
+
+<p>继续看<code>LinearSmoothScroller</code>源码，发现有<code>calculateSpeedPerPixel</code>方法，默认是用<code>25</code>去计算，复写这个方法，换一个大点的数去计算，发现滑动的速度慢下来了，闪烁的现象消失了。具体的代码可以参考<a href="https://github.com/flyfire/WeeklyCalendarViewDemo/blob/master/weeklycalendarview/src/main/java/com/solarexsoft/weeklycalendarview/WeeklyCalendarView.java">WeeklyCalendarView</a>。</p>
+
+<p>问题虽然解决了，但是<code>RecyclerView</code>与各个插件的协同工作机制，<code>LayoutManager</code>,<code>SmoothScroller</code>原理没来的及分析，这个留待以后分析。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Java代理]]></title>
+    <link href="http://Solarex.github.io/blog/2018/04/26/java-proxy/"/>
+    <updated>2018-04-26T10:07:00+08:00</updated>
+    <id>http://Solarex.github.io/blog/2018/04/26/java-proxy</id>
+    <content type="html"><![CDATA[<p>Java代理有静态代理和动态代理之分。</p>
+
+<h4>静态代理</h4>
+
+<p>静态代理类图如下：</p>
+
+<p><center><img src="http://Solarex.github.io/images/java-proxy-static.png" width=225 height=225/></center></p>
+
+
+<p><code>ProxyObject</code>持有<code>RealObject</code>的引用，在<code>someOperation</code>方法中可以代理<code>RealObject</code>做操作。</p>
+
+<!-- more -->
+
+
+<h4>动态代理</h4>
+
+<p>动态代理有Java的InvocationHandler实现方式和CGLib实现方式，我没用过CGLib，这里只讨论<code>InvocationHandler</code>实现方式。主要有三个步骤，代码示例可以在<a href="https://github.com/flyfire/YouDontKnowJava/tree/master/src/com/solarexsoft/test/proxy">github</a>上面看</p>
+
+<ul>
+<li>定义一个interface</li>
+<li>定义一个InvocationHandler实现类，将要代理的对象传入InvocationHandler中，也即让InvocationHandler实现类代理传入的对象</li>
+<li>调用Proxy.newProxyInstance</li>
+</ul>
+
+
+<p>动态代理的秘密主要是藏在<code>Proxy.newProxyInstance</code>当中</p>
+
+<p>```java
+public static Object newProxyInstance(ClassLoader loader,Class&lt;?>[] interfaces,InvocationHandler h) throws IllegalArgumentException
+{</p>
+
+<pre><code>...
+    /*
+     * Look up or generate the designated proxy class.
+     */
+    Class&lt;?&gt; cl = getProxyClass0(loader, intfs);
+    final Constructor&lt;?&gt; cons = cl.getConstructor(constructorParams);
+    final InvocationHandler ih = h;
+    return cons.newInstance(new Object[]{h});
+</code></pre>
+
+<p>}
+```</p>
+
+<p>可以看出它先调用<code>getProxyClass(loader, interfaces)</code>得到动态代理类，然后将<code>InvocationHandler</code>作为代理类构造函数入参新建代理类对象。</p>
+
+<p>```java</p>
+
+<pre><code>/**
+ * Returns the {@code java.lang.Class} object for a proxy class
+ * given a class loader and an array of interfaces.  The proxy class
+ * will be defined by the specified class loader and will implement
+ * all of the supplied interfaces.  If any of the given interfaces
+ * is non-public, the proxy class will be non-public. If a proxy class
+ * for the same permutation of interfaces has already been defined by the
+ * class loader, then the existing proxy class will be returned; otherwise,
+ * a proxy class for those interfaces will be generated dynamically
+ * and defined by the class loader.
+ *
+ * &lt;p&gt;There are several restrictions on the parameters that may be
+ * passed to {@code Proxy.getProxyClass}:
+ *
+ * &lt;ul&gt;
+ * &lt;li&gt;All of the {@code Class} objects in the
+ * {@code interfaces} array must represent interfaces, not
+ * classes or primitive types.
+ *
+ * &lt;li&gt;No two elements in the {@code interfaces} array may
+ * refer to identical {@code Class} objects.
+ *
+ * &lt;li&gt;All of the interface types must be visible by name through the
+ * specified class loader.  In other words, for class loader
+ * {@code cl} and every interface {@code i}, the following
+ * expression must be true:
+ * &lt;pre&gt;
+ *     Class.forName(i.getName(), false, cl) == i
+ * &lt;/pre&gt;
+ *
+ * &lt;li&gt;All non-public interfaces must be in the same package;
+ * otherwise, it would not be possible for the proxy class to
+ * implement all of the interfaces, regardless of what package it is
+ * defined in.
+ *
+ * &lt;li&gt;For any set of member methods of the specified interfaces
+ * that have the same signature:
+ * &lt;ul&gt;
+ * &lt;li&gt;If the return type of any of the methods is a primitive
+ * type or void, then all of the methods must have that same
+ * return type.
+ * &lt;li&gt;Otherwise, one of the methods must have a return type that
+ * is assignable to all of the return types of the rest of the
+ * methods.
+ * &lt;/ul&gt;
+ *
+ * &lt;li&gt;The resulting proxy class must not exceed any limits imposed
+ * on classes by the virtual machine.  For example, the VM may limit
+ * the number of interfaces that a class may implement to 65535; in
+ * that case, the size of the {@code interfaces} array must not
+ * exceed 65535.
+ * &lt;/ul&gt;
+ *
+ * &lt;p&gt;If any of these restrictions are violated,
+ * {@code Proxy.getProxyClass} will throw an
+ * {@code IllegalArgumentException}.  If the {@code interfaces}
+ * array argument or any of its elements are {@code null}, a
+ * {@code NullPointerException} will be thrown.
+ *
+ * &lt;p&gt;Note that the order of the specified proxy interfaces is
+ * significant: two requests for a proxy class with the same combination
+ * of interfaces but in a different order will result in two distinct
+ * proxy classes.
+ *
+ */
+</code></pre>
+
+<p>/<em>*
+ * 得到代理类，不存在则动态生成
+ * @param loader 代理类所属 ClassLoader
+ * @param interfaces 代理类需要实现的接口
+ * @return
+ </em>/
+public static Class&lt;?> getProxyClass(ClassLoader loader,</p>
+
+<pre><code>                                 Class&lt;?&gt;... interfaces)
+throws IllegalArgumentException
+</code></pre>
+
+<p>{</p>
+
+<pre><code>if (interfaces.length &gt; 65535) {
+    throw new IllegalArgumentException("interface limit exceeded");
+}
+// 代理类类对象
+Class proxyClass = null;
+
+/* collect interface names to use as key for proxy class cache */
+String[] interfaceNames = new String[interfaces.length];
+
+Set interfaceSet = new HashSet();       // for detecting duplicates
+
+/**
+ * 入参 interfaces 检验，包含三部分
+ * （1）是否在入参指定的 ClassLoader 内
+ * （2）是否是 Interface
+ * （3）interfaces 中是否有重复
+ */
+for (int i = 0; i &lt; interfaces.length; i++) {
+    String interfaceName = interfaces[i].getName();
+    Class interfaceClass = null;
+    try {
+        interfaceClass = Class.forName(interfaceName, false, loader);
+    } catch (ClassNotFoundException e) {
+    }
+    if (interfaceClass != interfaces[i]) {
+        throw new IllegalArgumentException(
+            interfaces[i] + " is not visible from class loader");
+    }
+
+    if (!interfaceClass.isInterface()) {
+        throw new IllegalArgumentException(
+            interfaceClass.getName() + " is not an interface");
+    }
+
+    if (interfaceSet.contains(interfaceClass)) {
+        throw new IllegalArgumentException(
+            "repeated interface: " + interfaceClass.getName());
+    }
+    interfaceSet.add(interfaceClass);
+
+    interfaceNames[i] = interfaceName;
+}
+
+// 以接口名对应的 List 作为缓存的 key
+Object key = Arrays.asList(interfaceNames);
+
+/*
+ * loaderToCache 是个双层的 Map
+ * 第一层 key 为 ClassLoader，第二层 key 为 上面的 List，value 为代理类的弱引用
+ */
+Map cache;
+synchronized (loaderToCache) {
+    cache = (Map) loaderToCache.get(loader);
+    if (cache == null) {
+        cache = new HashMap();
+        loaderToCache.put(loader, cache);
+    }
+}
+
+/*
+ * 以上面的接口名对应的 List 为 key 查找代理类，如果结果为：
+ * (1) 弱引用，表示代理类已经在缓存中
+ * (2) pendingGenerationMarker 对象，表示代理类正在生成中，等待生成完成通知。
+ * (3) null 表示不在缓存中且没有开始生成，添加标记到缓存中，继续生成代理类
+ */
+synchronized (cache) {
+    do {
+        Object value = cache.get(key);
+        if (value instanceof Reference) {
+            proxyClass = (Class) ((Reference) value).get();
+        }
+        if (proxyClass != null) {
+            // proxy class already generated: return it
+            return proxyClass;
+        } else if (value == pendingGenerationMarker) {
+            // proxy class being generated: wait for it
+            try {
+                cache.wait();
+            } catch (InterruptedException e) {
+            }
+            continue;
+        } else {
+            cache.put(key, pendingGenerationMarker);
+            break;
+        }
+    } while (true);
+}
+
+try {
+    String proxyPkg = null;     // package to define proxy class in
+
+    /*
+     * 如果 interfaces 中存在非 public 的接口，则所有非 public 接口必须在同一包下面，后续生成的代理类也会在该包下面
+     */
+    for (int i = 0; i &lt; interfaces.length; i++) {
+        int flags = interfaces[i].getModifiers();
+        if (!Modifier.isPublic(flags)) {
+            String name = interfaces[i].getName();
+            int n = name.lastIndexOf('.');
+            String pkg = ((n == -1) ? "" : name.substring(0, n + 1));
+            if (proxyPkg == null) {
+                proxyPkg = pkg;
+            } else if (!pkg.equals(proxyPkg)) {
+                throw new IllegalArgumentException(
+                    "non-public interfaces from different packages");
+            }
+        }
+    }
+
+    if (proxyPkg == null) {     // if no non-public proxy interfaces,
+        proxyPkg = "";          // use the unnamed package
+    }
+
+    {
+        // 得到代理类的类名，jdk 1.6 版本中缺少对这个生成类已经存在的处理。
+        long num;
+        synchronized (nextUniqueNumberLock) {
+            num = nextUniqueNumber++;
+        }
+        String proxyName = proxyPkg + proxyClassNamePrefix + num;
+
+        // 动态生成代理类的字节码
+        // 最终调用 sun.misc.ProxyGenerator.generateClassFile() 得到代理类相关信息写入 DataOutputStream 实现
+        byte[] proxyClassFile = ProxyGenerator.generateProxyClass(
+            proxyName, interfaces);
+        try {
+            // native 层实现，虚拟机加载代理类并返回其类对象
+            proxyClass = defineClass0(loader, proxyName,
+                proxyClassFile, 0, proxyClassFile.length);
+        } catch (ClassFormatError e) {
+            throw new IllegalArgumentException(e.toString());
+        }
+    }
+    // add to set of all generated proxy classes, for isProxyClass
+    proxyClasses.put(proxyClass, null);
+
+} finally {
+    // 代理类生成成功则保存到缓存，否则从缓存中删除，然后通知等待的调用
+    synchronized (cache) {
+        if (proxyClass != null) {
+            cache.put(key, new WeakReference(proxyClass));
+        } else {
+            cache.remove(key);
+        }
+        cache.notifyAll();
+    }
+}
+return proxyClass;
+</code></pre>
+
+<p>}</p>
+
+<p>```</p>
+
+<p>函数主要包括三部分：</p>
+
+<ul>
+<li>入参 interfaces 检验，包含是否在入参指定的 ClassLoader 内、是否是 Interface、interfaces 中是否有重复
+以接口名对应的 List 为 key 查找代理类，如果结果为：
+
+<ul>
+<li>弱引用，表示代理类已经在缓存中；</li>
+<li>pendingGenerationMarker 对象，表示代理类正在生成中，等待生成完成返回；</li>
+<li>null 表示不在缓存中且没有开始生成，添加标记到缓存中，继续生成代理类。</li>
+</ul>
+</li>
+<li>如果代理类不存在调用ProxyGenerator.generateProxyClass(…)生成代理类并存入缓存，通知在等待的缓存。</li>
+</ul>
+
+
+<p>函数中几个注意的地方：</p>
+
+<ul>
+<li>代理类的缓存 key 为接口名对应的 List，接口顺序不同表示不同的 key 即不同的代理类。</li>
+<li>如果 interfaces 中存在非 public 的接口，则所有非 public 接口必须在同一包下面，后续生成的代理类也会在该包下面。</li>
+<li>代理类如果在 ClassLoader 中已经存在的情况没有做处理。</li>
+</ul>
+
+
+<p>可以开启 System Properties 的<code>sun.misc.ProxyGenerator.saveGeneratedFiles</code>开关，保存动态类到目的地址。</p>
+
+<p>Java 1.7 的实现略有不同，通过<code>getProxyClass0(…)</code>函数实现，实现中调用代理类的缓存，判断代理类在缓存中是否已经存在，存在直接返回，不存在则调用proxyClassCache的valueFactory属性进行动态生成，valueFactory的apply函数与上面的<code>getProxyClass(…)</code>函数逻辑类似。</p>
+
+<p>```
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
+import java.lang.reflect.UndeclaredThrowableException;</p>
+
+<p>public final class $Proxy0 extends Proxy
+  implements Operate
+{
+  private static Method m4;
+  private static Method m1;
+  private static Method m5;
+  private static Method m0;
+  private static Method m3;
+  private static Method m2;</p>
+
+<p>  public $Proxy0(InvocationHandler paramInvocationHandler)</p>
+
+<pre><code>throws 
+</code></pre>
+
+<p>  {</p>
+
+<pre><code>super(paramInvocationHandler);
+</code></pre>
+
+<p>  }</p>
+
+<p>  public final void operateMethod1()</p>
+
+<pre><code>throws 
+</code></pre>
+
+<p>  {</p>
+
+<pre><code>try
+{
+  h.invoke(this, m4, null);
+  return;
+}
+catch (Error|RuntimeException localError)
+{
+  throw localError;
+}
+catch (Throwable localThrowable)
+{
+  throw new UndeclaredThrowableException(localThrowable);
+}
+</code></pre>
+
+<p>  }</p>
+
+<p>  public final boolean equals(Object paramObject)</p>
+
+<pre><code>throws 
+</code></pre>
+
+<p>  {</p>
+
+<pre><code>try
+{
+  return ((Boolean)h.invoke(this, m1, new Object[] { paramObject })).booleanValue();
+}
+catch (Error|RuntimeException localError)
+{
+  throw localError;
+}
+catch (Throwable localThrowable)
+{
+  throw new UndeclaredThrowableException(localThrowable);
+}
+</code></pre>
+
+<p>  }</p>
+
+<p>  public final void operateMethod2()</p>
+
+<pre><code>throws 
+</code></pre>
+
+<p>  {</p>
+
+<pre><code>try
+{
+  h.invoke(this, m5, null);
+  return;
+}
+catch (Error|RuntimeException localError)
+{
+  throw localError;
+}
+catch (Throwable localThrowable)
+{
+  throw new UndeclaredThrowableException(localThrowable);
+}
+</code></pre>
+
+<p>  }</p>
+
+<p>  public final int hashCode()</p>
+
+<pre><code>throws 
+</code></pre>
+
+<p>  {</p>
+
+<pre><code>try
+{
+  return ((Integer)h.invoke(this, m0, null)).intValue();
+}
+catch (Error|RuntimeException localError)
+{
+  throw localError;
+}
+catch (Throwable localThrowable)
+{
+  throw new UndeclaredThrowableException(localThrowable);
+}
+</code></pre>
+
+<p>  }</p>
+
+<p>  public final void operateMethod3()</p>
+
+<pre><code>throws 
+</code></pre>
+
+<p>  {</p>
+
+<pre><code>try
+{
+  h.invoke(this, m3, null);
+  return;
+}
+catch (Error|RuntimeException localError)
+{
+  throw localError;
+}
+catch (Throwable localThrowable)
+{
+  throw new UndeclaredThrowableException(localThrowable);
+}
+</code></pre>
+
+<p>  }</p>
+
+<p>  public final String toString()</p>
+
+<pre><code>throws 
+</code></pre>
+
+<p>  {</p>
+
+<pre><code>try
+{
+  return (String)h.invoke(this, m2, null);
+}
+catch (Error|RuntimeException localError)
+{
+  throw localError;
+}
+catch (Throwable localThrowable)
+{
+  throw new UndeclaredThrowableException(localThrowable);
+}
+</code></pre>
+
+<p>  }</p>
+
+<p>  static
+  {</p>
+
+<pre><code>try
+{
+  m4 = Class.forName("com.codekk.java.test.dynamicproxy.Operate").getMethod("operateMethod1", new Class[0]);
+  m1 = Class.forName("java.lang.Object").getMethod("equals", new Class[] { Class.forName("java.lang.Object") });
+  m5 = Class.forName("com.codekk.java.test.dynamicproxy.Operate").getMethod("operateMethod2", new Class[0]);
+  m0 = Class.forName("java.lang.Object").getMethod("hashCode", new Class[0]);
+  m3 = Class.forName("com.codekk.java.test.dynamicproxy.Operate").getMethod("operateMethod3", new Class[0]);
+  m2 = Class.forName("java.lang.Object").getMethod("toString", new Class[0]);
+  return;
+}
+catch (NoSuchMethodException localNoSuchMethodException)
+{
+  throw new NoSuchMethodError(localNoSuchMethodException.getMessage());
+}
+catch (ClassNotFoundException localClassNotFoundException)
+{
+  throw new NoClassDefFoundError(localClassNotFoundException.getMessage());
+}
+</code></pre>
+
+<p>  }
+}
+```</p>
+
+<p>可以看到实际上在底层生成了一个class的字节流，并且被ClassLoader加载了，生成了一个继承<code>Proxy</code>实现了接口的类，这个类以<code>InvocationHandler</code>为构造函数参数，所以实际上是在调用方法时，生成的<code>$Proxy0</code>对象代理了<code>InvocationHandler</code>实现对象，<code>InvocationHandler</code>对象代理了实际的对象。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[okhttp3源码分析]]></title>
+    <link href="http://Solarex.github.io/blog/2018/04/23/okhttp3-source-analysis/"/>
+    <updated>2018-04-23T16:43:00+08:00</updated>
+    <id>http://Solarex.github.io/blog/2018/04/23/okhttp3-source-analysis</id>
+    <content type="html"><![CDATA[<p>周末在家断点调试了一下okhttp的执行流程，翻看了一下okhttp的源码，对okhttp有了一个大致的了解，在这记录一下。okhttp的精髓是<code>Dispatcher</code>和<code>Interceptor</code>，这里主要分析这两个。</p>
+
+<h1>Dispatcher</h1>
+
+<p><code>Dispatcher</code>是在<code>OkHttpClient.Builder</code>中实例化的，主要维护了<code>runningSyncCalls</code>，<code>runningAsyncCalls</code>,<code>readyAsyncCalls</code>三个队列。</p>
+
+<p>同步的请求在执行<code>execute</code>方法时会将<code>RealCall</code>对象添加到<code>runningSyncCalls</code>队列中去，然后调用<code>getResponseWithInterceptorChain</code>去获取<code>Response</code>，不管成功失败，在<code>finally</code>块中都会执行<code>runningSyncCalls.remove(realcall)</code>将<code>RealCall</code>对象移除出队列。类似于一个生产者消费者系统。</p>
+
+<p>异步的请求会将请求包装成一个<code>AsyncCall</code>，实际上就是一个Runnable，然后看<code>runningAsyncCalls</code>队列的长度是否小于<code>maxRequests</code>也即64并且同一个host的请求是否小于<code>maxRequestsPerHost</code>,如果满足则添加到<code>runningAsyncCalls</code>队列中去，并且调用线程池执行，否则添加到<code>readyAsyncCalls</code>队列中去。在<code>AsyncCall</code>这个<code>Runnable</code>的<code>run</code>方法中又会去调用<code>getResponseWithInterceptorChain</code>去获取<code>Response</code>，值得注意的是在<code>finally</code>块中，将<code>AsyncCall</code>移除出队列的时候会调用<code>promoteCalls</code>方法。</p>
+
+<!-- more -->
+
+
+<p>```java
+synchronized void enqueue(AsyncCall call) {</p>
+
+<pre><code>if (runningAsyncCalls.size() &lt; maxRequests &amp;&amp; runningCallsForHost(call) &lt; maxRequestsPerHost) {
+  runningAsyncCalls.add(call);
+  executorService().execute(call);
+} else {
+  readyAsyncCalls.add(call);
+}
+</code></pre>
+
+<p>}</p>
+
+<p>private <T> void finished(Deque<T> calls, T call, boolean promoteCalls) {</p>
+
+<pre><code>int runningCallsCount;
+Runnable idleCallback;
+synchronized (this) {
+  if (!calls.remove(call)) throw new AssertionError("Call wasn't in-flight!");
+  if (promoteCalls) promoteCalls();
+  runningCallsCount = runningCallsCount();
+  idleCallback = this.idleCallback;
+}
+
+if (runningCallsCount == 0 &amp;&amp; idleCallback != null) {
+  idleCallback.run();
+}
+</code></pre>
+
+<p>}</p>
+
+<p>private void promoteCalls() {</p>
+
+<pre><code>if (runningAsyncCalls.size() &gt;= maxRequests) return; // Already running max capacity.
+if (readyAsyncCalls.isEmpty()) return; // No ready calls to promote.
+
+for (Iterator&lt;AsyncCall&gt; i = readyAsyncCalls.iterator(); i.hasNext(); ) {
+  AsyncCall call = i.next();
+
+  if (runningCallsForHost(call) &lt; maxRequestsPerHost) {
+    i.remove();
+    runningAsyncCalls.add(call);
+    executorService().execute(call);
+  }
+
+  if (runningAsyncCalls.size() &gt;= maxRequests) return; // Reached max capacity.
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<p>在<code>promoteCalls</code>方法中会将<code>AsyncCall</code>从<code>readyAsyncCalls</code>队列中移除，添加到<code>runningAsyncCalls</code>中并调用线程池执行。</p>
+
+<p>下面就开始<code>getResponseWithInterceptorChain</code>的分析了。</p>
+
+<h1>Interceptor</h1>
+
+<p>```java
+Response getResponseWithInterceptorChain() throws IOException {</p>
+
+<pre><code>// Build a full stack of interceptors.
+List&lt;Interceptor&gt; interceptors = new ArrayList&lt;&gt;();
+interceptors.addAll(client.interceptors());
+interceptors.add(retryAndFollowUpInterceptor);
+interceptors.add(new BridgeInterceptor(client.cookieJar()));
+interceptors.add(new CacheInterceptor(client.internalCache()));
+interceptors.add(new ConnectInterceptor(client));
+if (!forWebSocket) {
+  interceptors.addAll(client.networkInterceptors());
+}
+interceptors.add(new CallServerInterceptor(forWebSocket));
+
+Interceptor.Chain chain = new RealInterceptorChain(interceptors, null, null, null, 0,
+    originalRequest, this, eventListener, client.connectTimeoutMillis(),
+    client.readTimeoutMillis(), client.writeTimeoutMillis());
+
+return chain.proceed(originalRequest);
+</code></pre>
+
+<p>}
+```</p>
+
+<p>可以看到在<code>getResponseWithInterceptorChain</code>方法中只是把各种<code>Interceptor</code>添加到集合中去，并且实例化了一个<code>RealInterceptorChain</code>,调用了一下<code>chain.proceed</code>方法。</p>
+
+<h2>RealInterceptorChain</h2>
+
+<p>```java</p>
+
+<pre><code>// Call the next interceptor in the chain.
+RealInterceptorChain next = new RealInterceptorChain(interceptors, streamAllocation, httpCodec,
+    connection, index + 1, request, call, eventListener, connectTimeout, readTimeout,
+    writeTimeout);
+Interceptor interceptor = interceptors.get(index);
+Response response = interceptor.intercept(next);
+</code></pre>
+
+<p>```</p>
+
+<p>在<code>proceed</code>方法中实例化一个新的<code>RealInterceptorChain</code>对象<code>next</code>,注意参数中<code>index+1</code>，取出<code>index</code>对应的<code>Interceptor</code>，调用<code>Interceptor</code>的<code>intercept</code>方法将<code>next</code>对象传入。实际上就是按照<code>Interceptor</code>添加的顺序去掉用各个<code>Interceptor</code>的<code>intercept</code>方法了。</p>
+
+<p>先不管<code>OkHttpClient</code>Build的时候配置的<code>interceptors</code>和<code>networkInterceptors</code>，着重看看内置的几个<code>Interceptor</code>。</p>
+
+<h2>RetryAndFollowUpInterceptor</h2>
+
+<p>```java</p>
+
+<pre><code>StreamAllocation streamAllocation = new StreamAllocation(client.connectionPool(),
+    createAddress(request.url()), call, eventListener, callStackTrace);
+this.streamAllocation = streamAllocation;
+
+int followUpCount = 0;
+Response priorResponse = null;
+while (true) {
+  if (canceled) {
+    streamAllocation.release();
+    throw new IOException("Canceled");
+  }
+
+  Response response;
+  boolean releaseConnection = true;
+  try {
+    response = realChain.proceed(request, streamAllocation, null, null);
+    releaseConnection = false;
+  } catch (RouteException e) {
+    // The attempt to connect via a route failed. The request will not have been sent.
+    if (!recover(e.getLastConnectException(), streamAllocation, false, request)) {
+      throw e.getLastConnectException();
+    }
+    releaseConnection = false;
+    continue;
+  } catch (IOException e) {
+    // An attempt to communicate with a server failed. The request may have been sent.
+    boolean requestSendStarted = !(e instanceof ConnectionShutdownException);
+    if (!recover(e, streamAllocation, requestSendStarted, request)) throw e;
+    releaseConnection = false;
+    continue;
+  } finally {
+    // We're throwing an unchecked exception. Release any resources.
+    if (releaseConnection) {
+      streamAllocation.streamFailed(null);
+      streamAllocation.release();
+    }
+  }
+
+  // Attach the prior response if it exists. Such responses never have a body.
+  if (priorResponse != null) {
+    response = response.newBuilder()
+        .priorResponse(priorResponse.newBuilder()
+                .body(null)
+                .build())
+        .build();
+  }
+
+  Request followUp = followUpRequest(response, streamAllocation.route());
+
+  if (followUp == null) {
+    if (!forWebSocket) {
+      streamAllocation.release();
+    }
+    return response;
+  }
+
+  closeQuietly(response.body());
+
+  if (++followUpCount &gt; MAX_FOLLOW_UPS) {
+    streamAllocation.release();
+    throw new ProtocolException("Too many follow-up requests: " + followUpCount);
+  }
+
+  if (followUp.body() instanceof UnrepeatableRequestBody) {
+    streamAllocation.release();
+    throw new HttpRetryException("Cannot retry streamed HTTP body", response.code());
+  }
+
+  if (!sameConnection(response, followUp.url())) {
+    streamAllocation.release();
+    streamAllocation = new StreamAllocation(client.connectionPool(),
+        createAddress(followUp.url()), call, eventListener, callStackTrace);
+    this.streamAllocation = streamAllocation;
+  } else if (streamAllocation.codec() != null) {
+    throw new IllegalStateException("Closing the body of " + response
+        + " didn't close its backing stream. Bad interceptor?");
+  }
+
+  request = followUp;
+  priorResponse = response;
+}
+</code></pre>
+
+<p>```</p>
+
+<p>主要实例化了一个<code>StreamAllocation</code>对象，并调用了<code>chain.proceed</code>方法。对连接的重定向也做了处理。<code>chain.proceed</code>方法会接着调用下一个<code>Interceptor</code>的<code>intercept</code>方法。</p>
+
+<h2>BridgeIntercepto</h2>
+
+<p>```java</p>
+
+<pre><code>@Override public Response intercept(Chain chain) throws IOException {
+Request userRequest = chain.request();
+Request.Builder requestBuilder = userRequest.newBuilder();
+
+RequestBody body = userRequest.body();
+if (body != null) {
+  MediaType contentType = body.contentType();
+  if (contentType != null) {
+    requestBuilder.header("Content-Type", contentType.toString());
+  }
+
+  long contentLength = body.contentLength();
+  if (contentLength != -1) {
+    requestBuilder.header("Content-Length", Long.toString(contentLength));
+    requestBuilder.removeHeader("Transfer-Encoding");
+  } else {
+    requestBuilder.header("Transfer-Encoding", "chunked");
+    requestBuilder.removeHeader("Content-Length");
+  }
+}
+
+if (userRequest.header("Host") == null) {
+  requestBuilder.header("Host", hostHeader(userRequest.url(), false));
+}
+
+if (userRequest.header("Connection") == null) {
+  requestBuilder.header("Connection", "Keep-Alive");
+}
+
+// If we add an "Accept-Encoding: gzip" header field we're responsible for also decompressing
+// the transfer stream.
+boolean transparentGzip = false;
+if (userRequest.header("Accept-Encoding") == null &amp;&amp; userRequest.header("Range") == null) {
+  transparentGzip = true;
+  requestBuilder.header("Accept-Encoding", "gzip");
+}
+
+List&lt;Cookie&gt; cookies = cookieJar.loadForRequest(userRequest.url());
+if (!cookies.isEmpty()) {
+  requestBuilder.header("Cookie", cookieHeader(cookies));
+}
+
+if (userRequest.header("User-Agent") == null) {
+  requestBuilder.header("User-Agent", Version.userAgent());
+}
+
+Response networkResponse = chain.proceed(requestBuilder.build());
+
+HttpHeaders.receiveHeaders(cookieJar, userRequest.url(), networkResponse.headers());
+
+Response.Builder responseBuilder = networkResponse.newBuilder()
+    .request(userRequest);
+
+if (transparentGzip
+    &amp;&amp; "gzip".equalsIgnoreCase(networkResponse.header("Content-Encoding"))
+    &amp;&amp; HttpHeaders.hasBody(networkResponse)) {
+  GzipSource responseBody = new GzipSource(networkResponse.body().source());
+  Headers strippedHeaders = networkResponse.headers().newBuilder()
+      .removeAll("Content-Encoding")
+      .removeAll("Content-Length")
+      .build();
+  responseBuilder.headers(strippedHeaders);
+  String contentType = networkResponse.header("Content-Type");
+  responseBuilder.body(new RealResponseBody(contentType, -1L, Okio.buffer(responseBody)));
+}
+
+return responseBuilder.build();
+</code></pre>
+
+<p>  }
+```</p>
+
+<p><code>BridgeIntercepto</code>主要是给<code>Request</code>添加一些头部信息，如<code>connection:keep-alive</code>,<code>accept-encoding:gzip</code>等等，对返回回来的<code>Response</code>如果是经过<code>gzip</code>压缩的，会进行一个解压缩。</p>
+
+<h2>CacheInterceptor</h2>
+
+<p><code>CacheInterceptor</code>new的时候将<code>client.internalCache()</code>作为参数传递了过来。</p>
+
+<p>```java
+  InternalCache internalCache() {</p>
+
+<pre><code>return cache != null ? cache.internalCache : internalCache;
+</code></pre>
+
+<p>  }
+```</p>
+
+<p>下面主要看下<code>Cache</code>类</p>
+
+<h3>Cache</h3>
+
+<p>```java
+  Cache(File directory, long maxSize, FileSystem fileSystem) {</p>
+
+<pre><code>this.cache = DiskLruCache.create(fileSystem, directory, VERSION, ENTRY_COUNT, maxSize);
+</code></pre>
+
+<p>  }
+```</p>
+
+<p>可以看到<code>Cache</code>底层实际上是使用了<code>DiskLruCache</code>。</p>
+
+<p>主要看下<code>get</code>和<code>put</code>方法</p>
+
+<p>```java</p>
+
+<pre><code>@Nullable Response get(Request request) {
+String key = key(request.url());
+DiskLruCache.Snapshot snapshot;
+Entry entry;
+try {
+  snapshot = cache.get(key);
+  if (snapshot == null) {
+    return null;
+  }
+} catch (IOException e) {
+  // Give up because the cache cannot be read.
+  return null;
+}
+
+try {
+  entry = new Entry(snapshot.getSource(ENTRY_METADATA));
+} catch (IOException e) {
+  Util.closeQuietly(snapshot);
+  return null;
+}
+
+Response response = entry.response(snapshot);
+
+if (!entry.matches(request, response)) {
+  Util.closeQuietly(response.body());
+  return null;
+}
+
+return response;
+</code></pre>
+
+<p>  }
+```</p>
+
+<p>```java</p>
+
+<pre><code>@Nullable CacheRequest put(Response response) {
+String requestMethod = response.request().method();
+
+if (HttpMethod.invalidatesCache(response.request().method())) {
+  try {
+    remove(response.request());
+  } catch (IOException ignored) {
+    // The cache cannot be written.
+  }
+  return null;
+}
+if (!requestMethod.equals("GET")) {
+  // Don't cache non-GET responses. We're technically allowed to cache
+  // HEAD requests and some POST requests, but the complexity of doing
+  // so is high and the benefit is low.
+  return null;
+}
+
+if (HttpHeaders.hasVaryAll(response)) {
+  return null;
+}
+// 注意这里
+Entry entry = new Entry(response);
+DiskLruCache.Editor editor = null;
+try {
+  editor = cache.edit(key(response.request().url()));
+  if (editor == null) {
+    return null;
+  }
+  entry.writeTo(editor);
+  //注意这里
+  return new CacheRequestImpl(editor);
+} catch (IOException e) {
+  abortQuietly(editor);
+  return null;
+}
+</code></pre>
+
+<p>  }
+```</p>
+
+<p>```java</p>
+
+<pre><code>Entry(Response response) {
+  this.url = response.request().url().toString();
+  this.varyHeaders = HttpHeaders.varyHeaders(response);
+  this.requestMethod = response.request().method();
+  this.protocol = response.protocol();
+  this.code = response.code();
+  this.message = response.message();
+  this.responseHeaders = response.headers();
+  this.handshake = response.handshake();
+  this.sentRequestMillis = response.sentRequestAtMillis();
+  this.receivedResponseMillis = response.receivedResponseAtMillis();
+}
+
+public void writeTo(DiskLruCache.Editor editor) throws IOException {
+  BufferedSink sink = Okio.buffer(editor.newSink(ENTRY_METADATA));
+
+  sink.writeUtf8(url)
+      .writeByte('\n');
+  sink.writeUtf8(requestMethod)
+      .writeByte('\n');
+  sink.writeDecimalLong(varyHeaders.size())
+      .writeByte('\n');
+  for (int i = 0, size = varyHeaders.size(); i &lt; size; i++) {
+    sink.writeUtf8(varyHeaders.name(i))
+        .writeUtf8(": ")
+        .writeUtf8(varyHeaders.value(i))
+        .writeByte('\n');
+  }
+
+  sink.writeUtf8(new StatusLine(protocol, code, message).toString())
+      .writeByte('\n');
+  sink.writeDecimalLong(responseHeaders.size() + 2)
+      .writeByte('\n');
+  for (int i = 0, size = responseHeaders.size(); i &lt; size; i++) {
+    sink.writeUtf8(responseHeaders.name(i))
+        .writeUtf8(": ")
+        .writeUtf8(responseHeaders.value(i))
+        .writeByte('\n');
+  }
+  sink.writeUtf8(SENT_MILLIS)
+      .writeUtf8(": ")
+      .writeDecimalLong(sentRequestMillis)
+      .writeByte('\n');
+  sink.writeUtf8(RECEIVED_MILLIS)
+      .writeUtf8(": ")
+      .writeDecimalLong(receivedResponseMillis)
+      .writeByte('\n');
+
+  if (isHttps()) {
+    sink.writeByte('\n');
+    sink.writeUtf8(handshake.cipherSuite().javaName())
+        .writeByte('\n');
+    writeCertList(sink, handshake.peerCertificates());
+    writeCertList(sink, handshake.localCertificates());
+    sink.writeUtf8(handshake.tlsVersion().javaName()).writeByte('\n');
+  }
+  sink.close();
+}
+</code></pre>
+
+<p>```</p>
+
+<p>在<code>Cache</code>的<code>put</code>方法中<code>Entry</code>写入到<code>DiskLruCache</code>的只是请求头，url，响应头之类的信息，同时返回了一个<code>CacheRequestImpl(editor)</code>对象，Find Usage之后发现是在<code>CacheInterceptor</code>的<code>intercept</code>中被调用的。</p>
+
+<p>```java</p>
+
+<pre><code>@Override public Response intercept(Chain chain) throws IOException {
+Response cacheCandidate = cache != null
+    ? cache.get(chain.request())
+    : null;
+
+long now = System.currentTimeMillis();
+
+CacheStrategy strategy = new CacheStrategy.Factory(now, chain.request(), cacheCandidate).get();
+Request networkRequest = strategy.networkRequest;
+Response cacheResponse = strategy.cacheResponse;
+
+if (cache != null) {
+  cache.trackResponse(strategy);
+}
+
+if (cacheCandidate != null &amp;&amp; cacheResponse == null) {
+  closeQuietly(cacheCandidate.body()); // The cache candidate wasn't applicable. Close it.
+}
+
+// If we're forbidden from using the network and the cache is insufficient, fail.
+if (networkRequest == null &amp;&amp; cacheResponse == null) {
+  return new Response.Builder()
+      .request(chain.request())
+      .protocol(Protocol.HTTP_1_1)
+      .code(504)
+      .message("Unsatisfiable Request (only-if-cached)")
+      .body(Util.EMPTY_RESPONSE)
+      .sentRequestAtMillis(-1L)
+      .receivedResponseAtMillis(System.currentTimeMillis())
+      .build();
+}
+
+// If we don't need the network, we're done.
+if (networkRequest == null) {
+  return cacheResponse.newBuilder()
+      .cacheResponse(stripBody(cacheResponse))
+      .build();
+}
+
+Response networkResponse = null;
+try {
+  networkResponse = chain.proceed(networkRequest);
+} finally {
+  // If we're crashing on I/O or otherwise, don't leak the cache body.
+  if (networkResponse == null &amp;&amp; cacheCandidate != null) {
+    closeQuietly(cacheCandidate.body());
+  }
+}
+
+// If we have a cache response too, then we're doing a conditional get.
+if (cacheResponse != null) {
+  if (networkResponse.code() == HTTP_NOT_MODIFIED) {
+    Response response = cacheResponse.newBuilder()
+        .headers(combine(cacheResponse.headers(), networkResponse.headers()))
+        .sentRequestAtMillis(networkResponse.sentRequestAtMillis())
+        .receivedResponseAtMillis(networkResponse.receivedResponseAtMillis())
+        .cacheResponse(stripBody(cacheResponse))
+        .networkResponse(stripBody(networkResponse))
+        .build();
+    networkResponse.body().close();
+
+    // Update the cache after combining headers but before stripping the
+    // Content-Encoding header (as performed by initContentStream()).
+    cache.trackConditionalCacheHit();
+    cache.update(cacheResponse, response);
+    return response;
+  } else {
+    closeQuietly(cacheResponse.body());
+  }
+}
+
+Response response = networkResponse.newBuilder()
+    .cacheResponse(stripBody(cacheResponse))
+    .networkResponse(stripBody(networkResponse))
+    .build();
+
+if (cache != null) {
+  if (HttpHeaders.hasBody(response) &amp;&amp; CacheStrategy.isCacheable(response, networkRequest)) {
+    // Offer this request to the cache.
+    // *****注意这里*****
+    CacheRequest cacheRequest = cache.put(response);
+    return cacheWritingResponse(cacheRequest, response);
+  }
+
+  if (HttpMethod.invalidatesCache(networkRequest.method())) {
+    try {
+      cache.remove(networkRequest);
+    } catch (IOException ignored) {
+      // The cache cannot be written.
+    }
+  }
+}
+
+return response;
+</code></pre>
+
+<p>  }
+```</p>
+
+<p>可以看到主要是对<code>cacheResponse</code>和<code>networkResponse</code>进行的一些处理，比如返回304 not modified之类的处理结果。然后将<code>Response</code>写入缓存中。</p>
+
+<p>```java</p>
+
+<pre><code>/**
+</code></pre>
+
+<ul>
+<li> Returns a new source that writes bytes to {@code cacheRequest} as they are read by the source</li>
+<li> consumer. This is careful to discard bytes left over when the stream is closed; otherwise we</li>
+<li><p> may never exhaust the source stream and therefore not complete the cached response.
+*/
+private Response cacheWritingResponse(final CacheRequest cacheRequest, Response response)
+  throws IOException {
+// Some apps return a null body; for compatibility we treat that like a null cache request.
+if (cacheRequest == null) return response;
+Sink cacheBodyUnbuffered = cacheRequest.body();
+if (cacheBodyUnbuffered == null) return response;</p>
+
+<p>final BufferedSource source = response.body().source();
+final BufferedSink cacheBody = Okio.buffer(cacheBodyUnbuffered);</p>
+
+<p>Source cacheWritingSource = new Source() {
+  boolean cacheRequestClosed;</p>
+
+<p>  @Override public long read(Buffer sink, long byteCount) throws IOException {
+    long bytesRead;
+    try {
+      bytesRead = source.read(sink, byteCount);
+    } catch (IOException e) {
+      if (!cacheRequestClosed) {
+        cacheRequestClosed = true;
+        cacheRequest.abort(); // Failed to write a complete cache response.
+      }
+      throw e;
+    }</p>
+
+<pre><code>if (bytesRead == -1) {
+  if (!cacheRequestClosed) {
+    cacheRequestClosed = true;
+    cacheBody.close(); // The cache response is complete!
+  }
+  return -1;
+}
+
+sink.copyTo(cacheBody.buffer(), sink.size() - bytesRead, bytesRead);
+cacheBody.emitCompleteSegments();
+return bytesRead;
+</code></pre>
+
+<p>  }</p>
+
+<p>  @Override public Timeout timeout() {
+    return source.timeout();
+  }</p>
+
+<p>  @Override public void close() throws IOException {
+    if (!cacheRequestClosed
+        &amp;&amp; !discard(this, HttpCodec.DISCARD_STREAM_TIMEOUT_MILLIS, MILLISECONDS)) {
+      cacheRequestClosed = true;
+      cacheRequest.abort();
+    }
+    source.close();
+  }
+};</p>
+
+<p>String contentType = response.header(&ldquo;Content-Type&rdquo;);
+long contentLength = response.body().contentLength();
+return response.newBuilder()
+    .body(new RealResponseBody(contentType, contentLength, Okio.buffer(cacheWritingSource)))
+    .build();
+}
+```</p></li>
+</ul>
+
+
+<p>```java</p>
+
+<pre><code>private final class CacheRequestImpl implements CacheRequest {
+private final DiskLruCache.Editor editor;
+private Sink cacheOut;
+private Sink body;
+boolean done;
+
+CacheRequestImpl(final DiskLruCache.Editor editor) {
+  this.editor = editor;
+  this.cacheOut = editor.newSink(ENTRY_BODY);
+  this.body = new ForwardingSink(cacheOut) {
+    @Override public void close() throws IOException {
+      synchronized (Cache.this) {
+        if (done) {
+          return;
+        }
+        done = true;
+        writeSuccessCount++;
+      }
+      super.close();
+      editor.commit();
+    }
+  };
+}
+
+@Override public void abort() {
+  synchronized (Cache.this) {
+    if (done) {
+      return;
+    }
+    done = true;
+    writeAbortCount++;
+  }
+  Util.closeQuietly(cacheOut);
+  try {
+    editor.abort();
+  } catch (IOException ignored) {
+  }
+}
+
+@Override public Sink body() {
+  return body;
+}
+</code></pre>
+
+<p>  }
+```</p>
+
+<p>可以看到调用了okio的<code>Sink</code>和<code>Source</code>进行了copy。</p>
+
+<h2>ConnectInterceptor</h2>
+
+<p>```java</p>
+
+<pre><code>// We need the network to satisfy this request. Possibly for validating a conditional GET.
+boolean doExtensiveHealthChecks = !request.method().equals("GET");
+HttpCodec httpCodec = streamAllocation.newStream(client, chain, doExtensiveHealthChecks);
+RealConnection connection = streamAllocation.connection();
+</code></pre>
+
+<p>```</p>
+
+<p><code>ConnectInterceptor</code>主要就是调用了<code>streamAllocation</code>的<code>newStream</code>方法。</p>
+
+<p>```java</p>
+
+<pre><code>public HttpCodec newStream(
+  OkHttpClient client, Interceptor.Chain chain, boolean doExtensiveHealthChecks) {
+int connectTimeout = chain.connectTimeoutMillis();
+int readTimeout = chain.readTimeoutMillis();
+int writeTimeout = chain.writeTimeoutMillis();
+int pingIntervalMillis = client.pingIntervalMillis();
+boolean connectionRetryEnabled = client.retryOnConnectionFailure();
+
+try {
+  RealConnection resultConnection = findHealthyConnection(connectTimeout, readTimeout,
+      writeTimeout, pingIntervalMillis, connectionRetryEnabled, doExtensiveHealthChecks);
+  HttpCodec resultCodec = resultConnection.newCodec(client, chain, this);
+
+  synchronized (connectionPool) {
+    codec = resultCodec;
+    return resultCodec;
+  }
+} catch (IOException e) {
+  throw new RouteException(e);
+}
+</code></pre>
+
+<p>  }</p>
+
+<p>  /<em>*
+   * Finds a connection and returns it if it is healthy. If it is unhealthy the process is repeated
+   * until a healthy connection is found.
+   </em>/
+  private RealConnection findHealthyConnection(int connectTimeout, int readTimeout,</p>
+
+<pre><code>  int writeTimeout, int pingIntervalMillis, boolean connectionRetryEnabled,
+  boolean doExtensiveHealthChecks) throws IOException {
+while (true) {
+  RealConnection candidate = findConnection(connectTimeout, readTimeout, writeTimeout,
+      pingIntervalMillis, connectionRetryEnabled);
+
+  // If this is a brand new connection, we can skip the extensive health checks.
+  synchronized (connectionPool) {
+    if (candidate.successCount == 0) {
+      return candidate;
+    }
+  }
+
+  // Do a (potentially slow) check to confirm that the pooled connection is still good. If it
+  // isn't, take it out of the pool and start again.
+  if (!candidate.isHealthy(doExtensiveHealthChecks)) {
+    noNewStreams();
+    continue;
+  }
+
+  return candidate;
+}
+</code></pre>
+
+<p>  }</p>
+
+<p>  /<em>*
+   * Returns a connection to host a new stream. This prefers the existing connection if it exists,
+   * then the pool, finally building a new connection.
+   </em>/
+  private RealConnection findConnection(int connectTimeout, int readTimeout, int writeTimeout,</p>
+
+<pre><code>  int pingIntervalMillis, boolean connectionRetryEnabled) throws IOException {
+boolean foundPooledConnection = false;
+RealConnection result = null;
+Route selectedRoute = null;
+Connection releasedConnection;
+Socket toClose;
+synchronized (connectionPool) {
+  if (released) throw new IllegalStateException("released");
+  if (codec != null) throw new IllegalStateException("codec != null");
+  if (canceled) throw new IOException("Canceled");
+
+  // Attempt to use an already-allocated connection. We need to be careful here because our
+  // already-allocated connection may have been restricted from creating new streams.
+  releasedConnection = this.connection;
+  toClose = releaseIfNoNewStreams();
+  if (this.connection != null) {
+    // We had an already-allocated connection and it's good.
+    result = this.connection;
+    releasedConnection = null;
+  }
+  if (!reportedAcquired) {
+    // If the connection was never reported acquired, don't report it as released!
+    releasedConnection = null;
+  }
+
+  if (result == null) {
+    // Attempt to get a connection from the pool.
+    // 注意这里，从ConnectionPool中找Connection
+    Internal.instance.get(connectionPool, address, this, null);
+    if (connection != null) {
+      foundPooledConnection = true;
+      result = connection;
+    } else {
+      selectedRoute = route;
+    }
+  }
+}
+closeQuietly(toClose);
+
+if (releasedConnection != null) {
+  eventListener.connectionReleased(call, releasedConnection);
+}
+if (foundPooledConnection) {
+  eventListener.connectionAcquired(call, result);
+}
+if (result != null) {
+  // If we found an already-allocated or pooled connection, we're done.
+  return result;
+}
+
+// If we need a route selection, make one. This is a blocking operation.
+boolean newRouteSelection = false;
+if (selectedRoute == null &amp;&amp; (routeSelection == null || !routeSelection.hasNext())) {
+  newRouteSelection = true;
+  routeSelection = routeSelector.next();
+}
+
+synchronized (connectionPool) {
+  if (canceled) throw new IOException("Canceled");
+
+  if (newRouteSelection) {
+    // Now that we have a set of IP addresses, make another attempt at getting a connection from
+    // the pool. This could match due to connection coalescing.
+    List&lt;Route&gt; routes = routeSelection.getAll();
+    for (int i = 0, size = routes.size(); i &lt; size; i++) {
+      Route route = routes.get(i);
+      Internal.instance.get(connectionPool, address, this, route);
+      if (connection != null) {
+        foundPooledConnection = true;
+        result = connection;
+        this.route = route;
+        break;
+      }
+    }
+  }
+
+  if (!foundPooledConnection) {
+    if (selectedRoute == null) {
+      selectedRoute = routeSelection.next();
+    }
+
+    // Create a connection and assign it to this allocation immediately. This makes it possible
+    // for an asynchronous cancel() to interrupt the handshake we're about to do.
+    route = selectedRoute;
+    refusedStreamCount = 0;
+    result = new RealConnection(connectionPool, selectedRoute);
+    acquire(result, false);
+  }
+}
+
+// If we found a pooled connection on the 2nd time around, we're done.
+if (foundPooledConnection) {
+  eventListener.connectionAcquired(call, result);
+  return result;
+}
+
+// Do TCP + TLS handshakes. This is a blocking operation.
+// 进行tcp握手
+result.connect(connectTimeout, readTimeout, writeTimeout, pingIntervalMillis,
+    connectionRetryEnabled, call, eventListener);
+routeDatabase().connected(result.route());
+
+Socket socket = null;
+synchronized (connectionPool) {
+  reportedAcquired = true;
+
+  // Pool the connection.
+  // 把connection放到ConnectionPool中
+  Internal.instance.put(connectionPool, result);
+
+  // If another multiplexed connection to the same address was created concurrently, then
+  // release this connection and acquire that one.
+  if (result.isMultiplexed()) {
+    socket = Internal.instance.deduplicate(connectionPool, address, this);
+    result = connection;
+  }
+}
+closeQuietly(socket);
+
+eventListener.connectionAcquired(call, result);
+return result;
+</code></pre>
+
+<p>  }
+```</p>
+
+<p>```java</p>
+
+<pre><code>@Override public RealConnection get(ConnectionPool pool, Address address,
+      StreamAllocation streamAllocation, Route route) {
+    return pool.get(address, streamAllocation, route);
+  }
+</code></pre>
+
+<p>```</p>
+
+<p>```java</p>
+
+<pre><code>/**
+</code></pre>
+
+<ul>
+<li> Returns a recycled connection to {@code address}, or null if no such connection exists. The</li>
+<li> route is null if the address has not yet been routed.
+*/
+@Nullable RealConnection get(Address address, StreamAllocation streamAllocation, Route route) {
+assert (Thread.holdsLock(this));
+for (RealConnection connection : connections) {
+  if (connection.isEligible(address, route)) {
+    streamAllocation.acquire(connection, true);
+    return connection;
+  }
+}
+return null;
+}
+```</li>
+</ul>
+
+
+<p>```java</p>
+
+<pre><code>/**
+</code></pre>
+
+<ul>
+<li> Returns true if this connection can carry a stream allocation to {@code address}. If non-null</li>
+<li><p> {@code route} is the resolved route for a connection.
+*/
+public boolean isEligible(Address address, @Nullable Route route) {
+// If this connection is not accepting new streams, we&rsquo;re done.
+if (allocations.size() >= allocationLimit || noNewStreams) return false;</p>
+
+<p>// If the non-host fields of the address don&rsquo;t overlap, we&rsquo;re done.
+if (!Internal.instance.equalsNonHost(this.route.address(), address)) return false;</p>
+
+<p>// If the host exactly matches, we&rsquo;re done: this connection can carry the address.
+if (address.url().host().equals(this.route().address().url().host())) {
+  return true; // This connection is a perfect match.
+}</p>
+
+<p>// At this point we don&rsquo;t have a hostname match. But we still be able to carry the request if
+// our connection coalescing requirements are met. See also:
+// <a href="https://hpbn.co/optimizing-application-delivery/#eliminate-domain-sharding">https://hpbn.co/optimizing-application-delivery/#eliminate-domain-sharding</a>
+// <a href="https://daniel.haxx.se/blog/2016/08/18/http2-connection-coalescing/">https://daniel.haxx.se/blog/2016/08/18/http2-connection-coalescing/</a></p>
+
+<p>// 1. This connection must be HTTP/2.
+if (http2Connection == null) return false;</p>
+
+<p>// 2. The routes must share an IP address. This requires us to have a DNS address for both
+// hosts, which only happens after route planning. We can&rsquo;t coalesce connections that use a
+// proxy, since proxies don&rsquo;t tell us the origin server&rsquo;s IP address.
+if (route == null) return false;
+if (route.proxy().type() != Proxy.Type.DIRECT) return false;
+if (this.route.proxy().type() != Proxy.Type.DIRECT) return false;
+if (!this.route.socketAddress().equals(route.socketAddress())) return false;</p>
+
+<p>// 3. This connection&rsquo;s server certificate&rsquo;s must cover the new host.
+if (route.address().hostnameVerifier() != OkHostnameVerifier.INSTANCE) return false;
+if (!supportsUrl(address.url())) return false;</p>
+
+<p>// 4. Certificate pinning must match the host.
+try {
+  address.certificatePinner().check(address.url().host(), handshake().peerCertificates());
+} catch (SSLPeerUnverifiedException e) {
+  return false;
+}</p>
+
+<p>return true; // The caller&rsquo;s address can be carried by this connection.
+}
+```</p></li>
+</ul>
+
+
+<p>```java
+/<em>*
+   * Use this allocation to hold {@code connection}. Each call to this must be paired with a call to
+   * {@link #release} on the same connection.
+   </em>/
+  public void acquire(RealConnection connection, boolean reportedAcquired) {</p>
+
+<pre><code>assert (Thread.holdsLock(connectionPool));
+if (this.connection != null) throw new IllegalStateException();
+
+this.connection = connection;
+this.reportedAcquired = reportedAcquired;
+connection.allocations.add(new StreamAllocationReference(this, callStackTrace));
+</code></pre>
+
+<p>  }
+```</p>
+
+<p><code>StreamAllocation.acquire(connection, true)</code>的时候将<code>StreamAllocaion</code>的弱引用加入到<code>connection.allocations</code>集合中，这将在释放<code>Connection</code>的时候用到。</p>
+
+<p>在将<code>Connection</code>放入<code>ConnectionPool</code>中时，调用了<code>ConnectionPool</code>的<code>put</code>方法。</p>
+
+<p>```java
+void put(RealConnection connection) {</p>
+
+<pre><code>assert (Thread.holdsLock(this));
+if (!cleanupRunning) {
+  cleanupRunning = true;
+  executor.execute(cleanupRunnable);
+}
+connections.add(connection);
+</code></pre>
+
+<p>  }
+```</p>
+
+<p>线程池执行<code>cleanupRunnable</code></p>
+
+<p>```java</p>
+
+<pre><code>private final Runnable cleanupRunnable = new Runnable() {
+@Override public void run() {
+  while (true) {
+    long waitNanos = cleanup(System.nanoTime());
+    if (waitNanos == -1) return;
+    if (waitNanos &gt; 0) {
+      long waitMillis = waitNanos / 1000000L;
+      waitNanos -= (waitMillis * 1000000L);
+      synchronized (ConnectionPool.this) {
+        try {
+          ConnectionPool.this.wait(waitMillis, (int) waitNanos);
+        } catch (InterruptedException ignored) {
+        }
+      }
+    }
+  }
+}
+</code></pre>
+
+<p>  };</p>
+
+<p>  long cleanup(long now) {</p>
+
+<pre><code>int inUseConnectionCount = 0;
+int idleConnectionCount = 0;
+RealConnection longestIdleConnection = null;
+long longestIdleDurationNs = Long.MIN_VALUE;
+
+// Find either a connection to evict, or the time that the next eviction is due.
+synchronized (this) {
+  for (Iterator&lt;RealConnection&gt; i = connections.iterator(); i.hasNext(); ) {
+    RealConnection connection = i.next();
+
+    // If the connection is in use, keep searching.
+    if (pruneAndGetAllocationCount(connection, now) &gt; 0) {
+      inUseConnectionCount++;
+      continue;
+    }
+
+    idleConnectionCount++;
+
+    // If the connection is ready to be evicted, we're done.
+    long idleDurationNs = now - connection.idleAtNanos;
+    if (idleDurationNs &gt; longestIdleDurationNs) {
+      longestIdleDurationNs = idleDurationNs;
+      longestIdleConnection = connection;
+    }
+  }
+
+  if (longestIdleDurationNs &gt;= this.keepAliveDurationNs
+      || idleConnectionCount &gt; this.maxIdleConnections) {
+    // We've found a connection to evict. Remove it from the list, then close it below (outside
+    // of the synchronized block).
+    connections.remove(longestIdleConnection);
+  } else if (idleConnectionCount &gt; 0) {
+    // A connection will be ready to evict soon.
+    return keepAliveDurationNs - longestIdleDurationNs;
+  } else if (inUseConnectionCount &gt; 0) {
+    // All connections are in use. It'll be at least the keep alive duration 'til we run again.
+    return keepAliveDurationNs;
+  } else {
+    // No connections, idle or in use.
+    cleanupRunning = false;
+    return -1;
+  }
+}
+
+closeQuietly(longestIdleConnection.socket());
+
+// Cleanup again immediately.
+return 0;
+</code></pre>
+
+<p>  }</p>
+
+<p>  /<em>*
+   * Prunes any leaked allocations and then returns the number of remaining live allocations on
+   * {@code connection}. Allocations are leaked if the connection is tracking them but the
+   * application code has abandoned them. Leak detection is imprecise and relies on garbage
+   * collection.
+   </em>/
+  private int pruneAndGetAllocationCount(RealConnection connection, long now) {</p>
+
+<pre><code>List&lt;Reference&lt;StreamAllocation&gt;&gt; references = connection.allocations;
+for (int i = 0; i &lt; references.size(); ) {
+  Reference&lt;StreamAllocation&gt; reference = references.get(i);
+
+  if (reference.get() != null) {
+    i++;
+    continue;
+  }
+
+  // We've discovered a leaked allocation. This is an application bug.
+  StreamAllocation.StreamAllocationReference streamAllocRef =
+      (StreamAllocation.StreamAllocationReference) reference;
+  String message = "A connection to " + connection.route().address().url()
+      + " was leaked. Did you forget to close a response body?";
+  Platform.get().logCloseableLeak(message, streamAllocRef.callStackTrace);
+
+  references.remove(i);
+  connection.noNewStreams = true;
+
+  // If this was the last allocation, the connection is eligible for immediate eviction.
+  if (references.isEmpty()) {
+    connection.idleAtNanos = now - keepAliveDurationNs;
+    return 0;
+  }
+}
+
+return references.size();
+</code></pre>
+
+<p>  }</p>
+
+<p>  public static final class StreamAllocationReference extends WeakReference<StreamAllocation> {</p>
+
+<pre><code>/**
+ * Captures the stack trace at the time the Call is executed or enqueued. This is helpful for
+ * identifying the origin of connection leaks.
+ */
+public final Object callStackTrace;
+
+StreamAllocationReference(StreamAllocation referent, Object callStackTrace) {
+  super(referent);
+  this.callStackTrace = callStackTrace;
+}
+</code></pre>
+
+<p>  }
+```</p>
+
+<p>通过判断<code>connection.allocations</code>的集合元素的弱引用指向是否为空来判断<code>connection</code>是否应该被释放。</p>
+
+<h2>CallServerInterceptor</h2>
+
+<p>```java</p>
+
+<pre><code>@Override public Response intercept(Chain chain) throws IOException {
+RealInterceptorChain realChain = (RealInterceptorChain) chain;
+HttpCodec httpCodec = realChain.httpStream();
+StreamAllocation streamAllocation = realChain.streamAllocation();
+RealConnection connection = (RealConnection) realChain.connection();
+Request request = realChain.request();
+
+long sentRequestMillis = System.currentTimeMillis();
+
+realChain.eventListener().requestHeadersStart(realChain.call());
+httpCodec.writeRequestHeaders(request);
+realChain.eventListener().requestHeadersEnd(realChain.call(), request);
+
+Response.Builder responseBuilder = null;
+if (HttpMethod.permitsRequestBody(request.method()) &amp;&amp; request.body() != null) {
+  // If there's a "Expect: 100-continue" header on the request, wait for a "HTTP/1.1 100
+  // Continue" response before transmitting the request body. If we don't get that, return
+  // what we did get (such as a 4xx response) without ever transmitting the request body.
+  if ("100-continue".equalsIgnoreCase(request.header("Expect"))) {
+    httpCodec.flushRequest();
+    realChain.eventListener().responseHeadersStart(realChain.call());
+    responseBuilder = httpCodec.readResponseHeaders(true);
+  }
+
+  if (responseBuilder == null) {
+    // Write the request body if the "Expect: 100-continue" expectation was met.
+    realChain.eventListener().requestBodyStart(realChain.call());
+    long contentLength = request.body().contentLength();
+    CountingSink requestBodyOut =
+        new CountingSink(httpCodec.createRequestBody(request, contentLength));
+    BufferedSink bufferedRequestBody = Okio.buffer(requestBodyOut);
+
+    request.body().writeTo(bufferedRequestBody);
+    bufferedRequestBody.close();
+    realChain.eventListener()
+        .requestBodyEnd(realChain.call(), requestBodyOut.successfulCount);
+  } else if (!connection.isMultiplexed()) {
+    // If the "Expect: 100-continue" expectation wasn't met, prevent the HTTP/1 connection
+    // from being reused. Otherwise we're still obligated to transmit the request body to
+    // leave the connection in a consistent state.
+    streamAllocation.noNewStreams();
+  }
+}
+
+httpCodec.finishRequest();
+
+if (responseBuilder == null) {
+  realChain.eventListener().responseHeadersStart(realChain.call());
+  responseBuilder = httpCodec.readResponseHeaders(false);
+}
+
+Response response = responseBuilder
+    .request(request)
+    .handshake(streamAllocation.connection().handshake())
+    .sentRequestAtMillis(sentRequestMillis)
+    .receivedResponseAtMillis(System.currentTimeMillis())
+    .build();
+
+int code = response.code();
+if (code == 100) {
+  // server sent a 100-continue even though we did not request one.
+  // try again to read the actual response
+  responseBuilder = httpCodec.readResponseHeaders(false);
+
+  response = responseBuilder
+          .request(request)
+          .handshake(streamAllocation.connection().handshake())
+          .sentRequestAtMillis(sentRequestMillis)
+          .receivedResponseAtMillis(System.currentTimeMillis())
+          .build();
+
+  code = response.code();
+}
+
+realChain.eventListener()
+        .responseHeadersEnd(realChain.call(), response);
+
+if (forWebSocket &amp;&amp; code == 101) {
+  // Connection is upgrading, but we need to ensure interceptors see a non-null response body.
+  response = response.newBuilder()
+      .body(Util.EMPTY_RESPONSE)
+      .build();
+} else {
+  response = response.newBuilder()
+      .body(httpCodec.openResponseBody(response))
+      .build();
+}
+
+if ("close".equalsIgnoreCase(response.request().header("Connection"))
+    || "close".equalsIgnoreCase(response.header("Connection"))) {
+  streamAllocation.noNewStreams();
+}
+
+if ((code == 204 || code == 205) &amp;&amp; response.body().contentLength() &gt; 0) {
+  throw new ProtocolException(
+      "HTTP " + code + " had non-zero Content-Length: " + response.body().contentLength());
+}
+
+return response;
+</code></pre>
+
+<p>  }
+```</p>
+
+<p>分别调用<code>httpCodec.writeRequestHeaders(request);</code>写请求头部，<code>request.body().writeTo(bufferedRequestBody);</code>写请求body，<code>httpCodec.readResponseHeaders(false);</code>读响应头部，<code>httpCodec.openResponseBody(response)</code>读响应body。</p>
+
+<p>至此，所有<code>interceptor</code>分析完毕。</p>
+
+<p>接下来会写一下关于okhttp的扩展，比如如何监听下载进度，appliation interceptor与network interceptor的区别，如何设置断网情况下的缓存等等。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[NestedScrolling分析]]></title>
+    <link href="http://Solarex.github.io/blog/2018/04/08/nestedscrolling-analysis/"/>
+    <updated>2018-04-08T16:32:00+08:00</updated>
+    <id>http://Solarex.github.io/blog/2018/04/08/nestedscrolling-analysis</id>
+    <content type="html"><![CDATA[<h2>reference</h2>
+
+<ul>
+<li><a href="https://mp.weixin.qq.com/s/jD2zuLth197tBiVbYfjP8w"></a></li>
+</ul>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Writing Better Adapters]]></title>
@@ -312,958 +2149,6 @@ override fun type(car: Car) = R.layout.car
 <li><a href="http://github.com/flyfire/MultitypeBaseAdapter">MultitypeBaseAdapter</a></li>
 </ul>
 
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Choreographer in Android]]></title>
-    <link href="http://Solarex.github.io/blog/2016/10/10/choreographer-in-android/"/>
-    <updated>2016-10-10T20:38:00+08:00</updated>
-    <id>http://Solarex.github.io/blog/2016/10/10/choreographer-in-android</id>
-    <content type="html"><![CDATA[<p>Choreographer is the one which acts like a interface between application view system and lower layer display system for rendering the views.</p>
-
-<p>ViewRootImpl is the ViewParent or root below which only Activity window DecorView will be attached. All the view layouts set by the activity through <code>setContentView()</code> will attached the DecorView whose parent is ViewRootImpl. Actually ViewRootImpl is not a View its just a ViewParent which handled and manages the View Hierarchies for displaying, handling input events etc.</p>
-
-<p>The number of root views that are active in your process. Each root view is associated with a window, so this can help you identify memory leaks involving dialogs or other windows.</p>
-
-<!-- more -->
-
-
-<p>ViewRootImpl will get the requests for refresh or view update from its child and interact with Choreographer for drawing the view hierarchy to the display system.</p>
-
-<p>Choreographer instance will be created for each thread wise. Each application thread will have separate instance of Choreographer. When this instance is created then it itself register to for VSYNC event to the lower layer and now it ready to handle the ViewRootImpl/Application refresh request and interaction with the lower layer.</p>
-
-<p>When ever ViewRootImpl got request from View hierarchy to refresh or update or invalidate then it request Choreographer for refresh by registering a callback. When Choreographer got any request then it request for next VSYNC event from the lower layer and when it got he VSYNC event then it asks ViewRootImpl by calling the registered Callback to handle the drawing accordingly. Also when ever ViewRootImpl wants to redraw the view then this thing will repeat.</p>
-
-<p>When Choreographer receives VSYNC event then it handled the below event handling in order to handle the drawing or display.</p>
-
-<ul>
-<li><p>Input  handling : All received input event received and maintained in the query and all these input event will be processed now only.</p></li>
-<li><p>Animation : Handle all the registered animations from ViewRootImpl or from Application or Activity.</p></li>
-<li><p>View Traversal (Drawing/Rendering of Views) : Handles the View drawing if ViewRootImpl has registered for refresh.</p></li>
-</ul>
-
-
-<p>Choreographer is the main component which registers application main thread to display system and coordinate between the application view drawing component to the display system for synchronizing VSYNC with the application event, animation and draw handling.</p>
-
-<h2>reference</h2>
-
-<ul>
-<li><a href="https://nayaneshguptetechstuff.wordpress.com/2014/07/01/what-is-choreographeri-in-android/">WHAT IS CHOREOGRAPHER IN ANDROID?</a></li>
-</ul>
-
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[VSYNC in Android]]></title>
-    <link href="http://Solarex.github.io/blog/2016/10/09/vsync-in-android/"/>
-    <updated>2016-10-09T20:43:00+08:00</updated>
-    <id>http://Solarex.github.io/blog/2016/10/09/vsync-in-android</id>
-    <content type="html"><![CDATA[<h2>In Android What is VSYNC and its usage?</h2>
-
-<p>VSYNC is the event posted periodically by the kernal at fixed interval where the input handling, Animation and Window drawing happening synchroniiously at the same VSYNC interval. Below have given the detail explanation about the VSYNC event before VSYNC is introduced and after VSYNC is introduced.</p>
-
-<!-- more -->
-
-
-<h3>Before VSYNC is introduced:</h3>
-
-<p>Before VSYNC is introduced then there was no synchronization happening for Input, animation and draw. As when there is an input it will be handled, also as when there is an animation or change in view then it will be drawn which results in too many CPU operations and some complex animations where some time operations or drawing happens exceeds human identifcatrion of view change. Suppose human eye can see clearly and differentiate 60FPS / seconds. In this case it might happen more then 60FPS some time.</p>
-
-<p>As there is no sync happens between these 3 handling so input handling might redraw the view, animation also might redraw the view and some changes in view is also redraw. So too many redraw will happen.</p>
-
-<h3>After VSYNC is introduced:</h3>
-
-<p>Not this VSYNC is been delivered at an interval of 16.67 MS which is around 60 FPS/second. In this VSYNC event only handling of input will be happend, if input arrived before that then it will be queued and handled at VSYNC event only. After handling this VSYNC event, will handle the animation and followed by draw. Now all these 3 handling is synchronized and handling will be initiated on VSYNC event. VSYNC event make sure handling and drawing of the window happen at fixed interval and thus by avoid unnecessary drawing and handling.</p>
-
-<p>Lets check below Google butter document for VSYNC handling.<a href="https://docs.google.com/viewer?url=http%3A%2F%2Fcommondatastorage.googleapis.com%2Fio2012%2Fpresentations%2Flive%2520to%2520website%2F109.pdf">For Butter or Worse : Smoothing out performance in Android UIs</a></p>
-
-<h2>reference</h2>
-
-<ul>
-<li><a href="https://nayaneshguptetechstuff.wordpress.com/2014/07/01/what-is-vsyc-in-android/">WHAT IS VSYNC IN ANDROID?</a></li>
-</ul>
-
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Aspect Oriented Programming in Android]]></title>
-    <link href="http://Solarex.github.io/blog/2016/09/20/aspect-oriented-programming-in-android/"/>
-    <updated>2016-09-20T18:24:00+08:00</updated>
-    <id>http://Solarex.github.io/blog/2016/09/20/aspect-oriented-programming-in-android</id>
-    <content type="html"><![CDATA[<p>Aspect-oriented programming entails breaking down program logic into &ldquo;concerns&rdquo; (cohesive areas of functionality). This means, that with AOP, we can add executable blocks to some source code without explicitly changing it. This programming paradigm pretends that “cross-cutting concerns” (the logic needed at many places, without a single class where to implement them) should be implemented once and injected it many times into those places.</p>
-
-<p>Code injection becomes a very important part of AOP: it is useful for dealing with the mentioned &ldquo;concerns&rdquo; that cut across the whole application, such as logging or performance monitoring, and, using it in this way, should not be something used rarely as you might think, quite the contrary; every programmer will come into a situation where this ability of injecting code, could prevent a lot of pain and frustration.</p>
-
-<p>AOP is a paradigm that has been with us for many years, and I found it very useful to apply it to Android. After some investigation I consider that we can get a lot of advantages and very useful stuff when making use of it.</p>
-
-<!-- more -->
-
-
-<h2>Terminology (Mini glossary)</h2>
-
-<p>Before we get started, let&rsquo;s have a look at some vocabulary that we should keep in mind:</p>
-
-<ul>
-<li><p>Cross-cutting concerns:Even though most classes in an OO model will perform a single, specific function, they often share common, secondary requirements with other classes. For example, we may want to add logging to classes within the data-access layer and also to classes in the UI layer whenever a thread enters or exits a method. Even though each class has a very different primary functionality, the code needed to perform the secondary functionality is often identical.</p></li>
-<li><p>Advice: The code that is injected to a class file. Typically we talk about before, after, and around advices, which are executed before, after, or instead of a target method. It’s possible to make also other changes than injecting code into methods, e.g. adding fields or interfaces to a class.</p></li>
-<li><p>Joint point: A particular point in a program that might be the target of code injection, e.g. a method call or method entry.</p></li>
-<li><p>Pointcut: An expression which tells a code injection tool where to inject a particular piece of code, i.e. to which joint points to apply a particular advice. It could select only a single such point – e.g. execution of a single method – or many similar points – e.g. executions of all methods marked with a custom annotation such as @DebugTrace.</p></li>
-<li><p>Aspect: The combination of the pointcut and the advice is termed an aspect. For instance, we add a logging aspect to our application by defining a pointcut and giving the correct advice.</p></li>
-<li><p>Weaving: The process of injecting code – advices – into the target places – joint points.</p></li>
-</ul>
-
-
-<p>This picture summarizes a bit a few of these concepts:</p>
-
-<center><img src="http://Solarex.github.io/images/aop.png"/></center>
-
-
-<h2>So…where and when can we apply AOP?</h2>
-
-<p>Some examples of cross-cutting concerns are:</p>
-
-<ul>
-<li>Logging</li>
-<li>Persistance</li>
-<li>Performance monitoring</li>
-<li>Data Validation</li>
-<li>Caching</li>
-<li>Many others</li>
-</ul>
-
-
-<p>And in relation with &ldquo;when the magic happens&rdquo;, the code can be injected at different points in time:</p>
-
-<ul>
-<li><p>At run-time: your code has to explicitly ask for the enhanced code, e.g. by using a Dynamic Proxy (this is arguably not true code injection). Anyway here is an example I created for testing it.</p></li>
-<li><p>At load-time: the modification are performed when the target classes are being loaded by Dalvik or ART. Byte-code or Dex-code weaving.</p></li>
-<li><p>At build-time: you add an extra step to your build process to modify the compiled classes before packaging and deploying your application. Source-code weaving.</p></li>
-</ul>
-
-
-<p>Depending on the situation you will be choosing one or the other :).</p>
-
-<h2>Tools and Libraries</h2>
-
-<p>There are a few tools and libraries out there that help us use AOP:</p>
-
-<ul>
-<li><p><a href="https://eclipse.org/aspectj/">AspectJ</a>: A seamless aspect-oriented extension to the Javatm programming language (works with Android).</p></li>
-<li><p><a href="https://github.com/crimsonwoods/javassist-android">Javassist for Android</a>: An android porting of the very well known java library Javassist for bytecode manipulation.</p></li>
-<li><p><a href="https://code.google.com/p/dexmaker/">DexMaker</a>: A Java-language API for doing compile time or runtime code generation targeting the Dalvik VM.</p></li>
-<li><p><a href="http://asm.ow2.org/asmdex-index.html">ASMDEX</a>: A bytecode manipulation library as ASM but it handles the DEX bytecode used by Android executables.</p></li>
-</ul>
-
-
-<h2>Why AspectJ?</h2>
-
-<p>For our example below I have chosen AspectJ for the following reasons:</p>
-
-<ul>
-<li>Very powerful.</li>
-<li>Supports build time and load time code injection.</li>
-<li>Easy to use.</li>
-</ul>
-
-
-<h2>Example</h2>
-
-<p>Let&rsquo;s say we want to measure the performance of a method (how long takes its execution). For doing this we want to mark our method with a <code>@DebugTrace</code> annotation and want to see the results using the logcat transparently without having to write code in each annotated method. Our approach is to use AspectJ for this purpose.</p>
-
-<p>This is what is gonna happen under the hood:</p>
-
-<ul>
-<li>The annotation will be processed in a new step we are adding to our compilation fase.</li>
-<li>Necessary boilerplate code will be generated and injected in the annotated method.</li>
-</ul>
-
-
-<p>I have to say here that while I was researching I found <a href="https://github.com/JakeWharton/hugo">Jake Wharton&rsquo;s Hugo Library</a> that it is suppose to do the same, so I refactored my code and looks similar to it, although mine is a more primitive and simpler version (I have learnt a lot by looking at its code by the way).</p>
-
-<center><img src="http://Solarex.github.io/images/aspectweaving.png"/></center>
-
-
-<h2>Project structure</h2>
-
-<p>We will break up our sample application into 2 modules, the first will contain our android app and the second will be an android library that will make use of AspectJ library for weaving (code injection).</p>
-
-<p>You may be wondering why we are using an android library module instead of a pure java library: <strong>the reason is that for AspectJ to work on Android we have to make use of some hooks when compiling our app and this is only possible using the android-library gradle plugin.</strong> (Do not worry about this yet, cause I will be giving some more details later).</p>
-
-<h2>Creating our annotation</h2>
-
-<p>We first create our Java annotation. This annotation will be persisted in the class (<code>RetentionPolicy.CLASS</code>) file and we will be able to annotate any constructor or method with it (<code>ElementType.CONSTRUCTOR</code> and <code>ElementType.METHOD</code>). So our <code>DebugTrace.java</code> file will look like this:</p>
-
-<p><code>
-@Retention(RetentionPolicy.CLASS)
-@Target({ ElementType.CONSTRUCTOR, ElementType.METHOD })
-public @interface DebugTrace {}
-</code></p>
-
-<h2>Our StopWatch for performance monitoring</h2>
-
-<p>I have created a simple class that encapsulates time start/stop. Here is our <code>StopWatch.java</code> class:</p>
-
-<p>```
-/<em>*
- * Class representing a StopWatch for measuring time.
- </em>/
-public class StopWatch {
-  private long startTime;
-  private long endTime;
-  private long elapsedTime;</p>
-
-<p>  public StopWatch() {</p>
-
-<pre><code>//empty
-</code></pre>
-
-<p>  }</p>
-
-<p>  private void reset() {</p>
-
-<pre><code>startTime = 0;
-endTime = 0;
-elapsedTime = 0;
-</code></pre>
-
-<p>  }</p>
-
-<p>  public void start() {</p>
-
-<pre><code>reset();
-startTime = System.nanoTime();
-</code></pre>
-
-<p>  }</p>
-
-<p>  public void stop() {</p>
-
-<pre><code>if (startTime != 0) {
-  endTime = System.nanoTime();
-  elapsedTime = endTime - startTime;
-} else {
-  reset();
-}
-</code></pre>
-
-<p>  }</p>
-
-<p>  public long getTotalTimeMillis() {</p>
-
-<pre><code>return (elapsedTime != 0) ? TimeUnit.NANOSECONDS.toMillis(endTime - startTime) : 0;
-</code></pre>
-
-<p>  }
-}
-```</p>
-
-<h2>DebugLog Class</h2>
-
-<p>I just decorated the &ldquo;android.util.Log&rdquo; cause my first idea was to add some more functionality to the android log. Here it is:</p>
-
-<p>```
-/<em>*
- * Wrapper around {@link android.util.Log}
- </em>/
-public class DebugLog {</p>
-
-<p>  private DebugLog() {}</p>
-
-<p>  /<em>*
-   * Send a debug log message
-   *
-   * @param tag Source of a log message.
-   * @param message The message you would like logged.
-   </em>/
-  public static void log(String tag, String message) {</p>
-
-<pre><code>Log.d(tag, message);
-</code></pre>
-
-<p>  }
-}
-```</p>
-
-<h2>Our Aspect</h2>
-
-<p>Now it is time to create our aspect class (<code>TraceAspect.java</code>) that will be in charge of managing the annotation processing and source-code weaving.</p>
-
-<p>```
-/<em>*
- * Aspect representing the cross cutting-concern: Method and Constructor Tracing.
- </em>/
-@Aspect
-public class TraceAspect {</p>
-
-<p>  private static final String POINTCUT_METHOD =</p>
-
-<pre><code>  "execution(@org.android10.gintonic.annotation.DebugTrace * *(..))";
-</code></pre>
-
-<p>  private static final String POINTCUT_CONSTRUCTOR =</p>
-
-<pre><code>  "execution(@org.android10.gintonic.annotation.DebugTrace *.new(..))";
-</code></pre>
-
-<p>  @Pointcut(POINTCUT_METHOD)
-  public void methodAnnotatedWithDebugTrace() {}</p>
-
-<p>  @Pointcut(POINTCUT_CONSTRUCTOR)
-  public void constructorAnnotatedDebugTrace() {}</p>
-
-<p>  @Around(&ldquo;methodAnnotatedWithDebugTrace() || constructorAnnotatedDebugTrace()&rdquo;)
-  public Object weaveJoinPoint(ProceedingJoinPoint joinPoint) throws Throwable {</p>
-
-<pre><code>MethodSignature methodSignature = (MethodSignature) joinPoint.getSignature();
-String className = methodSignature.getDeclaringType().getSimpleName();
-String methodName = methodSignature.getName();
-
-final StopWatch stopWatch = new StopWatch();
-stopWatch.start();
-Object result = joinPoint.proceed();
-stopWatch.stop();
-
-DebugLog.log(className, buildLogMessage(methodName, stopWatch.getTotalTimeMillis()));
-
-return result;
-</code></pre>
-
-<p>  }</p>
-
-<p>  /<em>*
-   * Create a log message.
-   *
-   * @param methodName A string with the method name.
-   * @param methodDuration Duration of the method in milliseconds.
-   * @return A string representing message.
-   </em>/
-  private static String buildLogMessage(String methodName, long methodDuration) {</p>
-
-<pre><code>StringBuilder message = new StringBuilder();
-message.append("Gintonic --&gt; ");
-message.append(methodName);
-message.append(" --&gt; ");
-message.append("[");
-message.append(methodDuration);
-message.append("ms");
-message.append("]");
-
-return message.toString();
-</code></pre>
-
-<p>  }
-}
-```</p>
-
-<p>Some important points to mention here:</p>
-
-<ul>
-<li><p>We declare 2 public methods with 2 pointcuts that will filter all methods and constructors annotated with &ldquo;org.android10.gintonic.annotation.DebugTrace&rdquo;.</p></li>
-<li><p>We define the &ldquo;weaveJointPoint(ProceedingJoinPoint joinPoint)&rdquo; annotated with &ldquo;@Around&rdquo; which means that our code injection will happen around the annotated method with &ldquo;@DebugTrace&rdquo;.</p></li>
-<li><p>The line &ldquo;Object result = joinPoint.proceed();&rdquo; is where the annotated method execution happens, so before this, is where we start our StopWatch to start measuring time, and after that, we stop it.</p></li>
-<li><p>Finally we build our message and print it using the Android Log.</p></li>
-</ul>
-
-
-<h2>Making AspectJ to work with Android</h2>
-
-<p>Now everything should be working, but, if we compile our sample, we will see that nothing happens.</p>
-
-<p>The reason is that we have to use the AspectJ compiler (ajc, an extension of the java compiler) to weave all classes that are affected by an aspect. That&rsquo;s why, as I mention before, we need to add some extra configuration to our gradle build task to make it work.</p>
-
-<p>This is how our <code>build.gradle</code> looks like:</p>
-
-<p>```
-import com.android.build.gradle.LibraryPlugin
-import org.aspectj.bridge.IMessage
-import org.aspectj.bridge.MessageHandler
-import org.aspectj.tools.ajc.Main</p>
-
-<p>buildscript {
-  repositories {</p>
-
-<pre><code>mavenCentral()
-</code></pre>
-
-<p>  }
-  dependencies {</p>
-
-<pre><code>classpath 'com.android.tools.build:gradle:0.12.+'
-classpath 'org.aspectj:aspectjtools:1.8.1'
-</code></pre>
-
-<p>  }
-}</p>
-
-<p>apply plugin: &lsquo;android-library&rsquo;</p>
-
-<p>repositories {
-  mavenCentral()
-}</p>
-
-<p>dependencies {
-  compile &lsquo;org.aspectj:aspectjrt:1.8.1&rsquo;
-}</p>
-
-<p>android {
-  compileSdkVersion 19
-  buildToolsVersion &lsquo;19.1.0&rsquo;</p>
-
-<p>  lintOptions {</p>
-
-<pre><code>abortOnError false
-</code></pre>
-
-<p>  }
-}</p>
-
-<p>android.libraryVariants.all { variant &ndash;>
-  LibraryPlugin plugin = project.plugins.getPlugin(LibraryPlugin)
-  JavaCompile javaCompile = variant.javaCompile
-  javaCompile.doLast {</p>
-
-<pre><code>String[] args = ["-showWeaveInfo",
-                 "-1.5",
-                 "-inpath", javaCompile.destinationDir.toString(),
-                 "-aspectpath", javaCompile.classpath.asPath,
-                 "-d", javaCompile.destinationDir.toString(),
-                 "-classpath", javaCompile.classpath.asPath,
-                 "-bootclasspath", plugin.project.android.bootClasspath.join(
-    File.pathSeparator)]
-
-MessageHandler handler = new MessageHandler(true);
-new Main().run(args, handler)
-
-def log = project.logger
-for (IMessage message : handler.getMessages(null, true)) {
-  switch (message.getKind()) {
-    case IMessage.ABORT:
-    case IMessage.ERROR:
-    case IMessage.FAIL:
-      log.error message.message, message.thrown
-      break;
-    case IMessage.WARNING:
-    case IMessage.INFO:
-      log.info message.message, message.thrown
-      break;
-    case IMessage.DEBUG:
-      log.debug message.message, message.thrown
-      break;
-  }
-}
-</code></pre>
-
-<p>  }
-}
-```</p>
-
-<h2>Our test method</h2>
-
-<p>Let&rsquo;s use our cool aspect annotation by adding it to a test method. I have created a method inside the main activity for testing purpose. Let&rsquo;s have a look at it:</p>
-
-<p>```
-@DebugTrace
-  private void testAnnotatedMethod() {</p>
-
-<pre><code>try {
-  Thread.sleep(10);
-} catch (InterruptedException e) {
-  e.printStackTrace();
-}
-</code></pre>
-
-<p>  }
-```</p>
-
-<h2>Executing our application</h2>
-
-<p>We build and install our app on an android device/emulator by executing the gradle command:<code>gradlew clean build installDebug</code></p>
-
-<p>If we open the logcat and execute our sample, we will see a debug log with:</p>
-
-<p><code>Gintonic --&gt; testAnnotatedMethod --&gt; [10ms]</code></p>
-
-<p>Our first android application using AOP worked!</p>
-
-<p>You can use the <a href="https://play.google.com/store/apps/details?id=jp.itplus.android.dex.dump&amp;hl=en">Dex Dump</a> android application (from your phone), or any any other reverse engineering tool for decompiling the apk and see the source code generated and injected.</p>
-
-<h2>Recap</h2>
-
-<p>So to recap and summarize:</p>
-
-<ul>
-<li>We have had a taste of Aspect Oriented programming paradigm.</li>
-<li>Code Injection becomes a very important part of this approach (AOP).</li>
-<li>AspectJ is a very powerful and easy to use tool for source code weaving in Android applications.</li>
-<li>We have created a working example using AOP capabilities.</li>
-</ul>
-
-
-<h2>Conclusion</h2>
-
-<p>Aspect Oriented Programming is very powerful. Using it the right way, you can avoid duplicating a lot of code when you have &ldquo;cross-cutting concerns&rdquo; in your Android apps, like performance monitoring, as we have seen in our example. I do encourage you to give it a try, you will find it very useful.</p>
-
-<p>I hope you like the article, the purpose of it was to share what I&rsquo;ve learnt so far, so feel free to comment and give feedback, or even better, fork the code and play a bit with it.</p>
-
-<p>I&rsquo;m sure we can add very interesting stuff to our AOP module in the sample app. Ideas are very welcome ;).</p>
-
-<h2>Source Code</h2>
-
-<p>You can check 2 examples here, the first one uses AspectJ and the second one uses a Dynamic Proxy approach:</p>
-
-<ul>
-<li><a href="https://github.com/android10/Android-AOPExample.">https://github.com/android10/Android-AOPExample.</a></li>
-<li><a href="https://github.com/android10/DynamicProxy_Java_Sample">https://github.com/android10/DynamicProxy_Java_Sample</a></li>
-</ul>
-
-
-<h2>Resources</h2>
-
-<ul>
-<li><a href="http://en.wikipedia.org/wiki/Aspect-oriented_programming">Aspect-oriented programming</a>.</li>
-<li><a href="http://en.wikipedia.org/wiki/Aspect-oriented_software_development">Aspect-oriented software development</a>.</li>
-<li><a href="http://www.javacodegeeks.com/2011/09/practical-introduction-into-code.html">Practical Introduction into Code Injection with AspectJ, Javassist, and Java Proxy</a>.</li>
-<li><a href="http://java.dzone.com/articles/implementing-build-time">Implementing Build-time Bytecode Instrumentation With Javassist</a>.</li>
-<li><a href="http://www.eclipse.org/aspectj/doc/released/faq.php">Frequently Asked Questions about AspectJ</a>.</li>
-<li><a href="http://blog.espenberntsen.net/2010/03/20/aspectj-cheat-sheet/">AspectJ Cheat Sheet</a>.</li>
-</ul>
-
-
-<h2>reference</h2>
-
-<ul>
-<li><a href="https://fernandocejas.com/2014/08/03/aspect-oriented-programming-in-android/">Aspect Oriented Programming in Android</a></li>
-</ul>
-
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Make an android custom view,Publish and Open Source]]></title>
-    <link href="http://Solarex.github.io/blog/2016/05/28/make-an-android-custom-view-publish-and-open-source/"/>
-    <updated>2016-05-28T14:34:00+08:00</updated>
-    <id>http://Solarex.github.io/blog/2016/05/28/make-an-android-custom-view-publish-and-open-source</id>
-    <content type="html"><![CDATA[<p>Today I’m going to create an android custom view to implement circular <code>SeekBar</code> like the mockup below, make it as a library, open source at GitHub, and publish it to JCenter. In this post, I will cover several fundamental concepts of android custom view, write a helpful README on GitHub, and how to publish your library.</p>
-
-<center><img src="http://Solarex.github.io/images/custom_view_seekbar.png"/></center>
-
-
-<h2>Before you start…</h2>
-
-<p>Try to understand the requirement or design specification, take a look at this widget first, the user can touch the indicator icon through this arc to set the current progress level. The indicator icon will stop dragging when exceeding max or min progress. It works like an extension of circular <code>SeekBar</code> with customized appearances and motion event.</p>
-
-<!-- more -->
-
-
-<h2>Get started:</h2>
-
-<p>All the android view widgets are based on <code>View</code>, to implement custom view, you will start a subclass of <code>View</code> and override several lifecycle callback methods of view, so you need to understand the view lifecycle at first. The following diagram shows some important methods to override:</p>
-
-<center><img src="http://Solarex.github.io/images/custom_view_lifecycle.png"/></center>
-
-
-<p>To get started, the first thing we have to do is to create a class that extends <code>View</code>, and provide two default constructors which allows us to create the view programmatically (1st constructor) or in XML layout (2nd constructor). The <code>SwagPoint(Context context, AttributeSet attrs)</code> constructor is more important here because it is used when Android inflates the view from XML layout file, otherwise you will get exception.</p>
-
-<p>```java
-public class SwagPoints extends View {</p>
-
-<pre><code>// used in view creation programmatically
-public SwagPoints(Context context) {
-    super(context);
-}
-
-// used in XML layout file
-public SwagPoints(Context context, AttributeSet attrs) {
-    super(context, attrs);
-}
-</code></pre>
-
-<p>}
-```</p>
-
-<p>Then, there are several things we have to control or modify in our custom view:</p>
-
-<ul>
-<li><p><strong>Attributes</strong>: What things are customizable in your view? Determine custom attributes that allow developer to change its appearance and behavior in XML layout file according to their design.</p></li>
-<li><p><strong>Size</strong>: Determine the dimensions of the view and every components in this custom view on the screen.</p></li>
-<li><p><strong>Drawing</strong>: Determine how the view and components to render on the screen which contains the shape, location, appearance.</p></li>
-<li><p><strong>Touch</strong>: Determine the way the user can interact with the view by touching.</p></li>
-</ul>
-
-
-<h2>1. Attribute:</h2>
-
-<p>Here we provide several customizable attributes for developer: the initial progress <code>points</code>, the range of progress <code>max/min</code>, the interval when user change the progress <code>step</code>, the color and size of progress/arc/text. To define custom attributes, we create <code>res/values/attrs.xml</code> file and define custom attributes for your view in a <code>&lt;declare-styleable&gt;</code> resource element as below.</p>
-
-<p>```xml
-<resources></p>
-
-<pre><code>&lt;declare-styleable name="SwagPoints"&gt;
-    &lt;attr name="points" format="integer" /&gt;
-    &lt;attr name="max" format="integer" /&gt;
-    &lt;attr name="min" format="integer"/&gt;
-    &lt;attr name="step" format="integer"/&gt;
-
-    &lt;attr name="indicatorIcon" format="reference" /&gt;
-
-    &lt;attr name="progressWidth" format="dimension" /&gt;
-    &lt;attr name="progressColor" format="color" /&gt;
-
-    &lt;attr name="arcWidth" format="dimension" /&gt;
-    &lt;attr name="arcColor" format="color" /&gt;
-
-    &lt;attr name="textSize" format="dimension"/&gt;
-    &lt;attr name="textColor" format="color"/&gt;
-
-    &lt;attr name="clockwise" format="boolean" /&gt;
-    &lt;attr name="enabled" format="boolean" /&gt;
-
-&lt;/declare-styleable&gt;
-</code></pre>
-
-<p></resources>
-```</p>
-
-<p>After adding <code>res/values/attrs.xml</code> file, to use <code>TypedArray</code> to retrieve attribute value in class and define instance variables (the following variable with <code>m</code> as prefix name) to store. Here we add a <code>init()</code> method to put <code>init()</code> inside the constructor after <code>super()</code> method to do this job:</p>
-
-<p>```java
-private void init(Context context, AttributeSet attrs) {</p>
-
-<pre><code>float density = getResources().getDisplayMetrics().density;
-
-// Defaults, may need to link this into theme settings
-int arcColor = ContextCompat.getColor(context, R.color.color_arc);
-int progressColor = ContextCompat.getColor(context, R.color.color_progress);
-int textColor = ContextCompat.getColor(context, R.color.color_text);
-mProgressWidth = (int) (mProgressWidth * density);
-mArcWidth = (int) (mArcWidth * density);
-mTextSize = (int) (mTextSize * density);
-
-mIndicatorIcon = ContextCompat.getDrawable(context, R.drawable.indicator);
-
-if (attrs != null) {
-    // Attribute initialization
-    final TypedArray a = context.obtainStyledAttributes(attrs,
-            R.styleable.SwagPoints, 0, 0);
-
-    Drawable indicatorIcon = a.getDrawable(R.styleable.SwagPoints_indicatorIcon);
-    if (indicatorIcon != null)
-        mIndicatorIcon = indicatorIcon;
-
-    int indicatorIconHalfWidth = mIndicatorIcon.getIntrinsicWidth() / 2;
-    int indicatorIconHalfHeight = mIndicatorIcon.getIntrinsicHeight() / 2;
-    mIndicatorIcon.setBounds(-indicatorIconHalfWidth, -indicatorIconHalfHeight, indicatorIconHalfWidth,
-            indicatorIconHalfHeight);
-
-    mPoints = a.getInteger(R.styleable.SwagPoints_points, mPoints);
-    mMin = a.getInteger(R.styleable.SwagPoints_min, mMin);
-    mMax = a.getInteger(R.styleable.SwagPoints_max, mMax);
-    mStep = a.getInteger(R.styleable.SwagPoints_step, mStep);
-
-    mProgressWidth = (int) a.getDimension(R.styleable.SwagPoints_progressWidth, mProgressWidth);
-    progressColor = a.getColor(R.styleable.SwagPoints_progressColor, progressColor);
-
-    mArcWidth = (int) a.getDimension(R.styleable.SwagPoints_arcWidth, mArcWidth);
-    arcColor = a.getColor(R.styleable.SwagPoints_arcColor, arcColor);
-
-    mTextSize = (int) a.getDimension(R.styleable.SwagPoints_textSize, mTextSize);
-    mTextColor = a.getColor(R.styleable.SwagPoints_textColor, mTextColor);
-
-    mClockwise = a.getBoolean(R.styleable.SwagPoints_clockwise,
-            mClockwise);
-    mEnabled = a.getBoolean(R.styleable.SwagPoints_enabled, mEnabled);
-    a.recycle();
-}
-</code></pre>
-
-<p>}
-```</p>
-
-<h2>2. Size:</h2>
-
-<p>In order to control the view dimension, we have to override <code>View.onMeasure()</code> method and calculate the size of each components. Here we have to define the arc radius according to the width/height of our view.</p>
-
-<p>```java
-@Override
-protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {</p>
-
-<pre><code>final int width = getDefaultSize(getSuggestedMinimumWidth(), widthMeasureSpec);
-final int height = getDefaultSize(getSuggestedMinimumHeight(), heightMeasureSpec);
-final int min = Math.min(width, height);
-
-mTranslateX = (int) (width * 0.5f);
-mTranslateY = (int) (height * 0.5f);
-
-int arcDiameter = min - getPaddingLeft();
-mArcRadius = arcDiameter / 2;
-float top = height / 2 - (arcDiameter / 2);
-float left = width / 2 - (arcDiameter / 2);
-mArcRect.set(left, top, left + arcDiameter, top + arcDiameter);
-
-updateIndicatorIconPosition();
-super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-</code></pre>
-
-<p>}
-```</p>
-
-<h2>3. Drawing:</h2>
-
-<p>Give you a pen and a paper, you can draw what you want. To draw the view, you have to override the <code>onDraw(Canvas canvas)</code> method.
-Before that, we have to know what to draw and how to draw. Android provides two classes to do this job:</p>
-
-<ul>
-<li><p>What to draw, handled by <code>Canvas</code> which is provided as parameter in <code>onDraw()</code> method.</p></li>
-<li><p>How to draw, handled by <code>Paint</code>.</p></li>
-</ul>
-
-
-<p>Before you use <code>Canvas</code> to draw anything, it’s necessary to create <code>Paint</code> objects. For performance optimization, creating the <code>Paint</code> objects ahead is quite important, because the <code>onDraw()</code> method is called when redrawn is needed at anytime, we won’t create the <code>Paint</code> objects inside the <code>onDraw()</code> method, we should avoid any allocation in <code>onDraw()</code> method. Here we define these objects (one for arc, another for progress and the other for text) as instance variables and initialize at <code>init()</code> method:</p>
-
-<p>```java
-private void init(Context context, AttributeSet attrs) {</p>
-
-<pre><code>// ...
-
-mArcPaint = new Paint();
-mArcPaint.setColor(arcColor);
-mArcPaint.setAntiAlias(true);
-mArcPaint.setStyle(Paint.Style.STROKE);
-mArcPaint.setStrokeWidth(mArcWidth);
-
-mProgressPaint = new Paint();
-mProgressPaint.setColor(progressColor);
-mProgressPaint.setAntiAlias(true);
-mProgressPaint.setStyle(Paint.Style.STROKE);
-mProgressPaint.setStrokeWidth(mProgressWidth);
-
-mTextPaint = new Paint();
-mTextPaint.setColor(textColor);
-mTextPaint.setAntiAlias(true);
-mTextPaint.setStyle(Paint.Style.FILL);
-mTextPaint.setTextSize(mTextSize);
-</code></pre>
-
-<p>}
-```</p>
-
-<p>Once we have <code>Paint</code> objects defined, we can start to implement the <code>onDraw(Canvas canvas)</code> method, here we’re going to draw the text to display current progress number, the arc and current progress:</p>
-
-<p>```java
-@Override
-protected void onDraw(Canvas canvas) {</p>
-
-<pre><code>if (!mClockwise) {
-    canvas.scale(-1, 1, mArcRect.centerX(), mArcRect.centerY());
-}
-
-// draw the text
-String textPoint = String.valueOf(mPoints);
-mTextPaint.getTextBounds(textPoint, 0, textPoint.length(), mTextRect);
-// center the text
-int xPos = canvas.getWidth() / 2 - mTextRect.width() / 2;
-int yPos = (int)((mArcRect.centerY()) - ((mTextPaint.descent() + mTextPaint.ascent()) / 2));
-canvas.drawText(String.valueOf(mPoints), xPos, yPos, mTextPaint);
-
-// draw the arc and progress
-canvas.drawArc(mArcRect, ANGLE_OFFSET, 360, false, mArcPaint);
-canvas.drawArc(mArcRect, ANGLE_OFFSET, mProgressSweep, false, mProgressPaint);
-
-if (mEnabled) {
-    // draw the indicator icon
-    canvas.translate(mTranslateX - mIndicatorIconX, mTranslateY - mIndicatorIconY);
-    mIndicatorIcon.draw(canvas);
-}
-</code></pre>
-
-<p>}
-```</p>
-
-<p>After overriding <code>onDraw()</code> method, there is one more important method about drawing to introduce: <code>invalidate()</code>, this method is used when any redrawing is needed, we won’t call <code>onDraw()</code> directly, we just call this method instead, you can use this method anywhere inside your custom view, however, for performance optimization, make sure it’s called as infrequently as possible.</p>
-
-<h2>4. Touching:</h2>
-
-<p>When the user touch the screen, Android calls the <code>onTouchEvent()</code> method, so we override <code>View.onTouchEvent()</code> to handle the user input gestures:</p>
-
-<p>```java
-@Override
-public boolean onTouchEvent(MotionEvent event) {</p>
-
-<pre><code>if (mEnabled) {
-    this.getParent().requestDisallowInterceptTouchEvent(true);
-
-    switch (event.getAction()) {
-        case MotionEvent.ACTION_DOWN:
-            if (mOnSwagPointsChangeListener != null)
-                mOnSwagPointsChangeListener.onStartTrackingTouch(this);
-            updateOnTouch(event);
-            break;
-        case MotionEvent.ACTION_MOVE:
-            updateOnTouch(event);
-            break;
-        case MotionEvent.ACTION_UP:
-            if (mOnSwagPointsChangeListener != null)
-                mOnSwagPointsChangeListener.onStopTrackingTouch(this);
-            setPressed(false);
-            this.getParent().requestDisallowInterceptTouchEvent(false);
-            break;
-        case MotionEvent.ACTION_CANCEL:
-            if (mOnSwagPointsChangeListener != null)
-                mOnSwagPointsChangeListener.onStopTrackingTouch(this);
-            setPressed(false);
-            this.getParent().requestDisallowInterceptTouchEvent(false);
-            break;
-    }
-    return true;
-}
-return false;
-</code></pre>
-
-<p>}
-```</p>
-
-<p>There are several things we have to control when user touches the indicator or other place of view:</p>
-
-<ul>
-<li><p>Update the indicator icon position and progress text.</p></li>
-<li><p>Draw the current progress on the arc.</p></li>
-<li><p>Stop when reaching max or min.</p></li>
-</ul>
-
-
-<p>To know the indicator icon position and the current progress to draw, we have to convert the touch coordinate on the screen to the angle of arc.</p>
-
-<p>In our custom view, we consider the center of arc as origin <code>(0, 0)</code>, and use trigonometric functions to transform the touch coordinate into the angle of the arc in degree <code>(0, 360)</code>, and map to the current progress value of given range <code>(min, max)</code>.</p>
-
-<center><img src="http://Solarex.github.io/images/custom_view_touch.png"/></center>
-
-
-<p>Here we have a method to convert from touch coordinate to the arc angle:</p>
-
-<p>```java
-private double convertTouchEventPointToAngle(float xPos, float yPos) {</p>
-
-<pre><code>// transform touch coordinate into component coordinate
-float x = xPos - mTranslateX;
-float y = yPos - mTranslateY;
-
-x = (mClockwise) ? x : -x;
-double angle = Math.toDegrees(Math.atan2(y, x) + (Math.PI / 2));
-angle = (angle &lt; 0) ? (angle + 360) : angle;
-return angle;
-</code></pre>
-
-<p>}
-```</p>
-
-<h2>Final demo</h2>
-
-<center><img src="http://Solarex.github.io/images/custom_view_final_demo.gif"/></center>
-
-
-<h2>Open source at GitHub:</h2>
-
-<p>So you just finish a android custom view project, great! Let’s put on GitHub to get more developers to use you project. However, before you share your GitHub link to others, just make sure you have a nice document first. When developers are looking at you project, there are some points they care about:</p>
-
-<ul>
-<li><p>Does this project fit my requirement or solve my problem?</p></li>
-<li><p>If the answer is YES, how can I get starting right now?</p></li>
-</ul>
-
-
-<p>A nice document is like a salesman for you project. The README plays this important role to give the first impression to the developers who are looking at your project, so providing a well-documented README is necessary and gives you more chance to promote you project.</p>
-
-<p>Knowing how to write a REAME is equivalently important to write a clean code or design a great architecture.</p>
-
-<h3>1. Provide a screenshot and short description:</h3>
-
-<p>A picture is worth a thousand words, especially in a UI widget project, make sure that you provide a photo, GIF or video with a short description to demonstrate how your UI looks like or works. (If you are familiar with some design software, i.e. Sketch or PhotoShop, try to use them to help you make a great cover with the screenshot for your project)</p>
-
-<center><img src="http://Solarex.github.io/images/custom_view_screensot.png"/></center>
-
-
-<h3>Give easy installation/usage instruction</h3>
-
-<p>Before using you project, developer have to install it first, make sure to give a clean and easy installation instruction to get started. After installing you project successfully, just give some example code snippet to show what your project does, and how the developers can customize what they want, maybe just give a list of customizable attributes or provide an APK to install or sample module to run.</p>
-
-<h2>Publish your library:</h2>
-
-<p>After finish pushing your project to GitHub, there is the last step to get done: publish it so that developers can just add dependency</p>
-
-<p>```bash
-dependencies {</p>
-
-<pre><code>...
-compile 'com.dualcores.swagpoints:swagpoints:1.0.0'
-</code></pre>
-
-<p>}
-```</p>
-
-<p>to use you project. Here we go:</p>
-
-<h3>1. Sign-up or sign-in at JFrog Bintray.</h3>
-
-<h3>2. Go to profile page to create a repository, package, and version:</h3>
-
-<p>The repository is the place to host your several projects. You can choose any repository name whatever you want, it doesn’t matter for other developers.</p>
-
-<center><img src="http://Solarex.github.io/images/custom_view_frog_new_repo.png"/></center>
-
-
-<p>Inside the new repository, you can create a package, that is place to host your project. Your project also can import from GitHub.</p>
-
-<center><img src="http://Solarex.github.io/images/custom_view_frog_import_github.png"/></center>
-
-
-<p>For each package, you can create several versions, again, you can choose whatever name you want, not restricted to the traditional version number major.minor.patch rule.</p>
-
-<center><img src="http://Solarex.github.io/images/custom_view_frog_create_new_version.png"/></center>
-
-
-<h3>3. Generate and upload the aar files:</h3>
-
-<p>We use gradle to do this job, here I use this library to help <a href="https://github.com/blundell/release-android-library.">https://github.com/blundell/release-android-library.</a>
-Open you library module gradle file, add the following code snippet to buttom of module build.gradle file:</p>
-
-<p><code>bash
-// or use the remote copy to keep update with latest changes
-apply from: 'https://raw.githubusercontent.com/blundell/release-android-library/master/android-release-aar.gradle'
-</code></p>
-
-<p>and JCenter configuration:</p>
-
-<center><img src="http://Solarex.github.io/images/custom_view_frog_build_gradle.png"/></center>
-
-
-<p>then, sync your project and open your terminal, go to your project root path, execute the command:</p>
-
-<p><code>bash
-./gradlew clean build generateRelease
-</code></p>
-
-<p>If success, you will see the result in you terminal and you can upload the zip file from <code>PROJECT_ROOT/library/build/release/1.0.0/</code>:</p>
-
-<center><img src="http://Solarex.github.io/images/custom_view_frog_generate_aar.png"/></center>
-
-
-<h3>4. Add to JCenter:</h3>
-
-<p>Go back to your project page in bintray, there will be a Add to JCenter button in right-hand column, just click it to fill out a message and wait to be accepted. It takes hours or several days to be accepted, just be patient. This step is required so that to make your project downloadable and discoverable by gradle dependencies.</p>
-
-<center><img src="http://Solarex.github.io/images/custom_view_frog_add_jcenter.png"/></center>
-
-
-<h3>5. Project is accepted and test if everything is all right:</h3>
-
-<p>You will receive an email to inform you that your Add to JCenter request is accepted.Once it is accepted, test if gradle dependency works well by adding the dependency to sample module and sync. If it builds successfully, congratulation!!!! You’ve done. Good job~</p>
-
-<p><code>bash
-compile 'com.dualcores.swagpoints:swagpoints:1.0.0'
-</code></p>
 ]]></content>
   </entry>
   

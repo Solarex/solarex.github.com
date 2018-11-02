@@ -6,7 +6,9 @@
 	<title>Solarex's Blog</title>
     <meta name="author" content="Solarex">
     
-	<meta name="description" content="Published on: Sep 2nd, 2014 Tags: git, tools 起步 Git 和其他版本控制系统的主要差别在于，Git 只关心文件数据的整体是否发生变化，而大多数其他系统则只关心文件内容的具体差异。这类系统（CVS，Subversion，Perforce，Bazaar &hellip;">
+	<meta name="description" content="Published on: Oct 24th, 2014 Tags: android, dev Android ContentProvider Content Provider Basics
+Using Content Providers
+Writing your own Content &hellip;">
 	
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
@@ -79,11 +81,6 @@ var _hmt = _hmt || [];
   
   
   
-  <!-- Twitter -->
-  <li>
-  <a href="http://www.twitter.com/hrhflyfire" class="twitter" title="Twitter"></a>
-  </li>
-  
   
   
   
@@ -124,9 +121,9 @@ var _hmt = _hmt || [];
     <article class="post">
 	<h2 class="title">
 		
-		<a href="/blog/2014/09/02/notes-on-git/">
+		<a href="/blog/2014/10/24/android-contentprovider/">
 		
-			Git学习笔记</a>
+			Android ContentProvider</a>
 	</h2>
     <div class="entry-content">
     <div class="meta">
@@ -142,220 +139,7 @@ var _hmt = _hmt || [];
   
 
 
-<time datetime="2014-09-02T00:24:00+08:00" pubdate data-updated="true">Sep 2<span>nd</span>, 2014</time></div>
-      <div class="tags">Tags: 
-
-
-	<a class='category' href='/blog/categories/git/'>git</a>, <a class='category' href='/blog/categories/tools/'>tools</a>
-
-
-</div>
-    </div>
-		<center><p><img src="/images/git-logo-black.png" width="455" height="190" alt="git" ></p></center>
-
-
-<h2>起步</h2>
-
-<p>Git 和其他版本控制系统的主要差别在于，Git 只关心文件数据的整体是否发生变化，而大多数其他系统则只关心文件内容的具体差异。这类系统（CVS，Subversion，Perforce，Bazaar 等等）每次记录有哪些文件作了更新，以及都更新了哪些行的什么内容。Git 并不保存这些前后变化的差异数据。实际上，Git 更像是把变化的文件作快照后，记录在一个微型的文件系统中。每次提交更新时，它会纵览一遍所有文件的指纹信息并对文件作一快照，然后保存一个指向这次快照的索引。为提高性能，若文件没有变化，Git 不会再次保存，而只对上次保存的快照作一链接。</p>
-
-<p>在保存到 Git 之前，所有数据都要进行内容的校验和（checksum）计算，并将此结果作为数据的唯一标识和索引。换句话说，不可能在你修改了文件或目录之后，Git 一无所知。这项特性作为 Git 的设计哲学，建在整体架构的最底层。所以如果文件在传输时变得不完整，或者磁盘损坏导致文件数据缺失，Git 都能立即察觉。Git 使用 SHA-1 算法计算数据的校验和，通过对文件的内容或目录的结构计算出一个 SHA-1 哈希值，作为指纹字符串。该字串由 40 个十六进制字符（0-9 及 a-f）组成。Git 的工作完全依赖于这类指纹字串，所以你会经常看到这样的哈希值。实际上，所有保存在 Git 数据库中的东西都是用此哈希值来作索引的，而不是靠文件名。</p>
-
-<p>常用的 Git 操作大多仅仅是把数据添加到数据库。因为任何一种不可逆的操作，比如删除数据，都会使回退或重现历史版本变得困难重重。在别的 VCS 中，若还未提交更新，就有可能丢失或者混淆一些修改的内容，但在 Git 里，一旦提交快照之后就完全不用担心丢失数据，特别是养成定期推送到其他仓库的习惯的话。</p>
-
-<p>对于任何一个文件，在 Git 内都只有三种状态：已提交（committed），已修改（modified）和已暂存（staged）。已提交表示该文件已经被安全地保存在本地数据库中了；已修改表示修改了某个文件，但还没有提交保存；已暂存表示把已修改的文件放在下次提交时要保存的清单中。</p>
-
-<p>每个项目都有一个 Git 目录（译注：如果 git clone 出来的话，就是其中 .git 的目录；如果 git clone &mdash;bare 的话，新建的目录本身就是 Git 目录。），它是 Git 用来保存元数据和对象数据库的地方。该目录非常重要，每次克隆镜像仓库的时候，实际拷贝的就是这个目录里面的数据。从项目中取出某个版本的所有文件和目录，用以开始后续工作的叫做工作目录。这些文件实际上都是从 Git 目录中的压缩对象数据库中提取出来的，接下来就可以在工作目录中对这些文件进行编辑。所谓的暂存区域只不过是个简单的文件，一般都放在 Git 目录中。有时候人们会把这个文件叫做索引文件，不过标准说法还是叫暂存区域。</p>
-
-<p>Git 提供了一个叫做 <code>git config</code> 的工具（译注：实际是 <code>git-config</code> 命令，只不过可以通过 git 加一个名字来呼叫此命令。），专门用来配置或读取相应的工作环境变量。而正是由这些环境变量，决定了 Git 在各个环节的具体工作方式和行为。这些变量可以存放在以下三个不同的地方：</p>
-
-<ul>
-<li><code>/etc/gitconfig</code> 文件：系统中对所有用户都普遍适用的配置。若使用 <code>git config</code> 时用 <code>--system</code> 选项，读写的就是这个文件。</li>
-<li><code>~/.gitconfig</code> 文件：用户目录下的配置文件只适用于该用户。若使用 <code>git config</code> 时用 <code>--global</code> 选项，读写的就是这个文件。</li>
-<li>当前项目的 git 目录中的配置文件（也就是工作目录中的 <code>.git/config</code> 文件）：这里的配置仅仅针对当前项目有效。每一个级别的配置都会覆盖上层的相同配置，所以 <code>.git/config</code> 里的配置会覆盖 <code>/etc/gitconfig</code> 中的同名变量。</li>
-</ul>
-
-
-<p>要检查已有的配置信息，可以使用 <code>git config --list</code> 命令。</p>
-
-
-		
-		<a href="/blog/2014/09/02/notes-on-git/" class="more-link">Read on &rarr;</a>
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="/blog/2014/09/02/notes-on-git//blog/page/11/index.html#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-
-    <article class="post">
-	<h2 class="title">
-		
-		<a href="/blog/2014/09/01/what-can-we-learn-from-hello-world/">
-		
-			What Can We Learn From Hello World</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: 
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-09-01T07:57:00+08:00" pubdate data-updated="true">Sep 1<span>st</span>, 2014</time></div>
-      <div class="tags">Tags: 
-
-
-	<a class='category' href='/blog/categories/c/'>c</a>, <a class='category' href='/blog/categories/dev/'>dev</a>, <a class='category' href='/blog/categories/java/'>java</a>
-
-
-</div>
-    </div>
-		<center><p><img src="/images/java_logo.svg" width="150" height="275" alt="java"></p></center>
-
-
-<h2>C version</h2>
-
-<p>C版本的<code>hello,world</code>深入详解之前上学的时候在<a href="http://www.slideshare.net/olvemaudal/deep-c">SlideShare</a>上看到过，记得当时大呼过瘾，许多C深入理解的知识基本上都被罗列了出来，现在看来仍然获益颇多。PDF版本可以在<a href="/downloads/files/DeepC0.pdf">这里和<a href="/downloads/files/DeepC1.pdf">这里</a>下载。</p>
-
-
-		
-		<a href="/blog/2014/09/01/what-can-we-learn-from-hello-world/" class="more-link">Read on &rarr;</a>
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="/blog/2014/09/01/what-can-we-learn-from-hello-world//blog/page/11/index.html#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-
-    <article class="post">
-	<h2 class="title">
-		
-		<a href="/blog/2014/06/02/ssh-key-config-for-multi-github-accounts/">
-		
-			SSH Key Settings for Multi Github Accounts</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: 
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-06-02T15:13:00+08:00" pubdate data-updated="true">Jun 2<span>nd</span>, 2014</time></div>
-      <div class="tags">Tags: 
-
-
-	<a class='category' href='/blog/categories/git/'>git</a>, <a class='category' href='/blog/categories/tools/'>tools</a>
-
-
-</div>
-    </div>
-		<p>在同一台电脑上有多个github账户时，切换ssh key会比较麻烦，可以使用ssh config来简化这一动作。</p>
-
-<p>在使用<code>ssh-keygen</code>时，为不同的账户选择不同的ssh key文件。</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>hrh@Solarex:~<span class="nv">$ </span>ls ~/.ssh/
-</span><span class='line'>id_rsa_accountA id_rsa_accountA.pub id_rsa_accountB id_rsa_accountB.pub known_hosts config
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p></p>
-
-<p>在<code>~/.bashrc</code>中添加ssh key。</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>ssh-add ~/.ssh/id_rsa_accountA &gt;/dev/null 2&gt;&amp;1
-</span><span class='line'>ssh-add ~/.ssh/id_rsa_accountB &gt;/dev/null 2&gt;&amp;1
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>配置ssh config文件<code>~/.ssh/config</code>。</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="c">#AccountA</span>
-</span><span class='line'>Host github-a.com
-</span><span class='line'>    HostName github.com
-</span><span class='line'>    User git
-</span><span class='line'>    IdentityFile ~/.ssh/id_rsa_accountA
-</span><span class='line'>
-</span><span class='line'><span class="c">#AccountB</span>
-</span><span class='line'>Host github-b.com
-</span><span class='line'>    HostName github.com
-</span><span class='line'>    User git
-</span><span class='line'>    IdentityFile ~/.ssh/id_rsa_accountB
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>这样以后使用AccountA时可以<code>git clone git@github-a.com:user/repos.git local_dir</code>这样操作，clone下来后可以<code>cd local_dir</code>对<code>user.name</code>和<code>user.email</code>来进行config来覆盖global config，剩下的就和平时没有什么区别了，使用AccountB时相似操作就可以了。</p>
-
-
-		
-		<a href="/blog/2014/06/02/ssh-key-config-for-multi-github-accounts/" class="more-link">Read on &rarr;</a>
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="/blog/2014/06/02/ssh-key-config-for-multi-github-accounts//blog/page/11/index.html#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-
-    <article class="post">
-	<h2 class="title">
-		
-		<a href="/blog/2014/06/02/checking-intent-availability/">
-		
-			Checking Intent Availability</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: 
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-06-02T11:41:00+08:00" pubdate data-updated="true">Jun 2<span>nd</span>, 2014</time></div>
+<time datetime="2014-10-24T12:16:00+08:00" pubdate data-updated="true">Oct 24<span>th</span>, 2014</time></div>
       <div class="tags">Tags: 
 
 
@@ -364,78 +148,35 @@ var _hmt = _hmt || [];
 
 </div>
     </div>
-		<p>Intents are probably Android’s most powerful tool. They tie together loosely coupled components and make it possible to start Activities that are not part of your own app. Using intents you can delegate to the Contacts app to select a contact or you can start the browser, share data and so on.</p>
-
-<p>The receiving apps declare intent filters which describe the intents its component react to. If you know which intent filters the app provides and if the components are publicly available you can start any Activity of any app on the users device.</p>
-
-<p>The problem is: How do you know if the app is installed – if you can use the Intent?</p>
-
-<p>The solution is to create the Intent and check if it is available:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kd">static</span> <span class="kt">boolean</span> <span class="nf">isIntentAvailable</span><span class="o">(</span><span class="n">Context</span> <span class="n">ctx</span><span class="o">,</span> <span class="n">Intent</span> <span class="n">intent</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'>   <span class="kd">final</span> <span class="n">PackageManager</span> <span class="n">mgr</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="na">getPackageManager</span><span class="o">();</span>
-</span><span class='line'>   <span class="n">List</span><span class="o">&lt;</span><span class="n">ResolveInfo</span><span class="o">&gt;</span> <span class="n">list</span> <span class="o">=</span>
-</span><span class='line'>      <span class="n">mgr</span><span class="o">.</span><span class="na">queryIntentActivities</span><span class="o">(</span><span class="n">intent</span><span class="o">,</span>
-</span><span class='line'>         <span class="n">PackageManager</span><span class="o">.</span><span class="na">MATCH_DEFAULT_ONLY</span><span class="o">);</span>
-</span><span class='line'>   <span class="k">return</span> <span class="n">list</span><span class="o">.</span><span class="na">size</span><span class="o">()</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="o">;</span>
-</span><span class='line'><span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure>
+		<center><p><img src="/images/android_logo.jpg"/></p></center>
 
 
-<p>And we can use it this way:</p>
+<ul>
+<li><a href="#overview">Android ContentProvider</a>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kt">boolean</span> <span class="nf">onPrepareOptionsMenu</span><span class="o">(</span><span class="n">Menu</span> <span class="n">menu</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'>    <span class="kd">final</span> <span class="kt">boolean</span> <span class="n">scanAvailable</span> <span class="o">=</span> <span class="n">isIntentAvailable</span><span class="o">(</span><span class="k">this</span><span class="o">,</span>
-</span><span class='line'>        <span class="s">&quot;com.google.zxing.client.android.SCAN&quot;</span><span class="o">);</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="n">MenuItem</span> <span class="n">item</span><span class="o">;</span>
-</span><span class='line'>    <span class="n">item</span> <span class="o">=</span> <span class="n">menu</span><span class="o">.</span><span class="na">findItem</span><span class="o">(</span><span class="n">R</span><span class="o">.</span><span class="na">id</span><span class="o">.</span><span class="na">menu_item_add</span><span class="o">);</span>
-</span><span class='line'>    <span class="n">item</span><span class="o">.</span><span class="na">setEnabled</span><span class="o">(</span><span class="n">scanAvailable</span><span class="o">);</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">return</span> <span class="kd">super</span><span class="o">.</span><span class="na">onPrepareOptionsMenu</span><span class="o">(</span><span class="n">menu</span><span class="o">);</span>
-</span><span class='line'><span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure>
+<ul>
+<li><a href="#basics">Content Provider Basics</a></li>
+<li><a href="#using">Using Content Providers</a></li>
+<li><a href="#writing">Writing your own Content Provider</a></li>
+<li><a href="#performance">Better Performance with ContentProviderOperation</a></li>
+</ul>
+</li>
+</ul>
 
 
-<p>If you wanna check this before <code>startActivity</code> in case not caught by <code>ActivityNotFoundException</code>,here is another way:</p>
+<h2 id="overview">Android ContentProvider</h2>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="k">if</span> <span class="o">(</span><span class="n">intent</span><span class="o">.</span><span class="na">resolveActivity</span><span class="o">(</span><span class="n">ctx</span><span class="o">.</span><span class="na">getPackageManager</span><span class="o">())</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'>    <span class="n">ctx</span><span class="o">.</span><span class="na">startActivity</span><span class="o">(</span><span class="n">intent</span><span class="o">);</span>
-</span><span class='line'><span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
-</span><span class='line'>    <span class="n">log</span><span class="o">(</span><span class="s">&quot;No component can react to this intent = &quot;</span> <span class="o">+</span> <span class="n">intent</span><span class="o">);</span>
-</span><span class='line'><span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure>
+
+<p>This is a tutorial covering Android&rsquo;s ContentProvider.</p>
 
 
 		
-		
+		<a href="/blog/2014/10/24/android-contentprovider/" class="more-link">Read on &rarr;</a>
 	</div>
 
 <div class="meta">
 	
-		<span class="comments"><a href="/blog/2014/06/02/checking-intent-availability//blog/page/11/index.html#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="/blog/2014/10/24/android-contentprovider//blog/page/11/index.html#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -444,9 +185,9 @@ var _hmt = _hmt || [];
     <article class="post">
 	<h2 class="title">
 		
-		<a href="/blog/2013/12/24/recent-summary/">
+		<a href="/blog/2014/10/24/android-loader/">
 		
-			近阶段总结</a>
+			Android Loader</a>
 	</h2>
     <div class="entry-content">
     <div class="meta">
@@ -462,7 +203,7 @@ var _hmt = _hmt || [];
   
 
 
-<time datetime="2013-12-24T22:06:00+08:00" pubdate data-updated="true">Dec 24<span>th</span>, 2013</time></div>
+<time datetime="2014-10-24T06:34:00+08:00" pubdate data-updated="true">Oct 24<span>th</span>, 2014</time></div>
       <div class="tags">Tags: 
 
 
@@ -471,32 +212,229 @@ var _hmt = _hmt || [];
 
 </div>
     </div>
-		<p>没有什么比漫无目的的徘徊更让人心烦意乱，消磨意志的了，最近就处于这样一种状态。Android开发基础已经基本上掌握了，但是高级点的技巧依然无从下手，一个Service如何长时间运行不被杀，流量监控后台运行的机制是什么都不了解。为什么无从下手，因为不知道优秀的应用是如何实现的，借鉴都不知道从哪抄。要打破这种状态，不仅仅需要巩固基础知识，更重要的是要学习高级技巧。</p>
+		<p><center><img src="/images/android_logo.jpg"/></center></p>
+
 
 <ul>
-<li><p>巩固基础知识，Android开发基础知识总结，Android Guides，Android Training必须看完，做好笔记。Java基础知识巩固复习，设计模式学习总结，Android框架采用了许多设计模式，把Java基础知识打牢固才能更好的为下一步学习Android框架打好基础。 书籍/资料：Pro Android 4 / Java 编程思想 / Head First 设计模式 / 大话设计模式 / 设计模式视频</p></li>
-<li><p>借鉴优秀应用，Google原生应用，Android SDK Sample，优秀开源应用，学习这些优秀的开源应用如何处理后台Service，如何处理多线程，如何进行网络连接尽可能地少消耗流量。。。如果有时间，可以看下Google I/O开发者大会和Google Developer Blog来跟随大师脚步学习大师的开发技巧。</p></li>
-<li><p>工具的学习使用，总结开发工具使用技巧，Vim，Git，Source Insight，自动构建工具Ant，Maven，build.xml，pom.xml文件编写规则。调教好Vim插件，为以后学习框架时打log，看框架打好基础。学会高效使用Git，Github，利用Github Wiki来做笔记，作总结。 书籍/资料：Ant 视频 / Maven in action</p></li>
-<li><p>为学习框架和Android系统做准备，Linux系统编程，操作系统原理，Linux网络编程这些都要大致过一遍，不用太细致深入，有个概念就可以了。 书籍：Android内核剖析 / LKD / MOS / UNP / APUE / CSAPP</p></li>
+<li><a href="#overview">Android Loader</a>
+
+<ul>
+<li><a href="#before">Life before Loaders</a></li>
+<li><a href="#loadermanager">Understanding the LoaderManager</a></li>
+<li><a href="#implementing">Implementing Loaders</a></li>
+</ul>
+</li>
 </ul>
 
 
-<p>计划</p>
+<h2 id="overview">Android Loader</h2>
 
-<ul>
-<li>年前必须搞定基础知识复习总结。Android开发基础知识，Java基础知识总结。Android Guides/Android Training，Pro Android 4总结学习。Sundy教学视频。</li>
-<li>看Google 原生Settings应用。</li>
-<li>调教好Vim，Git。</li>
-</ul>
+
+<p>This post gives a brief introduction to Loaders and the LoaderManager. The first section describes how data was loaded prior to the release of Android 3.0, pointing out out some of the flaws of the pre-Honeycomb APIs. The second section defines the purpose of each class and summarizes their powerful ability in asynchronously loading data.</p>
 
 
 		
-		
+		<a href="/blog/2014/10/24/android-loader/" class="more-link">Read on &rarr;</a>
 	</div>
 
 <div class="meta">
 	
-		<span class="comments"><a href="/blog/2013/12/24/recent-summary//blog/page/11/index.html#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="/blog/2014/10/24/android-loader//blog/page/11/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+
+    <article class="post">
+	<h2 class="title">
+		
+		<a href="/blog/2014/10/19/android-asynctask-pitfalls/">
+		
+			The Hidden Pitfalls of AsyncTask</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: 
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-10-19T15:56:00+08:00" pubdate data-updated="true">Oct 19<span>th</span>, 2014</time></div>
+      <div class="tags">Tags: 
+
+
+	<a class='category' href='/blog/categories/android/'>android</a>, <a class='category' href='/blog/categories/dev/'>dev</a>
+
+
+</div>
+    </div>
+		<p><center><img src="/images/android_logo.jpg"/></center></p>
+
+
+<p>I originally wrote this article when I was (foolishly) still using AsyncTasks. Nowadays I simply consider it a mistake in all cases. As you&rsquo;ll see from the original article, there are a lot of problems with it &ndash; and there are much better solutions.</p>
+
+<p>My preferred alternative these days are combining <a href="https://github.com/Netflix/RxJava">RxJava</a> with schedulers. You get the same effect as an <code>AsyncTask</code> with none of the problems, plus you get an awesome framework in addition. I know, recommending a library to solve a problem is irritating, but RxJava is worth looking at for many reasons.</p>
+
+<p>When <code>AsyncTask</code> was introduced to Android, it was labeled as “<a href="http://android-developers.blogspot.com/2009/05/painless-threading.html">Painless Threading</a>.” Its goal was to make background Threads which could interact with the UI thread easier. It was successful on that count, but it’s not exactly painless – there are a number of cases where <code>AsyncTask</code> is not a silver bullet. It is easy to blindly use <code>AsyncTask</code> without realizing what can go wrong if not handled with care. Below are some of the problems that can arise when using <code>AsyncTask</code> without fully understanding it.</p>
+
+
+		
+		<a href="/blog/2014/10/19/android-asynctask-pitfalls/" class="more-link">Read on &rarr;</a>
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="/blog/2014/10/19/android-asynctask-pitfalls//blog/page/11/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+
+    <article class="post">
+	<h2 class="title">
+		
+		<a href="/blog/2014/10/19/android-tips/">
+		
+			Android Tips</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: 
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-10-19T13:00:00+08:00" pubdate data-updated="true">Oct 19<span>th</span>, 2014</time></div>
+      <div class="tags">Tags: 
+
+
+	<a class='category' href='/blog/categories/android/'>android</a>, <a class='category' href='/blog/categories/dev/'>dev</a>
+
+
+</div>
+    </div>
+		<p><center><img src="/images/android_training.jpg"/></center></p>
+
+
+<ul>
+<li><a href="#overview">Android Tips and Tricks</a>
+
+<ul>
+<li><a href="#part1">Part I</a></li>
+<li><a href="#part2">Part II</a></li>
+<li><a href="#part3">Part III</a></li>
+<li><a href="#part4">Part IV</a></li>
+<li><a href="#part5">Part V</a></li>
+</ul>
+</li>
+</ul>
+
+
+<h2 id="overview">Android Tips and Tricks</h2>
+
+
+
+
+<h3 id="part1">Part I</h3>
+
+
+<ul>
+<li><p><code>Activity.startActivities()</code> &ndash; Nice for launching to the middle of an app flow.</p></li>
+<li><p><code>TextUtils.isEmpty()</code> &ndash; Simple utility I use everywhere.</p></li>
+<li><p><code>Html.fromHtml()</code> &ndash; Quick method for formatting Html. It&rsquo;s not particularly fast so I wouldn&rsquo;t use it constantly (e.g., don&rsquo;t use it just to bold part of a string &ndash; construct the Spannable manually instead), but it&rsquo;s fine for rendering text obtained from the web.</p></li>
+<li><p><code>TextView.setError()</code> &ndash; Nice UI when validating user input.</p></li>
+<li><p><code>Build.VERSION_CODES</code> &ndash; Not only is it handy for routing code, it&rsquo;s also summarizes behavioral differences between each version of Android.</p></li>
+</ul>
+
+
+
+		
+		<a href="/blog/2014/10/19/android-tips/" class="more-link">Read on &rarr;</a>
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="/blog/2014/10/19/android-tips//blog/page/11/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+
+    <article class="post">
+	<h2 class="title">
+		
+		<a href="/blog/2014/10/18/oauth-2-dot-0/">
+		
+			理解OAuth2.0</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: 
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-10-18T15:38:00+08:00" pubdate data-updated="true">Oct 18<span>th</span>, 2014</time></div>
+      <div class="tags">Tags: 
+
+
+	<a class='category' href='/blog/categories/dev/'>dev</a>
+
+
+</div>
+    </div>
+		<p><center><img src="/images/oauth.png"/></center></p>
+
+
+<p><a href="http://en.wikipedia.org/wiki/OAuth">OAuth</a>是一个关于授权（authorization）的开放网络标准，在全世界得到广泛应用，目前的版本是2.0版。本文对OAuth 2.0的设计思路和运行流程，做一个简明通俗的解释，主要参考材料为<a href="http://www.rfcreader.com/#rfc6749">RFC 6749</a>。</p>
+
+<h2>应用场景</h2>
+
+<p>为了理解OAuth的适用场合，让我举一个假设的例子。有一个&#8221;云冲印&#8221;的网站，可以将用户储存在Google的照片，冲印出来。用户为了使用该服务，必须让&#8221;云冲印&#8221;读取自己储存在Google上的照片。</p>
+
+<p><center><img src="/images/google-print.png"/></center></p>
+
+
+<p>问题是只有得到用户的授权，Google才会同意&#8221;云冲印&#8221;读取这些照片。那么，&#8221;云冲印&#8221;怎样获得用户的授权呢？传统方法是，用户将自己的Google用户名和密码，告诉&#8221;云冲印&#8221;，后者就可以读取用户的照片了。这样的做法有以下几个严重的缺点。</p>
+
+<pre><code>（1）"云冲印"为了后续的服务，会保存用户的密码，这样很不安全。
+（2）Google不得不部署密码登录，而我们知道，单纯的密码登录并不安全。
+（3）"云冲印"拥有了获取用户储存在Google所有资料的权力，用户没法限制"云冲印"获得授权的范围和有效期。
+（4）用户只有修改密码，才能收回赋予"云冲印"的权力。但是这样做，会使得其他所有获得用户授权的第三方应用程序全部失效。
+（5）只要有一个第三方应用程序被破解，就会导致用户密码泄漏，以及所有被密码保护的数据泄漏。
+</code></pre>
+
+<p>OAuth就是为了解决上面这些问题而诞生的。</p>
+
+
+		
+		<a href="/blog/2014/10/18/oauth-2-dot-0/" class="more-link">Read on &rarr;</a>
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="/blog/2014/10/18/oauth-2-dot-0//blog/page/11/index.html#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -514,7 +452,7 @@ var _hmt = _hmt || [];
     </div>
     <footer id="footer">
     <div style="display:inline">
-    Copyright &copy; 2017
+    Copyright &copy; 2018
 
     Solarex
 . Powered by <a href="http://octopress.org">Octopress</a> | 

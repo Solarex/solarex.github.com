@@ -6,7 +6,7 @@
 	<title>Solarex's Blog</title>
     <meta name="author" content="Solarex">
     
-	<meta name="description" content="Published on: Oct 13th, 2014 Tags: android, dev What can you do with Loopers and Handlers? Basically, they implement a common concurrency pattern &hellip;">
+	<meta name="description" content=" Published on: Nov 23rd, 2015 Tags: android, dev Read on &rarr; Comments ">
 	
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
@@ -79,11 +79,6 @@ var _hmt = _hmt || [];
   
   
   
-  <!-- Twitter -->
-  <li>
-  <a href="http://www.twitter.com/hrhflyfire" class="twitter" title="Twitter"></a>
-  </li>
-  
   
   
   
@@ -124,9 +119,9 @@ var _hmt = _hmt || [];
     <article class="post">
 	<h2 class="title">
 		
-		<a href="/blog/2014/10/13/android-looper-handler/">
+		<a href="/blog/2015/11/23/saving-android-view-state/">
 		
-			Intro to Android Loopers and Handlers</a>
+			Saving Android View State Correctly</a>
 	</h2>
     <div class="entry-content">
     <div class="meta">
@@ -142,7 +137,7 @@ var _hmt = _hmt || [];
   
 
 
-<time datetime="2014-10-13T11:24:00+08:00" pubdate data-updated="true">Oct 13<span>th</span>, 2014</time></div>
+<time datetime="2015-11-23T17:40:00+08:00" pubdate data-updated="true">Nov 23<span>rd</span>, 2015</time></div>
       <div class="tags">Tags: 
 
 
@@ -151,24 +146,201 @@ var _hmt = _hmt || [];
 
 </div>
     </div>
-		<p>What can you do with <code>Loopers</code> and <code>Handlers</code>? Basically, they implement a common concurrency pattern that I call the <code>Pipeline Thread</code>. Here’s how it works:</p>
+		<p><center><img src="/images/android_training.jpg"/></center></p>
+
+
+
+
+
+		
+		<a href="/blog/2015/11/23/saving-android-view-state/" class="more-link">Read on &rarr;</a>
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="/blog/2015/11/23/saving-android-view-state//blog/page/9/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+
+    <article class="post">
+	<h2 class="title">
+		
+		<a href="/blog/2015/11/23/android-starting-window/">
+		
+			Android Starting Window</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: 
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2015-11-23T12:48:00+08:00" pubdate data-updated="true">Nov 23<span>rd</span>, 2015</time></div>
+      <div class="tags">Tags: 
+
+
+	<a class='category' href='/blog/categories/android/'>android</a>, <a class='category' href='/blog/categories/dev/'>dev</a>
+
+
+</div>
+    </div>
+		<p><center><img src="/images/android_robot.png" width="255" height="300" /></center></p>
+
+
+
+
+
+		
+		<a href="/blog/2015/11/23/android-starting-window/" class="more-link">Read on &rarr;</a>
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="/blog/2015/11/23/android-starting-window//blog/page/9/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+
+    <article class="post">
+	<h2 class="title">
+		
+		<a href="/blog/2015/09/22/android-message-handling-mechanism/">
+		
+			Android Message Handling Mechanism</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: 
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2015-09-22T17:28:00+08:00" pubdate data-updated="true">Sep 22<span>nd</span>, 2015</time></div>
+      <div class="tags">Tags: 
+
+
+	<a class='category' href='/blog/categories/android/'>android</a>, <a class='category' href='/blog/categories/dev/'>dev</a>
+
+
+</div>
+    </div>
+		<p><p><center><img src="/images/android_robot.png" width="255" height="300"></center></p>
+
+<p>Android is a message driven, message driven several elements:</p>
 
 <ul>
-<li>The Pipeline Thread holds a queue of tasks which are just some units of work that can be executed or processed.</li>
-<li>Other threads can safely push new tasks into the Pipeline Thread’s queue at any time.</li>
-<li>The Pipeline Thread processes the queued tasks one after another. If there are no tasks queued, it blocks until a task appears in the queue.</li>
-<li>Sometimes tasks can called messages and other names.</li>
+<li>The message says: Message</li>
+<li>Message queue: MessageQueue</li>
+<li>The news cycle, remove the message processing for circulation: Looper</li>
+<li>Message processing, message loop out messages from the message queue should be carried out after the processing of messages: Handler</li>
+</ul>
+
+
+<p>Usually we use most often is <code>Message</code> and <code>Handler</code>, if you use <code>HandlerThread</code> or similar <code>HandlerThread</code> things may come into contact with <code>Looper</code>, while <code>MessageQueue</code> is used inside <code>Looper</code>, for the standard SDK, we are unable to instantiate and use (constructor is package visibility).
+　　
+We usually come into contact with <code>Looper</code>, <code>Message</code>, <code>Handler</code> are realized by JAVA, Android for Linux based systems, the bottom with a C, C++, and NDK exist, how could the message driven model only exists in the JAVA layer, in fact, there are corresponding to the Java layer such as <code>Looper</code>, <code>MessageQueue</code> in the Native layer.</p>
+
+<p>Android是消息驱动的，实现消息驱动有几个要素：</p>
+
+<ul>
+<li>消息的表示：Message</li>
+<li>消息队列：MessageQueue</li>
+<li>消息循环，用于循环取出消息进行处理：Looper</li>
+<li>消息处理，消息循环从消息队列中取出消息后要对消息进行处理：Handler</li>
+</ul>
+
+
+<p>平时我们最常使用的就是Message与Handler了，如果使用过HandlerThread或者自己实现类似HandlerThread的东西可能还会接触到Looper，而MessageQueue是Looper内部使用的，对于标准的SDK，我们是无法实例化并使用的（构造函数是包可见性）。</p>
+
+<p>我们平时接触到的Looper、Message、Handler都是用JAVA实现的，Android做为基于Linux的系统，底层用C、C++实现的，而且还有NDK的存在，消息驱动的模型怎么可能只存在于JAVA层，实际上，在Native层存在与Java层对应的类如Looper、MessageQueue等。</p>
+
+<p>
+		
+		<a href="/blog/2015/09/22/android-message-handling-mechanism/" class="more-link">Read on &rarr;</a>
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="/blog/2015/09/22/android-message-handling-mechanism//blog/page/9/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+
+    <article class="post">
+	<h2 class="title">
+		
+		<a href="/blog/2015/05/05/mac-dev-setup/">
+		
+			Setup Mac Development Environment</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: 
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2015-05-05T12:04:00+08:00" pubdate data-updated="true">May 5<span>th</span>, 2015</time></div>
+      <div class="tags">Tags: 
+
+
+	<a class='category' href='/blog/categories/dev/'>dev</a>, <a class='category' href='/blog/categories/tools/'>tools</a>
+
+
+</div>
+    </div>
+		<p><center><img src="/images/apple_mac_logo.jpg" width=225 height=225/></center></p>
+
+
+
+
+<h2 id="system-preferences">System preferences</h2>
+
+
+<p>In Apple Icon > System Preferences:</p>
+
+<ul>
+<li>Trackpad > Tap to click</li>
+<li>Keyboard > Key Repeat > Fast (all the way to the right)</li>
+<li>Keyboard > Delay Until Repeat > Short (all the way to the right)</li>
+<li>Dock > Automatically hide and show the Dock</li>
 </ul>
 
 
 
 		
-		<a href="/blog/2014/10/13/android-looper-handler/" class="more-link">Read on &rarr;</a>
+		<a href="/blog/2015/05/05/mac-dev-setup/" class="more-link">Read on &rarr;</a>
 	</div>
 
 <div class="meta">
 	
-		<span class="comments"><a href="/blog/2014/10/13/android-looper-handler//blog/page/9/index.html#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="/blog/2015/05/05/mac-dev-setup//blog/page/9/index.html#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -177,9 +349,9 @@ var _hmt = _hmt || [];
     <article class="post">
 	<h2 class="title">
 		
-		<a href="/blog/2014/10/12/android-decompile/">
+		<a href="/blog/2015/05/05/android-custom-view/">
 		
-			Android反编译</a>
+			Android Custom View</a>
 	</h2>
     <div class="entry-content">
     <div class="meta">
@@ -195,7 +367,7 @@ var _hmt = _hmt || [];
   
 
 
-<time datetime="2014-10-12T09:21:00+08:00" pubdate data-updated="true">Oct 12<span>th</span>, 2014</time></div>
+<time datetime="2015-05-05T11:45:00+08:00" pubdate data-updated="true">May 5<span>th</span>, 2015</time></div>
       <div class="tags">Tags: 
 
 
@@ -204,215 +376,19 @@ var _hmt = _hmt || [];
 
 </div>
     </div>
-		<p>有时候在Google Play Store看到一些有趣的应用，或者对有些应用的资源图片之类的很感兴趣，这时候就需要用到Android反编译APK的一些工具了。</p>
+		<p><center><img src="/images/android_training.jpg"/></center></p>
+
+
+
 
 
 		
-		<a href="/blog/2014/10/12/android-decompile/" class="more-link">Read on &rarr;</a>
+		<a href="/blog/2015/05/05/android-custom-view/" class="more-link">Read on &rarr;</a>
 	</div>
 
 <div class="meta">
 	
-		<span class="comments"><a href="/blog/2014/10/12/android-decompile//blog/page/9/index.html#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-
-    <article class="post">
-	<h2 class="title">
-		
-		<a href="/blog/2014/09/30/moving-bitbucket-repo-to-github/">
-		
-			Moving Bitbucket Repo to Github</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: 
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-09-30T15:38:00+08:00" pubdate data-updated="true">Sep 30<span>th</span>, 2014</time></div>
-      <div class="tags">Tags: 
-
-
-	<a class='category' href='/blog/categories/git/'>git</a>, <a class='category' href='/blog/categories/tools/'>tools</a>
-
-
-</div>
-    </div>
-		<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>git clone https://bitbucket.org/username/repos.git local_dir
-</span><span class='line'><span class="nb">cd </span>local_dir
-</span><span class='line'>git remote rename origin bitbucket
-</span><span class='line'>git remote add origin git@github.com:username/repos.git
-</span><span class='line'>git push -u origin master
-</span><span class='line'>git remote rm bitbucket
-</span></code></pre></td></tr></table></div></figure>
-
-
-		
-		
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="/blog/2014/09/30/moving-bitbucket-repo-to-github//blog/page/9/index.html#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-
-    <article class="post">
-	<h2 class="title">
-		
-		<a href="/blog/2014/09/28/android-guide-animation-and-graphics/">
-		
-			[Guides]Animation and Graphics</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: 
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-09-28T06:21:00+08:00" pubdate data-updated="true">Sep 28<span>th</span>, 2014</time></div>
-      <div class="tags">Tags: 
-
-
-	<a class='category' href='/blog/categories/android/'>android</a>, <a class='category' href='/blog/categories/dev/'>dev</a>, <a class='category' href='/blog/categories/guides/'>guides</a>
-
-
-</div>
-    </div>
-		<center><p><img src="/images/android_robot.png" width="255" height="300"></p></center>
-
-
-<p>Android provides a variety of powerful APIs for applying animation to UI elements and drawing custom 2D and 3D graphics.</p>
-
-
-		
-		<a href="/blog/2014/09/28/android-guide-animation-and-graphics/" class="more-link">Read on &rarr;</a>
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="/blog/2014/09/28/android-guide-animation-and-graphics//blog/page/9/index.html#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-
-    <article class="post">
-	<h2 class="title">
-		
-		<a href="/blog/2014/09/27/android-snippets/">
-		
-			Android Snippets</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: 
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-09-27T12:50:00+08:00" pubdate data-updated="true">Sep 27<span>th</span>, 2014</time></div>
-      <div class="tags">Tags: 
-
-
-	<a class='category' href='/blog/categories/android/'>android</a>, <a class='category' href='/blog/categories/dev/'>dev</a>
-
-
-</div>
-    </div>
-		<center><p><img src="/images/android_robot.png" width="255" height="300"></p></center>
-
-
-<ul>
-<li><a href="#checking-wifi-connectivity">CheckingWifiConnectivity</a></li>
-<li><a href="#parse-json">ParseJson</a></li>
-<li><a href="#get-launcher-applications">GetLauncherApplication</a></li>
-<li><a href="#get-sdcard-size">GetSdcardSize</a></li>
-<li><a href="#android-bootup-time">AndroidBootupTime</a></li>
-<li><a href="#json-parser">JsonParser</a></li>
-<li><a href="#full-screen">FullScreen</a></li>
-<li><a href="#restore-listview-position">RestoreListViewPosition</a></li>
-<li><a href="#start-application">StartApplication</a></li>
-<li><a href="#string-utils">StringUtils</a></li>
-<li><a href="#checking-external-storage-state">CheckingExternalStorageState</a></li>
-<li><a href="#saving-view-as-bitmap">SavingViewAsBitmap</a></li>
-<li><a href="#convert-view-to-bitmap">ConvertViewToBitmap</a></li>
-<li><a href="#hide-window-keyboard">HideKeyboard</a></li>
-</ul>
-
-
-<h2 id="checking-wifi-connectivity">CheckingWifiConnectivity</h2>
-
-
-
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kd">static</span> <span class="kt">boolean</span> <span class="nf">isConnected</span><span class="o">(</span><span class="n">Context</span> <span class="n">context</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'>    <span class="n">ConnectivityManager</span> <span class="n">connectivityManager</span> <span class="o">=</span> <span class="o">(</span><span class="n">ConnectivityManager</span><span class="o">)</span>
-</span><span class='line'>        <span class="n">context</span><span class="o">.</span><span class="na">getSystemService</span><span class="o">(</span><span class="n">Context</span><span class="o">.</span><span class="na">CONNECTIVITY_SERVICE</span><span class="o">);</span>
-</span><span class='line'>    <span class="n">NetworkInfo</span> <span class="n">networkInfo</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
-</span><span class='line'>    <span class="k">if</span> <span class="o">(</span><span class="n">connectivityManager</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'>        <span class="n">networkInfo</span> <span class="o">=</span>
-</span><span class='line'>            <span class="n">connectivityManager</span><span class="o">.</span><span class="na">getNetworkInfo</span><span class="o">(</span><span class="n">ConnectivityManager</span><span class="o">.</span><span class="na">TYPE_WIFI</span><span class="o">);</span>
-</span><span class='line'>    <span class="o">}</span>
-</span><span class='line'>    <span class="k">return</span> <span class="n">networkInfo</span> <span class="o">==</span> <span class="kc">null</span> <span class="o">?</span> <span class="kc">false</span> <span class="o">:</span> <span class="n">networkInfo</span><span class="o">.</span><span class="na">isConnected</span><span class="o">();</span>
-</span><span class='line'><span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-
-
-
-		
-		<a href="/blog/2014/09/27/android-snippets/" class="more-link">Read on &rarr;</a>
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="/blog/2014/09/27/android-snippets//blog/page/9/index.html#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="/blog/2015/05/05/android-custom-view//blog/page/9/index.html#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -430,7 +406,7 @@ var _hmt = _hmt || [];
     </div>
     <footer id="footer">
     <div style="display:inline">
-    Copyright &copy; 2017
+    Copyright &copy; 2018
 
     Solarex
 . Powered by <a href="http://octopress.org">Octopress</a> | 

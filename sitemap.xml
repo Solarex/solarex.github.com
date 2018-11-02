@@ -259,27 +259,105 @@
         <lastmod>2017-10-18T22:19:11+08:00</lastmod>
     </url>
     <url>
+        <loc>http://Solarex.github.io/blog/2018/01/08/android-signature/</loc>
+        <lastmod>2018-01-08T09:49:04+08:00</lastmod>
+    </url>
+    <url>
+        <loc>http://Solarex.github.io/blog/2018/03/23/volley-source-analysis/</loc>
+        <lastmod>2018-05-23T16:25:56+08:00</lastmod>
+    </url>
+    <url>
+        <loc>http://Solarex.github.io/blog/2018/03/25/android-touch-system/</loc>
+        <lastmod>2018-05-23T16:27:48+08:00</lastmod>
+    </url>
+    <url>
+        <loc>http://Solarex.github.io/blog/2018/04/03/coordinatelayout-behavior-analysis/</loc>
+        <lastmod>2018-05-23T16:31:17+08:00</lastmod>
+    </url>
+    <url>
+        <loc>http://Solarex.github.io/blog/2018/04/08/nestedscrolling-analysis/</loc>
+        <lastmod>2018-10-08T15:46:24+08:00</lastmod>
+    </url>
+    <url>
+        <loc>http://Solarex.github.io/blog/2018/04/15/android-view-system/</loc>
+        <lastmod>2018-05-23T16:38:33+08:00</lastmod>
+    </url>
+    <url>
+        <loc>http://Solarex.github.io/blog/2018/04/23/okhttp3-source-analysis/</loc>
+        <lastmod>2018-06-11T00:55:42+08:00</lastmod>
+    </url>
+    <url>
+        <loc>http://Solarex.github.io/blog/2018/04/26/java-proxy/</loc>
+        <lastmod>2018-05-26T11:24:12+08:00</lastmod>
+    </url>
+    <url>
+        <loc>http://Solarex.github.io/blog/2018/05/30/recyclerview-smooth-scoll-to-position/</loc>
+        <lastmod>2018-06-03T23:46:04+08:00</lastmod>
+    </url>
+    <url>
+        <loc>http://Solarex.github.io/blog/2018/06/03/java-concurrency-in-practice-notes/</loc>
+        <lastmod>2018-08-29T23:00:19+08:00</lastmod>
+    </url>
+    <url>
+        <loc>
+            http://Solarex.github.io/blog/2018/06/15/the-art-of-java-concurrency-programming-notes/
+        </loc>
+        <lastmod>2018-09-10T23:43:15+08:00</lastmod>
+    </url>
+    <url>
+        <loc>http://Solarex.github.io/blog/2018/06/18/why-java-string-designed-as-final/</loc>
+        <lastmod>2018-09-06T16:32:30+08:00</lastmod>
+    </url>
+    <url>
+        <loc>http://Solarex.github.io/blog/2018/07/01/datastructure-and-algorithms/</loc>
+        <lastmod>2018-10-02T19:33:27+08:00</lastmod>
+    </url>
+    <url>
+        <loc>http://Solarex.github.io/blog/2018/07/02/analysis-of-hashmap/</loc>
+        <lastmod>2018-10-10T14:40:39+08:00</lastmod>
+    </url>
+    <url>
+        <loc>http://Solarex.github.io/blog/2018/07/10/java-enum-syntactic-sugar/</loc>
+        <lastmod>2018-10-10T14:27:53+08:00</lastmod>
+    </url>
+    <url>
+        <loc>http://Solarex.github.io/blog/2018/07/10/java-generics-syntactic-sugar/</loc>
+        <lastmod>2018-10-10T14:28:11+08:00</lastmod>
+    </url>
+    <url>
+        <loc>http://Solarex.github.io/blog/2018/07/11/notes-on-jvm/</loc>
+        <lastmod>2018-10-10T14:30:24+08:00</lastmod>
+    </url>
+    <url>
+        <loc>http://Solarex.github.io/blog/2018/07/12/notes-on-effective-java/</loc>
+        <lastmod>2018-10-10T14:46:02+08:00</lastmod>
+    </url>
+    <url>
+        <loc>http://Solarex.github.io/blog/2018/09/12/a-few-lately-thoughts/</loc>
+        <lastmod>2018-09-12T23:03:11+08:00</lastmod>
+    </url>
+    <url>
+        <loc>http://Solarex.github.io/</loc>
+        <lastmod>2018-10-10T14:46:02+08:00</lastmod>
+    </url>
+    <url>
+        <loc>http://Solarex.github.io/projects/</loc>
+        <lastmod>2018-10-16T16:03:58+08:00</lastmod>
+    </url>
+    <url>
         <loc>http://Solarex.github.io/about/</loc>
         <lastmod>2017-04-13T18:14:46+08:00</lastmod>
     </url>
     <url>
         <loc>http://Solarex.github.io/blog/archives/</loc>
-        <lastmod>2017-10-18T22:19:11+08:00</lastmod>
-    </url>
-    <url>
-        <loc>http://Solarex.github.io/</loc>
-        <lastmod>2017-10-18T22:19:11+08:00</lastmod>
-    </url>
-    <url>
-        <loc>http://Solarex.github.io/projects/</loc>
-        <lastmod>2017-10-18T22:21:06+08:00</lastmod>
-    </url>
-    <url>
-        <loc>http://Solarex.github.io/robots.txt</loc>
-        <lastmod>2016-12-28T12:22:34+08:00</lastmod>
+        <lastmod>2018-10-10T14:46:02+08:00</lastmod>
     </url>
     <url>
         <loc>http://Solarex.github.io/search.html</loc>
         <lastmod>2017-04-13T18:14:46+08:00</lastmod>
+    </url>
+    <url>
+        <loc>http://Solarex.github.io/robots.txt</loc>
+        <lastmod>2016-12-28T12:22:34+08:00</lastmod>
     </url>
 </urlset>

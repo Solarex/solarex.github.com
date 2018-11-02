@@ -6,7 +6,7 @@
 	<title>Solarex's Blog</title>
     <meta name="author" content="Solarex">
     
-	<meta name="description" content="Published on: Sep 17th, 2016 Tags: dev, java Annotations with element-value pairs Annotations by themselves are really powerful. They give direct &hellip;">
+	<meta name="description" content=" Published on: Jul 2nd, 2018 Tags: algorithm, java, notes HashMap是存储key-value的集合，底层采用Node&lt;K,V&gt;[] table实现，初始大小为24即16。 Read on &rarr; Comments ">
 	
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
@@ -79,11 +79,6 @@ var _hmt = _hmt || [];
   
   
   
-  <!-- Twitter -->
-  <li>
-  <a href="http://www.twitter.com/hrhflyfire" class="twitter" title="Twitter"></a>
-  </li>
-  
   
   
   
@@ -124,9 +119,9 @@ var _hmt = _hmt || [];
     <article class="post">
 	<h2 class="title">
 		
-		<a href="/blog/2016/09/17/using-annotations-element-value-pairs-in-aspectj/">
+		<a href="/blog/2018/07/02/analysis-of-hashmap/">
 		
-			Using Annotations Element-value Pairs in AspectJ</a>
+			HashMap源码分析</a>
 	</h2>
     <div class="entry-content">
     <div class="meta">
@@ -142,27 +137,25 @@ var _hmt = _hmt || [];
   
 
 
-<time datetime="2016-09-17T16:18:00+08:00" pubdate data-updated="true">Sep 17<span>th</span>, 2016</time></div>
+<time datetime="2018-07-02T19:31:00+08:00" pubdate data-updated="true">Jul 2<span>nd</span>, 2018</time></div>
       <div class="tags">Tags: 
 
 
-	<a class='category' href='/blog/categories/dev/'>dev</a>, <a class='category' href='/blog/categories/java/'>java</a>
+	<a class='category' href='/blog/categories/algorithm/'>algorithm</a>, <a class='category' href='/blog/categories/java/'>java</a>, <a class='category' href='/blog/categories/notes/'>notes</a>
 
 
 </div>
     </div>
-		<h2>Annotations with element-value pairs</h2>
-
-<p>Annotations by themselves are really powerful. They give direct control over when an aspect should be run to the developer. Adding element-value pairs makes the already powerful annotations even more powerful, since it enables you to pass information into the aspect.</p>
+		<p><code>HashMap</code>是存储key-value的集合，底层采用<code>Node&lt;K,V&gt;[] table</code>实现，初始大小为2<sup>4</sup>即16。</p>
 
 
 		
-		<a href="/blog/2016/09/17/using-annotations-element-value-pairs-in-aspectj/" class="more-link">Read on &rarr;</a>
+		<a href="/blog/2018/07/02/analysis-of-hashmap/" class="more-link">Read on &rarr;</a>
 	</div>
 
 <div class="meta">
 	
-		<span class="comments"><a href="/blog/2016/09/17/using-annotations-element-value-pairs-in-aspectj//blog/page/2/index.html#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="/blog/2018/07/02/analysis-of-hashmap//blog/page/2/index.html#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -171,9 +164,9 @@ var _hmt = _hmt || [];
     <article class="post">
 	<h2 class="title">
 		
-		<a href="/blog/2016/09/16/defining-pointcuts-by-annotations/">
+		<a href="/blog/2018/07/01/datastructure-and-algorithms/">
 		
-			Defining Pointcuts by Annotations</a>
+			数据结构与算法</a>
 	</h2>
     <div class="entry-content">
     <div class="meta">
@@ -189,29 +182,55 @@ var _hmt = _hmt || [];
   
 
 
-<time datetime="2016-09-16T16:17:00+08:00" pubdate data-updated="true">Sep 16<span>th</span>, 2016</time></div>
+<time datetime="2018-07-01T19:06:00+08:00" pubdate data-updated="true">Jul 1<span>st</span>, 2018</time></div>
       <div class="tags">Tags: 
 
 
-	<a class='category' href='/blog/categories/dev/'>dev</a>, <a class='category' href='/blog/categories/java/'>java</a>
+	<a class='category' href='/blog/categories/algorithm/'>algorithm</a>, <a class='category' href='/blog/categories/notes/'>notes</a>
 
 
 </div>
     </div>
-		<h2>Pointcuts by annotations</h2>
+		<h2>ArrayList</h2>
 
-<p>Using annotations is more convenient than using patterns. While patterns might be anything between a big cannon and a scalpel the annotations are definitely a scalpel, by only getting the pointcuts that the developer has manually specified.</p>
+<ul>
+<li>尾插效率高，支持随机访问</li>
+<li>中间插入或者删除效率低</li>
+<li>空间不够用时，自动增长为现有空间的1.5倍</li>
+<li>底层使用Object数组来存储数据，使用System.arrayCopy来移动元素</li>
+</ul>
 
-<p>You can get the code for this blog series at the Git repository <a href="https://github.com/Nosfert/AspectJ-Tutorial-jayway">here</a>.</p>
+
+<h2>LinkedList</h2>
+
+<ul>
+<li>头插，中间插，删除效率高</li>
+<li>不支持随机访问</li>
+<li>MessageQueue中Message根据msg.when来进行插入，mMessages指向头结点</li>
+</ul>
+
+
+<h2>Vector</h2>
+
+<ul>
+<li>底层使用数组实现，增长看<code>capacityIncrement</code>，若<code>capacityIncrement</code>小于0，翻倍增长</li>
+<li>方法有<code>synchronized</code>修饰，线程安全</li>
+<li><code>Stack</code>栈底层实现使用的<code>Vector</code></li>
+<li><code>Stack</code>在同一端进行插入和删除，<code>FILO</code></li>
+<li>队列<code>Queue</code>是只允许在一端进行插入操作，而在另一端进行删除操作的线性表，插入的一端称为队尾，删除的一端称为队头</li>
+<li>把队列的头尾相接的顺序存储结构称为循环队列</li>
+<li>双端队列<code>Deque</code>是一种具有队列和栈的性质的数据结构，双端队列中的元素可以从两端弹出，其限定插入和删除操作在队列的两端进行。<code>LinkedList</code>，<code>ArrayDeque</code>实现了<code>Deque</code>接口,<code>LinkedBlockingQueue</code>实现了<code>BlockingDeque</code>接口</li>
+<li>优先级队列，<code>PriorityQueue</code>，<code>MessageQueue</code>根据<code>Message.when</code>来进行插入</li>
+</ul>
 
 
 		
-		<a href="/blog/2016/09/16/defining-pointcuts-by-annotations/" class="more-link">Read on &rarr;</a>
+		
 	</div>
 
 <div class="meta">
 	
-		<span class="comments"><a href="/blog/2016/09/16/defining-pointcuts-by-annotations//blog/page/2/index.html#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="/blog/2018/07/01/datastructure-and-algorithms//blog/page/2/index.html#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -220,9 +239,9 @@ var _hmt = _hmt || [];
     <article class="post">
 	<h2 class="title">
 		
-		<a href="/blog/2016/09/15/defining-pointcuts-by-pattern/">
+		<a href="/blog/2018/06/18/why-java-string-designed-as-final/">
 		
-			Defining Pointcuts by Pattern</a>
+			为什么String要被设计成final的</a>
 	</h2>
     <div class="entry-content">
     <div class="meta">
@@ -238,7 +257,7 @@ var _hmt = _hmt || [];
   
 
 
-<time datetime="2016-09-15T16:16:00+08:00" pubdate data-updated="true">Sep 15<span>th</span>, 2016</time></div>
+<time datetime="2018-06-18T09:53:00+08:00" pubdate data-updated="true">Jun 18<span>th</span>, 2018</time></div>
       <div class="tags">Tags: 
 
 
@@ -247,20 +266,20 @@ var _hmt = _hmt || [];
 
 </div>
     </div>
-		<h2>Pointcuts by pattern</h2>
+		<h2>Reference</h2>
 
-<p>Going through all the different ways of defining pointcuts and explaining them in an easy manner would be a near impossible feat for this post. Rather than aiming for the impossible let’s narrow down the scope, and talk about the most commonly used pointcut definitions and how we can experiment with them. We will get you started with defining your own pointcuts!</p>
-
-<p>You can get the code for this blog series at the Git repository <a href="https://github.com/Nosfert/AspectJ-Tutorial-jayway">here</a>.</p>
+<ul>
+<li><a href="https://javarevisited.blogspot.com/2010/10/why-string-is-immutable-or-final-in-java.html">Why String is Immutable or Final in Java</a></li>
+</ul>
 
 
 		
-		<a href="/blog/2016/09/15/defining-pointcuts-by-pattern/" class="more-link">Read on &rarr;</a>
+		
 	</div>
 
 <div class="meta">
 	
-		<span class="comments"><a href="/blog/2016/09/15/defining-pointcuts-by-pattern//blog/page/2/index.html#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="/blog/2018/06/18/why-java-string-designed-as-final//blog/page/2/index.html#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -269,9 +288,9 @@ var _hmt = _hmt || [];
     <article class="post">
 	<h2 class="title">
 		
-		<a href="/blog/2016/09/14/the-basics-of-aop/">
+		<a href="/blog/2018/06/15/the-art-of-java-concurrency-programming-notes/">
 		
-			The Basics of AOP</a>
+			Java并发编程的艺术笔记</a>
 	</h2>
     <div class="entry-content">
     <div class="meta">
@@ -287,29 +306,38 @@ var _hmt = _hmt || [];
   
 
 
-<time datetime="2016-09-14T16:15:00+08:00" pubdate data-updated="true">Sep 14<span>th</span>, 2016</time></div>
+<time datetime="2018-06-15T23:04:00+08:00" pubdate data-updated="true">Jun 15<span>th</span>, 2018</time></div>
       <div class="tags">Tags: 
 
 
-	<a class='category' href='/blog/categories/dev/'>dev</a>, <a class='category' href='/blog/categories/java/'>java</a>
+	<a class='category' href='/blog/categories/dev/'>dev</a>, <a class='category' href='/blog/categories/java/'>java</a>, <a class='category' href='/blog/categories/notes/'>notes</a>
 
 
 </div>
     </div>
-		<h2>Aspect Oriented Programming</h2>
+		<ul>
+<li><a href="#ch01">并发编程的挑战</a></li>
+<li><a href="#ch02">Java并发机制的底层实现原理</a></li>
+<li><a href="#ch03">Java内存模型</a></li>
+<li><a href="#ch04">Java并发编程基础</a></li>
+<li><a href="#ch05">Java中的锁</a></li>
+<li><a href="#ch06">Java并发容器和框架</a></li>
+<li><a href="#ch07">Java中的13个原子操作类</a></li>
+<li><a href="#ch08">Java中的并发工具类</a></li>
+<li><a href="#ch09">Java中的线程池</a></li>
+<li><a href="#ch10">Executor框架</a></li>
+<li><a href="#ch11">Java并发编程实践</a></li>
+</ul>
 
-<p>AOP is both a complex and quite simple thing. There has been a lot of buzz around AOP but recently the buzz has faded. The question that people still ask is “what do I do with it”. Hopefully you will have an idea of what it is and create your own thoughts on how you could use it.</p>
-
-<p>In this post I aim to describe what AOP actually is and how it works.</p>
 
 
 		
-		<a href="/blog/2016/09/14/the-basics-of-aop/" class="more-link">Read on &rarr;</a>
+		<a href="/blog/2018/06/15/the-art-of-java-concurrency-programming-notes/" class="more-link">Read on &rarr;</a>
 	</div>
 
 <div class="meta">
 	
-		<span class="comments"><a href="/blog/2016/09/14/the-basics-of-aop//blog/page/2/index.html#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="/blog/2018/06/15/the-art-of-java-concurrency-programming-notes//blog/page/2/index.html#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -318,9 +346,9 @@ var _hmt = _hmt || [];
     <article class="post">
 	<h2 class="title">
 		
-		<a href="/blog/2016/09/13/aspectj-dictionary/">
+		<a href="/blog/2018/06/03/java-concurrency-in-practice-notes/">
 		
-			AspectJ - Dictionary</a>
+			Java并发编程实战笔记</a>
 	</h2>
     <div class="entry-content">
     <div class="meta">
@@ -336,29 +364,43 @@ var _hmt = _hmt || [];
   
 
 
-<time datetime="2016-09-13T16:13:00+08:00" pubdate data-updated="true">Sep 13<span>th</span>, 2016</time></div>
+<time datetime="2018-06-03T21:43:00+08:00" pubdate data-updated="true">Jun 3<span>rd</span>, 2018</time></div>
       <div class="tags">Tags: 
 
 
-	<a class='category' href='/blog/categories/dev/'>dev</a>, <a class='category' href='/blog/categories/java/'>java</a>
+	<a class='category' href='/blog/categories/dev/'>dev</a>, <a class='category' href='/blog/categories/java/'>java</a>, <a class='category' href='/blog/categories/notes/'>notes</a>
 
 
 </div>
     </div>
-		<h2>What is <a href="https://en.wikipedia.org/wiki/Aspect-oriented_programming">AOP</a></h2>
+		<ul>
+<li><a href="#ch01">简介</a></li>
+<li><a href="#ch02">线程安全性</a></li>
+<li><a href="#ch03">对象的共享</a></li>
+<li><a href="#ch04">对象的组合</a></li>
+<li><a href="#ch05">基础构建模块</a></li>
+<li><a href="#ch06">任务执行</a></li>
+<li><a href="#ch07">取消与关闭</a></li>
+<li><a href="#ch08">线程池的使用</a></li>
+<li><a href="#ch09">图形用户界面应用程序</a></li>
+<li><a href="#ch10">避免活跃性危险</a></li>
+<li><a href="#ch11">性能和可伸缩性</a></li>
+<li><a href="#ch12">并发程序的测试</a></li>
+<li><a href="#ch13">显式锁</a></li>
+<li><a href="#ch14">构建自定义的同步工具</a></li>
+<li><a href="#ch15">原子变量与非阻塞同步机制</a></li>
+<li><a href="#ch16">Java内存模型</a></li>
+</ul>
 
-<p>Every time someone tries to explain AOP (Aspect Oriented Programming) they often use words like “magic” or “black magic”. And that’s understandable, especially if you come from an OOP world and come across AOP it really feels like “magic”: something is happening and you as a developer usually don’t know why, what or how.</p>
-
-<p>AspectJ is one of the more well-known implementations for AOP in Java and is developed by the Eclipse Foundation. In this series of articles we will be concentrating on AspectJ’s implementation of AOP and how it works in Java.So, let’s dive into AspectJ and make an effort of dispersing the mystic around the so-called “black magic”. Let’s start by building a dictionary with short explanations of some key terms.</p>
 
 
 		
-		<a href="/blog/2016/09/13/aspectj-dictionary/" class="more-link">Read on &rarr;</a>
+		<a href="/blog/2018/06/03/java-concurrency-in-practice-notes/" class="more-link">Read on &rarr;</a>
 	</div>
 
 <div class="meta">
 	
-		<span class="comments"><a href="/blog/2016/09/13/aspectj-dictionary//blog/page/2/index.html#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="/blog/2018/06/03/java-concurrency-in-practice-notes//blog/page/2/index.html#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -376,7 +418,7 @@ var _hmt = _hmt || [];
     </div>
     <footer id="footer">
     <div style="display:inline">
-    Copyright &copy; 2017
+    Copyright &copy; 2018
 
     Solarex
 . Powered by <a href="http://octopress.org">Octopress</a> | 

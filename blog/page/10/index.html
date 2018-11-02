@@ -6,7 +6,8 @@
 	<title>Solarex's Blog</title>
     <meta name="author" content="Solarex">
     
-	<meta name="description" content=" Published on: Sep 21st, 2014 Tags: android, dev, guides TL,DR; Read on &rarr; Comments ">
+	<meta name="description" content="Published on: Mar 29th, 2015 Tags: dev, python Whetting Your Appetite
+Using the Python Interpreter Invoking the Interpreter Argument Passing &hellip;">
 	
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
@@ -79,11 +80,6 @@ var _hmt = _hmt || [];
   
   
   
-  <!-- Twitter -->
-  <li>
-  <a href="http://www.twitter.com/hrhflyfire" class="twitter" title="Twitter"></a>
-  </li>
-  
   
   
   
@@ -124,9 +120,9 @@ var _hmt = _hmt || [];
     <article class="post">
 	<h2 class="title">
 		
-		<a href="/blog/2014/09/21/android-guide-app-component/">
+		<a href="/blog/2015/03/29/python-tutorial/">
 		
-			[Guides]App Component</a>
+			Python Tutorial</a>
 	</h2>
     <div class="entry-content">
     <div class="meta">
@@ -142,28 +138,226 @@ var _hmt = _hmt || [];
   
 
 
-<time datetime="2014-09-21T12:04:00+08:00" pubdate data-updated="true">Sep 21<span>st</span>, 2014</time></div>
+<time datetime="2015-03-29T11:17:00+08:00" pubdate data-updated="true">Mar 29<span>th</span>, 2015</time></div>
       <div class="tags">Tags: 
 
 
-	<a class='category' href='/blog/categories/android/'>android</a>, <a class='category' href='/blog/categories/dev/'>dev</a>, <a class='category' href='/blog/categories/guides/'>guides</a>
+	<a class='category' href='/blog/categories/dev/'>dev</a>, <a class='category' href='/blog/categories/python/'>python</a>
 
 
 </div>
     </div>
-		<center><p><img src="/images/android_robot.png" width="255" height="300"></p></center>
+		<center><p><img src="/images/python_logo.png"></p></center>
 
 
-<p>TL,DR;</p>
+<ul>
+<li><a href="#1">Whetting Your Appetite</a></li>
+<li><a href="#2">Using the Python Interpreter</a>
+
+<ul>
+<li><a href="#2.1">Invoking the Interpreter</a>
+
+<ul>
+<li><a href="#2.1.1">Argument Passing</a></li>
+<li><a href="#2.1.2">Interactive Mode</a></li>
+</ul>
+</li>
+<li><a href="#2.2">The Interpreter and Its Environment</a>
+
+<ul>
+<li><a href="#2.2.1">Source Code Encoding</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#3">An Informal Introduction to Python</a>
+
+<ul>
+<li><a href="#3.1">Using Python as Calculator</a>
+
+<ul>
+<li><a href="#3.1.1">Numbers</a></li>
+<li><a href="#3.1.2">Strings</a></li>
+<li><a href="#3.1.3">Lists</a></li>
+</ul>
+</li>
+<li><a href="#3.2">First Steps Towards Programming</a></li>
+</ul>
+</li>
+<li><a href="#4">More Control Flow Tools</a>
+
+<ul>
+<li><a href="#4.1">if Statements</a></li>
+<li><a href="#4.2">for Statements</a></li>
+<li><a href="#4.3">The range() Function</a></li>
+<li><a href="#4.4">break and continue Statements,and else Clauses and Loops</a></li>
+<li><a href="#4.5">pass Statements</a></li>
+<li><a href="#4.6">Defining Functions</a></li>
+<li><a href="#4.7">More on Defining Functions</a>
+
+<ul>
+<li><a href="#4.7.1">Default Argument Values</a></li>
+<li><a href="#4.7.2">Keyword Arguments</a></li>
+<li><a href="#4.7.3">Arbitrary Argument Lists</a></li>
+<li><a href="#4.7.4">Unpacking Argument Lists</a></li>
+<li><a href="#4.7.5">Lambda Expressions</a></li>
+<li><a href="#4.7.6">Documentation Strings</a></li>
+<li><a href="#4.7.7">Function Annotations</a></li>
+</ul>
+</li>
+<li><a href="#4.8">Intermezzo: Coding Style</a></li>
+</ul>
+</li>
+<li><a href="#5">Data Structures</a>
+
+<ul>
+<li><a href="#5.1">More on Lists</a>
+
+<ul>
+<li><a href="#5.1.1">Using Lists as Stacks</a></li>
+<li><a href="#5.1.2">Using Lists as Queues</a></li>
+<li><a href="#5.1.3">List Comprehensions</a></li>
+<li><a href="#5.1.4">Nested List Comprehensions</a></li>
+</ul>
+</li>
+<li><a href="#.5.2">The del Statement</a></li>
+<li><a href="#5.3">Tuples and Sequences</a></li>
+<li><a href="#5.4">Sets</a></li>
+<li><a href="#5.5">Dictionaries</a></li>
+<li><a href="#5.6">Looping Techniques</a></li>
+<li><a href="#5.7">More on Conditions</a></li>
+<li><a href="#5.8">Comparing Sequences and Other Types</a></li>
+</ul>
+</li>
+<li><a href="#6">Modules</a>
+
+<ul>
+<li><a href="#6.1">More on Modules</a>
+
+<ul>
+<li><a href="#6.1.1">Executing modules as scripts</a></li>
+<li><a href="#6.1.2">The Module Search Path</a></li>
+<li><a href="#6.1.3">&ldquo;Compiled&rdquo; Python files</a></li>
+</ul>
+</li>
+<li><a href="#6.2">Standard Modules</a></li>
+<li><a href="#6.3">The dir() Function</a></li>
+<li><a href="#6.4">Packages</a>
+
+<ul>
+<li><a href="#6.4.1">Importing * From a Package</a></li>
+<li><a href="#6.4.2">Intra-package References</a></li>
+<li><a href="#6.4.3">Packages in Multiple Directories</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#7">Input and Output</a>
+
+<ul>
+<li><a href="#7.1">Fancier Output Formatting</a>
+
+<ul>
+<li><a href="#7.1.1">Old String Formatting</a></li>
+</ul>
+</li>
+<li><a href="#7.2">Reading and Writing Files</a>
+
+<ul>
+<li><a href="#7.2.1">Methods of File Objects</a></li>
+<li><a href="#7.2.2">Saving structured data with json</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#8">Errors and Exceptions</a>
+
+<ul>
+<li><a href="#8.1">Syntax Errors</a></li>
+<li><a href="#8.2">Exceptions</a></li>
+<li><a href="#8.3">Handling Exceptions</a></li>
+<li><a href="#8.4">Raising Exceptions</a></li>
+<li><a href="#8.5">User-defined Exceptions</a></li>
+<li><a href="#8.6">Defining Clean-up Actions</a></li>
+<li><a href="#8.7">Predefined Clean-up Actions</a></li>
+</ul>
+</li>
+<li><a href="#9">Classes</a>
+
+<ul>
+<li><a href="#9.1">A Word About Names and Objects</a></li>
+<li><a href="#9.2">Python Scopes and Namespaces</a>
+
+<ul>
+<li><a href="#9.2.1">Scopes and Namespacs Example</a></li>
+</ul>
+</li>
+<li><a href="#9.3">A First Look at Classes</a>
+
+<ul>
+<li><a href="#9.3.1">Class Definition Syntax</a></li>
+<li><a href="#9.3.2">Class Objects</a></li>
+<li><a href="#9.3.3">Instance Objects</a></li>
+<li><a href="#9.3.4">Method Objects</a></li>
+<li><a href="#9.3.5">Class and Instance Variables</a></li>
+</ul>
+</li>
+<li><a href="#9.4">Random Remarks</a></li>
+<li><a href="#9.5">Inheritance</a>
+
+<ul>
+<li><a href="#9.5.1">Multiple Inheritance</a></li>
+</ul>
+</li>
+<li><a href="#9.6">Private Variables</a></li>
+<li><a href="#9.7">Odds and Ends</a></li>
+<li><a href="#9.8">Exceptions Are Classes Too</a></li>
+<li><a href="#9.9">Iterators</a></li>
+<li><a href="#9.10">Generators</a></li>
+<li><a href="#9.11">Generator Expressions</a></li>
+</ul>
+</li>
+<li><a href="#10">Brief Tour of the Standard Library</a>
+
+<ul>
+<li><a href="#10.1">Operating System Interface</a></li>
+<li><a href="#10.2">File Wildcards</a></li>
+<li><a href="#10.3">Command Line Arguments</a></li>
+<li><a href="#10.4">Error Output Redirection and Program Termination</a></li>
+<li><a href="#10.5">String Pattern Matching</a></li>
+<li><a href="#10.6">Mathematics</a></li>
+<li><a href="#10.7">Internet Access</a></li>
+<li><a href="#10.8">Dates and Times</a></li>
+<li><a href="#10.9">Data Compression</a></li>
+<li><a href="#10.10">Performance Measurement</a></li>
+<li><a href="#10.11">Quality Control</a></li>
+<li><a href="#10.12">Batteries Included</a></li>
+</ul>
+</li>
+<li><a href="#11">Brief Tour of the Standard Library &ndash; Part II</a>
+
+<ul>
+<li><a href="#11.1">Output Formatting</a></li>
+<li><a href="#11.2">Templating</a></li>
+<li><a href="#11.3">Working with Binary Data Record Layouts</a></li>
+<li><a href="#11.4">Multi-threading</a></li>
+<li><a href="#11.5">Logging</a></li>
+<li><a href="#11.6">Weak References</a></li>
+<li><a href="#11.7">Tools for Working with Lists</a></li>
+<li><a href="#11.8">Decimal Floating Point Arithmetic</a></li>
+</ul>
+</li>
+</ul>
+
 
 
 		
-		<a href="/blog/2014/09/21/android-guide-app-component/" class="more-link">Read on &rarr;</a>
+		<a href="/blog/2015/03/29/python-tutorial/" class="more-link">Read on &rarr;</a>
 	</div>
 
 <div class="meta">
 	
-		<span class="comments"><a href="/blog/2014/09/21/android-guide-app-component//blog/page/10/index.html#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="/blog/2015/03/29/python-tutorial//blog/page/10/index.html#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -172,9 +366,9 @@ var _hmt = _hmt || [];
     <article class="post">
 	<h2 class="title">
 		
-		<a href="/blog/2014/09/16/java-reflection-tutorial/">
+		<a href="/blog/2015/03/22/using-gnu-command-line-tools-on-mac-os-x/">
 		
-			Java反射</a>
+			Using GNU Command Line Tools on Mac OS X</a>
 	</h2>
     <div class="entry-content">
     <div class="meta">
@@ -190,28 +384,26 @@ var _hmt = _hmt || [];
   
 
 
-<time datetime="2014-09-16T14:35:00+08:00" pubdate data-updated="true">Sep 16<span>th</span>, 2014</time></div>
+<time datetime="2015-03-22T23:05:00+08:00" pubdate data-updated="true">Mar 22<span>nd</span>, 2015</time></div>
       <div class="tags">Tags: 
 
 
-	<a class='category' href='/blog/categories/dev/'>dev</a>, <a class='category' href='/blog/categories/java/'>java</a>
+	<a class='category' href='/blog/categories/dev/'>dev</a>, <a class='category' href='/blog/categories/tools/'>tools</a>
 
 
 </div>
     </div>
-		<p><center><img src="/images/java-reflection-tutorial.png"></center></p>
+		<p><p><center><img src="/images/apple_mac_logo.jpg" width="225" height="225"></center>
+Unlike Ubuntu shipped with GNU command line tools,Mac OS X shipped with the BSD version,which make me WTF when I encountered with some compatibility issues.Fortunately,it&rsquo;s quit easy to install gnu tools by using homebrew in Mac OS X and set them as default.</p>
 
-
-
-
-
+<p>
 		
-		<a href="/blog/2014/09/16/java-reflection-tutorial/" class="more-link">Read on &rarr;</a>
+		<a href="/blog/2015/03/22/using-gnu-command-line-tools-on-mac-os-x/" class="more-link">Read on &rarr;</a>
 	</div>
 
 <div class="meta">
 	
-		<span class="comments"><a href="/blog/2014/09/16/java-reflection-tutorial//blog/page/10/index.html#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="/blog/2015/03/22/using-gnu-command-line-tools-on-mac-os-x//blog/page/10/index.html#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -220,9 +412,9 @@ var _hmt = _hmt || [];
     <article class="post">
 	<h2 class="title">
 		
-		<a href="/blog/2014/09/16/zhihu-intent-fileter-schema/">
+		<a href="/blog/2014/10/31/android-best-practices-for-background-jobs/">
 		
-			跳出浏览器</a>
+			[Training]Best Practices for Background Jobs</a>
 	</h2>
     <div class="entry-content">
     <div class="meta">
@@ -238,7 +430,7 @@ var _hmt = _hmt || [];
   
 
 
-<time datetime="2014-09-16T12:52:00+08:00" pubdate data-updated="true">Sep 16<span>th</span>, 2014</time></div>
+<time datetime="2014-10-31T10:12:00+08:00" pubdate data-updated="true">Oct 31<span>st</span>, 2014</time></div>
       <div class="tags">Tags: 
 
 
@@ -247,29 +439,119 @@ var _hmt = _hmt || [];
 
 </div>
     </div>
-		<center><p><img src="/images/zhihu_logo.png" alt="zhihu"></p></center>
+		<p><p><center><img src="/images/android_training.jpg"></center></p>
+
+<ul>
+<li><a href="#overview">Background jobs best practices</a>
+
+<ul>
+<li><a href="#running">Running in a background service</a></li>
+<li><a href="#loading">Loading data in the background</a></li>
+<li><a href="#managing">Managing the device awake state</a></li>
+</ul>
+</li>
+</ul>
 
 
-<p>之前使用浏览器浏览知乎网站时，网站上会显示打开应用，不同的浏览器点击会有不同的反应(跳转网页或者打开知乎应用)，当时思考了一下具体的实现方式，觉得可能是知乎网站根据UC或者Chrome浏览器不同的UA显示不同的网页代码，在点击应用的时候会触发超链接，知乎客户端根据特定的Schema来在客户端中打开不同的问题页面，最近在网上浏览到一片文章，作者对这种冲浏览器跳转到客户端应用的实现方式进行了具体的分析，我只想到文章中的前两种方式，后面的Chrome浏览器的Chrome Intent以及后台启动http服务来响应网页链接的方式囿于眼界没有想到，不得不佩服文章作者视野之开阔。文章不错，特分享在此。</p>
+<p><h2 id="overview">Best Practices for Background Jobs</h2></p>
 
-<p>Ref:<a href="http://zhuanlan.zhihu.com/andlib/19848910">#黑科技# 跳出浏览器</a></p>
+<p>These classes show you how to run jobs in the background to boost your application’s performance and minimize its drain on the battery.</p>
 
-<p>当移动浪潮来袭，不论是传统 PC 网站/应用，还是新兴的移动互联网，都一并蜂拥的走进用户的手机。提供一个便于手机浏览的 Web 页面，再造一个功能丰富的移动 App 成了每个产品的标配。提供移动 Web 页面，可以使得用户更易获取产品信息，在微信上、微博中，搜索里点个链接，就可以立刻享用产品功能；而提供移动 App，则可以提供更好的产品体验，使用 native api 能构建更丰富的特色功能，提供更出众的性能表现。</p>
+<p><h3 id="running">Running in a background service</h3></p>
 
-<p>来想象一下这个场景，当别人发给你一个链接，是知乎问题「豌豆荚的员工工作方式是什么样的？」，你在手机浏览器上慢吞吞的加载好了，答案看得特别激动想点个赞。结果发现，还！要！登！录！我明明已经安装了知乎的 App 好吗！为啥不让我愉快的在知乎 App 上操作呐？</p>
+<p>This class describes how to implement an IntentService, send it work requests, and report its results to other components.</p>
 
-<p>这就是本 #黑科技# 的主题，有了移动 Web 页面，又提供了移动 App，如何能让两者更完美的结合在一起呢？当用户已经安装了 App 的前提下，访问移动端 Web 页面时，可以无缝的跳转到 App 中对应的位置去？</p>
+<h4>Creating a background service</h4>
 
-<center><p><img src="/images/zhihu_question_wandoulab.jpg" alt="wandoulabs"></p></center>
+<p>The IntentService class provides a straightforward structure for running an operation on a single background thread. This allows it to handle long-running operations without affecting your user interface’s responsiveness. Also, an IntentService isn’t affected by most user interface lifecycle events, so it continues to run in circumstances that would shut down an AsyncTask.</p>
+
+<p>An IntentService has a few limitations:</p>
+
+<ul>
+<li>It can’t interact directly with your user interface. To put its results in the UI, you have to send them to an Activity.不能直接与UI交互</li>
+<li>Work requests run sequentially. If an operation is running in an IntentService, and you send it another request, the request waits until the first operation is finished.任务顺序执行</li>
+<li>An operation running on an IntentService can’t be interrupted.任务不可被打断</li>
+</ul>
 
 
-<p>依然举上面那个栗子，知乎的同学其实已经有了解决方案，就是「打开应用」那个按钮，如果已经安装了知乎 App，点击后就会从浏览器跳转到应用中了。类似于这样的按钮，背后的技术方案是什么？有哪些局限性？有没有什么一招搞定的必杀技？这就是本文讨论的主要内容。</p>
+<p>However, in most cases an IntentService is the preferred way to simple background operations.</p>
 
-<h2>第一招：拦截 Http 跳转</h2>
+<p>
+		
+		<a href="/blog/2014/10/31/android-best-practices-for-background-jobs/" class="more-link">Read on &rarr;</a>
+	</div>
 
-<p>在 Android 中，最标准的方式，就是在应用的配置文件 <code>AndroidManifest.xml</code> 中，通过 <code>&lt;activity&gt;</code> 标签里的 <code>&lt;intent-filter&gt;</code> 来声明：“本应用可以更好的处理某些 url 对应的页面，浏览器你交给我吧”。套在例子上，声明形如：</p>
+<div class="meta">
+	
+		<span class="comments"><a href="/blog/2014/10/31/android-best-practices-for-background-jobs//blog/page/10/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+
+    <article class="post">
+	<h2 class="title">
+		
+		<a href="/blog/2014/10/31/android-multithreading-in-a-ui-environment/">
+		
+			Multithreading in a UI Environment</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: 
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-10-31T09:14:00+08:00" pubdate data-updated="true">Oct 31<span>st</span>, 2014</time></div>
+      <div class="tags">Tags: 
+
+
+	<a class='category' href='/blog/categories/android/'>android</a>, <a class='category' href='/blog/categories/dev/'>dev</a>
+
+
+</div>
+    </div>
+		<p><p><center><img src="/images/android_threads.png"></center></p>
+
+<h2>Why do we need multithreading in Android applications?</h2>
+
+<p>Let’s say you want to do a very long operation when the user pushes a button.If you are not using another thread, it will look something like this:</p>
+
+<p><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="o">((</span><span class="n">Button</span><span class="o">)</span><span class="n">findViewById</span><span class="o">(</span><span class="n">R</span><span class="o">.</span><span class="na">id</span><span class="o">.</span><span class="na">Button01</span><span class="o">)).</span><span class="na">setOnClickListener</span><span class="o">(</span>
+</span><span class='line'>             <span class="k">new</span> <span class="nf">OnClickListener</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>          <span class="nd">@Override</span>
+</span><span class='line'>          <span class="kd">public</span> <span class="kt">void</span> <span class="nf">onClick</span><span class="o">(</span><span class="n">View</span> <span class="n">v</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="kt">int</span> <span class="n">result</span> <span class="o">=</span> <span class="n">doLongOperation</span><span class="o">();</span>
+</span><span class='line'>            <span class="n">updateUI</span><span class="o">(</span><span class="n">result</span><span class="o">);</span>
+</span><span class='line'>          <span class="o">}</span>
+</span><span class='line'>      <span class="o">});</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>What will happen?The UI freezes. This is a really bad UI experience. The program may even crash.</p>
+
+<h2>The problem in using threads in a UI environment</h2>
+
+<p>So what will happen if we use a Thread for a long running operation.Let’s try a simple example:</p>
+
+<p><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
@@ -279,65 +561,50 @@ var _hmt = _hmt || [];
 <span class='line-number'>8</span>
 <span class='line-number'>9</span>
 <span class='line-number'>10</span>
-</pre></td><td class='code'><pre><code class='xml'><span class='line'><span class="nt">&lt;activity</span> <span class="na">android:name=</span><span class="s">”com.zhihu.android.QuestionActivity”</span><span class="nt">&gt;</span>
-</span><span class='line'>  <span class="nt">&lt;intent-filter&gt;</span>
-</span><span class='line'>    <span class="nt">&lt;action</span> <span class="na">android:name=</span><span class="s">”android.intent.action.VIEW”</span> <span class="nt">/&gt;</span>
-</span><span class='line'>    <span class="nt">&lt;category</span> <span class="na">android:name=</span><span class="s">”android.intent.category.DEFAULT”</span> <span class="nt">/&gt;</span>
-</span><span class='line'>    <span class="nt">&lt;category</span> <span class="na">android:name=</span><span class="s">”android.intent.category.BROWSABLE”</span> <span class="nt">/&gt;</span>
-</span><span class='line'>    <span class="c">&lt;!-- 关键所在，匹配相应域名和 url 模式 --&gt;</span>
-</span><span class='line'>    <span class="nt">&lt;data</span> <span class="na">android:scheme=</span><span class="s">”http”</span> <span class="na">android:host=</span><span class="s">”www.zhihu.com”</span>
-</span><span class='line'><span class="na">android:pathPattern=</span><span class="s">”/question/.*”</span> <span class="nt">/&gt;</span>
-</span><span class='line'>  <span class="nt">&lt;/intent-filter&gt;</span>
-</span><span class='line'><span class="nt">&lt;/activity&gt;</span>
-</span></code></pre></td></tr></table></div></figure>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="o">((</span><span class="n">Button</span><span class="o">)</span><span class="n">findViewById</span><span class="o">(</span><span class="n">R</span><span class="o">.</span><span class="na">id</span><span class="o">.</span><span class="na">Button01</span><span class="o">)).</span><span class="na">setOnClickListener</span><span class="o">(</span>
+</span><span class='line'><span class="k">new</span> <span class="nf">OnClickListener</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>          <span class="nd">@Override</span>
+</span><span class='line'>          <span class="kd">public</span> <span class="kt">void</span> <span class="nf">onClick</span><span class="o">(</span><span class="n">View</span> <span class="n">v</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>              <span class="o">(</span><span class="k">new</span> <span class="n">Thread</span><span class="o">(</span><span class="k">new</span> <span class="n">Runnable</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>                  <span class="nd">@Override</span>
+</span><span class='line'>                  <span class="kd">public</span> <span class="kt">void</span> <span class="nf">run</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>                    <span class="kt">int</span> <span class="n">result</span> <span class="o">=</span> <span class="n">doLongOperation</span><span class="o">();</span>
+</span><span class='line'>                    <span class="n">updateUI</span><span class="o">(</span><span class="n">result</span><span class="o">);</span>
+</span><span class='line'>                  <span class="o">}</span>
+</span><span class='line'>              <span class="o">})).</span><span class="na">start</span><span class="o">();</span>
+</span><span class='line'>
+</span><span class='line'>          <span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure></p>
 
+<p>The result in this case is that the application crashes.</p>
 
-<p>做了上述的声明之后，在 Chrome 里访问 豌豆荚的员工工作方式是什么样的？，便可以跳转到知乎 Android 客户端，并打开这个问题的页面。不过这个解决方案有挺多问题，最重要的一个原因是：“兼容性”。</p>
-
-<p>除了 Chrome，从豌豆荚上的下载量看，最热门的手机浏览器是这些：</p>
-
-<center><p><img src="/images/mobile_browser_share.jpg" alt="mobile browser"></p></center>
-
-
-<p>而以上浏览器，大都不遵守 Android 的协定，不支持通过匹配 url 跳转到更适合的应用中去。臆测其原因，大抵是国内浏览器都不愿将流量导给其他应用吧。</p>
-
-<h2>第二招：自定义 Scheme</h2>
-
-<p>如此，那就另辟蹊径，既然 http 协议的 url 会被很多浏览器拦自行处理掉，那就不用 http 协议而采用自定义的 scheme 试试看。</p>
-
-<p>将 <code>AndroidManifest.xml</code> 中的声明修改如下：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<p><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-</pre></td><td class='code'><pre><code class='xml'><span class='line'><span class="nt">&lt;activity</span> <span class="na">android:name=</span><span class="s">”com.zhihu.android.QuestionActivity”</span><span class="nt">&gt;</span>
-</span><span class='line'>  <span class="nt">&lt;intent-filter&gt;</span>
-</span><span class='line'>    <span class="nt">&lt;action</span> <span class="na">android:name=</span><span class="s">”android.intent.action.VIEW”</span> <span class="nt">/&gt;</span>
-</span><span class='line'>    <span class="nt">&lt;category</span> <span class="na">android:name=</span><span class="s">”android.intent.category.DEFAULT”</span> <span class="nt">/&gt;</span>
-</span><span class='line'>    <span class="nt">&lt;category</span> <span class="na">android:name=</span><span class="s">”android.intent.category.BROWSABLE”</span> <span class="nt">/&gt;</span>
-</span><span class='line'>    <span class="c">&lt;!-- 关键所在，匹配相应的 scheme --&gt;</span>
-</span><span class='line'>    <span class="nt">&lt;data</span> <span class="na">android:scheme=</span><span class="s">”zhihu”</span> <span class="na">android:host=</span><span class="s">”questions”</span> <span class="nt">/&gt;</span>
-</span><span class='line'>  <span class="nt">&lt;/intent-filter&gt;</span>
-</span><span class='line'><span class="nt">&lt;/activity&gt;</span>
-</span></code></pre></td></tr></table></div></figure>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>12-07 16:24:29.089: ERROR/AndroidRuntime<span class="o">(</span>315<span class="o">)</span>: FATAL EXCEPTION: Thread-8
+</span><span class='line'>12-07 16:24:29.089: ERROR/AndroidRuntime<span class="o">(</span>315<span class="o">)</span>: android.view.ViewRoot<span class="nv">$CalledFromWrongThreadException</span>: Only the original thread that created a view hierarchy can touch its views.
+</span><span class='line'>12-07 16:24:29.089: ERROR/AndroidRuntime<span class="o">(</span>315<span class="o">)</span>: at &hellip;Clearly the Android OS wont <span class="nb">let </span>threads other than the main thread change UI elements.
+</span></code></pre></td></tr></table></div></figure></p>
 
+<p>But why?Android UI toolkit, like many other UI environments, is not thread-safe.</p>
 
-<p>把「打开应用」的跳转链接设置为形如 &ldquo;zhihu://questions/…&rdquo; 的 url，点击后就可以匹配跳转到应用对应的 activity 中去。当然，如果简单的使用 <code>&lt;a&gt;</code> 标签来做这件事情，若手机中未安装知乎客户端，点击后就会跳转到一个错误页面（地址是 zhihu://questions/…）。解决方案也简单，使用 <code>&lt;iframe&gt;</code> 即可，详情就不在此赘述。</p>
-
-
+<p>
 		
-		<a href="/blog/2014/09/16/zhihu-intent-fileter-schema/" class="more-link">Read on &rarr;</a>
+		<a href="/blog/2014/10/31/android-multithreading-in-a-ui-environment/" class="more-link">Read on &rarr;</a>
 	</div>
 
 <div class="meta">
 	
-		<span class="comments"><a href="/blog/2014/09/16/zhihu-intent-fileter-schema//blog/page/10/index.html#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="/blog/2014/10/31/android-multithreading-in-a-ui-environment//blog/page/10/index.html#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -346,9 +613,9 @@ var _hmt = _hmt || [];
     <article class="post">
 	<h2 class="title">
 		
-		<a href="/blog/2014/09/12/java-annotations/">
+		<a href="/blog/2014/10/26/android-dealing-with-asynctask-and-screen-orientation/">
 		
-			Java Annotations</a>
+			Dealing With AsyncTask and Screen Orientation</a>
 	</h2>
     <div class="entry-content">
     <div class="meta">
@@ -364,234 +631,28 @@ var _hmt = _hmt || [];
   
 
 
-<time datetime="2014-09-12T12:52:00+08:00" pubdate data-updated="true">Sep 12<span>th</span>, 2014</time></div>
+<time datetime="2014-10-26T19:31:00+08:00" pubdate data-updated="true">Oct 26<span>th</span>, 2014</time></div>
       <div class="tags">Tags: 
 
 
-	<a class='category' href='/blog/categories/dev/'>dev</a>, <a class='category' href='/blog/categories/java/'>java</a>
+	<a class='category' href='/blog/categories/android/'>android</a>, <a class='category' href='/blog/categories/dev/'>dev</a>
 
 
 </div>
     </div>
-		<center><p><img src="/images/java-annotations.png" width="210" height="135" alt="java"></p></center>
+		<p><center><img src="/images/android_logo.jpg"/></center></p>
 
 
-<p>Ref:<a href="http://docs.oracle.com/javase/tutorial/java/annotations/">Java Annotations tutorial</a>,<a href="https://en.wikipedia.org/wiki/Java_annotation">Wiki</a>,<a href="http://java.dzone.com/articles/how-annotations-work-java">How do Annotations Work In Java?</a>,</p>
-
-<p>Annotation is special kind of Java construct used to decorate a class, method, field, parameter, variable, constructor, or package. It’s the vehicle chosen by JSR-175 to provide metadata.Java annotations are typically used for the following purposes:</p>
-
-<ul>
-<li>Compiler instructions</li>
-<li>Build-time instructions</li>
-<li>Runtime instructions</li>
-</ul>
-
-
-<h2>Basics</h2>
-
-<p>Annotations have a number of uses, among them:</p>
-
-<ul>
-<li>Information for the compiler — Annotations can be used by the compiler to detect errors or suppress warnings.</li>
-<li>Compile-time and deployment-time processing — Software tools can process annotation information to generate code, XML files, and so forth.</li>
-<li>Runtime processing — Some annotations are available to be examined at runtime.</li>
-</ul>
-
-
-<p>The format of an Annotation:In its simplest form, an annotation looks like <code>@Entity</code>,the annotation can include elements, which can be named or unnamed,if there is just one element named value, then the name can be omitted,if the annotation has no elements, then the parentheses can be omitted, as shown in the previous <code>@Override</code> example,it is also possible to use multiple annotations on the same declaration.If the annotations have the same type, then this is called a repeating annotation,repeating annotations are supported as of the Java SE 8 release.</p>
-
-<p>The predefined annotation types defined in java.lang are <code>@Deprecated</code>, <code>@Override</code>, and <code>@SuppressWarnings</code>.Note that the Javadoc tag starts with a lowercase d (<code>deprecated</code>)and the annotation starts with an uppercase D(<code>Deprecated</code>).</p>
-
-<p>Every compiler warning belongs to a category. The Java Language Specification lists two categories: <code>deprecation</code> and <code>unchecked</code>. The unchecked warning can occur when interfacing with legacy code written before the advent of generics. To suppress multiple categories of warnings, use the following syntax:<code>@SuppressWarnings({"unchecked", "deprecation"})</code>.</p>
-
-<p>Annotations can be applied to declarations: declarations of classes, fields, methods, and other program elements. When used on a declaration, each annotation often appears, by convention, on its own line.As of the Java SE 8 release, annotations can also be applied to the use of types.</p>
-
-<h2>Declaring an Annotation Type</h2>
-
-<p>Declaring an annotation type, syntax for doing this is:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="nd">@interface</span> <span class="n">ClassPreamble</span> <span class="o">{</span>
-</span><span class='line'>   <span class="n">String</span> <span class="nf">author</span><span class="o">();</span>
-</span><span class='line'>   <span class="n">String</span> <span class="nf">date</span><span class="o">();</span>
-</span><span class='line'>   <span class="kt">int</span> <span class="nf">currentRevision</span><span class="o">()</span> <span class="k">default</span> <span class="mi">1</span><span class="o">;</span>
-</span><span class='line'>   <span class="n">String</span> <span class="nf">lastModified</span><span class="o">()</span> <span class="k">default</span> <span class="s">&quot;N/A&quot;</span><span class="o">;</span>
-</span><span class='line'>   <span class="n">String</span> <span class="nf">lastModifiedBy</span><span class="o">()</span> <span class="k">default</span> <span class="s">&quot;N/A&quot;</span><span class="o">;</span>
-</span><span class='line'>   <span class="c1">// Note use of array</span>
-</span><span class='line'>   <span class="n">String</span><span class="o">[]</span> <span class="nf">reviewers</span><span class="o">();</span>
-</span><span class='line'><span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>The annotation type definition looks similar to an interface definition where the keyword interface is preceded by the at sign (@) (@ = AT, as in annotation type). Annotation types are a form of interface.The body of the previous annotation definition contains annotation type element declarations, which look a lot like methods. Note that they can define optional default values.Annotations only support primitives, string and enumerations. All attributes of annotations are defined as methods and default values can also be provided.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="nd">@Target</span><span class="o">(</span><span class="n">ElementType</span><span class="o">.</span><span class="na">METHOD</span><span class="o">)</span>
-</span><span class='line'><span class="nd">@Retention</span><span class="o">(</span><span class="n">RetentionPolicy</span><span class="o">.</span><span class="na">RUNTIME</span><span class="o">)</span>
-</span><span class='line'><span class="nd">@interface</span> <span class="n">Todo</span> <span class="o">{</span>
-</span><span class='line'>    <span class="kd">public</span> <span class="kd">enum</span> <span class="n">Priority</span> <span class="o">{</span><span class="n">LOW</span><span class="o">,</span> <span class="n">MEDIUM</span><span class="o">,</span> <span class="n">HIGH</span><span class="o">}</span>
-</span><span class='line'>    <span class="kd">public</span> <span class="kd">enum</span> <span class="n">Status</span> <span class="o">{</span><span class="n">STARTED</span><span class="o">,</span> <span class="n">NOT_STARTED</span><span class="o">}</span>
-</span><span class='line'>    <span class="n">String</span> <span class="nf">author</span><span class="o">()</span> <span class="k">default</span> <span class="s">&quot;Yash&quot;</span><span class="o">;</span>
-</span><span class='line'>    <span class="n">Priority</span> <span class="nf">priority</span><span class="o">()</span> <span class="k">default</span> <span class="n">Priority</span><span class="o">.</span><span class="na">LOW</span><span class="o">;</span>
-</span><span class='line'>    <span class="n">Status</span> <span class="nf">status</span><span class="o">()</span> <span class="k">default</span> <span class="n">Status</span><span class="o">.</span><span class="na">NOT_STARTED</span><span class="o">;</span>
-</span><span class='line'><span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p><strong>Note</strong>: To make the information in @ClassPreamble appear in Javadoc-generated documentation, you must annotate the @ClassPreamble definition with the @Documented annotation:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="c1">// import this to use @Documented</span>
-</span><span class='line'><span class="kn">import</span> <span class="nn">java.lang.annotation.*</span><span class="o">;</span>
-</span><span class='line'>
-</span><span class='line'><span class="nd">@Documented</span>
-</span><span class='line'><span class="nd">@interface</span> <span class="n">ClassPreamble</span> <span class="o">{</span>
-</span><span class='line'>
-</span><span class='line'>   <span class="c1">// Annotation element definitions</span>
-</span><span class='line'>
-</span><span class='line'><span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>You can also define that your annotation is a qualifier for the <code>@Inject</code> annotation.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="nd">@javax.inject.Qualifier</span>
-</span><span class='line'><span class="nd">@Documented</span>
-</span><span class='line'><span class="nd">@Target</span><span class="o">({</span><span class="n">ElementType</span><span class="o">.</span><span class="na">FIELD</span><span class="o">,</span> <span class="n">ElementType</span><span class="o">.</span><span class="na">PARAMETER</span><span class="o">})</span>
-</span><span class='line'><span class="nd">@Retention</span><span class="o">(</span><span class="n">RetentionPolicy</span><span class="o">.</span><span class="na">RUNTIME</span><span class="o">)</span>
-</span><span class='line'><span class="kd">public</span> <span class="nd">@interface</span> <span class="n">Checker</span> <span class="o">{</span>
-</span><span class='line'><span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-
+<p>A common task in Android is to perform some background activity in another thread, meanwhile displaying a ProgressDialog to the user. Example of these tasks include downloading some data from internet, logging into an application, etc. Implementing an AsyncTask is fairly a simple job, the big challenge is how to handle it properly when an orientation change occurs.</p>
 
 
 		
-		<a href="/blog/2014/09/12/java-annotations/" class="more-link">Read on &rarr;</a>
+		<a href="/blog/2014/10/26/android-dealing-with-asynctask-and-screen-orientation/" class="more-link">Read on &rarr;</a>
 	</div>
 
 <div class="meta">
 	
-		<span class="comments"><a href="/blog/2014/09/12/java-annotations//blog/page/10/index.html#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-
-    <article class="post">
-	<h2 class="title">
-		
-		<a href="/blog/2014/09/04/java-class-loaded-and-initialized/">
-		
-			Java Class Loaded and Initialized</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: 
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-09-04T13:05:00+08:00" pubdate data-updated="true">Sep 4<span>th</span>, 2014</time></div>
-      <div class="tags">Tags: 
-
-
-	<a class='category' href='/blog/categories/dev/'>dev</a>, <a class='category' href='/blog/categories/java/'>java</a>
-
-
-</div>
-    </div>
-		<center><p><img src="/images/java_logo.svg" width="150" height="275" alt="java"></p></center>
-
-
-<h2>class loaded and initialized</h2>
-
-<p><code>java -verbose:class -classpath . org.solarex.TestClassLoader</code> get information about each class loaded.The “-verbose:class” option displays information about each class loaded.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kn">package</span> <span class="n">org</span><span class="o">.</span><span class="na">solarex</span><span class="o">.</span><span class="na">test</span><span class="o">;</span>
-</span><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">A</span><span class="o">{</span>
-</span><span class='line'>  <span class="kd">public</span> <span class="kt">void</span> <span class="nf">method</span><span class="o">(){</span>
-</span><span class='line'>      <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">&quot;inside of A&quot;</span><span class="o">);</span>
-</span><span class='line'>  <span class="o">}</span>
-</span><span class='line'><span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kn">package</span> <span class="n">org</span><span class="o">.</span><span class="na">solarex</span><span class="o">.</span><span class="na">test</span><span class="o">;</span>
-</span><span class='line'><span class="kd">public</span> <span class="kt">void</span> <span class="n">TestLoader</span><span class="o">{</span>
-</span><span class='line'>  <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">args</span><span class="o">){</span>
-</span><span class='line'>      <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">&quot;Hello,world\n&quot;</span><span class="o">);</span>
-</span><span class='line'>      <span class="c1">// A aInstance = new A();</span>
-</span><span class='line'>      <span class="c1">// aInstance.method();</span>
-</span><span class='line'>  <span class="o">}</span>
-</span><span class='line'><span class="o">}</span>  
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p><code>javac -d . *.java</code>,<code>java -verbose:class -classpath . org.solarex.test.TestLoader</code>得到结果:</p>
-
-
-		
-		<a href="/blog/2014/09/04/java-class-loaded-and-initialized/" class="more-link">Read on &rarr;</a>
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="/blog/2014/09/04/java-class-loaded-and-initialized//blog/page/10/index.html#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="/blog/2014/10/26/android-dealing-with-asynctask-and-screen-orientation//blog/page/10/index.html#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -609,7 +670,7 @@ var _hmt = _hmt || [];
     </div>
     <footer id="footer">
     <div style="display:inline">
-    Copyright &copy; 2017
+    Copyright &copy; 2018
 
     Solarex
 . Powered by <a href="http://octopress.org">Octopress</a> | 
