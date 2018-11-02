@@ -55,7 +55,7 @@ footer: true
 <h3 id='notebook'>读书笔记</h3>
 + [JCIP](https://github.com/flyfire/ReadJCIP)
 + [读书笔记](https://github.com/flyfire/Notebook)
-+ [读书笔记gitbook](https://github.com/solarex/notes)
++ [读书笔记gitbook](https://solarex.github.io/reading-notes/)
 
 <h3 id='practice'>Android最佳实践</h3>
 
