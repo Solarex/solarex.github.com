@@ -56,6 +56,7 @@ footer: true
 + [JCIP](https://github.com/flyfire/ReadJCIP)
 + [读书笔记](https://github.com/flyfire/Notebook)
 + [读书笔记gitbook](https://solarex.github.io/reading-notes/)
++ [Kotlin实战代码](https://github.com/flyfire/JavaWithKotlin/)
 
 <h3 id='practice'>Android最佳实践</h3>
 
@@ -70,6 +71,7 @@ footer: true
 + [HelloJni](https://github.com/flyfire/HelloJni)
 + [HelloNDK](https://github.com/flyfire/HelloNDK)
 + [JavaWithKotlin](https://github.com/flyfire/JavaWithKotlin)
++ [GithubApp(kotlin)](https://github.com/flyfire/SolarexGithubApp)
 
 <h3 id='bintray'>Bintray</h3>
 
