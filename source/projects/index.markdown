@@ -73,6 +73,7 @@ footer: true
 + [HelloNDK](https://github.com/flyfire/HelloNDK)
 + [JavaWithKotlin](https://github.com/flyfire/JavaWithKotlin)
 + [GithubApp(kotlin)](https://github.com/flyfire/SolarexGithubApp)
++ [SolaexFlutterQuiz](https://github.com/flyfire/SolarexFlutterQuiz)
 
 <h3 id='bintray'>Bintray</h3>
 
