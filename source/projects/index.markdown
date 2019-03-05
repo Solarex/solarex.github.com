@@ -26,6 +26,11 @@ footer: true
 + [Java常用算法实现](https://github.com/flyfire/JavaAlgorithms)
 + [数据结构和算法](https://github.com/flyfire/DataStructureAndAlgorithms)
 + [LeetCodeSolutions](https://github.com/flyfire/LeetCodeSolutions)
++ [数据结构重新学](https://github.com/flyfire/PlayingWithDataStructures)
+
+<h3 id='flutter'>Flutter</h3>
+
++ [HelloDart](https://github.com/flyfire/HelloDart)
 
 <h3 id='advancedjava'>Java高级特性</h3>
 
