@@ -4,10 +4,10 @@
 
 url: http://Solarex.github.io
 title: Solarex's Blog 
-subtitle: Yet Another Blog 4 Solarex 
+subtitle:我只想过，平平淡淡的生活，欲望啊，请放过脆弱的我
 author: Solarex
 simple_search: http://google.com/search
-description: 这里主要是Solarex的技术文章，主要关注web开发，android开发，iOS开发，linux下编程技术，linux开源文化，开源，关注语言目前有Python，Java，Objective-C，Javascript，C，CPP，将来也许会关注node.js，go，ruby等。
+description: 这里主要是Solarex的技术文章，主要关注Android开发，Linux下编程技术，Linux开源文化，开源，关注语言目前有Python，Java，Javascript，C。
 
 # Default date format is "ordinal" (resulting in "July 22nd 2007")
 # You can customize the format as defined in

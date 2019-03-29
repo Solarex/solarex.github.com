@@ -65,6 +65,10 @@ footer: true
 + [读书笔记gitbook](https://solarex.github.io/reading-notes/)
 + [Kotlin实战代码](https://github.com/flyfire/JavaWithKotlin/)
 
+<h3 id='python-practice'>Python学习</h3>
++ [DownloadTwitterLikes](https://github.com/flyfire/DownloadTwitterLikes)
+
+
 <h3 id='practice'>Android最佳实践</h3>
 
 + [Writing Better Adapters](https://github.com/flyfire/MultitypeBaseAdapter)
