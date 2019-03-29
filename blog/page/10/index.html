@@ -1,132 +1,108 @@
 
-<!DOCTYPE HTML>
-<html>
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
-	<meta charset="utf-8">
-	<title>Solarex's Blog</title>
-    <meta name="author" content="Solarex">
-    
-	<meta name="description" content="Published on: Mar 29th, 2015 Tags: dev, python Whetting Your Appetite
-Using the Python Interpreter Invoking the Interpreter Argument Passing &hellip;">
-	
-	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta charset="utf-8">
+  <title>Solarex's Blog</title>
+  <meta name="author" content="Solarex">
 
-	<link href="/atom.xml" rel="alternate" title="Solarex's Blog" type="application/atom+xml">
-	<link rel="canonical" href="">
-	<link href="/favicon.ico" rel="shortcut icon">
-    <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  
+  <meta name="description" content="Whetting Your Appetite
+Using the Python Interpreter Invoking the Interpreter Argument Passing
+Interactive Mode The Interpreter and Its Environment &hellip;">
+  
 
-    <link href='http://fonts.googleapis.com/css?family=Slackey' rel='stylesheet' type='text/css'>
-    <link href='http://fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
-    <link href='http://fonts.googleapis.com/css?family=Amethysta' rel='stylesheet' type='text/css'>
-	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
-    <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <script type="text/javascript" src="/javascripts/jquery-tapir.js"></script>
-
-    <!-- remove or comment it to disable ajaxification -->   
-    <script src="/javascripts/ajaxify.js"></script>
-   
-    <script>
-var _hmt = _hmt || [];
-(function() {
-      var hm = document.createElement("script");
-        hm.src = "https://hm.baidu.com/hm.js?2574e8b2c205dfe8ff89e239fa38ca27";
-          var s = document.getElementsByTagName("script")[0]; 
-            s.parentNode.insertBefore(hm, s);
-})();
+  
+  <link rel="canonical" href="http://Solarex.github.io/blog/page/10/">
+  <link href="/favicon.ico" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <script src="/javascripts/ender.js"></script>
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <link href="/atom.xml" rel="alternate" title="Solarex's Blog" type="application/atom+xml">
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<script>
+    var _hmt = _hmt || [];
+    (function() {
+          var hm = document.createElement("script");
+            hm.src = "https://hm.baidu.com/hm.js?2574e8b2c205dfe8ff89e239fa38ca27";
+              var s = document.getElementsByTagName("script")[0]; 
+                s.parentNode.insertBefore(hm, s);
+    })();
 </script>
 
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-42746457-1']);
+    _gaq.push(['_trackPageview']);
 
-    
-	<script type="text/javascript">
-		var _gaq = _gaq || [];
-		_gaq.push(['_setAccount', 'UA-42746457-1']);
-		_gaq.push(['_trackPageview']);
-
-		(function() {
-			var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-			ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-			var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-		})();
-	</script>
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
 
 
 </head>
 
-
-<body>
-    <div id="wrapper">
-    <header id="header" class="inner"><!-- for more effects see _animate.scss -->
-<h1 class="animated bounceInDown">
-    <div id="headerbg">
-        Solarex
-    </div>
-</h1>
-<br>
-
-<ul id="social-links" style="text-align:center">
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Solarex's Blog</a></h1>
   
-  <!-- GitHub -->
-  <li>
-  <a href="https://github.com/flyfire" class="github" title="Github"></a>
-  </li>
+    <h2>我只想过，平平淡淡的生活，欲望啊，请放过脆弱的我</h2>
   
-  
-  <!-- Google Plus -->
-  <li>
-  <a href="http://plus.google.com/107384356964511479070?rel=author" class="google" title="Google+"></a>
-  </li>
-  
-  
-  
-  
-  
-  
-  
-</ul>
-
-
-<!-- use full url including 'index.html' for navigation bar if you are using ajax -->
-<ul id="nav">
-	<li id="ajax"><a href="/index.html">Home</a></li>
-	<li id="ajax"><a href="/blog/archives/index.html">Archives</a></li>
-    <li><a href="http://solarex.github.io/wiki">Wiki</a></li>
-    <li id="ajax"><a href="/projects">Project</a></li>
-    <li><a href="http://solarex.github.io/resume">Resume</a></li>
-    
-    <li>
-    <div id="dark">
-        <form method="get" action="http://google.com/search" id="search">
-            <input type="hidden" name="q" value="site:solarex.github.io">
-            <input name="q" type="text" results="0" placeholder="Search..." x-webkit-speech />
-        </form>
-    </div>
-    </li>
-        
-</ul>
-
-
-
+</hgroup>
 
 </header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:Solarex.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="http://solarex.github.io/wiki">Wiki</a></li>
+  <li><a href="/projects">Project</a></li>
+  <li><a href="http://solarex.github.io/resume">Resume</a></li>
+</ul>
 
-<div id="toload">
-<!-- begin toload --> 
-    <div id="content" class="inner">
+</nav>
+  <div id="main">
+    <div id="content">
+      <div class="blog-index">
+  
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2015/03/29/python-tutorial/">Python Tutorial</a></h1>
+    
+    
+      <p class="meta">
         
-
-
-    <article class="post">
-	<h2 class="title">
-		
-		<a href="/blog/2015/03/29/python-tutorial/">
-		
-			Python Tutorial</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: 
 
 
 
@@ -138,16 +114,16 @@ var _hmt = _hmt || [];
   
 
 
-<time datetime="2015-03-29T11:17:00+08:00" pubdate data-updated="true">Mar 29<span>th</span>, 2015</time></div>
-      <div class="tags">Tags: 
+<time datetime="2015-03-29T11:17:00+08:00" pubdate data-updated="true">Mar 29<span>th</span>, 2015</time>
+        
+         | <a href="/blog/2015/03/29/python-tutorial/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
 
 
-	<a class='category' href='/blog/categories/dev/'>dev</a>, <a class='category' href='/blog/categories/python/'>python</a>
-
-
-</div>
-    </div>
-		<center><p><img src="/images/python_logo.png"></p></center>
+  <div class="entry-content"><center><p><img src="/images/python_logo.png"></p></center>
 
 
 <ul>
@@ -350,29 +326,27 @@ var _hmt = _hmt || [];
 </ul>
 
 
-
-		
-		<a href="/blog/2015/03/29/python-tutorial/" class="more-link">Read on &rarr;</a>
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="/blog/2015/03/29/python-tutorial//blog/page/10/index.html#disqus_thread">Comments</a></span>
-	
 </div>
-</article>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2015/03/29/python-tutorial/">Read on &rarr;</a>
+    </footer>
+  
 
 
-    <article class="post">
-	<h2 class="title">
-		
-		<a href="/blog/2015/03/22/using-gnu-command-line-tools-on-mac-os-x/">
-		
-			Using GNU Command Line Tools on Mac OS X</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: 
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2015/03/22/using-gnu-command-line-tools-on-mac-os-x/">Using GNU Command Line Tools on Mac OS X</a></h1>
+    
+    
+      <p class="meta">
+        
 
 
 
@@ -384,41 +358,39 @@ var _hmt = _hmt || [];
   
 
 
-<time datetime="2015-03-22T23:05:00+08:00" pubdate data-updated="true">Mar 22<span>nd</span>, 2015</time></div>
-      <div class="tags">Tags: 
+<time datetime="2015-03-22T23:05:00+08:00" pubdate data-updated="true">Mar 22<span>nd</span>, 2015</time>
+        
+         | <a href="/blog/2015/03/22/using-gnu-command-line-tools-on-mac-os-x/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
 
 
-	<a class='category' href='/blog/categories/dev/'>dev</a>, <a class='category' href='/blog/categories/tools/'>tools</a>
-
-
-</div>
-    </div>
-		<p><p><center><img src="/images/apple_mac_logo.jpg" width="225" height="225"></center>
+  <div class="entry-content"><p><p><center><img src="/images/apple_mac_logo.jpg" width="225" height="225"></center>
 Unlike Ubuntu shipped with GNU command line tools,Mac OS X shipped with the BSD version,which make me WTF when I encountered with some compatibility issues.Fortunately,it&rsquo;s quit easy to install gnu tools by using homebrew in Mac OS X and set them as default.</p>
 
-<p>
-		
-		<a href="/blog/2015/03/22/using-gnu-command-line-tools-on-mac-os-x/" class="more-link">Read on &rarr;</a>
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="/blog/2015/03/22/using-gnu-command-line-tools-on-mac-os-x//blog/page/10/index.html#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
+<p></div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2015/03/22/using-gnu-command-line-tools-on-mac-os-x/">Read on &rarr;</a>
+    </footer>
+  
 
 
-    <article class="post">
-	<h2 class="title">
-		
-		<a href="/blog/2014/10/31/android-best-practices-for-background-jobs/">
-		
-			[Training]Best Practices for Background Jobs</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: 
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/10/31/android-best-practices-for-background-jobs/">[Training]Best Practices for Background Jobs</a></h1>
+    
+    
+      <p class="meta">
+        
 
 
 
@@ -430,16 +402,16 @@ Unlike Ubuntu shipped with GNU command line tools,Mac OS X shipped with the BSD 
   
 
 
-<time datetime="2014-10-31T10:12:00+08:00" pubdate data-updated="true">Oct 31<span>st</span>, 2014</time></div>
-      <div class="tags">Tags: 
+<time datetime="2014-10-31T10:12:00+08:00" pubdate data-updated="true">Oct 31<span>st</span>, 2014</time>
+        
+         | <a href="/blog/2014/10/31/android-best-practices-for-background-jobs/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
 
 
-	<a class='category' href='/blog/categories/android/'>android</a>, <a class='category' href='/blog/categories/dev/'>dev</a>
-
-
-</div>
-    </div>
-		<p><p><center><img src="/images/android_training.jpg"></center></p>
+  <div class="entry-content"><p><p><center><img src="/images/android_training.jpg"></center></p>
 
 <ul>
 <li><a href="#overview">Background jobs best practices</a>
@@ -476,29 +448,27 @@ Unlike Ubuntu shipped with GNU command line tools,Mac OS X shipped with the BSD 
 
 <p>However, in most cases an IntentService is the preferred way to simple background operations.</p>
 
-<p>
-		
-		<a href="/blog/2014/10/31/android-best-practices-for-background-jobs/" class="more-link">Read on &rarr;</a>
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="/blog/2014/10/31/android-best-practices-for-background-jobs//blog/page/10/index.html#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
+<p></div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2014/10/31/android-best-practices-for-background-jobs/">Read on &rarr;</a>
+    </footer>
+  
 
 
-    <article class="post">
-	<h2 class="title">
-		
-		<a href="/blog/2014/10/31/android-multithreading-in-a-ui-environment/">
-		
-			Multithreading in a UI Environment</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: 
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/10/31/android-multithreading-in-a-ui-environment/">Multithreading in a UI Environment</a></h1>
+    
+    
+      <p class="meta">
+        
 
 
 
@@ -510,16 +480,16 @@ Unlike Ubuntu shipped with GNU command line tools,Mac OS X shipped with the BSD 
   
 
 
-<time datetime="2014-10-31T09:14:00+08:00" pubdate data-updated="true">Oct 31<span>st</span>, 2014</time></div>
-      <div class="tags">Tags: 
+<time datetime="2014-10-31T09:14:00+08:00" pubdate data-updated="true">Oct 31<span>st</span>, 2014</time>
+        
+         | <a href="/blog/2014/10/31/android-multithreading-in-a-ui-environment/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
 
 
-	<a class='category' href='/blog/categories/android/'>android</a>, <a class='category' href='/blog/categories/dev/'>dev</a>
-
-
-</div>
-    </div>
-		<p><p><center><img src="/images/android_threads.png"></center></p>
+  <div class="entry-content"><p><p><center><img src="/images/android_threads.png"></center></p>
 
 <h2>Why do we need multithreading in Android applications?</h2>
 
@@ -597,29 +567,27 @@ Unlike Ubuntu shipped with GNU command line tools,Mac OS X shipped with the BSD 
 
 <p>But why?Android UI toolkit, like many other UI environments, is not thread-safe.</p>
 
-<p>
-		
-		<a href="/blog/2014/10/31/android-multithreading-in-a-ui-environment/" class="more-link">Read on &rarr;</a>
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="/blog/2014/10/31/android-multithreading-in-a-ui-environment//blog/page/10/index.html#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
+<p></div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2014/10/31/android-multithreading-in-a-ui-environment/">Read on &rarr;</a>
+    </footer>
+  
 
 
-    <article class="post">
-	<h2 class="title">
-		
-		<a href="/blog/2014/10/26/android-dealing-with-asynctask-and-screen-orientation/">
-		
-			Dealing With AsyncTask and Screen Orientation</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: 
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/10/26/android-dealing-with-asynctask-and-screen-orientation/">Dealing With AsyncTask and Screen Orientation</a></h1>
+    
+    
+      <p class="meta">
+        
 
 
 
@@ -631,65 +599,129 @@ Unlike Ubuntu shipped with GNU command line tools,Mac OS X shipped with the BSD 
   
 
 
-<time datetime="2014-10-26T19:31:00+08:00" pubdate data-updated="true">Oct 26<span>th</span>, 2014</time></div>
-      <div class="tags">Tags: 
+<time datetime="2014-10-26T19:31:00+08:00" pubdate data-updated="true">Oct 26<span>th</span>, 2014</time>
+        
+         | <a href="/blog/2014/10/26/android-dealing-with-asynctask-and-screen-orientation/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
 
 
-	<a class='category' href='/blog/categories/android/'>android</a>, <a class='category' href='/blog/categories/dev/'>dev</a>
-
-
-</div>
-    </div>
-		<p><center><img src="/images/android_logo.jpg"/></center></p>
+  <div class="entry-content"><p><center><img src="/images/android_logo.jpg"/></center></p>
 
 
 <p>A common task in Android is to perform some background activity in another thread, meanwhile displaying a ProgressDialog to the user. Example of these tasks include downloading some data from internet, logging into an application, etc. Implementing an AsyncTask is fairly a simple job, the big challenge is how to handle it properly when an orientation change occurs.</p>
 
-
-		
-		<a href="/blog/2014/10/26/android-dealing-with-asynctask-and-screen-orientation/" class="more-link">Read on &rarr;</a>
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="/blog/2014/10/26/android-dealing-with-asynctask-and-screen-orientation//blog/page/10/index.html#disqus_thread">Comments</a></span>
-	
 </div>
-</article>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2014/10/26/android-dealing-with-asynctask-and-screen-orientation/">Read on &rarr;</a>
+    </footer>
+  
 
-<nav id="pagenavi">
+
+    </article>
+  
+  <div class="pagination">
     
-        <a href="/blog/page/9/" class="prev">Prev</a>
+      <a class="prev" href="/blog/page/11/">&larr; Older</a>
     
+    <a href="/blog/archives">Blog Archives</a>
     
-        <a href="/blog/page/11/" class="next">Next</a>
+    <a class="next" href="/blog/page/9/">Newer &rarr;</a>
     
-    <div class="center"><a href="/blog/archives">Blog Archives</a></div>
-</nav>
+  </div>
+</div>
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2018/09/12/a-few-lately-thoughts/">碎碎念</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2018/07/12/notes-on-effective-java/">EffectiveJava2nd读书笔记</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2018/07/11/notes-on-jvm/">深入理解Java虚拟机读书笔记</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2018/07/10/java-generics-syntactic-sugar/">Java泛型语法糖</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2018/07/10/java-enum-syntactic-sugar/">Java枚举语法糖</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating&#8230;</li>
+  </ul>
+  
+  <a href="https://github.com/flyfire">@flyfire</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'flyfire',
+            count: 5,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+<section class="googleplus">
+  <h1>
+    <a href="https://plus.google.com/107384356964511479070?rel=author">
+      <img src="http://www.google.com/images/icons/ui/gprofile_button-32.png" width="32" height="32">
+      Google+
+    </a>
+  </h1>
+</section>
+
+
+
+  
+</aside>
 
     </div>
-    <footer id="footer">
-    <div style="display:inline">
-    Copyright &copy; 2018
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2019 - Solarex -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+  - <span class="credit">Theme by <a href="http://www.gehaxelt.in">Gehaxelt</a></span>
+  <span class="credit">and <a href="http://www.it-solutions-neef.de">IT Solutions Neef</a></span>
+</p>
 
-    Solarex
-. Powered by <a href="http://octopress.org">Octopress</a> | 
-    Theme <a href="http://github.com/panks/fabric">fabric</a> by <a href="http://panks.me">Pankaj Kumar</a>
-</div>
-
-
-    </footer>
-    <script src="/javascripts/fabric.js"></script>
-<script src="/javascripts/jquery.fancybox.pack.js"></script>
-<script type="text/javascript">
-(function($){
-	$('.fancybox').fancybox();
-})(jQuery);
-</script> <!-- Delete or comment this line to disable Fancybox -->
-
+</footer>
+  
 
 <script type="text/javascript">
-      var disqus_shortname = 'flyfire';
+      var disqus_shortname = 'solarex-blog';
       
         
         var disqus_script = 'count.js';
@@ -705,14 +737,19 @@ Unlike Ubuntu shipped with GNU command line tools,Mac OS X shipped with the BSD 
 
 
 
-<!-- end toload --> 
-</div>
-</div>
-<script src="/javascripts/jquery.ui.totop.js" type="text/javascript"></script>
-<script type="text/javascript">
-/*<![CDATA[*/
-;(function($){$().UItoTop({easingType:'easeOutCirc'});})(jQuery); 
-/*]]>*/
-</script><!-- remove it to remove the scroll to top button -->
+  <script type="text/javascript">
+    (function() {
+      var script = document.createElement('script'); script.type = 'text/javascript'; script.async = true;
+      script.src = 'https://apis.google.com/js/plusone.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(script, s);
+    })();
+  </script>
+
+
+
+
+
+
+
 </body>
 </html>
