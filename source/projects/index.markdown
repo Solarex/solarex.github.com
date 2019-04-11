@@ -58,6 +58,7 @@ footer: true
 + [SolarexDouyinLoadingViewDemo](https://github.com/flyfire/SolarexDouyinLoadingViewDemo)
 + [SolarexCircleRingViewDemo](https://github.com/flyfire/SolarexCircleRingViewDemo)
 + [SolarexSleepStatisticsViewDemo](https://github.com/flyfire/SolarexSleepStatisticsViewDemo)
++ [SolarexRulerViewDemo](https://github.com/flyfire/SolarexRulerViewDemo)
 
 <h3 id='notebook'>读书笔记</h3>
 + [JCIP](https://github.com/flyfire/ReadJCIP)
