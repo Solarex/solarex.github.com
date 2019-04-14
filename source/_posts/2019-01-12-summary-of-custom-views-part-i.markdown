@@ -27,6 +27,8 @@ categories:
 + ``drawBitmap(Bitmap bitmap, float left, float top, Paint paint)`` 画 Bitmap
 + ``drawText(String text, float x, float y, Paint paint) ``绘制文字
 
+<!-- more -->
+
 #### Path
 
 + ``addCircle(float x, float y, float radius, Direction dir)`` 添加圆
