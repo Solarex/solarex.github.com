@@ -77,7 +77,7 @@ categories:
 
 + ``LightingColorFilter(int mul, int add)``
 
-```shell
+```java
 R' = R * mul.R / 0xff + add.R  
 G' = G * mul.G / 0xff + add.G  
 B' = B * mul.B / 0xff + add.B  
@@ -88,7 +88,7 @@ B' = B * mul.B / 0xff + add.B
 
 `ColorMatrixColorFilter` 使用一个 `ColorMatrix` 来对颜色进行处理。 `ColorMatrix` 这个类，内部是一个 4x5 的矩阵：
 
-```shell
+```java
 [ a, b, c, d, e,
   f, g, h, i, j,
   k, l, m, n, o,
