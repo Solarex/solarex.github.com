@@ -4,7 +4,7 @@
   <title><![CDATA[Category: notes | Solarex's Blog]]></title>
   <link href="http://Solarex.github.io/blog/categories/notes/atom.xml" rel="self"/>
   <link href="http://Solarex.github.io/"/>
-  <updated>2019-03-29T20:52:21+08:00</updated>
+  <updated>2019-04-15T16:18:10+08:00</updated>
   <id>http://Solarex.github.io/</id>
   <author>
     <name><![CDATA[Solarex]]></name>
@@ -310,7 +310,12 @@ private void expungeStaleEntries() {
     <link href="http://Solarex.github.io/blog/2018/06/15/the-art-of-java-concurrency-programming-notes/"/>
     <updated>2018-06-15T23:04:00+08:00</updated>
     <id>http://Solarex.github.io/blog/2018/06/15/the-art-of-java-concurrency-programming-notes</id>
-    <content type="html"><![CDATA[<ul>
+    <content type="html"><![CDATA[<p>已迁移到gitbook，请访问<a href="https://solarex.github.io/reading-notes/the-art-of-java-concurrency-programming/readme.html">Java并发编程的艺术笔记</a>。</p>
+
+<!-- more -->
+
+
+<ul>
 <li><a href="#ch01">并发编程的挑战</a></li>
 <li><a href="#ch02">Java并发机制的底层实现原理</a></li>
 <li><a href="#ch03">Java内存模型</a></li>
@@ -601,7 +606,12 @@ return result;
     <link href="http://Solarex.github.io/blog/2018/06/03/java-concurrency-in-practice-notes/"/>
     <updated>2018-06-03T21:43:00+08:00</updated>
     <id>http://Solarex.github.io/blog/2018/06/03/java-concurrency-in-practice-notes</id>
-    <content type="html"><![CDATA[<ul>
+    <content type="html"><![CDATA[<p>已迁移到gitbook，请访问<a href="https://solarex.github.io/reading-notes/jcip/readme.html">Java并发编程实战笔记</a>。</p>
+
+<!-- more -->
+
+
+<ul>
 <li><a href="#ch01">简介</a></li>
 <li><a href="#ch02">线程安全性</a></li>
 <li><a href="#ch03">对象的共享</a></li>
@@ -619,11 +629,6 @@ return result;
 <li><a href="#ch15">原子变量与非阻塞同步机制</a></li>
 <li><a href="#ch16">Java内存模型</a></li>
 </ul>
-
-
-<!-- more -->
-
-
 
 
 <h2 id="ch01">简介</h2>

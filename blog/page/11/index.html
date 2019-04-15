@@ -9,10 +9,9 @@
   <meta name="author" content="Solarex">
 
   
-  <meta name="description" content="Android ContentProvider Content Provider Basics
-Using Content Providers
-Writing your own Content Provider
-Better Performance with &hellip;">
+  <meta name="description" content="Background jobs best practices Running in a background service
+Loading data in the background
+Managing the device awake state Best Practices for &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -93,6 +92,249 @@ Better Performance with &hellip;">
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/10/31/android-best-practices-for-background-jobs/">[Training]Best Practices for Background Jobs</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-10-31T10:12:00+08:00" pubdate data-updated="true">Oct 31<span>st</span>, 2014</time>
+        
+         | <a href="/blog/2014/10/31/android-best-practices-for-background-jobs/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p><p><center><img src="/images/android_training.jpg"></center></p>
+
+<ul>
+<li><a href="#overview">Background jobs best practices</a>
+
+<ul>
+<li><a href="#running">Running in a background service</a></li>
+<li><a href="#loading">Loading data in the background</a></li>
+<li><a href="#managing">Managing the device awake state</a></li>
+</ul>
+</li>
+</ul>
+
+
+<p><h2 id="overview">Best Practices for Background Jobs</h2></p>
+
+<p>These classes show you how to run jobs in the background to boost your application’s performance and minimize its drain on the battery.</p>
+
+<p><h3 id="running">Running in a background service</h3></p>
+
+<p>This class describes how to implement an IntentService, send it work requests, and report its results to other components.</p>
+
+<h4>Creating a background service</h4>
+
+<p>The IntentService class provides a straightforward structure for running an operation on a single background thread. This allows it to handle long-running operations without affecting your user interface’s responsiveness. Also, an IntentService isn’t affected by most user interface lifecycle events, so it continues to run in circumstances that would shut down an AsyncTask.</p>
+
+<p>An IntentService has a few limitations:</p>
+
+<ul>
+<li>It can’t interact directly with your user interface. To put its results in the UI, you have to send them to an Activity.不能直接与UI交互</li>
+<li>Work requests run sequentially. If an operation is running in an IntentService, and you send it another request, the request waits until the first operation is finished.任务顺序执行</li>
+<li>An operation running on an IntentService can’t be interrupted.任务不可被打断</li>
+</ul>
+
+
+<p>However, in most cases an IntentService is the preferred way to simple background operations.</p>
+
+<p></div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2014/10/31/android-best-practices-for-background-jobs/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/10/31/android-multithreading-in-a-ui-environment/">Multithreading in a UI Environment</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-10-31T09:14:00+08:00" pubdate data-updated="true">Oct 31<span>st</span>, 2014</time>
+        
+         | <a href="/blog/2014/10/31/android-multithreading-in-a-ui-environment/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p><p><center><img src="/images/android_threads.png"></center></p>
+
+<h2>Why do we need multithreading in Android applications?</h2>
+
+<p>Let’s say you want to do a very long operation when the user pushes a button.If you are not using another thread, it will look something like this:</p>
+
+<p><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="o">((</span><span class="n">Button</span><span class="o">)</span><span class="n">findViewById</span><span class="o">(</span><span class="n">R</span><span class="o">.</span><span class="na">id</span><span class="o">.</span><span class="na">Button01</span><span class="o">)).</span><span class="na">setOnClickListener</span><span class="o">(</span>
+</span><span class='line'>             <span class="k">new</span> <span class="nf">OnClickListener</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>          <span class="nd">@Override</span>
+</span><span class='line'>          <span class="kd">public</span> <span class="kt">void</span> <span class="nf">onClick</span><span class="o">(</span><span class="n">View</span> <span class="n">v</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="kt">int</span> <span class="n">result</span> <span class="o">=</span> <span class="n">doLongOperation</span><span class="o">();</span>
+</span><span class='line'>            <span class="n">updateUI</span><span class="o">(</span><span class="n">result</span><span class="o">);</span>
+</span><span class='line'>          <span class="o">}</span>
+</span><span class='line'>      <span class="o">});</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>What will happen?The UI freezes. This is a really bad UI experience. The program may even crash.</p>
+
+<h2>The problem in using threads in a UI environment</h2>
+
+<p>So what will happen if we use a Thread for a long running operation.Let’s try a simple example:</p>
+
+<p><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="o">((</span><span class="n">Button</span><span class="o">)</span><span class="n">findViewById</span><span class="o">(</span><span class="n">R</span><span class="o">.</span><span class="na">id</span><span class="o">.</span><span class="na">Button01</span><span class="o">)).</span><span class="na">setOnClickListener</span><span class="o">(</span>
+</span><span class='line'><span class="k">new</span> <span class="nf">OnClickListener</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>          <span class="nd">@Override</span>
+</span><span class='line'>          <span class="kd">public</span> <span class="kt">void</span> <span class="nf">onClick</span><span class="o">(</span><span class="n">View</span> <span class="n">v</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>              <span class="o">(</span><span class="k">new</span> <span class="n">Thread</span><span class="o">(</span><span class="k">new</span> <span class="n">Runnable</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>                  <span class="nd">@Override</span>
+</span><span class='line'>                  <span class="kd">public</span> <span class="kt">void</span> <span class="nf">run</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>                    <span class="kt">int</span> <span class="n">result</span> <span class="o">=</span> <span class="n">doLongOperation</span><span class="o">();</span>
+</span><span class='line'>                    <span class="n">updateUI</span><span class="o">(</span><span class="n">result</span><span class="o">);</span>
+</span><span class='line'>                  <span class="o">}</span>
+</span><span class='line'>              <span class="o">})).</span><span class="na">start</span><span class="o">();</span>
+</span><span class='line'>
+</span><span class='line'>          <span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>The result in this case is that the application crashes.</p>
+
+<p><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>12-07 16:24:29.089: ERROR/AndroidRuntime<span class="o">(</span>315<span class="o">)</span>: FATAL EXCEPTION: Thread-8
+</span><span class='line'>12-07 16:24:29.089: ERROR/AndroidRuntime<span class="o">(</span>315<span class="o">)</span>: android.view.ViewRoot<span class="nv">$CalledFromWrongThreadException</span>: Only the original thread that created a view hierarchy can touch its views.
+</span><span class='line'>12-07 16:24:29.089: ERROR/AndroidRuntime<span class="o">(</span>315<span class="o">)</span>: at &hellip;Clearly the Android OS wont <span class="nb">let </span>threads other than the main thread change UI elements.
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>But why?Android UI toolkit, like many other UI environments, is not thread-safe.</p>
+
+<p></div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2014/10/31/android-multithreading-in-a-ui-environment/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/10/26/android-dealing-with-asynctask-and-screen-orientation/">Dealing With AsyncTask and Screen Orientation</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-10-26T19:31:00+08:00" pubdate data-updated="true">Oct 26<span>th</span>, 2014</time>
+        
+         | <a href="/blog/2014/10/26/android-dealing-with-asynctask-and-screen-orientation/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p><center><img src="/images/android_logo.jpg"/></center></p>
+
+
+<p>A common task in Android is to perform some background activity in another thread, meanwhile displaying a ProgressDialog to the user. Example of these tasks include downloading some data from internet, logging into an application, etc. Implementing an AsyncTask is fairly a simple job, the big challenge is how to handle it properly when an orientation change occurs.</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2014/10/26/android-dealing-with-asynctask-and-screen-orientation/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
   
   
     <article>
@@ -217,195 +459,6 @@ Better Performance with &hellip;">
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2014/10/19/android-asynctask-pitfalls/">The Hidden Pitfalls of AsyncTask</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-10-19T15:56:00+08:00" pubdate data-updated="true">Oct 19<span>th</span>, 2014</time>
-        
-         | <a href="/blog/2014/10/19/android-asynctask-pitfalls/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p><center><img src="/images/android_logo.jpg"/></center></p>
-
-
-<p>I originally wrote this article when I was (foolishly) still using AsyncTasks. Nowadays I simply consider it a mistake in all cases. As you&rsquo;ll see from the original article, there are a lot of problems with it &ndash; and there are much better solutions.</p>
-
-<p>My preferred alternative these days are combining <a href="https://github.com/Netflix/RxJava">RxJava</a> with schedulers. You get the same effect as an <code>AsyncTask</code> with none of the problems, plus you get an awesome framework in addition. I know, recommending a library to solve a problem is irritating, but RxJava is worth looking at for many reasons.</p>
-
-<p>When <code>AsyncTask</code> was introduced to Android, it was labeled as “<a href="http://android-developers.blogspot.com/2009/05/painless-threading.html">Painless Threading</a>.” Its goal was to make background Threads which could interact with the UI thread easier. It was successful on that count, but it’s not exactly painless – there are a number of cases where <code>AsyncTask</code> is not a silver bullet. It is easy to blindly use <code>AsyncTask</code> without realizing what can go wrong if not handled with care. Below are some of the problems that can arise when using <code>AsyncTask</code> without fully understanding it.</p>
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2014/10/19/android-asynctask-pitfalls/">Read on &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2014/10/19/android-tips/">Android Tips</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-10-19T13:00:00+08:00" pubdate data-updated="true">Oct 19<span>th</span>, 2014</time>
-        
-         | <a href="/blog/2014/10/19/android-tips/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p><center><img src="/images/android_training.jpg"/></center></p>
-
-
-<ul>
-<li><a href="#overview">Android Tips and Tricks</a>
-
-<ul>
-<li><a href="#part1">Part I</a></li>
-<li><a href="#part2">Part II</a></li>
-<li><a href="#part3">Part III</a></li>
-<li><a href="#part4">Part IV</a></li>
-<li><a href="#part5">Part V</a></li>
-</ul>
-</li>
-</ul>
-
-
-<h2 id="overview">Android Tips and Tricks</h2>
-
-
-
-
-<h3 id="part1">Part I</h3>
-
-
-<ul>
-<li><p><code>Activity.startActivities()</code> &ndash; Nice for launching to the middle of an app flow.</p></li>
-<li><p><code>TextUtils.isEmpty()</code> &ndash; Simple utility I use everywhere.</p></li>
-<li><p><code>Html.fromHtml()</code> &ndash; Quick method for formatting Html. It&rsquo;s not particularly fast so I wouldn&rsquo;t use it constantly (e.g., don&rsquo;t use it just to bold part of a string &ndash; construct the Spannable manually instead), but it&rsquo;s fine for rendering text obtained from the web.</p></li>
-<li><p><code>TextView.setError()</code> &ndash; Nice UI when validating user input.</p></li>
-<li><p><code>Build.VERSION_CODES</code> &ndash; Not only is it handy for routing code, it&rsquo;s also summarizes behavioral differences between each version of Android.</p></li>
-</ul>
-
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2014/10/19/android-tips/">Read on &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2014/10/18/oauth-2-dot-0/">理解OAuth2.0</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-10-18T15:38:00+08:00" pubdate data-updated="true">Oct 18<span>th</span>, 2014</time>
-        
-         | <a href="/blog/2014/10/18/oauth-2-dot-0/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p><center><img src="/images/oauth.png"/></center></p>
-
-
-<p><a href="http://en.wikipedia.org/wiki/OAuth">OAuth</a>是一个关于授权（authorization）的开放网络标准，在全世界得到广泛应用，目前的版本是2.0版。本文对OAuth 2.0的设计思路和运行流程，做一个简明通俗的解释，主要参考材料为<a href="http://www.rfcreader.com/#rfc6749">RFC 6749</a>。</p>
-
-<h2>应用场景</h2>
-
-<p>为了理解OAuth的适用场合，让我举一个假设的例子。有一个&#8221;云冲印&#8221;的网站，可以将用户储存在Google的照片，冲印出来。用户为了使用该服务，必须让&#8221;云冲印&#8221;读取自己储存在Google上的照片。</p>
-
-<p><center><img src="/images/google-print.png"/></center></p>
-
-
-<p>问题是只有得到用户的授权，Google才会同意&#8221;云冲印&#8221;读取这些照片。那么，&#8221;云冲印&#8221;怎样获得用户的授权呢？传统方法是，用户将自己的Google用户名和密码，告诉&#8221;云冲印&#8221;，后者就可以读取用户的照片了。这样的做法有以下几个严重的缺点。</p>
-
-<pre><code>（1）"云冲印"为了后续的服务，会保存用户的密码，这样很不安全。
-（2）Google不得不部署密码登录，而我们知道，单纯的密码登录并不安全。
-（3）"云冲印"拥有了获取用户储存在Google所有资料的权力，用户没法限制"云冲印"获得授权的范围和有效期。
-（4）用户只有修改密码，才能收回赋予"云冲印"的权力。但是这样做，会使得其他所有获得用户授权的第三方应用程序全部失效。
-（5）只要有一个第三方应用程序被破解，就会导致用户密码泄漏，以及所有被密码保护的数据泄漏。
-</code></pre>
-
-<p>OAuth就是为了解决上面这些问题而诞生的。</p>
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2014/10/18/oauth-2-dot-0/">Read on &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/12/">&larr; Older</a>
@@ -423,23 +476,23 @@ Better Performance with &hellip;">
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2019/03/12/summary-of-custom-views-part-iii/">自定义View总结三</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2019/02/12/summary-of-custom-views-part-ii/">自定义View总结二</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2019/01/12/summary-of-custom-views-part-i/">自定义View总结一</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2018/09/12/a-few-lately-thoughts/">碎碎念</a>
       </li>
     
       <li class="post">
         <a href="/blog/2018/07/12/notes-on-effective-java/">EffectiveJava2nd读书笔记</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2018/07/11/notes-on-jvm/">深入理解Java虚拟机读书笔记</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2018/07/10/java-generics-syntactic-sugar/">Java泛型语法糖</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2018/07/10/java-enum-syntactic-sugar/">Java枚举语法糖</a>
       </li>
     
   </ul>

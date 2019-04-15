@@ -9,7 +9,11 @@
   <meta name="author" content="Solarex">
 
   
-  <meta name="description" content="有时候在Google Play Store看到一些有趣的应用，或者对有些应用的资源图片之类的很感兴趣，这时候就需要用到Android反编译APK的一些工具了。 ">
+  <meta name="description" content="Java Thread and Multithreading Tutorial Java Thread Example
+Java Thread Sleep
+Java Thread Join
+Java Thread States
+Java Thread wait, notify and &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -90,6 +94,194 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/10/14/java-thread-tutorial/">Java Thread Tutorial</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-10-14T08:49:00+08:00" pubdate data-updated="true">Oct 14<span>th</span>, 2014</time>
+        
+         | <a href="/blog/2014/10/14/java-thread-tutorial/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><center><p><img src="/images/java-thread-tutorial.png" ></p></center>
+
+
+<ul>
+<li><a href="#overview">Java Thread and Multithreading Tutorial</a>
+
+<ul>
+<li><a href="#example">Java Thread Example</a></li>
+<li><a href="#sleep">Java Thread Sleep</a></li>
+<li><a href="#join">Java Thread Join</a></li>
+<li><a href="#states">Java Thread States</a></li>
+<li><a href="#wait">Java Thread wait, notify and notifyAll</a></li>
+<li><a href="#safety">Java Thread Safety and Java Synchronization</a></li>
+<li><a href="#exception">Java Exception in thread main</a></li>
+<li><a href="#singleton">Thread Safety in Singleton Class</a></li>
+<li><a href="#daemon">Java Daemon Thread</a></li>
+<li><a href="#threadlocal">Java Thread Local</a></li>
+<li><a href="#dump">Java Thread Dump</a></li>
+<li><a href="#deadlock">How to Analyze Deadlock and avoid it in Java</a></li>
+<li><a href="#timer">Java Timer Thread</a></li>
+<li><a href="#producer">Java Producer Consumer Problem</a></li>
+<li><a href="#pool">Java Thread Pool</a></li>
+<li><a href="#future">Java Callable Future</a></li>
+<li><a href="#futuretask">Java FutureTask Example</a></li>
+</ul>
+</li>
+</ul>
+
+
+<h2 id="overview">Java Thread and Multithreading Tutorial</h2>
+
+
+<p>There are two types of threads in an application – <code>user thread</code> and <code>daemon thread</code>. When we start an application, main is the first user thread created and we can create multiple user threads as well as daemon threads. When all the user threads are executed, JVM terminates the program.</p>
+
+<p>We can set different priorities to different Threads but it doesn’t guarantee that higher priority thread will execute first than lower priority thread. Thread scheduler is the part of Operating System implementation and when a Thread is started, it’s execution is controlled by Thread Scheduler and JVM doesn’t have any control on it’s execution.</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2014/10/14/java-thread-tutorial/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/10/13/android-main-thread/">A Journey on the Android Main Thread</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-10-13T16:51:00+08:00" pubdate data-updated="true">Oct 13<span>th</span>, 2014</time>
+        
+         | <a href="/blog/2014/10/13/android-main-thread/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>When facing bugs that were related to how we interact with the main thread, I decided to get a closer look at what the main thread really is.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">BigBang</span> <span class="o">{</span>
+</span><span class='line'>  <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="n">String</span><span class="o">...</span> <span class="n">args</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>    <span class="c1">// The Java universe starts here.</span>
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>All Java programs start with a call to a <code>public static void main()</code> method. This is true for Java Desktop programs, JEE servlet containers, and Android applications.</p>
+
+<p>When the Android system boots, it starts a Linux process called <code>ZygoteInit</code>. This process is a Dalvik VM that loads the <a href="https://android.googlesource.com/platform/frameworks/base/+/refs/heads/master/preloaded-classes">most common classes</a> of the Android SDK on a thread, and then waits.</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2014/10/13/android-main-thread/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/10/13/android-looper-handler/">Intro to Android Loopers and Handlers</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-10-13T11:24:00+08:00" pubdate data-updated="true">Oct 13<span>th</span>, 2014</time>
+        
+         | <a href="/blog/2014/10/13/android-looper-handler/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>What can you do with <code>Loopers</code> and <code>Handlers</code>? Basically, they implement a common concurrency pattern that I call the <code>Pipeline Thread</code>. Here’s how it works:</p>
+
+<ul>
+<li>The Pipeline Thread holds a queue of tasks which are just some units of work that can be executed or processed.</li>
+<li>Other threads can safely push new tasks into the Pipeline Thread’s queue at any time.</li>
+<li>The Pipeline Thread processes the queued tasks one after another. If there are no tasks queued, it blocks until a task appears in the queue.</li>
+<li>Sometimes tasks can called messages and other names.</li>
+</ul>
+
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2014/10/13/android-looper-handler/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
   
   
     <article>
@@ -185,190 +377,6 @@
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2014/09/28/android-guide-animation-and-graphics/">[Guides]Animation and Graphics</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-09-28T06:21:00+08:00" pubdate data-updated="true">Sep 28<span>th</span>, 2014</time>
-        
-         | <a href="/blog/2014/09/28/android-guide-animation-and-graphics/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><center><p><img src="/images/android_robot.png" width="255" height="300"></p></center>
-
-
-<p>Android provides a variety of powerful APIs for applying animation to UI elements and drawing custom 2D and 3D graphics.</p>
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2014/09/28/android-guide-animation-and-graphics/">Read on &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2014/09/27/android-snippets/">Android Snippets</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-09-27T12:50:00+08:00" pubdate data-updated="true">Sep 27<span>th</span>, 2014</time>
-        
-         | <a href="/blog/2014/09/27/android-snippets/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><center><p><img src="/images/android_robot.png" width="255" height="300"></p></center>
-
-
-<ul>
-<li><a href="#checking-wifi-connectivity">CheckingWifiConnectivity</a></li>
-<li><a href="#parse-json">ParseJson</a></li>
-<li><a href="#get-launcher-applications">GetLauncherApplication</a></li>
-<li><a href="#get-sdcard-size">GetSdcardSize</a></li>
-<li><a href="#android-bootup-time">AndroidBootupTime</a></li>
-<li><a href="#json-parser">JsonParser</a></li>
-<li><a href="#full-screen">FullScreen</a></li>
-<li><a href="#restore-listview-position">RestoreListViewPosition</a></li>
-<li><a href="#start-application">StartApplication</a></li>
-<li><a href="#string-utils">StringUtils</a></li>
-<li><a href="#checking-external-storage-state">CheckingExternalStorageState</a></li>
-<li><a href="#saving-view-as-bitmap">SavingViewAsBitmap</a></li>
-<li><a href="#convert-view-to-bitmap">ConvertViewToBitmap</a></li>
-<li><a href="#hide-window-keyboard">HideKeyboard</a></li>
-</ul>
-
-
-<h2 id="checking-wifi-connectivity">CheckingWifiConnectivity</h2>
-
-
-
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kd">static</span> <span class="kt">boolean</span> <span class="nf">isConnected</span><span class="o">(</span><span class="n">Context</span> <span class="n">context</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'>    <span class="n">ConnectivityManager</span> <span class="n">connectivityManager</span> <span class="o">=</span> <span class="o">(</span><span class="n">ConnectivityManager</span><span class="o">)</span>
-</span><span class='line'>        <span class="n">context</span><span class="o">.</span><span class="na">getSystemService</span><span class="o">(</span><span class="n">Context</span><span class="o">.</span><span class="na">CONNECTIVITY_SERVICE</span><span class="o">);</span>
-</span><span class='line'>    <span class="n">NetworkInfo</span> <span class="n">networkInfo</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
-</span><span class='line'>    <span class="k">if</span> <span class="o">(</span><span class="n">connectivityManager</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'>        <span class="n">networkInfo</span> <span class="o">=</span>
-</span><span class='line'>            <span class="n">connectivityManager</span><span class="o">.</span><span class="na">getNetworkInfo</span><span class="o">(</span><span class="n">ConnectivityManager</span><span class="o">.</span><span class="na">TYPE_WIFI</span><span class="o">);</span>
-</span><span class='line'>    <span class="o">}</span>
-</span><span class='line'>    <span class="k">return</span> <span class="n">networkInfo</span> <span class="o">==</span> <span class="kc">null</span> <span class="o">?</span> <span class="kc">false</span> <span class="o">:</span> <span class="n">networkInfo</span><span class="o">.</span><span class="na">isConnected</span><span class="o">();</span>
-</span><span class='line'><span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2014/09/27/android-snippets/">Read on &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2014/09/21/android-guide-app-component/">[Guides]App Component</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-09-21T12:04:00+08:00" pubdate data-updated="true">Sep 21<span>st</span>, 2014</time>
-        
-         | <a href="/blog/2014/09/21/android-guide-app-component/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><center><p><img src="/images/android_robot.png" width="255" height="300"></p></center>
-
-
-<p>TL,DR;</p>
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2014/09/21/android-guide-app-component/">Read on &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/14/">&larr; Older</a>
@@ -386,23 +394,23 @@
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2019/03/12/summary-of-custom-views-part-iii/">自定义View总结三</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2019/02/12/summary-of-custom-views-part-ii/">自定义View总结二</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2019/01/12/summary-of-custom-views-part-i/">自定义View总结一</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2018/09/12/a-few-lately-thoughts/">碎碎念</a>
       </li>
     
       <li class="post">
         <a href="/blog/2018/07/12/notes-on-effective-java/">EffectiveJava2nd读书笔记</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2018/07/11/notes-on-jvm/">深入理解Java虚拟机读书笔记</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2018/07/10/java-generics-syntactic-sugar/">Java泛型语法糖</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2018/07/10/java-enum-syntactic-sugar/">Java枚举语法糖</a>
       </li>
     
   </ul>

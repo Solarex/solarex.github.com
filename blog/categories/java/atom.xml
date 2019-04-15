@@ -4,7 +4,7 @@
   <title><![CDATA[Category: java | Solarex's Blog]]></title>
   <link href="http://Solarex.github.io/blog/categories/java/atom.xml" rel="self"/>
   <link href="http://Solarex.github.io/"/>
-  <updated>2019-03-29T20:52:21+08:00</updated>
+  <updated>2019-04-15T16:18:10+08:00</updated>
   <id>http://Solarex.github.io/</id>
   <author>
     <name><![CDATA[Solarex]]></name>
@@ -18,7 +18,7 @@
     <link href="http://Solarex.github.io/blog/2018/07/12/notes-on-effective-java/"/>
     <updated>2018-07-12T14:30:00+08:00</updated>
     <id>http://Solarex.github.io/blog/2018/07/12/notes-on-effective-java</id>
-    <content type="html"><![CDATA[
+    <content type="html"><![CDATA[<p>已迁移到gitbook，请访问<a href="https://solarex.github.io/reading-notes/effective-java/readme.html">EffectiveJava笔记</a>。</p>
 ]]></content>
   </entry>
   
@@ -27,7 +27,7 @@
     <link href="http://Solarex.github.io/blog/2018/07/11/notes-on-jvm/"/>
     <updated>2018-07-11T14:28:00+08:00</updated>
     <id>http://Solarex.github.io/blog/2018/07/11/notes-on-jvm</id>
-    <content type="html"><![CDATA[
+    <content type="html"><![CDATA[<p>已迁移到gitbook，请访问<a href="https://solarex.github.io/reading-notes/deep-into-jvm/readme.html">深入理解Java虚拟机笔记</a></p>
 ]]></content>
   </entry>
   
