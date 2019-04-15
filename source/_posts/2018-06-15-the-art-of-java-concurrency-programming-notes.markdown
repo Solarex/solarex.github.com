@@ -8,6 +8,11 @@ categories:
 - java
 - notes
 ---
+
+已迁移到gitbook，请访问[Java并发编程的艺术笔记](https://solarex.github.io/reading-notes/the-art-of-java-concurrency-programming/readme.html)。
+
+<!-- more -->
+
 * [并发编程的挑战](#ch01)
 * [Java并发机制的底层实现原理](#ch02)
 * [Java内存模型](#ch03)
