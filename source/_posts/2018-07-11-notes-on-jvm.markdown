@@ -7,3 +7,5 @@ categories:
 - dev
 - java
 ---
+
+已迁移到gitbook，请访问[深入理解Java虚拟机笔记](https://solarex.github.io/reading-notes/deep-into-jvm/readme.html)

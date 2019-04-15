@@ -7,3 +7,5 @@ categories:
 - dev
 - java
 ---
+
+已迁移到gitbook，请访问[EffectiveJava笔记](https://solarex.github.io/reading-notes/effective-java/readme.html)。
