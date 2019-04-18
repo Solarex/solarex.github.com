@@ -9,8 +9,20 @@
   <meta name="author" content="Solarex">
 
   
-  <meta name="description" content="
-">
+  <meta name="description" content="学习Kotlin的时候，发现可以给方法设置默认参数，Java是不支持给方法设置默认参数的，那Kotin是如何实现的呢？不妨看下下面的kotlin文件，kotlin允许这样写： 1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+class frob() { fun fred(x: Int &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -91,6 +103,80 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2019/04/18/how-kotlin-generate-method-default-arguments/">Kotlin是如何实现方法默认参数的</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2019-04-18T10:36:00+08:00" pubdate data-updated="true">Apr 18<span>th</span>, 2019</time>
+        
+         | <a href="/blog/2019/04/18/how-kotlin-generate-method-default-arguments/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>学习Kotlin的时候，发现可以给方法设置默认参数，Java是不支持给方法设置默认参数的，那Kotin是如何实现的呢？不妨看下下面的kotlin文件，kotlin允许这样写：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='kotlin'><span class='line'><span class="k">class</span> <span class="nf">frob</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">fun</span> <span class="nf">fred</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">Int</span> <span class="p">=</span> <span class="m">300</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">frob</span> <span class="p">=</span> <span class="n">mkfrob</span><span class="p">(</span><span class="n">x</span><span class="p">))</span> <span class="p">{</span>
+</span><span class='line'>        <span class="n">println</span><span class="p">(</span><span class="s">&quot;${this}${x}${y}&quot;</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>    <span class="k">fun</span> <span class="nf">mkfrob</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">Int</span><span class="p">):</span> <span class="n">frob</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="k">this</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>    <span class="k">fun</span> <span class="nf">boobar</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>        <span class="n">fred</span><span class="p">();</span>
+</span><span class='line'>        <span class="n">fred</span><span class="p">(</span><span class="m">100</span><span class="p">);</span>
+</span><span class='line'>        <span class="n">fred</span><span class="p">(</span><span class="m">100</span><span class="p">,</span> <span class="n">frob</span><span class="p">());</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>使用<code>kotlinc</code>编译成class文件之后，我们使用<code>cfr</code>反编译一下class文件看下编译器帮我们做了什么黑魔法。</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2019/04/18/how-kotlin-generate-method-default-arguments/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
   
   
     <article>
@@ -277,44 +363,6 @@
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2018/07/12/notes-on-effective-java/">EffectiveJava2nd读书笔记</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2018-07-12T14:30:00+08:00" pubdate data-updated="true">Jul 12<span>th</span>, 2018</time>
-        
-         | <a href="/blog/2018/07/12/notes-on-effective-java/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>已迁移到gitbook，请访问<a href="https://solarex.github.io/reading-notes/effective-java/readme.html">EffectiveJava笔记</a>。</p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/2/">&larr; Older</a>
@@ -330,6 +378,10 @@
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2019/04/18/how-kotlin-generate-method-default-arguments/">Kotlin是如何实现方法默认参数的</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2019/03/12/summary-of-custom-views-part-iii/">自定义View总结三</a>
       </li>
     
@@ -343,10 +395,6 @@
     
       <li class="post">
         <a href="/blog/2018/09/12/a-few-lately-thoughts/">碎碎念</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2018/07/12/notes-on-effective-java/">EffectiveJava2nd读书笔记</a>
       </li>
     
   </ul>

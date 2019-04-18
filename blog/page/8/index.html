@@ -9,7 +9,7 @@
   <meta name="author" content="Solarex">
 
   
-  <meta name="description" content="Android uses Java as a platform for development. This helps us with many low level issues including memory management, platform type dependencies, &hellip;">
+  <meta name="description" content="Over the last several years we’ve seen a whole range of ideas regarding the architecture of systems. These include: Hexagonal Architecture (a.k.a. &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -90,6 +90,61 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/03/13/the-clean-architecture/">The Clean Architecture</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2016-03-13T23:57:00+08:00" pubdate data-updated="true">Mar 13<span>th</span>, 2016</time>
+        
+         | <a href="/blog/2016/03/13/the-clean-architecture/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><center><img src="/images/clean_arch.jpg"></center>
+
+
+<p>Over the last several years we’ve seen a whole range of ideas regarding the architecture of systems. These include:</p>
+
+<ul>
+<li><a href="http://alistair.cockburn.us/Hexagonal+architecture">Hexagonal Architecture</a> (a.k.a. Ports and Adapters) by Alistair Cockburn and adopted by Steve Freeman, and Nat Pryce in their wonderful book <a href="http://www.amazon.com/Growing-Object-Oriented-Software-Guided-Tests/dp/0321503627">Growing Object Oriented Software</a>.</li>
+<li><a href="http://jeffreypalermo.com/blog/the-onion-architecture-part-1/">Onion Architecture</a> by Jeffrey Palermo</li>
+<li><a href="http://blog.8thlight.com/uncle-bob/2011/09/30/Screaming-Architecture.html">Screaming Architecture</a> from a blog of mine last year</li>
+<li><a href="http://www.amazon.com/Lean-Architecture-Agile-Software-Development/dp/0470684208/">DCI</a> from James Coplien, and Trygve Reenskaug.</li>
+<li><a href="http://www.amazon.com/Object-Oriented-Software-Engineering-Approach/dp/0201544350">BCE</a> by Ivar Jacobson from his book Object Oriented Software Engineering: A Use-Case Driven Approach</li>
+</ul>
+
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2016/03/13/the-clean-architecture/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
   
   
     <article>
@@ -297,68 +352,6 @@
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2016/01/13/building-a-recyclerview-layoutmanager-part-iii/">Building a RecyclerView LayoutManager Part III</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2016-01-13T00:48:00+08:00" pubdate data-updated="true">Jan 13<span>th</span>, 2016</time>
-        
-         | <a href="/blog/2016/01/13/building-a-recyclerview-layoutmanager-part-iii/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>In the previous post, we discussed adding proper support for data set changes and targeted scrolling. In this installment of the series, we will focus on properly supporting animations in your fancy new LayoutManager.In case you’ve forgotten, the code samples are <a href="https://github.com/devunwired/recyclerview-playground">on GitHub</a>.</p>
-
-<h2>The Problem With Free</h2>
-
-<p>We talked about notifyDataSetChanged() the last time, but you may have noticed that changing the data in this way doesn’t animate the change**. RecyclerView includes a new API for making animated changes, which requires you to notify the adapter which positions in the adapter have changed, and what the action was:</p>
-
-<ul>
-<li><code>notifyItemInserted()</code> and <code>notifyItemRangeInserted()</code>: Insertion of new item(s) at the given position(s).</li>
-<li><code>notifyItemChanged()</code> and <code>notifyItemRangeChanged()</code>: Invalidate he item(s) at the given position(s), nothing structural has changed in the data set.</li>
-<li><code>notifyItemRemoved()</code> and <code>notifyItemRangeRemoved()</code>: Removal of the item(s) at the given position(s).</li>
-<li><code>notifyItemMoved()</code>: An item has relocated to a new position in the data set.</li>
-</ul>
-
-
-<p>By default, your LayoutManager will get “simple item animations” for free when these methods are used. These animations are simply based on whether each current view position is still present in the layout after a change. New views are faded in, removed views are faded out, and other views are moved to their new location. Here’s what our grid layout looks like with the free animations:</p>
-
-<center><img src="/images/building_recyclerview_layoutmanager_animation.gif" width="380" height="674" /></center>
-
-
-
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2016/01/13/building-a-recyclerview-layoutmanager-part-iii/">Read on &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/9/">&larr; Older</a>
@@ -376,6 +369,10 @@
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2019/04/18/how-kotlin-generate-method-default-arguments/">Kotlin是如何实现方法默认参数的</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2019/03/12/summary-of-custom-views-part-iii/">自定义View总结三</a>
       </li>
     
@@ -389,10 +386,6 @@
     
       <li class="post">
         <a href="/blog/2018/09/12/a-few-lately-thoughts/">碎碎念</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2018/07/12/notes-on-effective-java/">EffectiveJava2nd读书笔记</a>
       </li>
     
   </ul>

@@ -9,7 +9,7 @@
   <meta name="author" content="Solarex">
 
   
-  <meta name="description" content="周末在家断点调试了一下okhttp的执行流程，翻看了一下okhttp的源码，对okhttp有了一个大致的了解，在这记录一下。okhttp的精髓是Dispatcher和Interceptor，这里主要分析这两个。 Dispatcher Dispatcher是在OkHttpClient. &hellip;">
+  <meta name="description" content="Java代理有静态代理和动态代理之分。 静态代理 静态代理类图如下： ProxyObject持有RealObject的引用，在someOperation方法中可以代理RealObject做操作。 ">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -90,6 +90,58 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2018/04/26/java-proxy/">Java代理</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2018-04-26T10:07:00+08:00" pubdate data-updated="true">Apr 26<span>th</span>, 2018</time>
+        
+         | <a href="/blog/2018/04/26/java-proxy/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Java代理有静态代理和动态代理之分。</p>
+
+<h4>静态代理</h4>
+
+<p>静态代理类图如下：</p>
+
+<p><center><img src="/images/java-proxy-static.png" width=225 height=225/></center></p>
+
+
+<p><code>ProxyObject</code>持有<code>RealObject</code>的引用，在<code>someOperation</code>方法中可以代理<code>RealObject</code>做操作。</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2018/04/26/java-proxy/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
   
   
     <article>
@@ -261,44 +313,6 @@
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2018/03/25/android-touch-system/">Android触摸事件分发机制</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2018-03-25T16:26:00+08:00" pubdate data-updated="true">Mar 25<span>th</span>, 2018</time>
-        
-         | <a href="/blog/2018/03/25/android-touch-system/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content">
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/5/">&larr; Older</a>
@@ -316,6 +330,10 @@
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2019/04/18/how-kotlin-generate-method-default-arguments/">Kotlin是如何实现方法默认参数的</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2019/03/12/summary-of-custom-views-part-iii/">自定义View总结三</a>
       </li>
     
@@ -329,10 +347,6 @@
     
       <li class="post">
         <a href="/blog/2018/09/12/a-few-lately-thoughts/">碎碎念</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2018/07/12/notes-on-effective-java/">EffectiveJava2nd读书笔记</a>
       </li>
     
   </ul>

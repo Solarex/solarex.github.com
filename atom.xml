@@ -4,7 +4,7 @@
   <title><![CDATA[Solarex's Blog]]></title>
   <link href="http://Solarex.github.io/atom.xml" rel="self"/>
   <link href="http://Solarex.github.io/"/>
-  <updated>2019-04-15T16:18:10+08:00</updated>
+  <updated>2019-04-18T11:01:22+08:00</updated>
   <id>http://Solarex.github.io/</id>
   <author>
     <name><![CDATA[Solarex]]></name>
@@ -12,6 +12,267 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Kotlin是如何实现方法默认参数的]]></title>
+    <link href="http://Solarex.github.io/blog/2019/04/18/how-kotlin-generate-method-default-arguments/"/>
+    <updated>2019-04-18T10:36:00+08:00</updated>
+    <id>http://Solarex.github.io/blog/2019/04/18/how-kotlin-generate-method-default-arguments</id>
+    <content type="html"><![CDATA[<p>学习Kotlin的时候，发现可以给方法设置默认参数，Java是不支持给方法设置默认参数的，那Kotin是如何实现的呢？不妨看下下面的kotlin文件，kotlin允许这样写：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='kotlin'><span class='line'><span class="k">class</span> <span class="nf">frob</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">fun</span> <span class="nf">fred</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">Int</span> <span class="p">=</span> <span class="m">300</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">frob</span> <span class="p">=</span> <span class="n">mkfrob</span><span class="p">(</span><span class="n">x</span><span class="p">))</span> <span class="p">{</span>
+</span><span class='line'>        <span class="n">println</span><span class="p">(</span><span class="s">&quot;${this}${x}${y}&quot;</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>    <span class="k">fun</span> <span class="nf">mkfrob</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">Int</span><span class="p">):</span> <span class="n">frob</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="k">this</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>    <span class="k">fun</span> <span class="nf">boobar</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>        <span class="n">fred</span><span class="p">();</span>
+</span><span class='line'>        <span class="n">fred</span><span class="p">(</span><span class="m">100</span><span class="p">);</span>
+</span><span class='line'>        <span class="n">fred</span><span class="p">(</span><span class="m">100</span><span class="p">,</span> <span class="n">frob</span><span class="p">());</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>使用<code>kotlinc</code>编译成class文件之后，我们使用<code>cfr</code>反编译一下class文件看下编译器帮我们做了什么黑魔法。</p>
+
+<!-- more -->
+
+
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kn">import</span> <span class="nn">java.io.PrintStream</span><span class="o">;</span>
+</span><span class='line'><span class="kn">import</span> <span class="nn">kotlin.Metadata</span><span class="o">;</span>
+</span><span class='line'><span class="kn">import</span> <span class="nn">kotlin.jvm.internal.Intrinsics</span><span class="o">;</span>
+</span><span class='line'><span class="kn">import</span> <span class="nn">org.jetbrains.annotations.NotNull</span><span class="o">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="nd">@Metadata</span><span class="o">(</span><span class="n">mv</span><span class="o">={</span><span class="mi">1</span><span class="o">,</span> <span class="mi">1</span><span class="o">,</span> <span class="mi">13</span><span class="o">},</span> <span class="n">bv</span><span class="o">={</span><span class="mi">1</span><span class="o">,</span> <span class="mi">0</span><span class="o">,</span> <span class="mi">3</span><span class="o">},</span> <span class="n">k</span><span class="o">=</span><span class="mi">1</span><span class="o">,</span> <span class="n">d1</span><span class="o">={</span><span class="s">&quot;\u0000\u001c\n\u0002\u0018\u0002\n\u0002\u0010\u0000\n\u0002\b\u0002\n\u0002\u0010\u0002\n\u0002\b\u0002\n\u0002\u0010\b\n\u0002\b\u0002\u0018\u00002\u00020\u0001B\u0005\u00a2\u0006\u0002\u0010\u0002J\u0006\u0010\u0003\u001a\u00020\u0004J\u001a\u0010\u0005\u001a\u00020\u00042\b\b\u0002\u0010\u0006\u001a\u00020\u00072\b\b\u0002\u0010\b\u001a\u00020\u0000J\u000e\u0010\t\u001a\u00020\u00002\u0006\u0010\u0006\u001a\u00020\u0007&quot;</span><span class="o">},</span> <span class="n">d2</span><span class="o">={</span><span class="s">&quot;Lfrob;&quot;</span><span class="o">,</span> <span class="s">&quot;&quot;</span><span class="o">,</span> <span class="s">&quot;()V&quot;</span><span class="o">,</span> <span class="s">&quot;boobar&quot;</span><span class="o">,</span> <span class="s">&quot;&quot;</span><span class="o">,</span> <span class="s">&quot;fred&quot;</span><span class="o">,</span> <span class="s">&quot;x&quot;</span><span class="o">,</span> <span class="s">&quot;&quot;</span><span class="o">,</span> <span class="s">&quot;y&quot;</span><span class="o">,</span> <span class="s">&quot;mkfrob&quot;</span><span class="o">})</span>
+</span><span class='line'><span class="kd">public</span> <span class="kd">final</span> <span class="kd">class</span> <span class="nc">frob</span> <span class="o">{</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="kd">final</span> <span class="kt">void</span> <span class="nf">fred</span><span class="o">(</span><span class="kt">int</span> <span class="n">x</span><span class="o">,</span> <span class="nd">@NotNull</span> <span class="n">frob</span> <span class="n">y</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="n">Intrinsics</span><span class="o">.</span><span class="na">checkParameterIsNotNull</span><span class="o">((</span><span class="n">Object</span><span class="o">)</span><span class="n">y</span><span class="o">,</span> <span class="o">(</span><span class="n">String</span><span class="o">)</span><span class="s">&quot;y&quot;</span><span class="o">);</span>
+</span><span class='line'>        <span class="n">String</span> <span class="n">string</span> <span class="o">=</span> <span class="s">&quot;&quot;</span> <span class="o">+</span> <span class="k">this</span> <span class="o">+</span> <span class="n">x</span> <span class="o">+</span> <span class="n">y</span><span class="o">;</span>
+</span><span class='line'>        <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">((</span><span class="n">Object</span><span class="o">)</span><span class="n">string</span><span class="o">);</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="kd">public</span> <span class="kd">static</span> <span class="cm">/* synthetic */</span> <span class="kt">void</span> <span class="n">fred$default</span><span class="o">(</span><span class="n">frob</span> <span class="n">frob2</span><span class="o">,</span> <span class="kt">int</span> <span class="n">n</span><span class="o">,</span> <span class="n">frob</span> <span class="n">frob3</span><span class="o">,</span> <span class="kt">int</span> <span class="n">n2</span><span class="o">,</span> <span class="n">Object</span> <span class="n">object</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">if</span> <span class="o">((</span><span class="n">n2</span> <span class="o">&amp;</span> <span class="mi">1</span><span class="o">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">n</span> <span class="o">=</span> <span class="mi">300</span><span class="o">;</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>        <span class="k">if</span> <span class="o">((</span><span class="n">n2</span> <span class="o">&amp;</span> <span class="mi">2</span><span class="o">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">frob3</span> <span class="o">=</span> <span class="n">frob2</span><span class="o">.</span><span class="na">mkfrob</span><span class="o">(</span><span class="n">n</span><span class="o">);</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>        <span class="n">frob2</span><span class="o">.</span><span class="na">fred</span><span class="o">(</span><span class="n">n</span><span class="o">,</span> <span class="n">frob3</span><span class="o">);</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="nd">@NotNull</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="kd">final</span> <span class="n">frob</span> <span class="nf">mkfrob</span><span class="o">(</span><span class="kt">int</span> <span class="n">x</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="k">this</span><span class="o">;</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="kd">public</span> <span class="kd">final</span> <span class="kt">void</span> <span class="nf">boobar</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>        <span class="n">frob</span><span class="o">.</span><span class="na">fred</span><span class="n">$default</span><span class="o">(</span><span class="k">this</span><span class="o">,</span> <span class="mi">0</span><span class="o">,</span> <span class="kc">null</span><span class="o">,</span> <span class="mi">3</span><span class="o">,</span> <span class="kc">null</span><span class="o">);</span>
+</span><span class='line'>        <span class="n">frob</span><span class="o">.</span><span class="na">fred</span><span class="n">$default</span><span class="o">(</span><span class="k">this</span><span class="o">,</span> <span class="mi">100</span><span class="o">,</span> <span class="kc">null</span><span class="o">,</span> <span class="mi">2</span><span class="o">,</span> <span class="kc">null</span><span class="o">);</span>
+</span><span class='line'>        <span class="k">this</span><span class="o">.</span><span class="na">fred</span><span class="o">(</span><span class="mi">100</span><span class="o">,</span> <span class="k">new</span> <span class="n">frob</span><span class="o">());</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>可以看到编译器底层自动为我们生成了一个<code>static</code>,<code>synthetic</code>的方法，在这个方法中，第一个参数是对象接收者，第二个和第三个参数和我们声明的<code>fred</code>方法相同，第四个参数<code>n2</code>从方法体可以看出是一个bitmask。</p>
+
+<p>从生成的方法<code>fred$default</code>实现来看，每个可以有默认参数的位置的参数有个mask值，为<code>2^x</code>，x为参数出现的顺序，如果方法调用的时候用到了某个位置上的默认参数，<code>fred$default</code>方法的第四个参数<code>n2</code>就会加上<code>2^x</code>。</p>
+
+<p>在Java中是不能使用默认参数调用<code>fred</code>这种方法的，如果想要在Java中调用，需要给方法加上<code>@JvmOverloads</code>注解，我们加上这个注解再去反编译一下看下有什么变化。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class='kotlin'><span class='line'><span class="k">class</span> <span class="nf">frob</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>    <span class="n">@JvmOverloads</span>
+</span><span class='line'>    <span class="k">fun</span> <span class="nf">fred</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">Int</span> <span class="p">=</span> <span class="m">300</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">frob</span> <span class="p">=</span> <span class="n">mkfrob</span><span class="p">(</span><span class="n">x</span><span class="p">))</span> <span class="p">{</span>
+</span><span class='line'>        <span class="n">println</span><span class="p">(</span><span class="s">&quot;${this}${x}${y}&quot;</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>    <span class="k">fun</span> <span class="nf">mkfrob</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">Int</span><span class="p">):</span> <span class="n">frob</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="k">this</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>    <span class="k">fun</span> <span class="nf">boobar</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>        <span class="n">fred</span><span class="p">();</span>
+</span><span class='line'>        <span class="n">fred</span><span class="p">(</span><span class="m">100</span><span class="p">);</span>
+</span><span class='line'>        <span class="n">fred</span><span class="p">(</span><span class="m">100</span><span class="p">,</span> <span class="n">frob</span><span class="p">());</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>再反编译一下我们看下有什么变化：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kn">import</span> <span class="nn">java.io.PrintStream</span><span class="o">;</span>
+</span><span class='line'><span class="kn">import</span> <span class="nn">kotlin.Metadata</span><span class="o">;</span>
+</span><span class='line'><span class="kn">import</span> <span class="nn">kotlin.jvm.JvmOverloads</span><span class="o">;</span>
+</span><span class='line'><span class="kn">import</span> <span class="nn">kotlin.jvm.internal.Intrinsics</span><span class="o">;</span>
+</span><span class='line'><span class="kn">import</span> <span class="nn">org.jetbrains.annotations.NotNull</span><span class="o">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="nd">@Metadata</span><span class="o">(</span><span class="n">mv</span><span class="o">={</span><span class="mi">1</span><span class="o">,</span> <span class="mi">1</span><span class="o">,</span> <span class="mi">13</span><span class="o">},</span> <span class="n">bv</span><span class="o">={</span><span class="mi">1</span><span class="o">,</span> <span class="mi">0</span><span class="o">,</span> <span class="mi">3</span><span class="o">},</span> <span class="n">k</span><span class="o">=</span><span class="mi">1</span><span class="o">,</span> <span class="n">d1</span><span class="o">={</span><span class="s">&quot;\u0000\u001c\n\u0002\u0018\u0002\n\u0002\u0010\u0000\n\u0002\b\u0002\n\u0002\u0010\u0002\n\u0002\b\u0002\n\u0002\u0010\b\n\u0002\b\u0002\u0018\u00002\u00020\u0001B\u0005\u00a2\u0006\u0002\u0010\u0002J\u0006\u0010\u0003\u001a\u00020\u0004J\u001c\u0010\u0005\u001a\u00020\u00042\b\b\u0002\u0010\u0006\u001a\u00020\u00072\b\b\u0002\u0010\b\u001a\u00020\u0000H\u0007J\u000e\u0010\t\u001a\u00020\u00002\u0006\u0010\u0006\u001a\u00020\u0007&quot;</span><span class="o">},</span> <span class="n">d2</span><span class="o">={</span><span class="s">&quot;Lfrob;&quot;</span><span class="o">,</span> <span class="s">&quot;&quot;</span><span class="o">,</span> <span class="s">&quot;()V&quot;</span><span class="o">,</span> <span class="s">&quot;boobar&quot;</span><span class="o">,</span> <span class="s">&quot;&quot;</span><span class="o">,</span> <span class="s">&quot;fred&quot;</span><span class="o">,</span> <span class="s">&quot;x&quot;</span><span class="o">,</span> <span class="s">&quot;&quot;</span><span class="o">,</span> <span class="s">&quot;y&quot;</span><span class="o">,</span> <span class="s">&quot;mkfrob&quot;</span><span class="o">})</span>
+</span><span class='line'><span class="kd">public</span> <span class="kd">final</span> <span class="kd">class</span> <span class="nc">frob</span> <span class="o">{</span>
+</span><span class='line'>    <span class="nd">@JvmOverloads</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="kd">final</span> <span class="kt">void</span> <span class="nf">fred</span><span class="o">(</span><span class="kt">int</span> <span class="n">x</span><span class="o">,</span> <span class="nd">@NotNull</span> <span class="n">frob</span> <span class="n">y</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="n">Intrinsics</span><span class="o">.</span><span class="na">checkParameterIsNotNull</span><span class="o">((</span><span class="n">Object</span><span class="o">)</span><span class="n">y</span><span class="o">,</span> <span class="o">(</span><span class="n">String</span><span class="o">)</span><span class="s">&quot;y&quot;</span><span class="o">);</span>
+</span><span class='line'>        <span class="n">String</span> <span class="n">string</span> <span class="o">=</span> <span class="s">&quot;&quot;</span> <span class="o">+</span> <span class="k">this</span> <span class="o">+</span> <span class="n">x</span> <span class="o">+</span> <span class="n">y</span><span class="o">;</span>
+</span><span class='line'>        <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">((</span><span class="n">Object</span><span class="o">)</span><span class="n">string</span><span class="o">);</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="nd">@JvmOverloads</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="kd">static</span> <span class="cm">/* synthetic */</span> <span class="kt">void</span> <span class="n">fred$default</span><span class="o">(</span><span class="n">frob</span> <span class="n">frob2</span><span class="o">,</span> <span class="kt">int</span> <span class="n">n</span><span class="o">,</span> <span class="n">frob</span> <span class="n">frob3</span><span class="o">,</span> <span class="kt">int</span> <span class="n">n2</span><span class="o">,</span> <span class="n">Object</span> <span class="n">object</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">if</span> <span class="o">((</span><span class="n">n2</span> <span class="o">&amp;</span> <span class="mi">1</span><span class="o">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">n</span> <span class="o">=</span> <span class="mi">300</span><span class="o">;</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>        <span class="k">if</span> <span class="o">((</span><span class="n">n2</span> <span class="o">&amp;</span> <span class="mi">2</span><span class="o">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">frob3</span> <span class="o">=</span> <span class="n">frob2</span><span class="o">.</span><span class="na">mkfrob</span><span class="o">(</span><span class="n">n</span><span class="o">);</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>        <span class="n">frob2</span><span class="o">.</span><span class="na">fred</span><span class="o">(</span><span class="n">n</span><span class="o">,</span> <span class="n">frob3</span><span class="o">);</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="nd">@JvmOverloads</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="kd">final</span> <span class="kt">void</span> <span class="nf">fred</span><span class="o">(</span><span class="kt">int</span> <span class="n">x</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="n">frob</span><span class="o">.</span><span class="na">fred</span><span class="n">$default</span><span class="o">(</span><span class="k">this</span><span class="o">,</span> <span class="n">x</span><span class="o">,</span> <span class="kc">null</span><span class="o">,</span> <span class="mi">2</span><span class="o">,</span> <span class="kc">null</span><span class="o">);</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="nd">@JvmOverloads</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="kd">final</span> <span class="kt">void</span> <span class="nf">fred</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>        <span class="n">frob</span><span class="o">.</span><span class="na">fred</span><span class="n">$default</span><span class="o">(</span><span class="k">this</span><span class="o">,</span> <span class="mi">0</span><span class="o">,</span> <span class="kc">null</span><span class="o">,</span> <span class="mi">3</span><span class="o">,</span> <span class="kc">null</span><span class="o">);</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="nd">@NotNull</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="kd">final</span> <span class="n">frob</span> <span class="nf">mkfrob</span><span class="o">(</span><span class="kt">int</span> <span class="n">x</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="k">this</span><span class="o">;</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="kd">public</span> <span class="kd">final</span> <span class="kt">void</span> <span class="nf">boobar</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>        <span class="n">frob</span><span class="o">.</span><span class="na">fred</span><span class="n">$default</span><span class="o">(</span><span class="k">this</span><span class="o">,</span> <span class="mi">0</span><span class="o">,</span> <span class="kc">null</span><span class="o">,</span> <span class="mi">3</span><span class="o">,</span> <span class="kc">null</span><span class="o">);</span>
+</span><span class='line'>        <span class="n">frob</span><span class="o">.</span><span class="na">fred</span><span class="n">$default</span><span class="o">(</span><span class="k">this</span><span class="o">,</span> <span class="mi">100</span><span class="o">,</span> <span class="kc">null</span><span class="o">,</span> <span class="mi">2</span><span class="o">,</span> <span class="kc">null</span><span class="o">);</span>
+</span><span class='line'>        <span class="k">this</span><span class="o">.</span><span class="na">fred</span><span class="o">(</span><span class="mi">100</span><span class="o">,</span> <span class="k">new</span> <span class="n">frob</span><span class="o">());</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>可以看到比上面多生成了几个重载的方法，在重载的方法内部调用了生成方法<code>fred$default</code>。</p>
+
+<h3>reference</h3>
+
+<ul>
+<li><a href="https://www.benf.org/other/cfr/kotlin-defaults.html">How does Kotlin generate default arguments?</a></li>
+</ul>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[自定义View总结三]]></title>
@@ -5489,15 +5750,6 @@
     <link href="http://Solarex.github.io/blog/2018/04/03/coordinatelayout-behavior-analysis/"/>
     <updated>2018-04-03T16:29:00+08:00</updated>
     <id>http://Solarex.github.io/blog/2018/04/03/coordinatelayout-behavior-analysis</id>
-    <content type="html"><![CDATA[
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Android触摸事件分发机制]]></title>
-    <link href="http://Solarex.github.io/blog/2018/03/25/android-touch-system/"/>
-    <updated>2018-03-25T16:26:00+08:00</updated>
-    <id>http://Solarex.github.io/blog/2018/03/25/android-touch-system</id>
     <content type="html"><![CDATA[
 ]]></content>
   </entry>

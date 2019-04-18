@@ -9,7 +9,9 @@
   <meta name="author" content="Solarex">
 
   
-  <meta name="description" content="I originally wrote this article when I was (foolishly) still using AsyncTasks. Nowadays I simply consider it a mistake in all cases. As you&rsquo;ll &hellip;">
+  <meta name="description" content="Android Loader Life before Loaders
+Understanding the LoaderManager
+Implementing Loaders Android Loader This post gives a brief introduction to &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -90,6 +92,67 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/10/24/android-loader/">Android Loader</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-10-24T06:34:00+08:00" pubdate data-updated="true">Oct 24<span>th</span>, 2014</time>
+        
+         | <a href="/blog/2014/10/24/android-loader/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p><center><img src="/images/android_logo.jpg"/></center></p>
+
+
+<ul>
+<li><a href="#overview">Android Loader</a>
+
+<ul>
+<li><a href="#before">Life before Loaders</a></li>
+<li><a href="#loadermanager">Understanding the LoaderManager</a></li>
+<li><a href="#implementing">Implementing Loaders</a></li>
+</ul>
+</li>
+</ul>
+
+
+<h2 id="overview">Android Loader</h2>
+
+
+<p>This post gives a brief introduction to Loaders and the LoaderManager. The first section describes how data was loaded prior to the release of Android 3.0, pointing out out some of the flaws of the pre-Honeycomb APIs. The second section defines the purpose of each class and summarizes their powerful ability in asynchronously loading data.</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2014/10/24/android-loader/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
   
   
     <article>
@@ -330,52 +393,6 @@
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2014/10/14/android-context/">Android Context</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-10-14T10:11:00+08:00" pubdate data-updated="true">Oct 14<span>th</span>, 2014</time>
-        
-         | <a href="/blog/2014/10/14/android-context/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><center><p><img src="/images/android_robot.png" width="255" height="300"></p></center>
-
-
-<p>Context is probably the most used element in Android applications…it may also be the most misused.Context objects are so common, and get passed around so frequently, it can be easy to create a situation you didn’t intend.  Loading resources, launching a new Activity, obtaining a system service, getting internal file paths, and creating views all require a Context (and that’s not even getting started on the full list!) to accomplish the task.  What I’d like to do is provide for you some insights on how Context works alongside some tips that will (hopefully) allow you to leverage it more effectively in your applications.</p>
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2014/10/14/android-context/">Read on &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/13/">&larr; Older</a>
@@ -393,6 +410,10 @@
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2019/04/18/how-kotlin-generate-method-default-arguments/">Kotlin是如何实现方法默认参数的</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2019/03/12/summary-of-custom-views-part-iii/">自定义View总结三</a>
       </li>
     
@@ -406,10 +427,6 @@
     
       <li class="post">
         <a href="/blog/2018/09/12/a-few-lately-thoughts/">碎碎念</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2018/07/12/notes-on-effective-java/">EffectiveJava2nd读书笔记</a>
       </li>
     
   </ul>
