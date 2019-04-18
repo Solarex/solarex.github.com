@@ -31,6 +31,7 @@ footer: true
 <h3 id='flutter'>Flutter</h3>
 
 + [HelloDart](https://github.com/flyfire/HelloDart)
++ [SolaexFlutterQuiz](https://github.com/flyfire/SolarexFlutterQuiz)
 
 <h3 id='advancedjava'>Java高级特性</h3>
 
@@ -84,7 +85,6 @@ footer: true
 + [HelloNDK](https://github.com/flyfire/HelloNDK)
 + [JavaWithKotlin](https://github.com/flyfire/JavaWithKotlin)
 + [GithubApp(kotlin)](https://github.com/flyfire/SolarexGithubApp)
-+ [SolaexFlutterQuiz](https://github.com/flyfire/SolarexFlutterQuiz)
 
 <h3 id='bintray'>Bintray</h3>
 
