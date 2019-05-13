@@ -61,11 +61,13 @@ footer: true
 + [SolarexSleepStatisticsViewDemo](https://github.com/flyfire/SolarexSleepStatisticsViewDemo)
 + [SolarexRulerViewDemo](https://github.com/flyfire/SolarexRulerViewDemo)
 
-<h3 id='notebook'>读书笔记</h3>
+<h3 id='notebook'>学习笔记</h3>
 + [JCIP](https://github.com/flyfire/ReadJCIP)
 + [读书笔记](https://github.com/flyfire/Notebook)
 + [读书笔记gitbook](https://solarex.github.io/reading-notes/)
 + [Kotlin实战代码](https://github.com/flyfire/JavaWithKotlin/)
++ [极客时间学习笔记markdown](https://github.com/flyfire/notes-on-geektime-md)
++ [学习笔记gitbook](https://solarex.github.io/learning-notes/)
 
 <h3 id='python-practice'>Python学习</h3>
 + [DownloadTwitterLikes](https://github.com/flyfire/DownloadTwitterLikes)
