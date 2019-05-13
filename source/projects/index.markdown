@@ -34,6 +34,11 @@ footer: true
 + // todo 操作系统
 + // todo 计算机网络 tcp/ip http https
 
+<h3 id='english'>英语学习</h3>
+
++ // todo 词汇
++ // todo 口语
+
 <h3 id='algorithm'>数据结构与算法</h3>
 
 + [Java常用算法实现](https://github.com/flyfire/JavaAlgorithms)
