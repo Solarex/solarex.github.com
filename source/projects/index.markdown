@@ -54,6 +54,8 @@ footer: true
 <h3 id='advancedjava'>Java高级特性</h3>
 
 + [YouDontKnowJava](https://github.com/flyfire/YouDontKnowJava)
++ // todo Java虚拟机读书笔记
++ // todo Java知识点总结
 
 <h3 id='androidsourceanalysis'>Android源码解析</h3>
 
