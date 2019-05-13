@@ -20,8 +20,21 @@ footer: true
 <h3 id='designpattern'>设计模式</h3>
 
 + [Java常用设计模式](https://github.com/flyfire/JavaDesignPatterns)
++ // todo 常用设计模式优缺点及适用场景总结
++ // todo 设计模式读书笔记
 
-<h3 id='algorithm'>算法</h3>
+<h3 id='concurrency'>高并发</h3>
+
++ // todo Java高并发书籍读书笔记
++ // todo Java高并发类库工具类使用
++ // todo Java高并发类库源码解析
+
+<h3 id='cs-fundament'>计算机基础</h3>
+
++ // todo 操作系统
++ // todo 计算机网络 tcp/ip http https
+
+<h3 id='algorithm'>数据结构与算法</h3>
 
 + [Java常用算法实现](https://github.com/flyfire/JavaAlgorithms)
 + [数据结构和算法](https://github.com/flyfire/DataStructureAndAlgorithms)
@@ -40,8 +53,9 @@ footer: true
 <h3 id='androidsourceanalysis'>Android源码解析</h3>
 
 + [AndroidSourceAnalysis](https://github.com/flyfire/AndroidSourceAnalysis)
++ // todo android framework 学习笔记
 
-<h3 id='customview'>自定义组件</h3>
+<h3 id='customview'>Android自定义组件</h3>
 
 + [CustomViewDemos](https://github.com/flyfire/customviewdemos)
 + [CircleProgressbar](https://github.com/flyfire/CircleProgressbarDemo)
@@ -63,11 +77,11 @@ footer: true
 
 <h3 id='notebook'>学习笔记</h3>
 + [JCIP](https://github.com/flyfire/ReadJCIP)
-+ [读书笔记](https://github.com/flyfire/Notebook)
++ [读书笔记markdown](https://github.com/flyfire/Notebook)
 + [读书笔记gitbook](https://solarex.github.io/reading-notes/)
 + [Kotlin实战代码](https://github.com/flyfire/JavaWithKotlin/)
 + [极客时间学习笔记markdown](https://github.com/flyfire/notes-on-geektime-md)
-+ [学习笔记gitbook](https://solarex.github.io/learning-notes/)
++ [极客时间学习笔记gitbook](https://solarex.github.io/learning-notes/)
 
 <h3 id='python-practice'>Python学习</h3>
 + [DownloadTwitterLikes](https://github.com/flyfire/DownloadTwitterLikes)
