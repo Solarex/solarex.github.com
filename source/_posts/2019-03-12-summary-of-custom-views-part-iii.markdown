@@ -12,6 +12,8 @@ categories:
 
 之前分析了[Android触摸事件分发机制](http://solarex.github.io/blog/2018/03/25/android-touch-system/)，在自定义View的时候进行触摸反馈，一般都是重写``onTouchEvent``，当然也有一些工具类可以使用，本文就对这些工具类进行总结，他们是``ViewConfiguration``，``Scroller``，``OverScroller``，``VelocityTracker``，``GestureDetector``，``ScaleGestureDetector``，``ViewDragHelper``。
 
+<!-- more -->
+
 #### ViewConfiguration
 
 ``ViewConfiguration``定义了一些UI系统用用到的常量，包括timeouts,sizes,distances。timeouts比如``DEFAULT_LONG_PRESS_TIMEOUT``,``DOUBLE_TAP_TIMEOUT``等，sizes包括``SCROLL_BAR_SIZE``等，distances我们平时自定义View的时候可能用的比较多，常用的有``getScaledTouchSlop``来判断是否是滑动，``getScaledPagingTouchSlop``来判断是否是翻页滑动，自己写``ViewPager``的时候可以用到，``getScaledMaximumFlingVelocity``和``getMinimumFlingVelocity``来对惯性滑动进行判断处理。
