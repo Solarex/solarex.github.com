@@ -80,15 +80,15 @@ velocityTracker.recycle(); // 重置并回收
 
 |        方法名        |                             描述                             |      所属接口       |
 | :------------------: | :----------------------------------------------------------: | :-----------------: |
-|        onDown        |              手指轻触屏幕，由1个ACTION_DOWN触发              |  OnGestureListener  |
-|     onShowPress      |      手指轻触屏幕，尚未松开或拖动，由1个ACTION_DOWN触发      |  OnGestureListener  |
-|    onSingleTapUp     |     手指轻触屏幕后松开，随着ACTION_UP触发，这是单击行为      |  OnGestureListener  |
-|       onScroll       | 手指按下屏幕并拖动，由1个ACTION_DOWN及多个ACTION_MOVE触发，这是拖动行为 |  OnGestureListener  |
-|     onLongPress      |                             长按                             |  OnGestureListener  |
-|       onFling        | 按下屏幕快速滑动后松开，由1个ACTION_DOWN多个ACTION_MOVE和1个ACTION_UP触发，快速滑动 |  OnGestureListener  |
-|     onDoubleTap      | 双击，由2次连续的单击组成，不可能和onSingleTapConfirmed共存  | OnDoubleTapListener |
-| onSingleTapConfirmed |                        严格的单击行为                        | OnDoubleTapListener |
-|   onDoubleTapEvent   | 发生了双击行为，在双击期间，ACTION_DOWN、ACTION_MOVE、ACTION_UP都会触发此回调 | OnDoubleTapListener |
+|        onDown        |            手指轻触屏幕，由1个``ACTION_DOWN``触发            |  OnGestureListener  
+|     onShowPress      |    手指轻触屏幕，尚未松开或拖动，由1个``ACTION_DOWN``触发    |  OnGestureListener  
+|    onSingleTapUp     |   手指轻触屏幕后松开，随着``ACTION_UP``触发，这是单击行为    |  OnGestureListener  
+|       onScroll       | 手指按下屏幕并拖动，由1个``ACTION_DOWN``及多个``ACTION_MOVE``触发，这是拖动行为 |  OnGestureListener  
+|     onLongPress      |                             长按                             |  OnGestureListener  
+|       onFling        | 按下屏幕快速滑动后松开，由1个``ACTION_DOWN``多个``ACTION_MOVE``和1个``ACTION_UP``触发，快速滑动 |  OnGestureListener  
+|     onDoubleTap      | 双击，由2次连续的单击组成，不可能和onSingleTapConfirmed共存  | OnDoubleTapListener 
+| onSingleTapConfirmed |                        严格的单击行为                        | OnDoubleTapListener 
+|   onDoubleTapEvent   | 发生了双击行为，在双击期间，``ACTION_DOWN``、``ACTION_MOVE``、``ACTION_UP``都会触发此回调 | OnDoubleTapListener 
 
 接着，接管目标View的``onTouchEvent``方法
 
@@ -105,7 +105,7 @@ return consume;
 |                           方法名                            |                             描述                             |        所属接口        |
 | :---------------------------------------------------------: | :----------------------------------------------------------: | :--------------------: |
 |   public boolean onScale(ScaleGestureDetector detector);    | 通过调用detector.getScaleFactor来获得放大的系数，来进行进一步处理，比如对ImageView的Matrix进行操作等等，返回值代表事件有没有被消费 | OnScaleGestureListener |
-| public boolean onScaleBegin(ScaleGestureDetector detector); | 如果要检测放大缩小手势，返回true，类似于ACTION_DOWN对事件感兴趣返回true | OnScaleGestureListener |
+| public boolean onScaleBegin(ScaleGestureDetector detector); | 如果要检测放大缩小手势，返回true，类似于``ACTION_DOWN``对事件感兴趣返回true | OnScaleGestureListener |
 |   public void onScaleEnd(ScaleGestureDetector detector);    | 放大或缩小结束，可以调用detector.getFocusX()或detector.getFocusY()来获取焦点 | OnScaleGestureListener |
 
 ### ViewDragHelper & View.OnDragListener
