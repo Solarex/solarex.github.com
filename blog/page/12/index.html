@@ -9,9 +9,10 @@
   <meta name="author" content="Solarex">
 
   
-  <meta name="description" content="Android Loader Life before Loaders
-Understanding the LoaderManager
-Implementing Loaders Android Loader This post gives a brief introduction to &hellip;">
+  <meta name="description" content="Android ContentProvider Content Provider Basics
+Using Content Providers
+Writing your own Content Provider
+Better Performance with &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -92,6 +93,68 @@ Implementing Loaders Android Loader This post gives a brief introduction to &hel
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/10/24/android-contentprovider/">Android ContentProvider</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-10-24T12:16:00+08:00" pubdate data-updated="true">Oct 24<span>th</span>, 2014</time>
+        
+         | <a href="/blog/2014/10/24/android-contentprovider/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><center><p><img src="/images/android_logo.jpg"/></p></center>
+
+
+<ul>
+<li><a href="#overview">Android ContentProvider</a>
+
+<ul>
+<li><a href="#basics">Content Provider Basics</a></li>
+<li><a href="#using">Using Content Providers</a></li>
+<li><a href="#writing">Writing your own Content Provider</a></li>
+<li><a href="#performance">Better Performance with ContentProviderOperation</a></li>
+</ul>
+</li>
+</ul>
+
+
+<h2 id="overview">Android ContentProvider</h2>
+
+
+<p>This is a tutorial covering Android&rsquo;s ContentProvider.</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2014/10/24/android-contentprovider/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
   
   
     <article>
@@ -343,56 +406,6 @@ Implementing Loaders Android Loader This post gives a brief introduction to &hel
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2014/10/17/java-singleton/">深入浅出单实例Singleton设计模式</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-10-17T10:07:00+08:00" pubdate data-updated="true">Oct 17<span>th</span>, 2014</time>
-        
-         | <a href="/blog/2014/10/17/java-singleton/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p><center><img src="/images/java-singleton.png"/></center></p>
-
-
-<h3>前序</h3>
-
-<p>单实例Singleton设计模式可能是被讨论和使用的最广泛的一个设计模式了，这可能也是面试中问得最多的一个设计模式了。这个设计模式主要目的是想在整个系统中只能出现一个类的实例。这样做当然是有必然的，比如你的软件的全局配置信息，或者是一个Factory，或是一个主控类，等等。你希望这个类在整个系统中只能出现一个实例。当然，作为一个技术负责人的你，你当然有权利通过使用非技术的手段来达到你的目的。比如：你在团队内部明文规定，“XX类只能有一个全局实例，如果某人使用两次以上，那么该人将被处于2000元的罚款！”（呵呵），你当然有权这么做。但是如果你的设计的是东西是一个类库，或是一个需要提供给用户使用的API，恐怕你的这项规定将会失效。因为，你无权要求别人会那么做。所以，这就是为什么，我们希望通过使用技术的手段来达成这样一个目的的原因。</p>
-
-<p>本文会带着你深入整个Singleton的世界，当然，我会放弃使用C++语言而改用Java语言，因为使用Java这个语言可能更容易让我说明一些事情。</p>
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2014/10/17/java-singleton/">Read on &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/13/">&larr; Older</a>
@@ -410,6 +423,10 @@ Implementing Loaders Android Loader This post gives a brief introduction to &hel
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2019/04/30/learning-dagger2/">Dagger2学习</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2019/04/18/how-kotlin-generate-method-default-arguments/">Kotlin是如何实现方法默认参数的</a>
       </li>
     
@@ -423,10 +440,6 @@ Implementing Loaders Android Loader This post gives a brief introduction to &hel
     
       <li class="post">
         <a href="/blog/2019/01/12/summary-of-custom-views-part-i/">自定义View总结一</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2018/09/12/a-few-lately-thoughts/">碎碎念</a>
       </li>
     
   </ul>
@@ -463,7 +476,7 @@ Implementing Loaders Android Loader This post gives a brief introduction to &hel
 
 
 
-<section class="googleplus">
+<section class="googleplus googleplus-hidden">
   <h1>
     <a href="https://plus.google.com/107384356964511479070?rel=author">
       <img src="http://www.google.com/images/icons/ui/gprofile_button-32.png" width="32" height="32">
@@ -505,14 +518,6 @@ Implementing Loaders Android Loader This post gives a brief introduction to &hel
 
 
 
-
-  <script type="text/javascript">
-    (function() {
-      var script = document.createElement('script'); script.type = 'text/javascript'; script.async = true;
-      script.src = 'https://apis.google.com/js/plusone.js';
-      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(script, s);
-    })();
-  </script>
 
 
 

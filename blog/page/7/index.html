@@ -9,7 +9,7 @@
   <meta name="author" content="Solarex">
 
   
-  <meta name="description" content="Pointcuts by pattern Going through all the different ways of defining pointcuts and explaining them in an easy manner would be a near impossible feat &hellip;">
+  <meta name="description" content="Pointcuts by annotations Using annotations is more convenient than using patterns. While patterns might be anything between a big cannon and a &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -90,6 +90,53 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/09/16/defining-pointcuts-by-annotations/">Defining Pointcuts by Annotations</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2016-09-16T16:17:00+08:00" pubdate data-updated="true">Sep 16<span>th</span>, 2016</time>
+        
+         | <a href="/blog/2016/09/16/defining-pointcuts-by-annotations/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h2>Pointcuts by annotations</h2>
+
+<p>Using annotations is more convenient than using patterns. While patterns might be anything between a big cannon and a scalpel the annotations are definitely a scalpel, by only getting the pointcuts that the developer has manually specified.</p>
+
+<p>You can get the code for this blog series at the Git repository <a href="https://github.com/Nosfert/AspectJ-Tutorial-jayway">here</a>.</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2016/09/16/defining-pointcuts-by-annotations/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
   
   
     <article>
@@ -282,61 +329,6 @@
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2016/03/14/mobile-apps-offline-support/">Mobile Apps Offline Support</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2016-03-14T08:43:00+08:00" pubdate data-updated="true">Mar 14<span>th</span>, 2016</time>
-        
-         | <a href="/blog/2016/03/14/mobile-apps-offline-support/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>Offline support for mobile applications can be thought of as the ability for the application to react gracefully to the lack of stability of the network connection. The rather new context of mobile devices introduced problems such as presence or absence of a network connection or even high latency and low bandwidth. These problems are rather new and thus not very well known to engineers starting with mobile development. Among other things building a mobile application which resilient to different network scenarios could mean:</p>
-
-<ul>
-<li>Displaying comprehensive error messages when network calls fail.</li>
-<li>Allowing the use of the application in “guest mode”, where certain features can be delayed until the user actually signs in.</li>
-<li>Visually displaying the absence of network connectivity on the UI (connected mode/offline mode).</li>
-<li>Disabling controls in the absence of network connectivity.</li>
-<li>Allowing the user to query and act on data while no network connection (offline data access).</li>
-<li>Testing the application under different network conditions!</li>
-</ul>
-
-
-<p>While all these things are extremely important from the usability point of view, there is one of these that can be particular complex, “offline data access”. There are several different scenarios or levels of offline data access that applications might need to support, and I’ll go through each next.</p>
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2016/03/14/mobile-apps-offline-support/">Read on &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/8/">&larr; Older</a>
@@ -354,6 +346,10 @@
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2019/04/30/learning-dagger2/">Dagger2学习</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2019/04/18/how-kotlin-generate-method-default-arguments/">Kotlin是如何实现方法默认参数的</a>
       </li>
     
@@ -367,10 +363,6 @@
     
       <li class="post">
         <a href="/blog/2019/01/12/summary-of-custom-views-part-i/">自定义View总结一</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2018/09/12/a-few-lately-thoughts/">碎碎念</a>
       </li>
     
   </ul>
@@ -407,7 +399,7 @@
 
 
 
-<section class="googleplus">
+<section class="googleplus googleplus-hidden">
   <h1>
     <a href="https://plus.google.com/107384356964511479070?rel=author">
       <img src="http://www.google.com/images/icons/ui/gprofile_button-32.png" width="32" height="32">
@@ -449,14 +441,6 @@
 
 
 
-
-  <script type="text/javascript">
-    (function() {
-      var script = document.createElement('script'); script.type = 'text/javascript'; script.async = true;
-      script.src = 'https://apis.google.com/js/plusone.js';
-      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(script, s);
-    })();
-  </script>
 
 
 

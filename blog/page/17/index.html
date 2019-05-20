@@ -9,9 +9,7 @@
   <meta name="author" content="Solarex">
 
   
-  <meta name="description" content="Ubuntu下建立Octopress博客过程 首先安装git 1
-sudo apt-get install git 安装rvm和ruby 1.9.3 1
-curl -L https://get.rvm.io | bash -s stable --ruby=1.9.3 克隆octopress到本地 &hellip;">
+  <meta name="description" content="之前已经在MacBook上装过Ubuntu了，不知怎么搞的，最近Ubuntu更新后，分辨率一直保持在1024×768，屏幕惨不忍睹，网上搜了好多，都是使用xrandr之类的，但是执行xrandr的时候老是报错，搜了下，貌似是一个bug。不管了，重装一下吧。 首先在MacBook下用Disk &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -92,6 +90,56 @@ curl -L https://get.rvm.io | bash -s stable --ruby=1.9.3 克隆octopress到本�
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/11/21/install-ubuntu-13-dot-04-on-macbook-pro-2011/">MacBook Pro 2011中安装Ubuntu 13.04</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-11-21T22:55:00+08:00" pubdate data-updated="true">Nov 21<span>st</span>, 2013</time>
+        
+         | <a href="/blog/2013/11/21/install-ubuntu-13-dot-04-on-macbook-pro-2011/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><center><p><img src="/images/logoubuntu.png" width="200" height="200" alt="ubuntu"></p></center>
+
+
+<p>之前已经在MacBook上装过Ubuntu了，不知怎么搞的，最近Ubuntu更新后，分辨率一直保持在1024×768，屏幕惨不忍睹，网上搜了好多，都是使用<a href="https://wiki.ubuntu.com/X/Config/Resolution">xrandr</a>之类的，但是执行<code>xrandr</code>的时候老是报错，搜了下，貌似是一个bug。不管了，重装一下吧。</p>
+
+<p>首先在MacBook下用<code>Disk Utility</code>分区，Ubuntu需要一个swap分区，一个<code>/</code>分区，用U盘安装的话有这两个就够了。但是我没有U盘，就又划分了一个2G的分区，把Ubuntu的镜像写进去，这样也便于以后恢复。分区全部使用FAT32格式。</p>
+
+<p>分好区后就是写Ubuntu的镜像文件了，注意要从Ubuntu官方网站上面下载针对Mac特定版本的iso文件，下载下来后，校验下如果没错的话，就可以用<code>UNetbooin</code>来烧Ubuntu的镜像了，可以烧到U盘中也可以像我一样烧到一个专门的分区中。分区的编号可以通过命令<code>diskutil list</code>来查看。</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2013/11/21/install-ubuntu-13-dot-04-on-macbook-pro-2011/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
   
   
     <article>
@@ -229,6 +277,10 @@ curl -L https://get.rvm.io | bash -s stable --ruby=1.9.3 克隆octopress到本�
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2019/04/30/learning-dagger2/">Dagger2学习</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2019/04/18/how-kotlin-generate-method-default-arguments/">Kotlin是如何实现方法默认参数的</a>
       </li>
     
@@ -242,10 +294,6 @@ curl -L https://get.rvm.io | bash -s stable --ruby=1.9.3 克隆octopress到本�
     
       <li class="post">
         <a href="/blog/2019/01/12/summary-of-custom-views-part-i/">自定义View总结一</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2018/09/12/a-few-lately-thoughts/">碎碎念</a>
       </li>
     
   </ul>
@@ -282,7 +330,7 @@ curl -L https://get.rvm.io | bash -s stable --ruby=1.9.3 克隆octopress到本�
 
 
 
-<section class="googleplus">
+<section class="googleplus googleplus-hidden">
   <h1>
     <a href="https://plus.google.com/107384356964511479070?rel=author">
       <img src="http://www.google.com/images/icons/ui/gprofile_button-32.png" width="32" height="32">
@@ -324,14 +372,6 @@ curl -L https://get.rvm.io | bash -s stable --ruby=1.9.3 克隆octopress到本�
 
 
 
-
-  <script type="text/javascript">
-    (function() {
-      var script = document.createElement('script'); script.type = 'text/javascript'; script.async = true;
-      script.src = 'https://apis.google.com/js/plusone.js';
-      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(script, s);
-    })();
-  </script>
 
 
 
