@@ -25,9 +25,10 @@ footer: true
 
 <h3 id='concurrency'>高并发</h3>
 
-+ // todo Java高并发书籍读书笔记
-+ // todo Java高并发类库工具类使用
-+ // todo Java高并发类库源码解析
++ Java高并发书籍读书笔记：[Java并发编程实战](https://solarex.github.io/reading-notes/jcip/readme.html)，[Java并发编程的艺术](https://solarex.github.io/reading-notes/the-art-of-java-concurrency-programming/readme.html)，[图解Java多线程设计模式](https://solarex.github.io/reading-notes/explain-thread-by-picture/readme.html)
++ [Java高并发类库工具类使用与源码解析](http://solarex.github.io/blog/categories/concurrency/)
++ [Java高并发类库源码解析](https://github.com/flyfire/ReadJCIP)
++ [Java并发编程笔记](https://solarex.github.io/learning-notes/java-concurrency-in-practice/readme.html)
 
 <h3 id='cs-fundament'>计算机基础</h3>
 
@@ -51,11 +52,17 @@ footer: true
 + [HelloDart](https://github.com/flyfire/HelloDart)
 + [SolaexFlutterQuiz](https://github.com/flyfire/SolarexFlutterQuiz)
 
+<h3 id='kotlin'>Kotlin</h3>
+
++ [Kotlin实战笔记](https://solarex.github.io/reading-notes/kia/readme.html)
++ [Kotlin实战源码](https://github.com/flyfire/JavaWithKotlin/)
+
 <h3 id='advancedjava'>Java高级特性</h3>
 
 + [YouDontKnowJava](https://github.com/flyfire/YouDontKnowJava)
-+ // todo Java虚拟机读书笔记
-+ // todo Java知识点总结
++ [深入理解Java虚拟机读书笔记](https://solarex.github.io/reading-notes/deep-into-jvm/readme.html)
++ [EffectiveJava2nd读书笔记](https://solarex.github.io/reading-notes/effective-java/readme.html)
++ [Java核心技术36讲总结](https://solarex.github.io/learning-notes/core-java/readme.html)
 
 <h3 id='androidsourceanalysis'>Android源码解析</h3>
 
@@ -83,10 +90,8 @@ footer: true
 + [SolarexRulerViewDemo](https://github.com/flyfire/SolarexRulerViewDemo)
 
 <h3 id='notebook'>学习笔记</h3>
-+ [JCIP](https://github.com/flyfire/ReadJCIP)
 + [读书笔记markdown](https://github.com/flyfire/Notebook)
 + [读书笔记gitbook](https://solarex.github.io/reading-notes/)
-+ [Kotlin实战代码](https://github.com/flyfire/JavaWithKotlin/)
 + [极客时间学习笔记markdown](https://github.com/flyfire/notes-on-geektime-md)
 + [极客时间学习笔记gitbook](https://solarex.github.io/learning-notes/)
 
