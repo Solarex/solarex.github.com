@@ -49,8 +49,10 @@ footer: true
 
 <h3 id='flutter'>Flutter</h3>
 
++ [Dart编程语言笔记](https://solarex.github.io/reading-notes/the-dart-programming-language/readme.html)
 + [HelloDart](https://github.com/flyfire/HelloDart)
 + [SolaexFlutterQuiz](https://github.com/flyfire/SolarexFlutterQuiz)
++ [SolarexFlutterDemo](https://github.com/flyfire/SolarexFlutterDemo)
 
 <h3 id='kotlin'>Kotlin</h3>
 
