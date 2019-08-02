@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Java Thread解析"
+title: "Android Thread解析"
 date: 2019-05-28 16:58
 comments: true
 categories: 
@@ -56,7 +56,7 @@ Java部分比较简单，大致过下各个方法吧。
     }
 ```
 
-线程``NEW``出来的时候只是从创建它的线程那里继承一些属性，比如threadgroup，daemon状态，priority，stacksize，之类的。真正启动线程是在``start``方法里。
+线程``NEW``出来的时候只是从创建它的线程那里继承一些属性，比如threadgroup，daemon状态，priority，stacksize，inheritableThreadLocals之类的。真正启动线程是在``start``方法里。
 
 ### 线程启动
 
@@ -325,7 +325,7 @@ void Thread::CreateNativeThread(JNIEnv* env, jobject java_peer, size_t stack_siz
     }
 ```
 
-线程有6中状态，``NEW``表示线程新建，还没调用``start()``。``RUNNABLE``表示线程处于可运行状态，等待CPU调度。``BLOCKED``表示线程在等待获取monitor lock。当在线程中调用``Object.wait()``或``Thread.join()``或``LockSupport.park()``方法时线程进入``WAITING``状态，在线程中调用``Thread.sleep()``或``Object.wait(long)``或``Thread.join(long)``或``LockSupport.parkNanos(long)``或``LockSupport.parkUntil(long)``线程进入``TIMED_WAITING``状态。线程执行完操作后会进入``TERMINATED``状态。
+线程有6种状态，``NEW``表示线程新建，还没调用``start()``。``RUNNABLE``表示线程调用了``start``处于可运行状态，等待CPU调度。``BLOCKED``表示线程在等待获取monitor lock。当在线程中调用``Object.wait()``或``Thread.join()``或``LockSupport.park()``方法时线程进入``WAITING``状态，在线程中调用``Thread.sleep()``或``Object.wait(long)``或``Thread.join(long)``或``LockSupport.parkNanos(long)``或``LockSupport.parkUntil(long)``线程进入``TIMED_WAITING``状态。线程执行完操作后会进入``TERMINATED``状态。
 
 ### 线程中断
 
@@ -478,7 +478,15 @@ bool Thread::IsInterrupted() {
 }
 ```
 
-
-
 ### 守护线程
 
+线程可分为两种，普通线程和守护线程（其实叫服务线程好理解些，这些线程一般是服务其他线程的）。在JVM启动时创建的所有线程中，除了主线程以外，其他的线程都是守护线程（例如垃圾回收器以及执行其他辅助工作的线程，signal catcher之类的）。
+
+当创建一个新线程时，新线程将继承创建它的线程的守护状态。
+
+普通线程和守护线程之间的差异仅在于当线程退出时发生的操作。当一个线程退出时，JVM会检查其他正在运行的线程，如果这些线程都是守护线程，那么JVM会正常退出操作。当JVM停止时，所有仍然存在的守护线程都将被抛弃——既不会执行finally代码块，也不会执行回卷栈，而JVM只是直接退出。
+
+### reference
+
++ 《Java并发编程实战》
++ [Android平台上除了Java线程还有native线程，可以参考这篇](<http://gityuan.com/2016/09/24/android-thread/>)
