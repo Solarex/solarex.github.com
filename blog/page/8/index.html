@@ -9,7 +9,7 @@
   <meta name="author" content="Solarex">
 
   
-  <meta name="description" content="Offline support for mobile applications can be thought of as the ability for the application to react gracefully to the lack of stability of the &hellip;">
+  <meta name="description" content="Pointcuts by annotations Using annotations is more convenient than using patterns. While patterns might be anything between a big cannon and a &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -96,7 +96,7 @@
       
   <header>
     
-      <h1 class="entry-title"><a href="/blog/2016/03/14/mobile-apps-offline-support/">Mobile Apps Offline Support</a></h1>
+      <h1 class="entry-title"><a href="/blog/2016/09/16/defining-pointcuts-by-annotations/">Defining Pointcuts by Annotations</a></h1>
     
     
       <p class="meta">
@@ -112,34 +112,26 @@
   
 
 
-<time datetime="2016-03-14T08:43:00+08:00" pubdate data-updated="true">Mar 14<span>th</span>, 2016</time>
+<time datetime="2016-09-16T16:17:00+08:00" pubdate data-updated="true">Sep 16<span>th</span>, 2016</time>
         
-         | <a href="/blog/2016/03/14/mobile-apps-offline-support/#disqus_thread">Comments</a>
+         | <a href="/blog/2016/09/16/defining-pointcuts-by-annotations/#disqus_thread">Comments</a>
         
       </p>
     
   </header>
 
 
-  <div class="entry-content"><p>Offline support for mobile applications can be thought of as the ability for the application to react gracefully to the lack of stability of the network connection. The rather new context of mobile devices introduced problems such as presence or absence of a network connection or even high latency and low bandwidth. These problems are rather new and thus not very well known to engineers starting with mobile development. Among other things building a mobile application which resilient to different network scenarios could mean:</p>
+  <div class="entry-content"><h2>Pointcuts by annotations</h2>
 
-<ul>
-<li>Displaying comprehensive error messages when network calls fail.</li>
-<li>Allowing the use of the application in “guest mode”, where certain features can be delayed until the user actually signs in.</li>
-<li>Visually displaying the absence of network connectivity on the UI (connected mode/offline mode).</li>
-<li>Disabling controls in the absence of network connectivity.</li>
-<li>Allowing the user to query and act on data while no network connection (offline data access).</li>
-<li>Testing the application under different network conditions!</li>
-</ul>
+<p>Using annotations is more convenient than using patterns. While patterns might be anything between a big cannon and a scalpel the annotations are definitely a scalpel, by only getting the pointcuts that the developer has manually specified.</p>
 
-
-<p>While all these things are extremely important from the usability point of view, there is one of these that can be particular complex, “offline data access”. There are several different scenarios or levels of offline data access that applications might need to support, and I’ll go through each next.</p>
+<p>You can get the code for this blog series at the Git repository <a href="https://github.com/Nosfert/AspectJ-Tutorial-jayway">here</a>.</p>
 
 </div>
   
   
     <footer>
-      <a rel="full-article" href="/blog/2016/03/14/mobile-apps-offline-support/">Read on &rarr;</a>
+      <a rel="full-article" href="/blog/2016/09/16/defining-pointcuts-by-annotations/">Read on &rarr;</a>
     </footer>
   
 
@@ -151,7 +143,7 @@
       
   <header>
     
-      <h1 class="entry-title"><a href="/blog/2016/03/13/the-clean-architecture/">The Clean Architecture</a></h1>
+      <h1 class="entry-title"><a href="/blog/2016/09/15/defining-pointcuts-by-pattern/">Defining Pointcuts by Pattern</a></h1>
     
     
       <p class="meta">
@@ -167,34 +159,26 @@
   
 
 
-<time datetime="2016-03-13T23:57:00+08:00" pubdate data-updated="true">Mar 13<span>th</span>, 2016</time>
+<time datetime="2016-09-15T16:16:00+08:00" pubdate data-updated="true">Sep 15<span>th</span>, 2016</time>
         
-         | <a href="/blog/2016/03/13/the-clean-architecture/#disqus_thread">Comments</a>
+         | <a href="/blog/2016/09/15/defining-pointcuts-by-pattern/#disqus_thread">Comments</a>
         
       </p>
     
   </header>
 
 
-  <div class="entry-content"><center><img src="/images/clean_arch.jpg"></center>
+  <div class="entry-content"><h2>Pointcuts by pattern</h2>
 
+<p>Going through all the different ways of defining pointcuts and explaining them in an easy manner would be a near impossible feat for this post. Rather than aiming for the impossible let’s narrow down the scope, and talk about the most commonly used pointcut definitions and how we can experiment with them. We will get you started with defining your own pointcuts!</p>
 
-<p>Over the last several years we’ve seen a whole range of ideas regarding the architecture of systems. These include:</p>
-
-<ul>
-<li><a href="http://alistair.cockburn.us/Hexagonal+architecture">Hexagonal Architecture</a> (a.k.a. Ports and Adapters) by Alistair Cockburn and adopted by Steve Freeman, and Nat Pryce in their wonderful book <a href="http://www.amazon.com/Growing-Object-Oriented-Software-Guided-Tests/dp/0321503627">Growing Object Oriented Software</a>.</li>
-<li><a href="http://jeffreypalermo.com/blog/the-onion-architecture-part-1/">Onion Architecture</a> by Jeffrey Palermo</li>
-<li><a href="http://blog.8thlight.com/uncle-bob/2011/09/30/Screaming-Architecture.html">Screaming Architecture</a> from a blog of mine last year</li>
-<li><a href="http://www.amazon.com/Lean-Architecture-Agile-Software-Development/dp/0470684208/">DCI</a> from James Coplien, and Trygve Reenskaug.</li>
-<li><a href="http://www.amazon.com/Object-Oriented-Software-Engineering-Approach/dp/0201544350">BCE</a> by Ivar Jacobson from his book Object Oriented Software Engineering: A Use-Case Driven Approach</li>
-</ul>
-
+<p>You can get the code for this blog series at the Git repository <a href="https://github.com/Nosfert/AspectJ-Tutorial-jayway">here</a>.</p>
 
 </div>
   
   
     <footer>
-      <a rel="full-article" href="/blog/2016/03/13/the-clean-architecture/">Read on &rarr;</a>
+      <a rel="full-article" href="/blog/2016/09/15/defining-pointcuts-by-pattern/">Read on &rarr;</a>
     </footer>
   
 
@@ -206,7 +190,7 @@
       
   <header>
     
-      <h1 class="entry-title"><a href="/blog/2016/02/25/android-handler-memory-leaks/">Android Handler Memory Leaks</a></h1>
+      <h1 class="entry-title"><a href="/blog/2016/09/14/the-basics-of-aop/">The Basics of AOP</a></h1>
     
     
       <p class="meta">
@@ -222,26 +206,26 @@
   
 
 
-<time datetime="2016-02-25T19:58:00+08:00" pubdate data-updated="true">Feb 25<span>th</span>, 2016</time>
+<time datetime="2016-09-14T16:15:00+08:00" pubdate data-updated="true">Sep 14<span>th</span>, 2016</time>
         
-         | <a href="/blog/2016/02/25/android-handler-memory-leaks/#disqus_thread">Comments</a>
+         | <a href="/blog/2016/09/14/the-basics-of-aop/#disqus_thread">Comments</a>
         
       </p>
     
   </header>
 
 
-  <div class="entry-content"><p>Android uses Java as a platform for development. This helps us with many low level issues including memory management, platform type dependencies, and so on. However we still sometimes get crashes with OutOfMemory. So where’s the garbage collector?</p>
+  <div class="entry-content"><h2>Aspect Oriented Programming</h2>
 
-<p>I’m going to focus on one of the cases where big objects in memory can’t be cleared for a lengthy period of time. This case is not ultimately a memory leak &ndash; objects will be collected at some point &ndash; so we sometimes ignore it. This is not advisable as it can sometimes lead to OOM errors.</p>
+<p>AOP is both a complex and quite simple thing. There has been a lot of buzz around AOP but recently the buzz has faded. The question that people still ask is “what do I do with it”. Hopefully you will have an idea of what it is and create your own thoughts on how you could use it.</p>
 
-<p>The case I’m describing is the Handler leak, which is usually detected as a warning by Lint.</p>
+<p>In this post I aim to describe what AOP actually is and how it works.</p>
 
 </div>
   
   
     <footer>
-      <a rel="full-article" href="/blog/2016/02/25/android-handler-memory-leaks/">Read on &rarr;</a>
+      <a rel="full-article" href="/blog/2016/09/14/the-basics-of-aop/">Read on &rarr;</a>
     </footer>
   
 
@@ -253,7 +237,7 @@
       
   <header>
     
-      <h1 class="entry-title"><a href="/blog/2016/02/12/recyclerview-animation-part-ii/">RecyclerView Animation Part II</a></h1>
+      <h1 class="entry-title"><a href="/blog/2016/09/13/aspectj-dictionary/">AspectJ - Dictionary</a></h1>
     
     
       <p class="meta">
@@ -269,33 +253,26 @@
   
 
 
-<time datetime="2016-02-12T00:47:00+08:00" pubdate data-updated="true">Feb 12<span>th</span>, 2016</time>
+<time datetime="2016-09-13T16:13:00+08:00" pubdate data-updated="true">Sep 13<span>th</span>, 2016</time>
         
-         | <a href="/blog/2016/02/12/recyclerview-animation-part-ii/#disqus_thread">Comments</a>
+         | <a href="/blog/2016/09/13/aspectj-dictionary/#disqus_thread">Comments</a>
         
       </p>
     
   </header>
 
 
-  <div class="entry-content"><p>In the first article, I’ve covered the main idea on how predictive animations run in RecyclerView. There is actually a lot more going on to achieve this simplicity (for the LayoutManager). Here are some important points that you should know about.</p>
+  <div class="entry-content"><h2>What is <a href="https://en.wikipedia.org/wiki/Aspect-oriented_programming">AOP</a></h2>
 
-<p>RecyclerView keeps some children attached although they have been removed by the LayoutManager. How does it work? Does it invalidate the contract between the LayoutManager and RecyclerView?</p>
+<p>Every time someone tries to explain AOP (Aspect Oriented Programming) they often use words like “magic” or “black magic”. And that’s understandable, especially if you come from an OOP world and come across AOP it really feels like “magic”: something is happening and you as a developer usually don’t know why, what or how.</p>
 
-<p>Yes it does ‘kind of’ violate the contract with LayoutManager, but:</p>
-
-<p>RecyclerView does keep the View as a child of the ViewGroup but hides it from the LayoutManager. Each time LayoutManager calls a method to access its children, RecyclerView takes into account the hidden Views. Lets look at the example at Part 1 where ‘C’ was being removed from the adapter.</p>
-
-<center><img src="/images/predictive_animations.gif"></center>
-
-
-
+<p>AspectJ is one of the more well-known implementations for AOP in Java and is developed by the Eclipse Foundation. In this series of articles we will be concentrating on AspectJ’s implementation of AOP and how it works in Java.So, let’s dive into AspectJ and make an effort of dispersing the mystic around the so-called “black magic”. Let’s start by building a dictionary with short explanations of some key terms.</p>
 
 </div>
   
   
     <footer>
-      <a rel="full-article" href="/blog/2016/02/12/recyclerview-animation-part-ii/">Read on &rarr;</a>
+      <a rel="full-article" href="/blog/2016/09/13/aspectj-dictionary/">Read on &rarr;</a>
     </footer>
   
 
@@ -307,7 +284,7 @@
       
   <header>
     
-      <h1 class="entry-title"><a href="/blog/2016/02/11/recyclerview-animation-part-i/">RecyclerView Animation Part I</a></h1>
+      <h1 class="entry-title"><a href="/blog/2016/05/28/make-an-android-custom-view-publish-and-open-source/">Make an Android Custom view,Publish and Open Source</a></h1>
     
     
       <p class="meta">
@@ -323,34 +300,29 @@
   
 
 
-<time datetime="2016-02-11T00:47:00+08:00" pubdate data-updated="true">Feb 11<span>th</span>, 2016</time>
+<time datetime="2016-05-28T14:34:00+08:00" pubdate data-updated="true">May 28<span>th</span>, 2016</time>
         
-         | <a href="/blog/2016/02/11/recyclerview-animation-part-i/#disqus_thread">Comments</a>
+         | <a href="/blog/2016/05/28/make-an-android-custom-view-publish-and-open-source/#disqus_thread">Comments</a>
         
       </p>
     
   </header>
 
 
-  <div class="entry-content"><p>ListView is one of the most popular widgets of the Android Framework. It has many features, yet it is fairly complex and hard to modify. As the UX paradigms evolved and phones got faster, its limitations started to overshadow its feature set.</p>
+  <div class="entry-content"><p>Today I’m going to create an android custom view to implement circular <code>SeekBar</code> like the mockup below, make it as a library, open source at GitHub, and publish it to JCenter. In this post, I will cover several fundamental concepts of android custom view, write a helpful README on GitHub, and how to publish your library.</p>
 
-<p>With Lollipop, the Android team decided to release a new widget that will make writing different collection views much easier with a pluggable architecture. Many different behaviors can be controlled easily by implementing simple contracts to change:</p>
-
-<ul>
-<li>how items are laid out</li>
-<li>animations!</li>
-<li>item decorations</li>
-<li>recycling strategy</li>
-</ul>
+<center><img src="/images/custom_view_seekbar.png"/></center>
 
 
-<p>This great flexibility comes with the additional complexity of a bigger architecture. Also, there are more things to learn.</p>
+<h2>Before you start…</h2>
+
+<p>Try to understand the requirement or design specification, take a look at this widget first, the user can touch the indicator icon through this arc to set the current progress level. The indicator icon will stop dragging when exceeding max or min progress. It works like an extension of circular <code>SeekBar</code> with customized appearances and motion event.</p>
 
 </div>
   
   
     <footer>
-      <a rel="full-article" href="/blog/2016/02/11/recyclerview-animation-part-i/">Read on &rarr;</a>
+      <a rel="full-article" href="/blog/2016/05/28/make-an-android-custom-view-publish-and-open-source/">Read on &rarr;</a>
     </footer>
   
 
@@ -374,23 +346,23 @@
   <ul id="recent_posts">
     
       <li class="post">
-        <a href="/blog/2019/04/30/learning-dagger2/">Dagger2学习</a>
+        <a href="/blog/2019/08/04/java-threadpoolexecutor/">Java线程池解析</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2019/04/18/how-kotlin-generate-method-default-arguments/">Kotlin是如何实现方法默认参数的</a>
+        <a href="/blog/2019/08/01/java-blockingqueue/">Java BlockingQueue解析</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2019/03/12/summary-of-custom-views-part-iii/">自定义View总结三</a>
+        <a href="/blog/2019/07/28/aqs/">Java AQS解析</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2019/02/12/summary-of-custom-views-part-ii/">自定义View总结二</a>
+        <a href="/blog/2019/06/28/futuretask/">Java FutureTask解析</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2019/01/12/summary-of-custom-views-part-i/">自定义View总结一</a>
+        <a href="/blog/2019/05/28/thread/">Android Thread解析</a>
       </li>
     
   </ul>
@@ -417,7 +389,7 @@
         github.showRepos({
             user: 'flyfire',
             count: 5,
-            skip_forks: true,
+            skip_forks: false,
             target: '#gh_repos'
         });
     });

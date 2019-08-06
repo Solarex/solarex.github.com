@@ -9,7 +9,7 @@
   <meta name="author" content="Solarex">
 
   
-  <meta name="description" content="Pointcuts by annotations Using annotations is more convenient than using patterns. While patterns might be anything between a big cannon and a &hellip;">
+  <meta name="description" content="Implementing adapters is one of the most frequent tasks for an Android developer. It’s the base for every list. Looking at apps, lists are the base &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -96,7 +96,7 @@
       
   <header>
     
-      <h1 class="entry-title"><a href="/blog/2016/09/16/defining-pointcuts-by-annotations/">Defining Pointcuts by Annotations</a></h1>
+      <h1 class="entry-title"><a href="/blog/2016/12/26/writing-better-adapters/">Writing Better Adapters</a></h1>
     
     
       <p class="meta">
@@ -112,26 +112,38 @@
   
 
 
-<time datetime="2016-09-16T16:17:00+08:00" pubdate data-updated="true">Sep 16<span>th</span>, 2016</time>
+<time datetime="2016-12-26T16:11:00+08:00" pubdate data-updated="true">Dec 26<span>th</span>, 2016</time>
         
-         | <a href="/blog/2016/09/16/defining-pointcuts-by-annotations/#disqus_thread">Comments</a>
+         | <a href="/blog/2016/12/26/writing-better-adapters/#disqus_thread">Comments</a>
         
       </p>
     
   </header>
 
 
-  <div class="entry-content"><h2>Pointcuts by annotations</h2>
+  <div class="entry-content"><p>Implementing adapters is one of the most frequent tasks for an Android developer. It’s the base for every list. Looking at apps, lists are the base of most apps.</p>
 
-<p>Using annotations is more convenient than using patterns. While patterns might be anything between a big cannon and a scalpel the annotations are definitely a scalpel, by only getting the pointcuts that the developer has manually specified.</p>
+<p>The schema we follow to implement list views is often the same: a View with an adapter that holds the data. Doing this all the time can make us blind to what we are writing, even to ugly code. Even worse, we end up repeating that ugly code.</p>
 
-<p>You can get the code for this blog series at the Git repository <a href="https://github.com/Nosfert/AspectJ-Tutorial-jayway">here</a>.</p>
+<p>It’s time to take a close look into adapters.</p>
+
+<h2>RecyclerView Basics</h2>
+
+<p>The basic operations for RecyclerViews (but also applicable for ListView) are:</p>
+
+<ul>
+<li>Creating the view and the ViewHolder that holds the view information.</li>
+<li>Binding the ViewHolder to the data that the adapter holds, probably a list of model classes.</li>
+</ul>
+
+
+<p>Implementing this is pretty straightforward and not much can be done wrong here.</p>
 
 </div>
   
   
     <footer>
-      <a rel="full-article" href="/blog/2016/09/16/defining-pointcuts-by-annotations/">Read on &rarr;</a>
+      <a rel="full-article" href="/blog/2016/12/26/writing-better-adapters/">Read on &rarr;</a>
     </footer>
   
 
@@ -143,7 +155,7 @@
       
   <header>
     
-      <h1 class="entry-title"><a href="/blog/2016/09/15/defining-pointcuts-by-pattern/">Defining Pointcuts by Pattern</a></h1>
+      <h1 class="entry-title"><a href="/blog/2016/10/10/choreographer-in-android/">Choreographer in Android</a></h1>
     
     
       <p class="meta">
@@ -159,26 +171,26 @@
   
 
 
-<time datetime="2016-09-15T16:16:00+08:00" pubdate data-updated="true">Sep 15<span>th</span>, 2016</time>
+<time datetime="2016-10-10T20:38:00+08:00" pubdate data-updated="true">Oct 10<span>th</span>, 2016</time>
         
-         | <a href="/blog/2016/09/15/defining-pointcuts-by-pattern/#disqus_thread">Comments</a>
+         | <a href="/blog/2016/10/10/choreographer-in-android/#disqus_thread">Comments</a>
         
       </p>
     
   </header>
 
 
-  <div class="entry-content"><h2>Pointcuts by pattern</h2>
+  <div class="entry-content"><p>Choreographer is the one which acts like a interface between application view system and lower layer display system for rendering the views.</p>
 
-<p>Going through all the different ways of defining pointcuts and explaining them in an easy manner would be a near impossible feat for this post. Rather than aiming for the impossible let’s narrow down the scope, and talk about the most commonly used pointcut definitions and how we can experiment with them. We will get you started with defining your own pointcuts!</p>
+<p>ViewRootImpl is the ViewParent or root below which only Activity window DecorView will be attached. All the view layouts set by the activity through <code>setContentView()</code> will attached the DecorView whose parent is ViewRootImpl. Actually ViewRootImpl is not a View its just a ViewParent which handled and manages the View Hierarchies for displaying, handling input events etc.</p>
 
-<p>You can get the code for this blog series at the Git repository <a href="https://github.com/Nosfert/AspectJ-Tutorial-jayway">here</a>.</p>
+<p>The number of root views that are active in your process. Each root view is associated with a window, so this can help you identify memory leaks involving dialogs or other windows.</p>
 
 </div>
   
   
     <footer>
-      <a rel="full-article" href="/blog/2016/09/15/defining-pointcuts-by-pattern/">Read on &rarr;</a>
+      <a rel="full-article" href="/blog/2016/10/10/choreographer-in-android/">Read on &rarr;</a>
     </footer>
   
 
@@ -190,7 +202,7 @@
       
   <header>
     
-      <h1 class="entry-title"><a href="/blog/2016/09/14/the-basics-of-aop/">The Basics of AOP</a></h1>
+      <h1 class="entry-title"><a href="/blog/2016/10/09/vsync-in-android/">VSYNC in Android</a></h1>
     
     
       <p class="meta">
@@ -206,26 +218,24 @@
   
 
 
-<time datetime="2016-09-14T16:15:00+08:00" pubdate data-updated="true">Sep 14<span>th</span>, 2016</time>
+<time datetime="2016-10-09T20:43:00+08:00" pubdate data-updated="true">Oct 9<span>th</span>, 2016</time>
         
-         | <a href="/blog/2016/09/14/the-basics-of-aop/#disqus_thread">Comments</a>
+         | <a href="/blog/2016/10/09/vsync-in-android/#disqus_thread">Comments</a>
         
       </p>
     
   </header>
 
 
-  <div class="entry-content"><h2>Aspect Oriented Programming</h2>
+  <div class="entry-content"><h2>In Android What is VSYNC and its usage?</h2>
 
-<p>AOP is both a complex and quite simple thing. There has been a lot of buzz around AOP but recently the buzz has faded. The question that people still ask is “what do I do with it”. Hopefully you will have an idea of what it is and create your own thoughts on how you could use it.</p>
-
-<p>In this post I aim to describe what AOP actually is and how it works.</p>
+<p>VSYNC is the event posted periodically by the kernal at fixed interval where the input handling, Animation and Window drawing happening synchroniiously at the same VSYNC interval. Below have given the detail explanation about the VSYNC event before VSYNC is introduced and after VSYNC is introduced.</p>
 
 </div>
   
   
     <footer>
-      <a rel="full-article" href="/blog/2016/09/14/the-basics-of-aop/">Read on &rarr;</a>
+      <a rel="full-article" href="/blog/2016/10/09/vsync-in-android/">Read on &rarr;</a>
     </footer>
   
 
@@ -237,7 +247,7 @@
       
   <header>
     
-      <h1 class="entry-title"><a href="/blog/2016/09/13/aspectj-dictionary/">AspectJ - Dictionary</a></h1>
+      <h1 class="entry-title"><a href="/blog/2016/09/20/aspect-oriented-programming-in-android/">Aspect Oriented Programming in Android</a></h1>
     
     
       <p class="meta">
@@ -253,26 +263,26 @@
   
 
 
-<time datetime="2016-09-13T16:13:00+08:00" pubdate data-updated="true">Sep 13<span>th</span>, 2016</time>
+<time datetime="2016-09-20T18:24:00+08:00" pubdate data-updated="true">Sep 20<span>th</span>, 2016</time>
         
-         | <a href="/blog/2016/09/13/aspectj-dictionary/#disqus_thread">Comments</a>
+         | <a href="/blog/2016/09/20/aspect-oriented-programming-in-android/#disqus_thread">Comments</a>
         
       </p>
     
   </header>
 
 
-  <div class="entry-content"><h2>What is <a href="https://en.wikipedia.org/wiki/Aspect-oriented_programming">AOP</a></h2>
+  <div class="entry-content"><p>Aspect-oriented programming entails breaking down program logic into &ldquo;concerns&rdquo; (cohesive areas of functionality). This means, that with AOP, we can add executable blocks to some source code without explicitly changing it. This programming paradigm pretends that “cross-cutting concerns” (the logic needed at many places, without a single class where to implement them) should be implemented once and injected it many times into those places.</p>
 
-<p>Every time someone tries to explain AOP (Aspect Oriented Programming) they often use words like “magic” or “black magic”. And that’s understandable, especially if you come from an OOP world and come across AOP it really feels like “magic”: something is happening and you as a developer usually don’t know why, what or how.</p>
+<p>Code injection becomes a very important part of AOP: it is useful for dealing with the mentioned &ldquo;concerns&rdquo; that cut across the whole application, such as logging or performance monitoring, and, using it in this way, should not be something used rarely as you might think, quite the contrary; every programmer will come into a situation where this ability of injecting code, could prevent a lot of pain and frustration.</p>
 
-<p>AspectJ is one of the more well-known implementations for AOP in Java and is developed by the Eclipse Foundation. In this series of articles we will be concentrating on AspectJ’s implementation of AOP and how it works in Java.So, let’s dive into AspectJ and make an effort of dispersing the mystic around the so-called “black magic”. Let’s start by building a dictionary with short explanations of some key terms.</p>
+<p>AOP is a paradigm that has been with us for many years, and I found it very useful to apply it to Android. After some investigation I consider that we can get a lot of advantages and very useful stuff when making use of it.</p>
 
 </div>
   
   
     <footer>
-      <a rel="full-article" href="/blog/2016/09/13/aspectj-dictionary/">Read on &rarr;</a>
+      <a rel="full-article" href="/blog/2016/09/20/aspect-oriented-programming-in-android/">Read on &rarr;</a>
     </footer>
   
 
@@ -284,7 +294,7 @@
       
   <header>
     
-      <h1 class="entry-title"><a href="/blog/2016/05/28/make-an-android-custom-view-publish-and-open-source/">Make an Android Custom view,Publish and Open Source</a></h1>
+      <h1 class="entry-title"><a href="/blog/2016/09/17/using-annotations-element-value-pairs-in-aspectj/">Using Annotations Element-value Pairs in AspectJ</a></h1>
     
     
       <p class="meta">
@@ -300,29 +310,24 @@
   
 
 
-<time datetime="2016-05-28T14:34:00+08:00" pubdate data-updated="true">May 28<span>th</span>, 2016</time>
+<time datetime="2016-09-17T16:18:00+08:00" pubdate data-updated="true">Sep 17<span>th</span>, 2016</time>
         
-         | <a href="/blog/2016/05/28/make-an-android-custom-view-publish-and-open-source/#disqus_thread">Comments</a>
+         | <a href="/blog/2016/09/17/using-annotations-element-value-pairs-in-aspectj/#disqus_thread">Comments</a>
         
       </p>
     
   </header>
 
 
-  <div class="entry-content"><p>Today I’m going to create an android custom view to implement circular <code>SeekBar</code> like the mockup below, make it as a library, open source at GitHub, and publish it to JCenter. In this post, I will cover several fundamental concepts of android custom view, write a helpful README on GitHub, and how to publish your library.</p>
+  <div class="entry-content"><h2>Annotations with element-value pairs</h2>
 
-<center><img src="/images/custom_view_seekbar.png"/></center>
-
-
-<h2>Before you start…</h2>
-
-<p>Try to understand the requirement or design specification, take a look at this widget first, the user can touch the indicator icon through this arc to set the current progress level. The indicator icon will stop dragging when exceeding max or min progress. It works like an extension of circular <code>SeekBar</code> with customized appearances and motion event.</p>
+<p>Annotations by themselves are really powerful. They give direct control over when an aspect should be run to the developer. Adding element-value pairs makes the already powerful annotations even more powerful, since it enables you to pass information into the aspect.</p>
 
 </div>
   
   
     <footer>
-      <a rel="full-article" href="/blog/2016/05/28/make-an-android-custom-view-publish-and-open-source/">Read on &rarr;</a>
+      <a rel="full-article" href="/blog/2016/09/17/using-annotations-element-value-pairs-in-aspectj/">Read on &rarr;</a>
     </footer>
   
 
@@ -346,23 +351,23 @@
   <ul id="recent_posts">
     
       <li class="post">
-        <a href="/blog/2019/04/30/learning-dagger2/">Dagger2学习</a>
+        <a href="/blog/2019/08/04/java-threadpoolexecutor/">Java线程池解析</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2019/04/18/how-kotlin-generate-method-default-arguments/">Kotlin是如何实现方法默认参数的</a>
+        <a href="/blog/2019/08/01/java-blockingqueue/">Java BlockingQueue解析</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2019/03/12/summary-of-custom-views-part-iii/">自定义View总结三</a>
+        <a href="/blog/2019/07/28/aqs/">Java AQS解析</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2019/02/12/summary-of-custom-views-part-ii/">自定义View总结二</a>
+        <a href="/blog/2019/06/28/futuretask/">Java FutureTask解析</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2019/01/12/summary-of-custom-views-part-i/">自定义View总结一</a>
+        <a href="/blog/2019/05/28/thread/">Android Thread解析</a>
       </li>
     
   </ul>
@@ -389,7 +394,7 @@
         github.showRepos({
             user: 'flyfire',
             count: 5,
-            skip_forks: true,
+            skip_forks: false,
             target: '#gh_repos'
         });
     });

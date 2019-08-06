@@ -9,8 +9,7 @@
   <meta name="author" content="Solarex">
 
   
-  <meta name="description" content="
-">
+  <meta name="description" content="最近在做一个周日历的新需求，其中有个要求是要RecyclerView平滑的滑动到指定位置，刚开始的时候我以为只要调用smoothScrollToPosition这个方法就可以了，测试的时候发现，smoothScrollToPosition只会对不可见的item有效， &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -97,7 +96,7 @@
       
   <header>
     
-      <h1 class="entry-title"><a href="/blog/2018/04/03/coordinatelayout-behavior-analysis/">CoordinatorLayout Behavior分析</a></h1>
+      <h1 class="entry-title"><a href="/blog/2018/05/30/recyclerview-smooth-scoll-to-position/">RecyclerView平滑滑动到指定位置</a></h1>
     
     
       <p class="meta">
@@ -113,241 +112,207 @@
   
 
 
-<time datetime="2018-04-03T16:29:00+08:00" pubdate data-updated="true">Apr 3<span>rd</span>, 2018</time>
+<time datetime="2018-05-30T14:33:00+08:00" pubdate data-updated="true">May 30<span>th</span>, 2018</time>
         
-         | <a href="/blog/2018/04/03/coordinatelayout-behavior-analysis/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content">
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2018/03/25/android-touch-system/">Android触摸事件分发机制</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2018-03-25T16:26:00+08:00" pubdate data-updated="true">Mar 25<span>th</span>, 2018</time>
-        
-         | <a href="/blog/2018/03/25/android-touch-system/#disqus_thread">Comments</a>
+         | <a href="/blog/2018/05/30/recyclerview-smooth-scoll-to-position/#disqus_thread">Comments</a>
         
       </p>
     
   </header>
 
 
-  <div class="entry-content"><iframe src="//player.bilibili.com/player.html?aid=24566744&cid=41274515&page=1" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true"> </iframe>
-
-
-<h4>reference</h4>
-
-<ul>
-<li><a href="https://github.com/devunwired/custom-touch-examples">custom-touch-examples</a></li>
-</ul>
-
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2018/03/23/volley-source-analysis/">Volley源码分析</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2018-03-23T16:24:00+08:00" pubdate data-updated="true">Mar 23<span>rd</span>, 2018</time>
-        
-         | <a href="/blog/2018/03/23/volley-source-analysis/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content">
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2018/01/08/android-signature/">Android签名</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2018-01-08T09:49:00+08:00" pubdate data-updated="true">Jan 8<span>th</span>, 2018</time>
-        
-         | <a href="/blog/2018/01/08/android-signature/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h3>reference</h3>
-
-<ul>
-<li><a href="https://source.android.com/security/apksigning">V1</a></li>
-<li><a href="https://source.android.com/security/apksigning/v2">V2</a></li>
-<li><a href="https://source.android.com/security/apksigning/v3">V3</a></li>
-</ul>
-
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2017/10/18/develop-jni-program-in-mac/">在Mac下进行JNI开发</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2017-10-18T21:56:00+08:00" pubdate data-updated="true">Oct 18<span>th</span>, 2017</time>
-        
-         | <a href="/blog/2017/10/18/develop-jni-program-in-mac/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>本文主要讲述如何在Mac开发环境下进行JNI开发。</p>
-
-<p>首先编写好Java文件，示例程序主要示范了Java访问C，C访问Java静态与非静态域。</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">HelloJni</span><span class="o">{</span>
-</span><span class='line'>    <span class="kd">static</span><span class="o">{</span>
-</span><span class='line'>        <span class="n">System</span><span class="o">.</span><span class="na">loadLibrary</span><span class="o">(</span><span class="s">&quot;HelloJni&quot;</span><span class="o">);</span>
-</span><span class='line'>    <span class="o">}</span>
-</span><span class='line'>    <span class="kd">public</span> <span class="kd">native</span> <span class="kd">static</span> <span class="n">String</span> <span class="nf">getStringFromCStatic</span><span class="o">();</span>
-</span><span class='line'>    <span class="kd">public</span> <span class="kd">native</span> <span class="n">String</span> <span class="nf">getStringFromCNonStatic</span><span class="o">();</span>
-</span><span class='line'>    <span class="kd">public</span> <span class="n">String</span> <span class="n">key</span> <span class="o">=</span> <span class="s">&quot;key&quot;</span><span class="o">;</span>
-</span><span class='line'>    <span class="kd">public</span> <span class="kd">static</span> <span class="kt">int</span> <span class="n">count</span> <span class="o">=</span> <span class="mi">5</span><span class="o">;</span>
-</span><span class='line'>    <span class="kd">public</span> <span class="kd">native</span> <span class="n">String</span> <span class="nf">accessField</span><span class="o">();</span>
-</span><span class='line'>    <span class="kd">public</span> <span class="kd">native</span> <span class="kt">void</span> <span class="nf">accessStaticField</span><span class="o">();</span>
-</span><span class='line'>    <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">args</span><span class="o">){</span>
-</span><span class='line'>        <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">getStringFromCStatic</span><span class="o">());</span>
-</span><span class='line'>        <span class="n">HelloJni</span> <span class="n">hello</span> <span class="o">=</span> <span class="k">new</span> <span class="n">HelloJni</span><span class="o">();</span>
-</span><span class='line'>        <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">hello</span><span class="o">.</span><span class="na">getStringFromCNonStatic</span><span class="o">());</span>
-</span><span class='line'>        <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">&quot;change before key: &quot;</span> <span class="o">+</span> <span class="n">hello</span><span class="o">.</span><span class="na">key</span><span class="o">);</span>
-</span><span class='line'>        <span class="n">hello</span><span class="o">.</span><span class="na">accessField</span><span class="o">();</span>
-</span><span class='line'>        <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">&quot;change after key: &quot;</span> <span class="o">+</span> <span class="n">hello</span><span class="o">.</span><span class="na">key</span><span class="o">);</span>
-</span><span class='line'>        <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">&quot;change before count: &quot;</span> <span class="o">+</span> <span class="n">count</span><span class="o">);</span>
-</span><span class='line'>        <span class="n">hello</span><span class="o">.</span><span class="na">accessStaticField</span><span class="o">();</span>
-</span><span class='line'>        <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">&quot;change after count: &quot;</span> <span class="o">+</span> <span class="n">count</span><span class="o">);</span>
-</span><span class='line'>    <span class="o">}</span>
-</span><span class='line'><span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-
+  <div class="entry-content"><p>最近在做一个周日历的新需求，其中有个要求是要RecyclerView平滑的滑动到指定位置，刚开始的时候我以为只要调用<code>smoothScrollToPosition</code>这个方法就可以了，测试的时候发现，<code>smoothScrollToPosition</code>只会对不可见的item有效，对于已经可见的item滑动没有效果，于是翻看了一下<code>smoothScrollToPosition</code>的源码，发现是调用了<code>LayoutManger</code>的<code>smoothScrollToPosition</code>方法。</p>
 
 </div>
   
   
     <footer>
-      <a rel="full-article" href="/blog/2017/10/18/develop-jni-program-in-mac/">Read on &rarr;</a>
+      <a rel="full-article" href="/blog/2018/05/30/recyclerview-smooth-scoll-to-position/">Read on &rarr;</a>
     </footer>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2018/04/26/java-proxy/">Java代理</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2018-04-26T10:07:00+08:00" pubdate data-updated="true">Apr 26<span>th</span>, 2018</time>
+        
+         | <a href="/blog/2018/04/26/java-proxy/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Java代理有静态代理和动态代理之分。</p>
+
+<h4>静态代理</h4>
+
+<p>静态代理类图如下：</p>
+
+<p><center><img src="/images/java-proxy-static.png" width=225 height=225/></center></p>
+
+
+<p><code>ProxyObject</code>持有<code>RealObject</code>的引用，在<code>someOperation</code>方法中可以代理<code>RealObject</code>做操作。</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2018/04/26/java-proxy/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2018/04/23/okhttp3-source-analysis/">Okhttp3源码分析</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2018-04-23T16:43:00+08:00" pubdate data-updated="true">Apr 23<span>rd</span>, 2018</time>
+        
+         | <a href="/blog/2018/04/23/okhttp3-source-analysis/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>周末在家断点调试了一下okhttp的执行流程，翻看了一下okhttp的源码，对okhttp有了一个大致的了解，在这记录一下。okhttp的精髓是<code>Dispatcher</code>和<code>Interceptor</code>，这里主要分析这两个。</p>
+
+<h1>Dispatcher</h1>
+
+<p><code>Dispatcher</code>是在<code>OkHttpClient.Builder</code>中实例化的，主要维护了<code>runningSyncCalls</code>，<code>runningAsyncCalls</code>,<code>readyAsyncCalls</code>三个队列。</p>
+
+<p>同步的请求在执行<code>execute</code>方法时会将<code>RealCall</code>对象添加到<code>runningSyncCalls</code>队列中去，然后调用<code>getResponseWithInterceptorChain</code>去获取<code>Response</code>，不管成功失败，在<code>finally</code>块中都会执行<code>runningSyncCalls.remove(realcall)</code>将<code>RealCall</code>对象移除出队列。类似于一个生产者消费者系统。</p>
+
+<p>异步的请求会将请求包装成一个<code>AsyncCall</code>，实际上就是一个Runnable，然后看<code>runningAsyncCalls</code>队列的长度是否小于<code>maxRequests</code>也即64并且同一个host的请求是否小于<code>maxRequestsPerHost</code>,如果满足则添加到<code>runningAsyncCalls</code>队列中去，并且调用线程池执行，否则添加到<code>readyAsyncCalls</code>队列中去。在<code>AsyncCall</code>这个<code>Runnable</code>的<code>run</code>方法中又会去调用<code>getResponseWithInterceptorChain</code>去获取<code>Response</code>，值得注意的是在<code>finally</code>块中，将<code>AsyncCall</code>移除出队列的时候会调用<code>promoteCalls</code>方法。</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2018/04/23/okhttp3-source-analysis/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2018/04/15/android-view-system/">View绘制流程分析</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2018-04-15T16:34:00+08:00" pubdate data-updated="true">Apr 15<span>th</span>, 2018</time>
+        
+         | <a href="/blog/2018/04/15/android-view-system/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content">
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2018/04/08/nestedscrolling-analysis/">NestedScrolling分析</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2018-04-08T16:32:00+08:00" pubdate data-updated="true">Apr 8<span>th</span>, 2018</time>
+        
+         | <a href="/blog/2018/04/08/nestedscrolling-analysis/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h2>reference</h2>
+
+<ul>
+<li><a href="https://mp.weixin.qq.com/s/jD2zuLth197tBiVbYfjP8w"></a></li>
+</ul>
+
+</div>
+  
   
 
 
@@ -370,23 +335,23 @@
   <ul id="recent_posts">
     
       <li class="post">
-        <a href="/blog/2019/04/30/learning-dagger2/">Dagger2学习</a>
+        <a href="/blog/2019/08/04/java-threadpoolexecutor/">Java线程池解析</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2019/04/18/how-kotlin-generate-method-default-arguments/">Kotlin是如何实现方法默认参数的</a>
+        <a href="/blog/2019/08/01/java-blockingqueue/">Java BlockingQueue解析</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2019/03/12/summary-of-custom-views-part-iii/">自定义View总结三</a>
+        <a href="/blog/2019/07/28/aqs/">Java AQS解析</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2019/02/12/summary-of-custom-views-part-ii/">自定义View总结二</a>
+        <a href="/blog/2019/06/28/futuretask/">Java FutureTask解析</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2019/01/12/summary-of-custom-views-part-i/">自定义View总结一</a>
+        <a href="/blog/2019/05/28/thread/">Android Thread解析</a>
       </li>
     
   </ul>
@@ -413,7 +378,7 @@
         github.showRepos({
             user: 'flyfire',
             count: 5,
-            skip_forks: true,
+            skip_forks: false,
             target: '#gh_repos'
         });
     });

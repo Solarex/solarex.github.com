@@ -9,7 +9,8 @@
   <meta name="author" content="Solarex">
 
   
-  <meta name="description" content="Implementing adapters is one of the most frequent tasks for an Android developer. It’s the base for every list. Looking at apps, lists are the base &hellip;">
+  <meta name="description" content="
+">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -96,7 +97,7 @@
       
   <header>
     
-      <h1 class="entry-title"><a href="/blog/2016/12/26/writing-better-adapters/">Writing Better Adapters</a></h1>
+      <h1 class="entry-title"><a href="/blog/2018/04/03/coordinatelayout-behavior-analysis/">CoordinatorLayout Behavior分析</a></h1>
     
     
       <p class="meta">
@@ -112,39 +113,64 @@
   
 
 
-<time datetime="2016-12-26T16:11:00+08:00" pubdate data-updated="true">Dec 26<span>th</span>, 2016</time>
+<time datetime="2018-04-03T16:29:00+08:00" pubdate data-updated="true">Apr 3<span>rd</span>, 2018</time>
         
-         | <a href="/blog/2016/12/26/writing-better-adapters/#disqus_thread">Comments</a>
+         | <a href="/blog/2018/04/03/coordinatelayout-behavior-analysis/#disqus_thread">Comments</a>
         
       </p>
     
   </header>
 
 
-  <div class="entry-content"><p>Implementing adapters is one of the most frequent tasks for an Android developer. It’s the base for every list. Looking at apps, lists are the base of most apps.</p>
+  <div class="entry-content">
+</div>
+  
+  
 
-<p>The schema we follow to implement list views is often the same: a View with an adapter that holds the data. Doing this all the time can make us blind to what we are writing, even to ugly code. Even worse, we end up repeating that ugly code.</p>
 
-<p>It’s time to take a close look into adapters.</p>
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2018/03/25/android-touch-system/">Android触摸事件分发机制</a></h1>
+    
+    
+      <p class="meta">
+        
 
-<h2>RecyclerView Basics</h2>
 
-<p>The basic operations for RecyclerViews (but also applicable for ListView) are:</p>
+
+
+
+
+
+
+  
+
+
+<time datetime="2018-03-25T16:26:00+08:00" pubdate data-updated="true">Mar 25<span>th</span>, 2018</time>
+        
+         | <a href="/blog/2018/03/25/android-touch-system/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><iframe src="//player.bilibili.com/player.html?aid=24566744&cid=41274515&page=1" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true"> </iframe>
+
+
+<h4>reference</h4>
 
 <ul>
-<li>Creating the view and the ViewHolder that holds the view information.</li>
-<li>Binding the ViewHolder to the data that the adapter holds, probably a list of model classes.</li>
+<li><a href="https://github.com/devunwired/custom-touch-examples">custom-touch-examples</a></li>
 </ul>
 
-
-<p>Implementing this is pretty straightforward and not much can be done wrong here.</p>
-
 </div>
   
-  
-    <footer>
-      <a rel="full-article" href="/blog/2016/12/26/writing-better-adapters/">Read on &rarr;</a>
-    </footer>
   
 
 
@@ -155,7 +181,7 @@
       
   <header>
     
-      <h1 class="entry-title"><a href="/blog/2016/10/10/choreographer-in-android/">Choreographer in Android</a></h1>
+      <h1 class="entry-title"><a href="/blog/2018/03/23/volley-source-analysis/">Volley源码分析</a></h1>
     
     
       <p class="meta">
@@ -171,27 +197,18 @@
   
 
 
-<time datetime="2016-10-10T20:38:00+08:00" pubdate data-updated="true">Oct 10<span>th</span>, 2016</time>
+<time datetime="2018-03-23T16:24:00+08:00" pubdate data-updated="true">Mar 23<span>rd</span>, 2018</time>
         
-         | <a href="/blog/2016/10/10/choreographer-in-android/#disqus_thread">Comments</a>
+         | <a href="/blog/2018/03/23/volley-source-analysis/#disqus_thread">Comments</a>
         
       </p>
     
   </header>
 
 
-  <div class="entry-content"><p>Choreographer is the one which acts like a interface between application view system and lower layer display system for rendering the views.</p>
-
-<p>ViewRootImpl is the ViewParent or root below which only Activity window DecorView will be attached. All the view layouts set by the activity through <code>setContentView()</code> will attached the DecorView whose parent is ViewRootImpl. Actually ViewRootImpl is not a View its just a ViewParent which handled and manages the View Hierarchies for displaying, handling input events etc.</p>
-
-<p>The number of root views that are active in your process. Each root view is associated with a window, so this can help you identify memory leaks involving dialogs or other windows.</p>
-
+  <div class="entry-content">
 </div>
   
-  
-    <footer>
-      <a rel="full-article" href="/blog/2016/10/10/choreographer-in-android/">Read on &rarr;</a>
-    </footer>
   
 
 
@@ -202,7 +219,7 @@
       
   <header>
     
-      <h1 class="entry-title"><a href="/blog/2016/10/09/vsync-in-android/">VSYNC in Android</a></h1>
+      <h1 class="entry-title"><a href="/blog/2018/01/08/android-signature/">Android签名</a></h1>
     
     
       <p class="meta">
@@ -218,25 +235,25 @@
   
 
 
-<time datetime="2016-10-09T20:43:00+08:00" pubdate data-updated="true">Oct 9<span>th</span>, 2016</time>
+<time datetime="2018-01-08T09:49:00+08:00" pubdate data-updated="true">Jan 8<span>th</span>, 2018</time>
         
-         | <a href="/blog/2016/10/09/vsync-in-android/#disqus_thread">Comments</a>
+         | <a href="/blog/2018/01/08/android-signature/#disqus_thread">Comments</a>
         
       </p>
     
   </header>
 
 
-  <div class="entry-content"><h2>In Android What is VSYNC and its usage?</h2>
+  <div class="entry-content"><h3>reference</h3>
 
-<p>VSYNC is the event posted periodically by the kernal at fixed interval where the input handling, Animation and Window drawing happening synchroniiously at the same VSYNC interval. Below have given the detail explanation about the VSYNC event before VSYNC is introduced and after VSYNC is introduced.</p>
+<ul>
+<li><a href="https://source.android.com/security/apksigning">V1</a></li>
+<li><a href="https://source.android.com/security/apksigning/v2">V2</a></li>
+<li><a href="https://source.android.com/security/apksigning/v3">V3</a></li>
+</ul>
 
 </div>
   
-  
-    <footer>
-      <a rel="full-article" href="/blog/2016/10/09/vsync-in-android/">Read on &rarr;</a>
-    </footer>
   
 
 
@@ -247,7 +264,7 @@
       
   <header>
     
-      <h1 class="entry-title"><a href="/blog/2016/09/20/aspect-oriented-programming-in-android/">Aspect Oriented Programming in Android</a></h1>
+      <h1 class="entry-title"><a href="/blog/2017/10/18/develop-jni-program-in-mac/">在Mac下进行JNI开发</a></h1>
     
     
       <p class="meta">
@@ -263,71 +280,73 @@
   
 
 
-<time datetime="2016-09-20T18:24:00+08:00" pubdate data-updated="true">Sep 20<span>th</span>, 2016</time>
+<time datetime="2017-10-18T21:56:00+08:00" pubdate data-updated="true">Oct 18<span>th</span>, 2017</time>
         
-         | <a href="/blog/2016/09/20/aspect-oriented-programming-in-android/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>Aspect-oriented programming entails breaking down program logic into &ldquo;concerns&rdquo; (cohesive areas of functionality). This means, that with AOP, we can add executable blocks to some source code without explicitly changing it. This programming paradigm pretends that “cross-cutting concerns” (the logic needed at many places, without a single class where to implement them) should be implemented once and injected it many times into those places.</p>
-
-<p>Code injection becomes a very important part of AOP: it is useful for dealing with the mentioned &ldquo;concerns&rdquo; that cut across the whole application, such as logging or performance monitoring, and, using it in this way, should not be something used rarely as you might think, quite the contrary; every programmer will come into a situation where this ability of injecting code, could prevent a lot of pain and frustration.</p>
-
-<p>AOP is a paradigm that has been with us for many years, and I found it very useful to apply it to Android. After some investigation I consider that we can get a lot of advantages and very useful stuff when making use of it.</p>
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2016/09/20/aspect-oriented-programming-in-android/">Read on &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2016/09/17/using-annotations-element-value-pairs-in-aspectj/">Using Annotations Element-value Pairs in AspectJ</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2016-09-17T16:18:00+08:00" pubdate data-updated="true">Sep 17<span>th</span>, 2016</time>
-        
-         | <a href="/blog/2016/09/17/using-annotations-element-value-pairs-in-aspectj/#disqus_thread">Comments</a>
+         | <a href="/blog/2017/10/18/develop-jni-program-in-mac/#disqus_thread">Comments</a>
         
       </p>
     
   </header>
 
 
-  <div class="entry-content"><h2>Annotations with element-value pairs</h2>
+  <div class="entry-content"><p>本文主要讲述如何在Mac开发环境下进行JNI开发。</p>
 
-<p>Annotations by themselves are really powerful. They give direct control over when an aspect should be run to the developer. Adding element-value pairs makes the already powerful annotations even more powerful, since it enables you to pass information into the aspect.</p>
+<p>首先编写好Java文件，示例程序主要示范了Java访问C，C访问Java静态与非静态域。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">HelloJni</span><span class="o">{</span>
+</span><span class='line'>    <span class="kd">static</span><span class="o">{</span>
+</span><span class='line'>        <span class="n">System</span><span class="o">.</span><span class="na">loadLibrary</span><span class="o">(</span><span class="s">&quot;HelloJni&quot;</span><span class="o">);</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="kd">native</span> <span class="kd">static</span> <span class="n">String</span> <span class="nf">getStringFromCStatic</span><span class="o">();</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="kd">native</span> <span class="n">String</span> <span class="nf">getStringFromCNonStatic</span><span class="o">();</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="n">String</span> <span class="n">key</span> <span class="o">=</span> <span class="s">&quot;key&quot;</span><span class="o">;</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="kd">static</span> <span class="kt">int</span> <span class="n">count</span> <span class="o">=</span> <span class="mi">5</span><span class="o">;</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="kd">native</span> <span class="n">String</span> <span class="nf">accessField</span><span class="o">();</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="kd">native</span> <span class="kt">void</span> <span class="nf">accessStaticField</span><span class="o">();</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">args</span><span class="o">){</span>
+</span><span class='line'>        <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">getStringFromCStatic</span><span class="o">());</span>
+</span><span class='line'>        <span class="n">HelloJni</span> <span class="n">hello</span> <span class="o">=</span> <span class="k">new</span> <span class="n">HelloJni</span><span class="o">();</span>
+</span><span class='line'>        <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">hello</span><span class="o">.</span><span class="na">getStringFromCNonStatic</span><span class="o">());</span>
+</span><span class='line'>        <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">&quot;change before key: &quot;</span> <span class="o">+</span> <span class="n">hello</span><span class="o">.</span><span class="na">key</span><span class="o">);</span>
+</span><span class='line'>        <span class="n">hello</span><span class="o">.</span><span class="na">accessField</span><span class="o">();</span>
+</span><span class='line'>        <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">&quot;change after key: &quot;</span> <span class="o">+</span> <span class="n">hello</span><span class="o">.</span><span class="na">key</span><span class="o">);</span>
+</span><span class='line'>        <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">&quot;change before count: &quot;</span> <span class="o">+</span> <span class="n">count</span><span class="o">);</span>
+</span><span class='line'>        <span class="n">hello</span><span class="o">.</span><span class="na">accessStaticField</span><span class="o">();</span>
+</span><span class='line'>        <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">&quot;change after count: &quot;</span> <span class="o">+</span> <span class="n">count</span><span class="o">);</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
 
 </div>
   
   
     <footer>
-      <a rel="full-article" href="/blog/2016/09/17/using-annotations-element-value-pairs-in-aspectj/">Read on &rarr;</a>
+      <a rel="full-article" href="/blog/2017/10/18/develop-jni-program-in-mac/">Read on &rarr;</a>
     </footer>
   
 
@@ -351,23 +370,23 @@
   <ul id="recent_posts">
     
       <li class="post">
-        <a href="/blog/2019/04/30/learning-dagger2/">Dagger2学习</a>
+        <a href="/blog/2019/08/04/java-threadpoolexecutor/">Java线程池解析</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2019/04/18/how-kotlin-generate-method-default-arguments/">Kotlin是如何实现方法默认参数的</a>
+        <a href="/blog/2019/08/01/java-blockingqueue/">Java BlockingQueue解析</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2019/03/12/summary-of-custom-views-part-iii/">自定义View总结三</a>
+        <a href="/blog/2019/07/28/aqs/">Java AQS解析</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2019/02/12/summary-of-custom-views-part-ii/">自定义View总结二</a>
+        <a href="/blog/2019/06/28/futuretask/">Java FutureTask解析</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2019/01/12/summary-of-custom-views-part-i/">自定义View总结一</a>
+        <a href="/blog/2019/05/28/thread/">Android Thread解析</a>
       </li>
     
   </ul>
@@ -394,7 +413,7 @@
         github.showRepos({
             user: 'flyfire',
             count: 5,
-            skip_forks: true,
+            skip_forks: false,
             target: '#gh_repos'
         });
     });

@@ -4,7 +4,7 @@
   <title><![CDATA[Category: java | Solarex's Blog]]></title>
   <link href="http://Solarex.github.io/blog/categories/java/atom.xml" rel="self"/>
   <link href="http://Solarex.github.io/"/>
-  <updated>2019-06-02T20:22:38+08:00</updated>
+  <updated>2019-08-06T22:39:35+08:00</updated>
   <id>http://Solarex.github.io/</id>
   <author>
     <name><![CDATA[Solarex]]></name>
@@ -14,294 +14,1187 @@
 
   
   <entry>
-    <title type="html"><![CDATA[Dagger2学习]]></title>
-    <link href="http://Solarex.github.io/blog/2019/04/30/learning-dagger2/"/>
-    <updated>2019-04-30T16:17:00+08:00</updated>
-    <id>http://Solarex.github.io/blog/2019/04/30/learning-dagger2</id>
-    <content type="html"><![CDATA[<h3>reference</h3>
+    <title type="html"><![CDATA[Java线程池解析]]></title>
+    <link href="http://Solarex.github.io/blog/2019/08/04/java-threadpoolexecutor/"/>
+    <updated>2019-08-04T20:27:00+08:00</updated>
+    <id>http://Solarex.github.io/blog/2019/08/04/java-threadpoolexecutor</id>
+    <content type="html"><![CDATA[
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Java BlockingQueue解析]]></title>
+    <link href="http://Solarex.github.io/blog/2019/08/01/java-blockingqueue/"/>
+    <updated>2019-08-01T20:26:00+08:00</updated>
+    <id>http://Solarex.github.io/blog/2019/08/01/java-blockingqueue</id>
+    <content type="html"><![CDATA[
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Java AQS解析]]></title>
+    <link href="http://Solarex.github.io/blog/2019/07/28/aqs/"/>
+    <updated>2019-07-28T16:59:00+08:00</updated>
+    <id>http://Solarex.github.io/blog/2019/07/28/aqs</id>
+    <content type="html"><![CDATA[<p><code>AbstractQueuedSynchronizer</code>是很多并发工具类如<code>ReentrantLock</code>的实现基础，本文对其进行分析。</p>
+
+<!-- more -->
+
+
+<h3>reference</h3>
 
 <ul>
-<li><a href="https://www.youtube.com/playlist?list=PLrnPJCHvNZuA2ioi4soDZKz8euUQnJW65">Dagger2 Beginner Tutorial</a></li>
+<li><a href="https://javadoop.com/post/AbstractQueuedSynchronizer">一行一行源码分析清楚 AbstractQueuedSynchronizer</a></li>
+<li><a href="https://javadoop.com/post/AbstractQueuedSynchronizer-2">一行一行源码分析清楚 AbstractQueuedSynchronizer（二）</a></li>
+<li><a href="https://javadoop.com/post/AbstractQueuedSynchronizer-3">一行一行源码分析清楚 AbstractQueuedSynchronizer（三）</a></li>
 </ul>
 
 ]]></content>
   </entry>
   
   <entry>
-    <title type="html"><![CDATA[EffectiveJava2nd读书笔记]]></title>
-    <link href="http://Solarex.github.io/blog/2018/07/12/notes-on-effective-java/"/>
-    <updated>2018-07-12T14:30:00+08:00</updated>
-    <id>http://Solarex.github.io/blog/2018/07/12/notes-on-effective-java</id>
-    <content type="html"><![CDATA[<p>已迁移到gitbook，请访问<a href="https://solarex.github.io/reading-notes/effective-java/readme.html">EffectiveJava笔记</a>。</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[深入理解Java虚拟机读书笔记]]></title>
-    <link href="http://Solarex.github.io/blog/2018/07/11/notes-on-jvm/"/>
-    <updated>2018-07-11T14:28:00+08:00</updated>
-    <id>http://Solarex.github.io/blog/2018/07/11/notes-on-jvm</id>
-    <content type="html"><![CDATA[<p>已迁移到gitbook，请访问<a href="https://solarex.github.io/reading-notes/deep-into-jvm/readme.html">深入理解Java虚拟机笔记</a></p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Java泛型语法糖]]></title>
-    <link href="http://Solarex.github.io/blog/2018/07/10/java-generics-syntactic-sugar/"/>
-    <updated>2018-07-10T14:24:00+08:00</updated>
-    <id>http://Solarex.github.io/blog/2018/07/10/java-generics-syntactic-sugar</id>
-    <content type="html"><![CDATA[
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Java枚举语法糖]]></title>
-    <link href="http://Solarex.github.io/blog/2018/07/10/java-enum-syntactic-sugar/"/>
-    <updated>2018-07-10T14:24:00+08:00</updated>
-    <id>http://Solarex.github.io/blog/2018/07/10/java-enum-syntactic-sugar</id>
-    <content type="html"><![CDATA[<p>Java从1.5引入枚举类型，EffectiveJava第2版item 30也建议我们使用枚举来代替int常量。我们从下面的<code>Enum</code>示例中看下枚举类型到底是什么。</p>
-
-<p>```java
-public class Main {</p>
-
-<pre><code>enum ExceptionHandleStrategy {
-    IGNORE,
-    LOG {
-        @Override
-        public void handle(Exception e) {
-            System.out.println(e.getLocalizedMessage());
-        }
-    },
-    THROW {
-        @Override
-        public void handle(Exception e) {
-            throw new RuntimeException(e.getMessage());
-        }
-    };
-
-    public void handle(Exception e) {
-    }
-}
-
-public static void main(String[] args) {
-    System.out.println(ExceptionHandleStrategy.IGNORE.getClass());
-    System.out.println(ExceptionHandleStrategy.LOG.getClass());
-    System.out.println(ExceptionHandleStrategy.THROW.getClass());
-    System.out.println(EnumWithoutMethod.A.getClass());
-    System.out.println(EnumWithoutMethod.B.getClass());
-    System.out.println(EnumWithoutMethod.C.getClass());
-    System.out.println(EnumWithVariable.A.getClass());
-    System.out.println(EnumWithVariable.B.getClass());
-    System.out.println(EnumWithVariable.C.getClass());
-    System.out.println(EnumWithVariable.A.name());
-    System.out.println(EnumWithVariable.A.getxxx());
-    ExceptionHandleStrategy.LOG.handle(new RuntimeException("system just broken"));
-}
-
-enum EnumWithoutMethod {
-    A,
-    B,
-    C;
-}
-
-enum EnumWithVariable {
-    A("wristband"),
-    B("glucometer"),
-    C("fit");
-
-    private String name;
-    public String getxxx() {
-        return this.name;
-    }
-
-    EnumWithVariable(String name){
-        this.name = name;
-    }
-}
-</code></pre>
-
-<p>}
-```</p>
+    <title type="html"><![CDATA[Java FutureTask解析]]></title>
+    <link href="http://Solarex.github.io/blog/2019/06/28/futuretask/"/>
+    <updated>2019-06-28T16:59:00+08:00</updated>
+    <id>http://Solarex.github.io/blog/2019/06/28/futuretask</id>
+    <content type="html"><![CDATA[<p>本文主要对FutureTask源码进行分析。</p>
 
 <!-- more -->
 
 
-<p>执行<code>java -jar ~/Software/confs/cfr-0.140.jar --sugarenums false Main.class</code>后我们得到如下结果：</p>
+<p>Java中一般通过继承Thread类或实现Runnable接口来创建线程，但是这两种方式都有个缺陷，就是不能在线程执行完成后获取执行的结果，因此Java1.5之后提供了<code>Callable</code>和<code>Future</code>接口，通过他们就可以在任务执行完成之后获取到任务的执行结果。</p>
 
-<p>```java
-import java.io.PrintStream;</p>
-
-<p>public class Main {</p>
-
-<pre><code>public static void main(String[] arrstring) {
-    System.out.println(((Object)((Object)ExceptionHandleStrategy.IGNORE)).getClass());
-    System.out.println(((Object)((Object)ExceptionHandleStrategy.LOG)).getClass());
-    System.out.println(((Object)((Object)ExceptionHandleStrategy.THROW)).getClass());
-    System.out.println(((Object)((Object)EnumWithoutMethod.A)).getClass());
-    System.out.println(((Object)((Object)EnumWithoutMethod.B)).getClass());
-    System.out.println(((Object)((Object)EnumWithoutMethod.C)).getClass());
-    System.out.println(((Object)((Object)EnumWithVariable.A)).getClass());
-    System.out.println(((Object)((Object)EnumWithVariable.B)).getClass());
-    System.out.println(((Object)((Object)EnumWithVariable.C)).getClass());
-    System.out.println(EnumWithVariable.A.name());
-    System.out.println(EnumWithVariable.A.getxxx());
-    ExceptionHandleStrategy.LOG.handle(new RuntimeException("system just broken"));
-}
-
-static final class EnumWithVariable
-extends Enum&lt;EnumWithVariable&gt; {
-    public static final /* enum */ EnumWithVariable A = new EnumWithVariable("A", 0, "wristband");
-    public static final /* enum */ EnumWithVariable B = new EnumWithVariable("B", 1, "glucometer");
-    public static final /* enum */ EnumWithVariable C = new EnumWithVariable("C", 2, "fit");
-    private String name;
-    private static final /* synthetic */ EnumWithVariable[] $VALUES;
-
-    public static EnumWithVariable[] values() {
-        return (EnumWithVariable[])$VALUES.clone();
-    }
-
-    public static EnumWithVariable valueOf(String string) {
-        return Enum.valueOf(EnumWithVariable.class, string);
-    }
-
-    public String getxxx() {
-        return this.name;
-    }
-
-    private EnumWithVariable(String string, int n, String string2) {
-        super(string, n);
-        this.name = string2;
-    }
-
-    static {
-        $VALUES = new EnumWithVariable[]{A, B, C};
-    }
-}
-
-static final class EnumWithoutMethod
-extends Enum&lt;EnumWithoutMethod&gt; {
-    public static final /* enum */ EnumWithoutMethod A = new EnumWithoutMethod("A", 0);
-    public static final /* enum */ EnumWithoutMethod B = new EnumWithoutMethod("B", 1);
-    public static final /* enum */ EnumWithoutMethod C = new EnumWithoutMethod("C", 2);
-    private static final /* synthetic */ EnumWithoutMethod[] $VALUES;
-
-    public static EnumWithoutMethod[] values() {
-        return (EnumWithoutMethod[])$VALUES.clone();
-    }
-
-    public static EnumWithoutMethod valueOf(String string) {
-        return Enum.valueOf(EnumWithoutMethod.class, string);
-    }
-
-    private EnumWithoutMethod(String string, int n) {
-        super(string, n);
-    }
-
-    static {
-        $VALUES = new EnumWithoutMethod[]{A, B, C};
-    }
-}
-
-static class ExceptionHandleStrategy
-extends Enum&lt;ExceptionHandleStrategy&gt; {
-    public static final /* enum */ ExceptionHandleStrategy IGNORE = new ExceptionHandleStrategy("IGNORE", 0);
-    public static final /* enum */ ExceptionHandleStrategy LOG = new ExceptionHandleStrategy("LOG", 1){
-
-        @Override
-        public void handle(Exception exception) {
-            System.out.println(exception.getLocalizedMessage());
-        }
-    };
-    public static final /* enum */ ExceptionHandleStrategy THROW = new ExceptionHandleStrategy("THROW", 2){
-
-        @Override
-        public void handle(Exception exception) {
-            throw new RuntimeException(exception.getMessage());
-        }
-    };
-    private static final /* synthetic */ ExceptionHandleStrategy[] $VALUES;
-
-    public static ExceptionHandleStrategy[] values() {
-        return (ExceptionHandleStrategy[])$VALUES.clone();
-    }
-
-    public static ExceptionHandleStrategy valueOf(String string) {
-        return Enum.valueOf(ExceptionHandleStrategy.class, string);
-    }
-
-    private ExceptionHandleStrategy(String string, int n) {
-        super(string, n);
-    }
-
-    public void handle(Exception exception) {
-    }
-
-    static {
-        $VALUES = new ExceptionHandleStrategy[]{IGNORE, LOG, THROW};
-    }
-
-}
-</code></pre>
-
-<p>}
-```</p>
-
-<p>可以看到我们的枚举类型都继承了<code>Enum</code>，编译器为我们生成了<code>$VALUES</code>类型数组，并在<code>static</code>静态块中进行了初始化。每个枚举类型实际上是个继承了<code>Enum</code>的类，并在类初始化的时候实例化了枚举类型的实例，可以看到非常重量级，实际上在Android开发中Google已经建议不要使用<code>Enum</code>，改而使用<code>@IntDef</code>之类的注解进行约束。</p>
-
-<p>在看EffectiveJava的时候，看到作者认为Enum是实现单例的一种方式，<code>Enum</code>实现的单例帮我们处理了反射和序列化相关的问题，那它是怎么处理的呢？我们不妨看下源码来找下答案。</p>
-
-<p>首先看下<code>Enum</code>类的<code>readObject</code>方法：</p>
+<h3>Callable接口</h3>
 
 <p>```java
 /<em>*
-  * prevent default deserialization
-  </em>/
-private void readObject(ObjectInputStream in) throws IOException,</p>
+ * A task that returns a result and may throw an exception.
+ * Implementors define a single method with no arguments called
+ * {@code call}.
+ *
+ * <p>The {@code Callable} interface is similar to {@link
+ * java.lang.Runnable}, in that both are designed for classes whose
+ * instances are potentially executed by another thread.  A
+ * {@code Runnable}, however, does not return a result and cannot
+ * throw a checked exception.
+ *
+ * <p>The {@link Executors} class contains utility methods to
+ * convert from other common forms to {@code Callable} classes.
+ *
+ * @see Executor
+ * @since 1.5
+ * @author Doug Lea
+ * @param <V> the result type of method {@code call}
+ </em>/
+@FunctionalInterface
+public interface Callable<V> {</p>
 
-<pre><code>ClassNotFoundException {
-throw new InvalidObjectException("can't deserialize enum");
+<pre><code>/**
+ * Computes a result, or throws an exception if unable to do so.
+ *
+ * @return computed result
+ * @throws Exception if unable to compute a result
+ */
+V call() throws Exception;
 </code></pre>
 
 <p>}
 ```</p>
 
-<p>可以看到这个方法直接抛出了一个异常来阻止反序列化。</p>
+<p>可以看到<code>Callable</code>是个泛型接口，泛型V代表返回值的类型，执行任务过程中如果有异常会抛出异常。</p>
 
-<p>再来看下如果我们想要使用反射来实例化一个枚举实例的时候会遇到什么问题，我们看下<code>Constructor</code>类的<code>newInstance</code>方法：</p>
+<h3>Future接口</h3>
 
 <p>```java
-public T newInstance(Object &hellip; initargs)</p>
+/<em>*
+ * A {@code Future} represents the result of an asynchronous
+ * computation.  Methods are provided to check if the computation is
+ * complete, to wait for its completion, and to retrieve the result of
+ * the computation.  The result can only be retrieved using method
+ * {@code get} when the computation has completed, blocking if
+ * necessary until it is ready.  Cancellation is performed by the
+ * {@code cancel} method.  Additional methods are provided to
+ * determine if the task completed normally or was cancelled. Once a
+ * computation has completed, the computation cannot be cancelled.
+ * If you would like to use a {@code Future} for the sake
+ * of cancellability but not provide a usable result, you can
+ * declare types of the form {@code Future&lt;?>} and
+ * return {@code null} as a result of the underlying task.
+ *
+ * <p>
+ * <b>Sample Usage</b> (Note that the following classes are all
+ * made-up.)
+ *
+ * <pre> {@code
+ * interface ArchiveSearcher { String search(String target); }
+ * class App {
+ *   ExecutorService executor = &hellip;
+ *   ArchiveSearcher searcher = &hellip;
+ *   void showSearch(final String target)
+ *       throws InterruptedException {
+ *     Future<String> future
+ *       = executor.submit(new Callable<String>() {
+ *         public String call() {
+ *             return searcher.search(target);
+ *         }});
+ *     displayOtherThings(); // do other things while searching
+ *     try {
+ *       displayText(future.get()); // use future
+ *     } catch (ExecutionException ex) { cleanup(); return; }
+ *   }
+ * }}</pre>
+ *
+ * The {@link FutureTask} class is an implementation of {@code Future} that
+ * implements {@code Runnable}, and so may be executed by an {@code Executor}.
+ * For example, the above construction with {@code submit} could be replaced by:
+ * <pre> {@code
+ * FutureTask<String> future =
+ *   new FutureTask&lt;>(new Callable<String>() {
+ *     public String call() {
+ *       return searcher.search(target);
+ *   }});
+ * executor.execute(future);}</pre>
+ *
+ * <p>Memory consistency effects: Actions taken by the asynchronous computation
+ * <a href="package-summary.html#MemoryVisibility"> <i>happen-before</i></a>
+ * actions following the corresponding {@code Future.get()} in another thread.
+ *
+ * @see FutureTask
+ * @see Executor
+ * @since 1.5
+ * @author Doug Lea
+ * @param <V> The result type returned by this Future&rsquo;s {@code get} method
+ </em>/
+public interface Future<V> {</p>
 
-<pre><code>    throws InstantiationException, IllegalAccessException,
-           IllegalArgumentException, InvocationTargetException
-{
-    if (!override) {
-        if (!Reflection.quickCheckMemberAccess(clazz, modifiers)) {
-            Class&lt;?&gt; caller = Reflection.getCallerClass();
-            checkAccess(caller, clazz, null, modifiers);
+<pre><code>/**
+ * Attempts to cancel execution of this task.  This attempt will
+ * fail if the task has already completed, has already been cancelled,
+ * or could not be cancelled for some other reason. If successful,
+ * and this task has not started when {@code cancel} is called,
+ * this task should never run.  If the task has already started,
+ * then the {@code mayInterruptIfRunning} parameter determines
+ * whether the thread executing this task should be interrupted in
+ * an attempt to stop the task.
+ *
+ * &lt;p&gt;After this method returns, subsequent calls to {@link #isDone} will
+ * always return {@code true}.  Subsequent calls to {@link #isCancelled}
+ * will always return {@code true} if this method returned {@code true}.
+ *
+ * @param mayInterruptIfRunning {@code true} if the thread executing this
+ * task should be interrupted; otherwise, in-progress tasks are allowed
+ * to complete
+ * @return {@code false} if the task could not be cancelled,
+ * typically because it has already completed normally;
+ * {@code true} otherwise
+ */
+boolean cancel(boolean mayInterruptIfRunning);
+
+/**
+ * Returns {@code true} if this task was cancelled before it completed
+ * normally.
+ *
+ * @return {@code true} if this task was cancelled before it completed
+ */
+boolean isCancelled();
+
+/**
+ * Returns {@code true} if this task completed.
+ *
+ * Completion may be due to normal termination, an exception, or
+ * cancellation -- in all of these cases, this method will return
+ * {@code true}.
+ *
+ * @return {@code true} if this task completed
+ */
+boolean isDone();
+
+/**
+ * Waits if necessary for the computation to complete, and then
+ * retrieves its result.
+ *
+ * @return the computed result
+ * @throws CancellationException if the computation was cancelled
+ * @throws ExecutionException if the computation threw an
+ * exception
+ * @throws InterruptedException if the current thread was interrupted
+ * while waiting
+ */
+V get() throws InterruptedException, ExecutionException;
+
+/**
+ * Waits if necessary for at most the given time for the computation
+ * to complete, and then retrieves its result, if available.
+ *
+ * @param timeout the maximum time to wait
+ * @param unit the time unit of the timeout argument
+ * @return the computed result
+ * @throws CancellationException if the computation was cancelled
+ * @throws ExecutionException if the computation threw an
+ * exception
+ * @throws InterruptedException if the current thread was interrupted
+ * while waiting
+ * @throws TimeoutException if the wait timed out
+ */
+V get(long timeout, TimeUnit unit)
+    throws InterruptedException, ExecutionException, TimeoutException;
+</code></pre>
+
+<p>}
+```</p>
+
+<p><code>Future</code>代表任务异步执行的结果，通过<code>Future</code>接口可以查询任务执行的状态，取消任务执行，获取任务执行的结果。</p>
+
+<ul>
+<li>cancel方法尝试去取消任务的执行，如果任务已经完成，或者已经取消，或者由于其他原因无法被取消，cancel方法将返回false。如果cancel调用的时候，任务还没开始执行，任务将不被执行，cancel返回true。如果cancel调用的时候，任务已经开始执行，<code>mayInterruptIfRunning</code>决定执行任务的线程是否应该被中断来执行任务的执行。cancel方法调用返回true后，后续的<code>isDone</code>方法总是返回true，后续的<code>isCancelled</code>方法总是返回true。</li>
+<li>如果在任务完成之前被取消了，<code>isCancelled</code>方法会返回true。</li>
+<li>任务完成后，<code>isDone</code>方法会返回true。无论是正常的结束，抛出异常结束，被取消，<code>isDone</code>都会返回true。</li>
+<li>get方法会等待任务执行结束来获取任务执行的结果，如果任务已经执行结束，直接返回结果。可能抛出<code>CancellationException</code>如果任务被取消，<code>ExecutionException</code>如果任务执行过程中抛出了异常，<code>InterruptedException</code>如果当前线程在等待执行任务的线程的执行结果的过程中被中断了。</li>
+<li>get(long,TimeUnit)会等待最多设定的时间来获取结果。可能抛出<code>CancellationException</code>如果任务被取消，<code>ExecutionException</code>如果任务执行过程中抛出了异常，<code>InterruptedException</code>如果当前线程在等待执行任务的线程的执行结果的过程中被中断了，<code>TimeoutException</code>如果等待超时了。</li>
+</ul>
+
+
+<h3>FutureTask</h3>
+
+<p><code>Future</code>只是一个接口，<code>FutureTask</code>是<code>Future</code>的实现类。确切的说<code>FutureTask</code>实现了<code>RunnableFuture</code>接口，<code>RunnableFuture</code>接口扩展了<code>Runnable</code>和<code>Future</code>接口。</p>
+
+<h4>FutureTask任务执行的状态</h4>
+
+<p>```java</p>
+
+<pre><code>/**
+ * The run state of this task, initially NEW.  The run state
+ * transitions to a terminal state only in methods set,
+ * setException, and cancel.  During completion, state may take on
+ * transient values of COMPLETING (while outcome is being set) or
+ * INTERRUPTING (only while interrupting the runner to satisfy a
+ * cancel(true)). Transitions from these intermediate to final
+ * states use cheaper ordered/lazy writes because values are unique
+ * and cannot be further modified.
+ *
+ * Possible state transitions:
+ * NEW -&gt; COMPLETING -&gt; NORMAL
+ * NEW -&gt; COMPLETING -&gt; EXCEPTIONAL
+ * NEW -&gt; CANCELLED
+ * NEW -&gt; INTERRUPTING -&gt; INTERRUPTED
+ */
+private volatile int state;
+private static final int NEW          = 0;
+private static final int COMPLETING   = 1;
+private static final int NORMAL       = 2;
+private static final int EXCEPTIONAL  = 3;
+private static final int CANCELLED    = 4;
+private static final int INTERRUPTING = 5;
+private static final int INTERRUPTED  = 6;
+</code></pre>
+
+<p>```</p>
+
+<p>可以看到<code>FutureTask</code>使用<code>volatile</code>变量<code>state</code>来表示任务执行的状态，初始时是<code>NEW</code>，在<code>set</code>，<code>setException</code>和<code>cancel</code>方法中会对<code>state</code>进行赋值。可能的状态转换有<code>NEW -&gt; COMPLETING -&gt; NORMAL</code>，<code>NEW -&gt; COMPLETING -&gt; EXCEPTIONAL</code>，<code>NEW -&gt; CANCELLED</code>，<code>NEW -&gt; INTERRUPTING -&gt; INTERRUPTED</code>。</p>
+
+<h4>FutureTask内部变量</h4>
+
+<p>```java</p>
+
+<pre><code>/** The underlying callable; nulled out after running */
+private Callable&lt;V&gt; callable;
+/** The result to return or exception to throw from get() */
+private Object outcome; // non-volatile, protected by state reads/writes
+/** The thread running the callable; CASed during run() */
+private volatile Thread runner;
+/** Treiber stack of waiting threads */
+private volatile WaitNode waiters;
+</code></pre>
+
+<p>```</p>
+
+<p><code>callable</code>表示将要执行的任务，<code>volatile</code>类型的变量<code>runner</code>表示执行任务的线程，<code>waiters</code>表示等待任务执行结果的线程队列。任务执行的结果用Object类型的<code>outcome</code>表示，可以看到并没有用<code>volatile</code>关键字来修饰，那不会有可见性问题吗？这个问题后面我们会提到。</p>
+
+<h4>FutureTask任务执行run</h4>
+
+<p>```java
+public void run() {</p>
+
+<pre><code>    if (state != NEW ||
+        !U.compareAndSwapObject(this, RUNNER, null, Thread.currentThread()))
+        return;
+    try {
+        Callable&lt;V&gt; c = callable;
+        if (c != null &amp;&amp; state == NEW) {
+            V result;
+            boolean ran;
+            try {
+                result = c.call();
+                ran = true;
+            } catch (Throwable ex) {
+                result = null;
+                ran = false;
+                setException(ex); // 任务执行抛出异常走setException
+            }
+            if (ran)
+                set(result); // 任务正常执行完成走set
         }
+    } finally {
+        // runner must be non-null until state is settled to
+        // prevent concurrent calls to run()
+        runner = null;
+        // state must be re-read after nulling runner to prevent
+        // leaked interrupts
+        int s = state;
+        if (s &gt;= INTERRUPTING)
+            handlePossibleCancellationInterrupt(s);
     }
-    // 阻止了通过反射来实例化Enum实例
-    if ((clazz.getModifiers() &amp; Modifier.ENUM) != 0)
-        throw new IllegalArgumentException("Cannot reflectively create enum objects");
-    ConstructorAccessor ca = constructorAccessor;   // read volatile
-    if (ca == null) {
-        ca = acquireConstructorAccessor();
-    }
-    @SuppressWarnings("unchecked")
-    T inst = (T) ca.newInstance(initargs);
-    return inst;
 }
 </code></pre>
 
 <p>```</p>
 
-<p>可以看到在方法内如果发现要反射类的Modifier中有<code>Enum</code>标志，会直接抛出异常表示无法通过反射的方式来创建<code>Enum</code>实例。</p>
+<p><code>run</code>方法首先对状态进行判断，并尝试CAS替换<code>runner</code>为当前线程，如果失败，表明已经有线程在执行任务了，直接返回，否则执行任务，如果任务执行过程中抛出了异常，走<code>setException</code>分支，如果任务正常结束，走<code>set</code>分支，下面看下这两个方法。</p>
+
+<h4>FutureTask的set和setException方法</h4>
+
+<p>```java</p>
+
+<pre><code>/**
+ * Sets the result of this future to the given value unless
+ * this future has already been set or has been cancelled.
+ *
+ * &lt;p&gt;This method is invoked internally by the {@link #run} method
+ * upon successful completion of the computation.
+ *
+ * @param v the value
+ */
+protected void set(V v) {
+    if (U.compareAndSwapInt(this, STATE, NEW, COMPLETING)) {
+        outcome = v;
+        U.putOrderedInt(this, STATE, NORMAL); // final state
+        finishCompletion();
+    }
+}
+/**
+ * Removes and signals all waiting threads, invokes done(), and
+ * nulls out callable.
+ */
+private void finishCompletion() {
+    // assert state &gt; COMPLETING;
+    for (WaitNode q; (q = waiters) != null;) {
+        if (U.compareAndSwapObject(this, WAITERS, q, null)) {
+            for (;;) {
+                Thread t = q.thread;
+                if (t != null) {
+                    q.thread = null;
+                    LockSupport.unpark(t);
+                }
+                WaitNode next = q.next;
+                if (next == null)
+                    break;
+                q.next = null; // unlink to help gc
+                q = next;
+            }
+            break;
+        }
+    }
+
+    done();
+
+    callable = null;        // to reduce footprint
+}
+/**
+ * Causes this future to report an {@link ExecutionException}
+ * with the given throwable as its cause, unless this future has
+ * already been set or has been cancelled.
+ *
+ * &lt;p&gt;This method is invoked internally by the {@link #run} method
+ * upon failure of the computation.
+ *
+ * @param t the cause of failure
+ */
+protected void setException(Throwable t) {
+    if (U.compareAndSwapInt(this, STATE, NEW, COMPLETING)) {
+        outcome = t;
+        U.putOrderedInt(this, STATE, EXCEPTIONAL); // final state
+        finishCompletion();
+    }
+}
+</code></pre>
+
+<p>```</p>
+
+<p>可以看到<code>set</code>和<code>setException</code>方法都是CAS对<code>state</code>进行赋值，并对<code>outcome</code>进行赋值，同时调用<code>finishCompletion</code>方法唤醒等待队列中的线程去获取任务执行的结果。在这里可以看到对<code>outcome</code>的写发生在对<code>volatile</code>变量<code>state</code>写之前，因此保证了<code>state</code>为<code>NORMAL</code>或<code>EXCEPTIONAL</code>时<code>outcome</code>变量的可见性。在<code>finishCompletion</code>中可以看到是对等待队列上的线程进行唤醒操作，那么这些线程是什么时候进行等待队列并阻塞的呢，接下来看<code>get</code>方法。</p>
+
+<h4>FutureTask的get方法</h4>
+
+<p>```java</p>
+
+<pre><code>/**
+ * @throws CancellationException {@inheritDoc}
+ */
+public V get() throws InterruptedException, ExecutionException {
+    int s = state;
+    if (s &lt;= COMPLETING)
+        s = awaitDone(false, 0L);
+    return report(s);
+}
+/**
+ * @throws CancellationException {@inheritDoc}
+ */
+public V get(long timeout, TimeUnit unit)
+    throws InterruptedException, ExecutionException, TimeoutException {
+    if (unit == null)
+        throw new NullPointerException();
+    int s = state;
+    if (s &lt;= COMPLETING &amp;&amp;
+        (s = awaitDone(true, unit.toNanos(timeout))) &lt;= COMPLETING)
+        throw new TimeoutException();
+    return report(s);
+}
+/**
+ * Awaits completion or aborts on interrupt or timeout.
+ *
+ * @param timed true if use timed waits
+ * @param nanos time to wait, if timed
+ * @return state upon completion or at timeout
+ */
+private int awaitDone(boolean timed, long nanos)
+    throws InterruptedException {
+    // The code below is very delicate, to achieve these goals:
+    // - call nanoTime exactly once for each call to park
+    // - if nanos &lt;= 0L, return promptly without allocation or nanoTime
+    // - if nanos == Long.MIN_VALUE, don't underflow
+    // - if nanos == Long.MAX_VALUE, and nanoTime is non-monotonic
+    //   and we suffer a spurious wakeup, we will do no worse than
+    //   to park-spin for a while
+    long startTime = 0L;    // Special value 0L means not yet parked
+    WaitNode q = null;
+    boolean queued = false;
+    for (;;) {
+        int s = state;
+        if (s &gt; COMPLETING) {
+            if (q != null)
+                q.thread = null;
+            return s;
+        }
+        else if (s == COMPLETING)
+            // We may have already promised (via isDone) that we are done
+            // so never return empty-handed or throw InterruptedException
+            Thread.yield();
+        else if (Thread.interrupted()) {
+            removeWaiter(q);
+            throw new InterruptedException();
+        }
+        else if (q == null) {
+            if (timed &amp;&amp; nanos &lt;= 0L)
+                return s;
+            q = new WaitNode();
+        }
+        else if (!queued)
+            queued = U.compareAndSwapObject(this, WAITERS,
+                                            q.next = waiters, q);
+        else if (timed) {
+            final long parkNanos;
+            if (startTime == 0L) { // first time
+                startTime = System.nanoTime();
+                if (startTime == 0L)
+                    startTime = 1L;
+                parkNanos = nanos;
+            } else {
+                long elapsed = System.nanoTime() - startTime;
+                if (elapsed &gt;= nanos) {
+                    removeWaiter(q);
+                    return state;
+                }
+                parkNanos = nanos - elapsed;
+            }
+            // nanoTime may be slow; recheck before parking
+            if (state &lt; COMPLETING)
+                LockSupport.parkNanos(this, parkNanos);
+        }
+        else
+            LockSupport.park(this);
+    }
+/**
+ * Returns result or throws exception for completed task.
+ *
+ * @param s completed state value
+ */
+@SuppressWarnings("unchecked")
+private V report(int s) throws ExecutionException {
+    Object x = outcome;
+    if (s == NORMAL)
+        return (V)x;
+    if (s &gt;= CANCELLED)
+        throw new CancellationException();
+    throw new ExecutionException((Throwable)x);
+}
+</code></pre>
+
+<p>```</p>
+
+<p>可以看到<code>get</code>的两个方法都是调用了<code>awaitDone</code>方法，下面重点看下<code>awaitDone</code>方法。</p>
+
+<p><code>awaitDone</code>方法里面有个for死循环，退出循环的只有<code>state &gt; COMPLETING</code>时<code>return state</code>，或者是在<code>Thread.interrupted()</code>返回true表示线程被中断时将线程从等待队列中移除并抛出<code>InterruptedException</code>。</p>
+
+<p>进入for循环的时候如果任务的状态已经完成或者任务执行的时候抛出了异常，也即<code>state &gt; COMPLETING</code>时，直接返回<code>state</code>，在<code>set</code>或者<code>setException</code>中会根据<code>state</code>进行<code>report</code>调用返回不同的状态。</p>
+
+<p>在for循环中如果当前线程被中断，则将当前线程从等待队列中移除并抛出<code>InterruptedException</code>异常。</p>
+
+<p>如果任务的状态<code>state &lt; COMPLETING</code>也即任务正在执行，当前线程也没有被中断，第一次进入for循环的时候会进入<code>q == null</code>分支，创建<code>WaitNode</code>节点。</p>
+
+<p>```java
+/**</p>
+
+<pre><code> * Simple linked list nodes to record waiting threads in a Treiber
+ * stack.  See other classes such as Phaser and SynchronousQueue
+ * for more detailed explanation.
+ */
+static final class WaitNode {
+    volatile Thread thread;
+    volatile WaitNode next;
+    WaitNode() { thread = Thread.currentThread(); }
+}
+</code></pre>
+
+<p>```</p>
+
+<p>下次再进入for循环会进入<code>!queued</code>分支，尝试将刚创建的<code>WaitNode</code>节点的next指针指向<code>FutureTask</code>的<code>waiters</code>，并CAS替换<code>FutureTask</code>的<code>waiters</code>为刚创建的<code>WaitNode</code>节点，如果CAS失败，说明有其他线程也在进行CAS替换<code>FutureTask</code>的<code>waiters</code>的操作，并且成功了，下次再进for循环继续进行这个CAS操作，直到返回true，<code>queued</code>为true为止。到此，线程进入到了等待队列中，下次再进入for循环会根据是否<code>timed</code>来进行<code>LockSupport.parkNanos</code>或<code>LockSupport.park</code>阻塞线程操作，等待其他线程<code>unpark</code>来唤醒当前线程。那什么时候唤醒呢，其实在分析<code>run</code>方法的时候我们已经看到了在执行完后会进行<code>finishCompletion</code>操作，在<code>finishCompletion</code>方法中会唤醒等待队列中的线程。</p>
+
+<h4>FutureTask的cancel方法</h4>
+
+<p>```java
+public boolean cancel(boolean mayInterruptIfRunning) {</p>
+
+<pre><code>    if (!(state == NEW &amp;&amp;
+          U.compareAndSwapInt(this, STATE, NEW,
+              mayInterruptIfRunning ? INTERRUPTING : CANCELLED)))
+        return false;
+    try {    // in case call to interrupt throws exception
+        if (mayInterruptIfRunning) {
+            try {
+                Thread t = runner;
+                if (t != null)
+                    t.interrupt();
+            } finally { // final state
+                U.putOrderedInt(this, STATE, INTERRUPTED);
+            }
+        }
+    } finally {
+        finishCompletion();
+    }
+    return true;
+}
+</code></pre>
+
+<p>```</p>
+
+<p>如果<code>state == NEW &amp;&amp; U.compareAndSwapInt(this, STATE, NEW,mayInterruptIfRunning ? INTERRUPTING : CANCELLED)</code>返回false说明任务的<code>state</code>已经不是<code>NEW</code>了，直接返回false。否则根据<code>mayInterruptIfRunning</code>来对执行任务的线程<code>runner</code>进行中断操作。最后在<code>finally</code>块中进行了<code>finishCompletion</code>操作，来唤醒等待队列中的线程。</p>
+
+<h4>FutureTask的runAndReset方法</h4>
+
+<p>```java</p>
+
+<pre><code>/**
+ * Executes the computation without setting its result, and then
+ * resets this future to initial state, failing to do so if the
+ * computation encounters an exception or is cancelled.  This is
+ * designed for use with tasks that intrinsically execute more
+ * than once.
+ *
+ * @return {@code true} if successfully run and reset
+ */
+protected boolean runAndReset() {
+    if (state != NEW ||
+        !U.compareAndSwapObject(this, RUNNER, null, Thread.currentThread()))
+        return false;
+    boolean ran = false;
+    int s = state;
+    try {
+        Callable&lt;V&gt; c = callable;
+        if (c != null &amp;&amp; s == NEW) {
+            try {
+                c.call(); // don't set result
+                ran = true;
+            } catch (Throwable ex) {
+                setException(ex);
+            }
+        }
+    } finally {
+        // runner must be non-null until state is settled to
+        // prevent concurrent calls to run()
+        runner = null;
+        // state must be re-read after nulling runner to prevent
+        // leaked interrupts
+        s = state;
+        if (s &gt;= INTERRUPTING)
+            handlePossibleCancellationInterrupt(s);
+    }
+    return ran &amp;&amp; s == NEW;
+}
+</code></pre>
+
+<p>```</p>
+
+<p><code>runAndReset</code>方法相比<code>run</code>方法是在调用完<code>callable</code>的<code>call</code>方法后没有调用<code>set(result)</code>，没有对<code>state</code>任务状态进行转换，没有对<code>outcome</code>进行赋值，如果任务正常执行结束，<code>state</code>应该还是<code>NEW</code>，因此可以被重复调用。</p>
+
+<h4>FutureTask的isCancelled和isDone方法</h4>
+
+<p>```java</p>
+
+<pre><code>public boolean isCancelled() {
+    return state &gt;= CANCELLED;
+}
+
+public boolean isDone() {
+    return state != NEW;
+}
+</code></pre>
+
+<p>```</p>
+
+<p>都是对<code>state</code>的判断</p>
 
 <h3>reference</h3>
 
 <ul>
-<li><a href="https://www.benf.org/other/cfr/how-are-enums-implemented.html">How are Enums implemented?</a></li>
+<li><a href="https://stackoverflow.com/questions/14432400/why-outcome-object-in-futuretask-is-non-volatile">why outcome object in FutureTask is non-volatile?</a></li>
+</ul>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Android Thread解析]]></title>
+    <link href="http://Solarex.github.io/blog/2019/05/28/thread/"/>
+    <updated>2019-05-28T16:58:00+08:00</updated>
+    <id>http://Solarex.github.io/blog/2019/05/28/thread</id>
+    <content type="html"><![CDATA[<p>本文主要分析Android平台上的Thread类源码，分为Java部分和native部分。</p>
+
+<!-- more -->
+
+
+<p>Java部分比较简单，大致过下各个方法吧。</p>
+
+<h3>线程创建</h3>
+
+<p>```java</p>
+
+<pre><code>/**
+ * Initializes a Thread.
+ *
+ * @param g the Thread group
+ * @param target the object whose run() method gets called
+ * @param name the name of the new Thread
+ * @param stackSize the desired stack size for the new thread, or
+ *        zero to indicate that this parameter is to be ignored.
+ */
+private void init(ThreadGroup g, Runnable target, String name, long stackSize) {
+    Thread parent = currentThread();
+    if (g == null) {
+        g = parent.getThreadGroup();
+    }
+
+    g.addUnstarted();
+    this.group = g;
+
+    this.target = target;
+    this.priority = parent.getPriority();
+    this.daemon = parent.isDaemon();
+    setName(name);
+
+    init2(parent);
+
+    /* Stash the specified stack size in case the VM cares */
+    this.stackSize = stackSize;
+    tid = nextThreadID();
+}
+private void init2(Thread parent) {
+    this.contextClassLoader = parent.getContextClassLoader();
+    this.inheritedAccessControlContext = AccessController.getContext();
+    if (parent.inheritableThreadLocals != null) {
+        this.inheritableThreadLocals = ThreadLocal.createInheritedMap(
+                parent.inheritableThreadLocals);
+    }
+}
+</code></pre>
+
+<p>```</p>
+
+<p>线程<code>NEW</code>出来的时候只是从创建它的线程那里继承一些属性，比如threadgroup，daemon状态，priority，stacksize，inheritableThreadLocals之类的。真正启动线程是在<code>start</code>方法里。</p>
+
+<h3>线程启动</h3>
+
+<p>```java
+/**</p>
+
+<pre><code> * Causes this thread to begin execution; the Java Virtual Machine
+ * calls the &lt;code&gt;run&lt;/code&gt; method of this thread.
+ * &lt;p&gt;
+ * The result is that two threads are running concurrently: the
+ * current thread (which returns from the call to the
+ * &lt;code&gt;start&lt;/code&gt; method) and the other thread (which executes its
+ * &lt;code&gt;run&lt;/code&gt; method).
+ * &lt;p&gt;
+ * It is never legal to start a thread more than once.
+ * In particular, a thread may not be restarted once it has completed
+ * execution.
+ *
+ * @exception  IllegalThreadStateException  if the thread was already
+ *               started.
+ * @see        #run()
+ * @see        #stop()
+ */
+public synchronized void start() {
+    /**
+     * This method is not invoked for the main method thread or "system"
+     * group threads created/set up by the VM. Any new functionality added
+     * to this method in the future may have to also be added to the VM.
+     *
+     * A zero status value corresponds to state "NEW".
+     */
+    // Android-changed: throw if 'started' is true
+    if (threadStatus != 0 || started)
+        throw new IllegalThreadStateException();
+
+    /* Notify the group that this thread is about to be started
+     * so that it can be added to the group's list of threads
+     * and the group's unstarted count can be decremented. */
+    group.add(this);
+
+    started = false;
+    try {
+        nativeCreate(this, stackSize, daemon);
+        started = true;
+    } finally {
+        try {
+            if (!started) {
+                group.threadStartFailed(this);
+            }
+        } catch (Throwable ignore) {
+            /* do nothing. If start0 threw a Throwable then
+              it will be passed up the call stack */
+        }
+    }
+}
+
+private native static void nativeCreate(Thread t, long stackSize, boolean daemon);
+</code></pre>
+
+<p>```</p>
+
+<p>```c++
+// <a href="http://androidxref.com/9.0.0_r3/xref/art/runtime/thread.cc#623">http://androidxref.com/9.0.0_r3/xref/art/runtime/thread.cc#623</a>
+void Thread::CreateNativeThread(JNIEnv<em> env, jobject java_peer, size_t stack_size, bool is_daemon) {
+  CHECK(java_peer != nullptr);
+  Thread</em> self = static_cast&lt;JNIEnvExt*>(env)&ndash;>GetSelf();</p>
+
+<p>  if (VLOG_IS_ON(threads)) {</p>
+
+<pre><code>ScopedObjectAccess soa(env);
+
+ArtField* f = jni::DecodeArtField(WellKnownClasses::java_lang_Thread_name);
+ObjPtr&lt;mirror::String&gt; java_name =
+    f-&gt;GetObject(soa.Decode&lt;mirror::Object&gt;(java_peer))-&gt;AsString();
+std::string thread_name;
+if (java_name != nullptr) {
+  thread_name = java_name-&gt;ToModifiedUtf8();
+} else {
+  thread_name = "(Unnamed)";
+}
+
+VLOG(threads) &lt;&lt; "Creating native thread for " &lt;&lt; thread_name;
+self-&gt;Dump(LOG_STREAM(INFO));
+</code></pre>
+
+<p>  }</p>
+
+<p>  Runtime* runtime = Runtime::Current();</p>
+
+<p>  // Atomically start the birth of the thread ensuring the runtime isn&rsquo;t shutting down.
+  bool thread_start_during_shutdown = false;
+  {</p>
+
+<pre><code>MutexLock mu(self, *Locks::runtime_shutdown_lock_);
+if (runtime-&gt;IsShuttingDownLocked()) {
+  thread_start_during_shutdown = true;
+} else {
+  runtime-&gt;StartThreadBirth();
+}
+</code></pre>
+
+<p>  }
+  if (thread_start_during_shutdown) {</p>
+
+<pre><code>ScopedLocalRef&lt;jclass&gt; error_class(env, env-&gt;FindClass("java/lang/InternalError"));
+env-&gt;ThrowNew(error_class.get(), "Thread starting during runtime shutdown");
+return;
+</code></pre>
+
+<p>  }</p>
+
+<p>  Thread* child_thread = new Thread(is_daemon);
+  // Use global JNI ref to hold peer live while child thread starts.
+  child_thread->tlsPtr_.jpeer = env->NewGlobalRef(java_peer);
+  stack_size = FixStackSize(stack_size);</p>
+
+<p>  // Thread.start is synchronized, so we know that nativePeer is 0, and know that we&rsquo;re not racing
+  // to assign it.
+  env->SetLongField(java_peer, WellKnownClasses::java_lang_Thread_nativePeer,</p>
+
+<pre><code>                reinterpret_cast&lt;jlong&gt;(child_thread));
+</code></pre>
+
+<p>  // Try to allocate a JNIEnvExt for the thread. We do this here as we might be out of memory and
+  // do not have a good way to report this on the child&rsquo;s side.
+  std::string error_msg;
+  std::unique_ptr<JNIEnvExt> child_jni_env_ext(</p>
+
+<pre><code>  JNIEnvExt::Create(child_thread, Runtime::Current()-&gt;GetJavaVM(), &amp;error_msg));
+</code></pre>
+
+<p>  int pthread_create_result = 0;
+  if (child_jni_env_ext.get() != nullptr) {</p>
+
+<pre><code>pthread_t new_pthread;
+pthread_attr_t attr;
+child_thread-&gt;tlsPtr_.tmp_jni_env = child_jni_env_ext.get();
+CHECK_PTHREAD_CALL(pthread_attr_init, (&amp;attr), "new thread");
+CHECK_PTHREAD_CALL(pthread_attr_setdetachstate, (&amp;attr, PTHREAD_CREATE_DETACHED),
+                   "PTHREAD_CREATE_DETACHED");
+CHECK_PTHREAD_CALL(pthread_attr_setstacksize, (&amp;attr, stack_size), stack_size);
+pthread_create_result = pthread_create(&amp;new_pthread,
+                                       &amp;attr,
+                                       Thread::CreateCallback,
+                                       child_thread);
+CHECK_PTHREAD_CALL(pthread_attr_destroy, (&amp;attr), "new thread");
+
+if (pthread_create_result == 0) {
+  // pthread_create started the new thread. The child is now responsible for managing the
+  // JNIEnvExt we created.
+  // Note: we can't check for tmp_jni_env == nullptr, as that would require synchronization
+  //       between the threads.
+  child_jni_env_ext.release();
+  return;
+}
+</code></pre>
+
+<p>  }</p>
+
+<p>  // Either JNIEnvExt::Create or pthread_create(3) failed, so clean up.
+  {</p>
+
+<pre><code>MutexLock mu(self, *Locks::runtime_shutdown_lock_);
+runtime-&gt;EndThreadBirth();
+</code></pre>
+
+<p>  }
+  // Manually delete the global reference since Thread::Init will not have been run.
+  env->DeleteGlobalRef(child_thread->tlsPtr<em>.jpeer);
+  child_thread->tlsPtr</em>.jpeer = nullptr;
+  delete child_thread;
+  child_thread = nullptr;
+  // TODO: remove from thread group?
+  env->SetLongField(java_peer, WellKnownClasses::java_lang_Thread_nativePeer, 0);
+  {</p>
+
+<pre><code>std::string msg(child_jni_env_ext.get() == nullptr ?
+    StringPrintf("Could not allocate JNI Env: %s", error_msg.c_str()) :
+    StringPrintf("pthread_create (%s stack) failed: %s",
+                             PrettySize(stack_size).c_str(), strerror(pthread_create_result)));
+ScopedObjectAccess soa(env);
+soa.Self()-&gt;ThrowOutOfMemoryError(msg.c_str());
+</code></pre>
+
+<p>  }
+}
+```</p>
+
+<p>一大堆代码只需要记住进行了<code>pthread_create</code>系统调用即可。</p>
+
+<h3>线程状态</h3>
+
+<p>```java
+/**</p>
+
+<pre><code> * A thread state.  A thread can be in one of the following states:
+ * &lt;ul&gt;
+ * &lt;li&gt;{@link #NEW}&lt;br&gt;
+ *     A thread that has not yet started is in this state.
+ *     &lt;/li&gt;
+ * &lt;li&gt;{@link #RUNNABLE}&lt;br&gt;
+ *     A thread executing in the Java virtual machine is in this state.
+ *     &lt;/li&gt;
+ * &lt;li&gt;{@link #BLOCKED}&lt;br&gt;
+ *     A thread that is blocked waiting for a monitor lock
+ *     is in this state.
+ *     &lt;/li&gt;
+ * &lt;li&gt;{@link #WAITING}&lt;br&gt;
+ *     A thread that is waiting indefinitely for another thread to
+ *     perform a particular action is in this state.
+ *     &lt;/li&gt;
+ * &lt;li&gt;{@link #TIMED_WAITING}&lt;br&gt;
+ *     A thread that is waiting for another thread to perform an action
+ *     for up to a specified waiting time is in this state.
+ *     &lt;/li&gt;
+ * &lt;li&gt;{@link #TERMINATED}&lt;br&gt;
+ *     A thread that has exited is in this state.
+ *     &lt;/li&gt;
+ * &lt;/ul&gt;
+ *
+ * &lt;p&gt;
+ * A thread can be in only one state at a given point in time.
+ * These states are virtual machine states which do not reflect
+ * any operating system thread states.
+ *
+ * @since   1.5
+ * @see #getState
+ */
+public enum State {
+    /**
+     * Thread state for a thread which has not yet started.
+     */
+    NEW,
+
+    /**
+     * Thread state for a runnable thread.  A thread in the runnable
+     * state is executing in the Java virtual machine but it may
+     * be waiting for other resources from the operating system
+     * such as processor.
+     */
+    RUNNABLE,
+
+    /**
+     * Thread state for a thread blocked waiting for a monitor lock.
+     * A thread in the blocked state is waiting for a monitor lock
+     * to enter a synchronized block/method or
+     * reenter a synchronized block/method after calling
+     * {@link Object#wait() Object.wait}.
+     */
+    BLOCKED,
+
+    /**
+     * Thread state for a waiting thread.
+     * A thread is in the waiting state due to calling one of the
+     * following methods:
+     * &lt;ul&gt;
+     *   &lt;li&gt;{@link Object#wait() Object.wait} with no timeout&lt;/li&gt;
+     *   &lt;li&gt;{@link #join() Thread.join} with no timeout&lt;/li&gt;
+     *   &lt;li&gt;{@link LockSupport#park() LockSupport.park}&lt;/li&gt;
+     * &lt;/ul&gt;
+     *
+     * &lt;p&gt;A thread in the waiting state is waiting for another thread to
+     * perform a particular action.
+     *
+     * For example, a thread that has called &lt;tt&gt;Object.wait()&lt;/tt&gt;
+     * on an object is waiting for another thread to call
+     * &lt;tt&gt;Object.notify()&lt;/tt&gt; or &lt;tt&gt;Object.notifyAll()&lt;/tt&gt; on
+     * that object. A thread that has called &lt;tt&gt;Thread.join()&lt;/tt&gt;
+     * is waiting for a specified thread to terminate.
+     */
+    WAITING,
+
+    /**
+     * Thread state for a waiting thread with a specified waiting time.
+     * A thread is in the timed waiting state due to calling one of
+     * the following methods with a specified positive waiting time:
+     * &lt;ul&gt;
+     *   &lt;li&gt;{@link #sleep Thread.sleep}&lt;/li&gt;
+     *   &lt;li&gt;{@link Object#wait(long) Object.wait} with timeout&lt;/li&gt;
+     *   &lt;li&gt;{@link #join(long) Thread.join} with timeout&lt;/li&gt;
+     *   &lt;li&gt;{@link LockSupport#parkNanos LockSupport.parkNanos}&lt;/li&gt;
+     *   &lt;li&gt;{@link LockSupport#parkUntil LockSupport.parkUntil}&lt;/li&gt;
+     * &lt;/ul&gt;
+     */
+    TIMED_WAITING,
+
+    /**
+     * Thread state for a terminated thread.
+     * The thread has completed execution.
+     */
+    TERMINATED;
+}
+</code></pre>
+
+<p>```</p>
+
+<p>线程有6种状态，<code>NEW</code>表示线程新建，还没调用<code>start()</code>。<code>RUNNABLE</code>表示线程调用了<code>start</code>处于可运行状态，等待CPU调度。<code>BLOCKED</code>表示线程在等待获取monitor lock。当在线程中调用<code>Object.wait()</code>或<code>Thread.join()</code>或<code>LockSupport.park()</code>方法时线程进入<code>WAITING</code>状态，在线程中调用<code>Thread.sleep()</code>或<code>Object.wait(long)</code>或<code>Thread.join(long)</code>或<code>LockSupport.parkNanos(long)</code>或<code>LockSupport.parkUntil(long)</code>线程进入<code>TIMED_WAITING</code>状态。线程执行完操作后会进入<code>TERMINATED</code>状态。</p>
+
+<h3>线程中断</h3>
+
+<p>线程中一共有3个和中断有关的方法，分别是<code>interrupt()</code>，<code>isInterrupted()</code>和静态方法<code>interrupted</code>。我们分别看一下。</p>
+
+<h4>interrupt</h4>
+
+<p>```java
+/**</p>
+
+<pre><code> * Interrupts this thread.
+ *
+ * &lt;p&gt; Unless the current thread is interrupting itself, which is
+ * always permitted, the {@link #checkAccess() checkAccess} method
+ * of this thread is invoked, which may cause a {@link
+ * SecurityException} to be thrown.
+ *
+ * &lt;p&gt; If this thread is blocked in an invocation of the {@link
+ * Object#wait() wait()}, {@link Object#wait(long) wait(long)}, or {@link
+ * Object#wait(long, int) wait(long, int)} methods of the {@link Object}
+ * class, or of the {@link #join()}, {@link #join(long)}, {@link
+ * #join(long, int)}, {@link #sleep(long)}, or {@link #sleep(long, int)},
+ * methods of this class, then its interrupt status will be cleared and it
+ * will receive an {@link InterruptedException}.
+ *
+ * &lt;p&gt; If this thread is blocked in an I/O operation upon an {@link
+ * java.nio.channels.InterruptibleChannel InterruptibleChannel}
+ * then the channel will be closed, the thread's interrupt
+ * status will be set, and the thread will receive a {@link
+ * java.nio.channels.ClosedByInterruptException}.
+ *
+ * &lt;p&gt; If this thread is blocked in a {@link java.nio.channels.Selector}
+ * then the thread's interrupt status will be set and it will return
+ * immediately from the selection operation, possibly with a non-zero
+ * value, just as if the selector's {@link
+ * java.nio.channels.Selector#wakeup wakeup} method were invoked.
+ *
+ * &lt;p&gt; If none of the previous conditions hold then this thread's interrupt
+ * status will be set. &lt;/p&gt;
+ *
+ * &lt;p&gt; Interrupting a thread that is not alive need not have any effect.
+ *
+ * @throws  SecurityException
+ *          if the current thread cannot modify this thread
+ *
+ * @revised 6.0
+ * @spec JSR-51
+ */
+public void interrupt() {
+    if (this != Thread.currentThread())
+        checkAccess();
+
+    synchronized (blockerLock) {
+        Interruptible b = blocker;
+        if (b != null) {
+            nativeInterrupt();
+            b.interrupt(this);
+            return;
+        }
+    }
+    nativeInterrupt();
+}
+@FastNative
+private native void nativeInterrupt();
+</code></pre>
+
+<p>```</p>
+
+<p>从注释我们可以看出调用Thread的<code>interrupt</code>方法，分为几种情况</p>
+
+<ul>
+<li>如果线程阻塞在<code>Object.wait()</code>、<code>Object.wait(long)</code>、<code>Object.wait(long,int)</code>、<code>Thread.join()</code>、<code>Thread.join(long)</code>、<code>Thread.join(long,int)</code>、<code>Thread.sleep(long)</code>、<code>Thread.sleep(long,int)</code>这些方法上，线程的中断状态将被清除，并抛出<code>InterruptedException</code>。</li>
+<li>如果阻塞在<code>java.nio.channels.InterruptibleChannel</code>IO操作操作上，线程的中断状态将被设置（这里有个疑惑，这里设置是指设置为true还是false，如果设置为false就表示线程状态被清除了，由于对NIO了解不多，这里暂时无法确定，从注释上下文理解应该是设置为true了）并抛出<code>java.nio.channels.ClosedByInterruptException</code></li>
+<li>如果阻塞在<code>java.nio.channels.Selector</code>上，线程的中断状态将被设置，并从<code>Selector</code>操作中返回。</li>
+<li>如果是其他情况，比如正在执行不会响应<code>interrupt</code>方法的方法（如<code>Socket</code>的读写或<code>ServerSocket</code>的<code>accept</code>），那么线程的中断状态将被设置。</li>
+</ul>
+
+
+<p>继续看<code>nativeInterrupt</code>方法，从<a href="http://androidxref.com/9.0.0_r3/xref/art/runtime/native/java_lang_Thread.cc">java_lang_thread.cc</a>中<a href="http://androidxref.com/9.0.0_r3/xref/art/runtime/native/java_lang_Thread.cc#126">Thread_nativeInterupt</a>可以看到是调用了<a href="http://androidxref.com/9.0.0_r3/xref/art/runtime/thread.cc#2416">Thread::Interrupt</a>。</p>
+
+<p>```c++
+// <a href="http://androidxref.com/9.0.0_r3/xref/art/runtime/thread.cc#2416">http://androidxref.com/9.0.0_r3/xref/art/runtime/thread.cc#2416</a>
+void Thread::Interrupt(Thread<em> self) {
+  MutexLock mu(self, </em>wait_mutex<em>);
+  if (tls32</em>.interrupted.LoadSequentiallyConsistent()) {</p>
+
+<pre><code>return;
+</code></pre>
+
+<p>  }
+  tls32_.interrupted.StoreSequentiallyConsistent(true);
+  NotifyLocked(self);
+}
+```</p>
+
+<p>可以看到只是设置了一下中断状态。</p>
+
+<h4>isInterrupted 和 interrupted</h4>
+
+<p>```java</p>
+
+<pre><code>/**
+ * Tests whether this thread has been interrupted.  The &lt;i&gt;interrupted
+ * status&lt;/i&gt; of the thread is unaffected by this method.
+ *
+ * &lt;p&gt;A thread interruption ignored because a thread was not alive
+ * at the time of the interrupt will be reflected by this method
+ * returning false.
+ *
+ * @return  &lt;code&gt;true&lt;/code&gt; if this thread has been interrupted;
+ *          &lt;code&gt;false&lt;/code&gt; otherwise.
+ * @see     #interrupted()
+ * @revised 6.0
+ */
+@FastNative
+public native boolean isInterrupted(); // 实例方法，返回中断状态
+
+/**
+ * Tests whether the current thread has been interrupted.  The
+ * &lt;i&gt;interrupted status&lt;/i&gt; of the thread is cleared by this method.  In
+ * other words, if this method were to be called twice in succession, the
+ * second call would return false (unless the current thread were
+ * interrupted again, after the first call had cleared its interrupted
+ * status and before the second call had examined it).
+ *
+ * &lt;p&gt;A thread interruption ignored because a thread was not alive
+ * at the time of the interrupt will be reflected by this method
+ * returning false.
+ *
+ * @return  &lt;code&gt;true&lt;/code&gt; if the current thread has been interrupted;
+ *          &lt;code&gt;false&lt;/code&gt; otherwise.
+ * @see #isInterrupted()
+ * @revised 6.0
+ */
+@FastNative
+public static native boolean interrupted();
+</code></pre>
+
+<p>```</p>
+
+<p>实例方法<code>isInterrupted</code>会返回线程的中断状态，静态方法<code>interrupted</code>会返回调用这个方法的线程的中断状态，并清除线程的中断状态，这也是清除中断状态的唯一方法，设置中断状态当然调用<code>interrupt</code>方法就好了。</p>
+
+<p>不妨看下native层实现：</p>
+
+<p>```c++
+// <a href="http://androidxref.com/9.0.0_r3/xref/art/runtime/thread.cc">http://androidxref.com/9.0.0_r3/xref/art/runtime/thread.cc</a>
+// Implements java.lang.Thread.interrupted.
+bool Thread::Interrupted() {
+  DCHECK_EQ(Thread::Current(), this);
+  // No other thread can concurrently reset the interrupted flag.
+  bool interrupted = tls32_.interrupted.LoadSequentiallyConsistent();
+  if (interrupted) {</p>
+
+<pre><code>tls32_.interrupted.StoreSequentiallyConsistent(false);
+</code></pre>
+
+<p>  }
+  return interrupted;
+}</p>
+
+<p>// Implements java.lang.Thread.isInterrupted.
+bool Thread::IsInterrupted() {
+  return tls32_.interrupted.LoadSequentiallyConsistent();
+}
+```</p>
+
+<h3>守护线程</h3>
+
+<p>线程可分为两种，普通线程和守护线程（其实叫服务线程好理解些，这些线程一般是服务其他线程的）。在JVM启动时创建的所有线程中，除了主线程以外，其他的线程都是守护线程（例如垃圾回收器以及执行其他辅助工作的线程，signal catcher之类的）。</p>
+
+<p>当创建一个新线程时，新线程将继承创建它的线程的守护状态。</p>
+
+<p>普通线程和守护线程之间的差异仅在于当线程退出时发生的操作。当一个线程退出时，JVM会检查其他正在运行的线程，如果这些线程都是守护线程，那么JVM会正常退出操作。当JVM停止时，所有仍然存在的守护线程都将被抛弃——既不会执行finally代码块，也不会执行回卷栈，而JVM只是直接退出。</p>
+
+<h3>reference</h3>
+
+<ul>
+<li>《Java并发编程实战》</li>
+<li><a href="http://gityuan.com/2016/09/24/android-thread/">Android平台上除了Java线程还有native线程，可以参考这篇</a></li>
 </ul>
 
 ]]></content>

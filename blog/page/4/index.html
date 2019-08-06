@@ -9,7 +9,7 @@
   <meta name="author" content="Solarex">
 
   
-  <meta name="description" content="最近在做一个周日历的新需求，其中有个要求是要RecyclerView平滑的滑动到指定位置，刚开始的时候我以为只要调用smoothScrollToPosition这个方法就可以了，测试的时候发现，smoothScrollToPosition只会对不可见的item有效， &hellip;">
+  <meta name="description" content="HashMap是存储key-value的集合，底层采用Node&lt;K,V&gt;[] table实现，初始大小为24即16。 ">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -96,7 +96,7 @@
       
   <header>
     
-      <h1 class="entry-title"><a href="/blog/2018/05/30/recyclerview-smooth-scoll-to-position/">RecyclerView平滑滑动到指定位置</a></h1>
+      <h1 class="entry-title"><a href="/blog/2018/07/02/analysis-of-hashmap/">HashMap源码分析</a></h1>
     
     
       <p class="meta">
@@ -112,22 +112,22 @@
   
 
 
-<time datetime="2018-05-30T14:33:00+08:00" pubdate data-updated="true">May 30<span>th</span>, 2018</time>
+<time datetime="2018-07-02T19:31:00+08:00" pubdate data-updated="true">Jul 2<span>nd</span>, 2018</time>
         
-         | <a href="/blog/2018/05/30/recyclerview-smooth-scoll-to-position/#disqus_thread">Comments</a>
+         | <a href="/blog/2018/07/02/analysis-of-hashmap/#disqus_thread">Comments</a>
         
       </p>
     
   </header>
 
 
-  <div class="entry-content"><p>最近在做一个周日历的新需求，其中有个要求是要RecyclerView平滑的滑动到指定位置，刚开始的时候我以为只要调用<code>smoothScrollToPosition</code>这个方法就可以了，测试的时候发现，<code>smoothScrollToPosition</code>只会对不可见的item有效，对于已经可见的item滑动没有效果，于是翻看了一下<code>smoothScrollToPosition</code>的源码，发现是调用了<code>LayoutManger</code>的<code>smoothScrollToPosition</code>方法。</p>
+  <div class="entry-content"><p><code>HashMap</code>是存储key-value的集合，底层采用<code>Node&lt;K,V&gt;[] table</code>实现，初始大小为2<sup>4</sup>即16。</p>
 
 </div>
   
   
     <footer>
-      <a rel="full-article" href="/blog/2018/05/30/recyclerview-smooth-scoll-to-position/">Read on &rarr;</a>
+      <a rel="full-article" href="/blog/2018/07/02/analysis-of-hashmap/">Read on &rarr;</a>
     </footer>
   
 
@@ -139,7 +139,7 @@
       
   <header>
     
-      <h1 class="entry-title"><a href="/blog/2018/04/26/java-proxy/">Java代理</a></h1>
+      <h1 class="entry-title"><a href="/blog/2018/07/01/datastructure-and-algorithms/">数据结构与算法</a></h1>
     
     
       <p class="meta">
@@ -155,164 +155,178 @@
   
 
 
-<time datetime="2018-04-26T10:07:00+08:00" pubdate data-updated="true">Apr 26<span>th</span>, 2018</time>
+<time datetime="2018-07-01T19:06:00+08:00" pubdate data-updated="true">Jul 1<span>st</span>, 2018</time>
         
-         | <a href="/blog/2018/04/26/java-proxy/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>Java代理有静态代理和动态代理之分。</p>
-
-<h4>静态代理</h4>
-
-<p>静态代理类图如下：</p>
-
-<p><center><img src="/images/java-proxy-static.png" width=225 height=225/></center></p>
-
-
-<p><code>ProxyObject</code>持有<code>RealObject</code>的引用，在<code>someOperation</code>方法中可以代理<code>RealObject</code>做操作。</p>
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2018/04/26/java-proxy/">Read on &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2018/04/23/okhttp3-source-analysis/">Okhttp3源码分析</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2018-04-23T16:43:00+08:00" pubdate data-updated="true">Apr 23<span>rd</span>, 2018</time>
-        
-         | <a href="/blog/2018/04/23/okhttp3-source-analysis/#disqus_thread">Comments</a>
+         | <a href="/blog/2018/07/01/datastructure-and-algorithms/#disqus_thread">Comments</a>
         
       </p>
     
   </header>
 
 
-  <div class="entry-content"><p>周末在家断点调试了一下okhttp的执行流程，翻看了一下okhttp的源码，对okhttp有了一个大致的了解，在这记录一下。okhttp的精髓是<code>Dispatcher</code>和<code>Interceptor</code>，这里主要分析这两个。</p>
-
-<h1>Dispatcher</h1>
-
-<p><code>Dispatcher</code>是在<code>OkHttpClient.Builder</code>中实例化的，主要维护了<code>runningSyncCalls</code>，<code>runningAsyncCalls</code>,<code>readyAsyncCalls</code>三个队列。</p>
-
-<p>同步的请求在执行<code>execute</code>方法时会将<code>RealCall</code>对象添加到<code>runningSyncCalls</code>队列中去，然后调用<code>getResponseWithInterceptorChain</code>去获取<code>Response</code>，不管成功失败，在<code>finally</code>块中都会执行<code>runningSyncCalls.remove(realcall)</code>将<code>RealCall</code>对象移除出队列。类似于一个生产者消费者系统。</p>
-
-<p>异步的请求会将请求包装成一个<code>AsyncCall</code>，实际上就是一个Runnable，然后看<code>runningAsyncCalls</code>队列的长度是否小于<code>maxRequests</code>也即64并且同一个host的请求是否小于<code>maxRequestsPerHost</code>,如果满足则添加到<code>runningAsyncCalls</code>队列中去，并且调用线程池执行，否则添加到<code>readyAsyncCalls</code>队列中去。在<code>AsyncCall</code>这个<code>Runnable</code>的<code>run</code>方法中又会去调用<code>getResponseWithInterceptorChain</code>去获取<code>Response</code>，值得注意的是在<code>finally</code>块中，将<code>AsyncCall</code>移除出队列的时候会调用<code>promoteCalls</code>方法。</p>
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2018/04/23/okhttp3-source-analysis/">Read on &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2018/04/15/android-view-system/">View绘制流程分析</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2018-04-15T16:34:00+08:00" pubdate data-updated="true">Apr 15<span>th</span>, 2018</time>
-        
-         | <a href="/blog/2018/04/15/android-view-system/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content">
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2018/04/08/nestedscrolling-analysis/">NestedScrolling分析</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2018-04-08T16:32:00+08:00" pubdate data-updated="true">Apr 8<span>th</span>, 2018</time>
-        
-         | <a href="/blog/2018/04/08/nestedscrolling-analysis/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h2>reference</h2>
+  <div class="entry-content"><h2>ArrayList</h2>
 
 <ul>
-<li><a href="https://mp.weixin.qq.com/s/jD2zuLth197tBiVbYfjP8w"></a></li>
+<li>尾插效率高，支持随机访问</li>
+<li>中间插入或者删除效率低</li>
+<li>空间不够用时，自动增长为现有空间的1.5倍</li>
+<li>底层使用Object数组来存储数据，使用System.arrayCopy来移动元素</li>
+</ul>
+
+
+<h2>LinkedList</h2>
+
+<ul>
+<li>头插，中间插，删除效率高</li>
+<li>不支持随机访问</li>
+<li>MessageQueue中Message根据msg.when来进行插入，mMessages指向头结点</li>
+</ul>
+
+
+<h2>Vector</h2>
+
+<ul>
+<li>底层使用数组实现，增长看<code>capacityIncrement</code>，若<code>capacityIncrement</code>小于0，翻倍增长</li>
+<li>方法有<code>synchronized</code>修饰，线程安全</li>
+<li><code>Stack</code>栈底层实现使用的<code>Vector</code></li>
+<li><code>Stack</code>在同一端进行插入和删除，<code>FILO</code></li>
+<li>队列<code>Queue</code>是只允许在一端进行插入操作，而在另一端进行删除操作的线性表，插入的一端称为队尾，删除的一端称为队头</li>
+<li>把队列的头尾相接的顺序存储结构称为循环队列</li>
+<li>双端队列<code>Deque</code>是一种具有队列和栈的性质的数据结构，双端队列中的元素可以从两端弹出，其限定插入和删除操作在队列的两端进行。<code>LinkedList</code>，<code>ArrayDeque</code>实现了<code>Deque</code>接口,<code>LinkedBlockingQueue</code>实现了<code>BlockingDeque</code>接口</li>
+<li>优先级队列，<code>PriorityQueue</code>，<code>MessageQueue</code>根据<code>Message.when</code>来进行插入</li>
 </ul>
 
 </div>
   
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2018/06/18/why-java-string-designed-as-final/">为什么String要被设计成final的</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2018-06-18T09:53:00+08:00" pubdate data-updated="true">Jun 18<span>th</span>, 2018</time>
+        
+         | <a href="/blog/2018/06/18/why-java-string-designed-as-final/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h2>Reference</h2>
+
+<ul>
+<li><a href="https://javarevisited.blogspot.com/2010/10/why-string-is-immutable-or-final-in-java.html">Why String is Immutable or Final in Java</a></li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2018/06/15/the-art-of-java-concurrency-programming-notes/">Java并发编程的艺术笔记</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2018-06-15T23:04:00+08:00" pubdate data-updated="true">Jun 15<span>th</span>, 2018</time>
+        
+         | <a href="/blog/2018/06/15/the-art-of-java-concurrency-programming-notes/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>已迁移到gitbook，请访问<a href="https://solarex.github.io/reading-notes/the-art-of-java-concurrency-programming/readme.html">Java并发编程的艺术笔记</a>。</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2018/06/15/the-art-of-java-concurrency-programming-notes/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2018/06/03/java-concurrency-in-practice-notes/">Java并发编程实战笔记</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2018-06-03T21:43:00+08:00" pubdate data-updated="true">Jun 3<span>rd</span>, 2018</time>
+        
+         | <a href="/blog/2018/06/03/java-concurrency-in-practice-notes/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>已迁移到gitbook，请访问<a href="https://solarex.github.io/reading-notes/jcip/readme.html">Java并发编程实战笔记</a>。</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2018/06/03/java-concurrency-in-practice-notes/">Read on &rarr;</a>
+    </footer>
   
 
 
@@ -335,23 +349,23 @@
   <ul id="recent_posts">
     
       <li class="post">
-        <a href="/blog/2019/04/30/learning-dagger2/">Dagger2学习</a>
+        <a href="/blog/2019/08/04/java-threadpoolexecutor/">Java线程池解析</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2019/04/18/how-kotlin-generate-method-default-arguments/">Kotlin是如何实现方法默认参数的</a>
+        <a href="/blog/2019/08/01/java-blockingqueue/">Java BlockingQueue解析</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2019/03/12/summary-of-custom-views-part-iii/">自定义View总结三</a>
+        <a href="/blog/2019/07/28/aqs/">Java AQS解析</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2019/02/12/summary-of-custom-views-part-ii/">自定义View总结二</a>
+        <a href="/blog/2019/06/28/futuretask/">Java FutureTask解析</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2019/01/12/summary-of-custom-views-part-i/">自定义View总结一</a>
+        <a href="/blog/2019/05/28/thread/">Android Thread解析</a>
       </li>
     
   </ul>
@@ -378,7 +392,7 @@
         github.showRepos({
             user: 'flyfire',
             count: 5,
-            skip_forks: true,
+            skip_forks: false,
             target: '#gh_repos'
         });
     });
