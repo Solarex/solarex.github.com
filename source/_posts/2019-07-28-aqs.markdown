@@ -26,3 +26,4 @@ categories:
 + [AbstractQueuedSynchronizer使用和源码分析](https://liuzhengyang.github.io/2017/05/12/aqs/)
 + [AbstractQueuedSynchronizer 源码分析 (基于Java 8)](https://www.jianshu.com/p/e7659436538b)
 + [源码分析JDK8之AbstractQueuedSynchronizer](https://segmentfault.com/a/1190000014221325)
++ [aqs.pdf](http://gee.cs.oswego.edu/dl/papers/aqs.pdf)
