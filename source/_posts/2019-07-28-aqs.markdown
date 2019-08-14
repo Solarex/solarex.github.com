@@ -12,6 +12,10 @@ categories:
 
 <!-- more -->
 
+TL;DR
+
+以下是对[aqs.pdf](http://gee.cs.oswego.edu/dl/papers/aqs.pdf)部分内容零散的翻译，其实《Java并发编程实战》中有一章介绍了AQS，我也做了笔记，可以在[这里](https://solarex.github.io/reading-notes/jcip/ch14.html)看到。翻译很不专业，将就看下吧。如果想深入了解AQS，可以读下[aqs.pdf](http://gee.cs.oswego.edu/dl/papers/aqs.pdf)或者看下本文reference部分的几篇文章。
+
 Synchronizers possess two kinds of methods : at least one ``acquire`` operation that blocks the calling thread unless/until the synchronization state allows it to proceed, and at least one ``release`` operation that changes synchronization state in a way that may allow one or more blocked threads to unblock.
 
 同步器提供两种方法：一个``acquire``方法在同步状态不允许线程通过运行时阻塞线程，一个``release``方法改变同步状态来允许一个或多个被阻塞的线程继续运行。
@@ -138,7 +142,43 @@ if (tryRelease(arg) && head node's signal bit is set) {
 }
 ```
 
+The synchronizer framework provides a ``ConditionObject`` class for use by synchronizers that maintain exclusive synchronization and conform to the Lock interface. Any number of condition objects may be attached to a lock object, providing classic monitor-style ``await``, ``signal``, and ``signalAll`` operations, including those with timeouts, along with some inspection and monitoring methods.
 
+AQS框架还提供了``ConditionObject``来提供和内置锁``wait/notify/notifyAll``类似的``await/signal/signalAll``功能。
+
+The ``ConditionObject`` class enables conditions to be efficiently integrated with other synchronization operations,again by fixing some design decisions. This class supports only Java-style monitor access rules in which condition operations are legal only when the lock owning the condition is held by the current thread. Thus, a ``ConditionObject`` attached to a ReentrantLock acts in the same way as do built-in monitors (via ``Object.wait`` etc), differing only in method names, extra functionality, and the fact that users can declare multiple conditions per lock.A ``ConditionObject`` uses the same internal queue nodes as synchronizers, but maintains them on a separate condition queue.The signal operation is implemented as a queue transfer from the condition queue to the lock queue, without necessarily waking up the signalled thread before it has re-acquired its lock.
+
+The basic await operation is:
+
+```java
+ create and add new node to condition queue;
+ release lock;
+ block until node is on lock queue;
+ re-acquire lock;
+```
+
+And the signal operation is:
+
+```java
+ transfer the first node from condition queue to lock queue;
+```
+
+``ConditionObject``提供和内置锁类似的功能，在一个``Lock``上可以声明多个``ConditionObject``。``ConditionObject``使用condition queue来维护等待队列，condition queue上的节点和lock queue中的节点相同，``await``是入condition queue，``signal``是从condition queue中转移到lock queue中。
+
+Because these operations are performed only when the lock is held, they can use sequential linked queue operations (using a ``nextWaiter`` field in nodes) to maintain the condition queue.The transfer operation simply unlinks the first node from the condition queue, and then uses CLH insertion to attach it to the lock queue. The main complication in implementing these operations is dealing with cancellation of condition waits due to timeouts or ``Thread.interrupt``. A cancellation and signal occuring at approximately the same time encounter a race whose outcome conforms to the specifications for built-in monitors. As revised in JSR133, these require that if an interrupt occurs before a signal, then the ``await`` method must, after re-acquiring the lock, throw ``InterruptedException``. But if it is interrupted after a signal, then the method must return without throwing an exception, but with its thread interrupt status set.
+
+transfer操作是从将condition queue里的第一个节点从condition queue中移除，插入到lock queue中去。如果在``signal``之前发生了线程中断，那么``await``必须在重新获取锁之后抛出``InterruptedException``。如果在``signal``之后发生了中断，那么线程中断状态将被设置，但是不会抛出异常。
+
+Here are sketches of how java.util.concurrent synchronizer classes are defined using this framework:
+
++ The ``ReentrantLock`` class uses synchronization state to hold the (recursive) lock count. When a lock is acquired, it also records the identity of the current thread to check recursions and detect illegal state exceptions when the wrong thread tries to unlock. The class also uses the provided ``ConditionObject``, and exports other monitoring and inspection methods. The class supports an optional "fair" mode by internally declaring two different ``AbstractQueuedSynchronizer`` subclasses (the fair one disabling barging) and setting each ``ReentrantLock`` instance to use the appropriate one upon construction.
++ The ``ReentrantReadWriteLock`` class uses 16 bits of the synchronization state to hold the write lock count, and the remaining 16 bits to hold the read lock count. The ``WriteLock`` is otherwise structured in the same way as ``ReentrantLock``.The ``ReadLock`` uses the ``acquireShared`` methods to enable multiple readers.
++ The ``Semaphore`` class (a counting semaphore) uses the synchronization state to hold the current count. It defines ``acquireShared`` to decrement the count or block if nonpositive, and ``tryRelease`` to increment the count, possibly unblocking threads if it is now positive.
++ The ``CountDownLatch`` class uses the synchronization state to represent the count. All acquires pass when it reaches zero.
++ The ``FutureTask`` class uses the synchronization state to represent the run-state of a future (initial, running, cancelled,done). Setting or cancelling a future invokes ``release``,unblocking threads waiting for its computed value via ``acquire``.
++ The ``SynchronousQueue`` class (a CSP-style handoff) uses internal wait-nodes that match up producers and consumers. It uses the synchronization state to allow a producer to proceed when a consumer takes the item, and vice-versa.
+
+JUC框架中几个使用AQS的同步器类的内部实现。
 
 ### reference
 
