@@ -4,7 +4,7 @@
   <title><![CDATA[Category: concurrency | Solarex's Blog]]></title>
   <link href="http://Solarex.github.io/blog/categories/concurrency/atom.xml" rel="self"/>
   <link href="http://Solarex.github.io/"/>
-  <updated>2019-08-14T17:41:01+08:00</updated>
+  <updated>2019-08-19T22:01:42+08:00</updated>
   <id>http://Solarex.github.io/</id>
   <author>
     <name><![CDATA[Solarex]]></name>
@@ -18,7 +18,66 @@
     <link href="http://Solarex.github.io/blog/2019/08/04/java-threadpoolexecutor/"/>
     <updated>2019-08-04T20:27:00+08:00</updated>
     <id>http://Solarex.github.io/blog/2019/08/04/java-threadpoolexecutor</id>
-    <content type="html"><![CDATA[
+    <content type="html"><![CDATA[<p>本文主要对Executor框架以及Java平台线程池技术进行分析。</p>
+
+<!-- more -->
+
+
+<p>Executor框架主要由3大部分组成：</p>
+
+<ul>
+<li>任务。包括被执行任务需要实现的接口：Runnable接口或Callable接口</li>
+<li>任务的执行。包括任务执行机制的核心接口Executor，以及继承自Executor的ExecutorService接口。Executor框架有两个关键类实现了ExecutorService接口（ThreadPoolExecutor和ScheduledThreadPoolExecutor）</li>
+<li>异步计算的结果。包括接口Future和实现Future接口的FutureTask类。</li>
+</ul>
+
+
+<p>通过Executor框架的工具类Executors，可以创建3中类型的ThreadPoolExecutor：</p>
+
+<ul>
+<li>FixedThreadPool</li>
+<li>SingleThreadPool</li>
+<li>CachedThreadPool</li>
+</ul>
+
+
+<p>ThreadPoolExecutor执行execute方法分下面4种情况：</p>
+
+<ul>
+<li>如果当前运行的线程少于corePoolSize，则创建新线程来执行任务（注意，执行这一步骤需要获取全局锁）</li>
+<li>如果运行的线程等于或多于corePoolSize，则将任务加入BlockingQueue。</li>
+<li>如果无法将任务加入BlockingQueue（队列已满），则创建新的线程来处理任务（注意，执行这一步骤需要获取全局锁）</li>
+<li>如果创建新线程将使当前运行的线程超出maximumPoolSize，任务将交给饱和策略来处理。</li>
+</ul>
+
+
+<p>RejectExecutionHandler(饱和策略)</p>
+
+<ul>
+<li>AbortPolicy：直接抛出异常</li>
+<li>CallerRunsPolicy：调用者线程来运行任务</li>
+<li>DiscardOldestPolicy：丢弃队列中最近的一个任务，并执行当前任务</li>
+<li>DiscardPolicy：不处理，丢弃掉</li>
+</ul>
+
+
+<p>关闭线程池：可以通过调用线程池的shutdown或shutdownNow方法来关闭线程池。它们的原理是遍历线程池中的工作线程，然后逐个调用线程的interrupt方法来中断线程，所以无法响应中断的任务可能永远无法终止。但是它们存在一定的区别，shutdownNow首先将线程池的状态设置成STOP，然后尝试停止所有的正在执行或暂停任务的线程，并返回等待执行任务的列表，而shutdown只是将线程池的状态设置成SHUTDOWN状态，然后中断所有没有正在执行任务的线程。只要调用了这两个关闭方法中的任意一个，isShutdown方法就会返回true，当所有的任务都已关闭后，才表示线程池关闭成功，这时调用isTerminated方法会返回true。</p>
+
+<p>FixedThreadPool的corePoolSize和maximumPoolSize都被设置为创建FixedThreadPool时指定的参数nThreads。当线程池中的线程数大于corePoolSize时，keepAliveTime为多余的空闲线程等待新任务的最长时间，超过这个时间后多余的线程将被终止。keepAliveTime设置为0意味着多余的空闲线程会被立即终止。FixedThreadPool使用无界队列LinkedBlockingQueue作为线程池的工作队列。当线程池的线程数达到corePoolSize后，新任务将在无界队列中等待，因此线程池中线程数不会超过corePoolSize，maximunPoolSize是无效的参数，keepAliveTime也变成了无效参数。</p>
+
+<p>SingleThreadExecutor的corePoolSize和maximumPoolSize被设置成1,其他参数与FixedThreadPool相同。</p>
+
+<p>CachedThreadPool是一个会根据需要创建新线程的线程池。CachedThreadPool的corePoolSize被设置为0，即corePoolSize为空，maximumPoolSize被设置为Integer.MAX_VALUE，即maximumPool是无界的，keepAliveTime被设置为60，意味着CachedThreadPool中的空闲线程等待新任务的最长时间是60s，空闲线程超过60s后将会被终止。CachedThreadPool使用没有容量的SynchronousQueue作为线程池的工作队列，但CachedThreadPool的maximumPool是无界的，这意味着，如果主线程提交任务的速度高于maximumPool中线程处理任务的速度时，CachedThreadPool会不断创建新线程，极端情况下，CachedThreadPool会因为创建过多线程而耗尽CPU和内存资源。</p>
+
+<p>ScheduledThreadPoolExecutor使用DelayQueue作为工作队列，DelayQueue是无界队列，所以maximumPoolSize参数无意义。ScheduledThreadPoolExecutor的执行主要分为两大部分：</p>
+
+<ul>
+<li>当调用ScheduledThreadPoolExecutor的scheduleAtFixedRate()方法或者scheduleWithFixedDelay()方法时，会向DelayQueue中添加一个实现了RunnableScheduledFuture接口的ScheduledFutureTask。</li>
+<li>线程池的线程从DelayQueue中获取ScheduledFutureTask，然后执行任务。</li>
+</ul>
+
+
+<p>可以自己<a href="https://github.com/flyfire/ReadJCIP/tree/master/src/main/java/com/solarexsoft/jcip/art/ch04">参考</a>着实现一个简陋版的线程池。</p>
 ]]></content>
   </entry>
   
@@ -31,6 +90,111 @@
 
 <!-- more -->
 
+
+<p>阻塞队列BlockingQueue是一个支持两个附加操作的队列。这两个附加的操作支持阻塞的插入和移除方法。</p>
+
+<ul>
+<li>支持阻塞的插入方法：意思是当队列满时，队列会阻塞插入元素的线程，直到队列不满。</li>
+<li>支持阻塞的移除方法：意思是在队列为空时，获取元素的线程会等待队列变为非空。</li>
+</ul>
+
+
+<p>当阻塞队列不可用时，这两个附加操作提供了4种处理方式。</p>
+
+<table>
+<thead>
+<tr>
+<th></th>
+<th> 方法/处理方式 </th>
+<th> 抛出异常  </th>
+<th> 返回特殊值 </th>
+<th> 一直阻塞 </th>
+<th> 超时退出           </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td></td>
+<td> 插入方法      </td>
+<td> add(e)    </td>
+<td> offer(e)   </td>
+<td> put(e)   </td>
+<td> offer(e,time,unit) |</td>
+</tr>
+<tr>
+<td></td>
+<td> 移除方法      </td>
+<td> remove(e) </td>
+<td> poll()     </td>
+<td> take()   </td>
+<td> poll(time, unit)   |</td>
+</tr>
+<tr>
+<td></td>
+<td> 检查方法      </td>
+<td> element() </td>
+<td> peek()     </td>
+<td> 不可用   </td>
+<td> 不可用             |</td>
+</tr>
+</tbody>
+</table>
+
+
+<ul>
+<li>抛出异常：当队列满时，如果再往队列里插入元素，会抛出IllegalStateException(&ldquo;Queue full&rdquo;)异常。当队列空时，从队列里获取元素会抛出NoSuchElementException异常。</li>
+<li>返回特殊值：当往队列插入元素时，会返回元素是否插入成功，成功返回true。如果是移除方法，则是从队列里取出一个元素，如果没有则返回null。</li>
+<li>一直阻塞：当阻塞队列满时，如果生产者线程往队列里put元素，队列会一直阻塞生产者线程，直到队列可用或者响应中断退出。当队列空时，如果消费者线程从队列里take元素，队列会阻塞住消费者线程，直到队列不为空。</li>
+<li>超时退出：当阻塞队列满时，如果生产者线程往队列里插入元素，队列会阻塞生产者线程一段时间，如果超过了指定的时间，生产者线程就会退出。</li>
+</ul>
+
+
+<p>如果是无界阻塞队列，队列不可能会出现满的情况，所以使用put或offer方法永远不会被阻塞，而且offer方法永远返回true。</p>
+
+<p>JDK 7提供了7个阻塞队列：</p>
+
+<ul>
+<li>ArrayBlockingQueue：一个由数组结构组成的有界阻塞队列</li>
+<li>LinkedBlockingQueue：一个由链表结构组成的有界阻塞队列</li>
+<li>PriorityBlockingQueue：一个支持优先级排序的无界阻塞队列</li>
+<li>DelayQueue：一个使用优先级队列实现的无界阻塞队列</li>
+<li>SynchronousQueue：一个不存储元素的阻塞队列</li>
+<li>LinkedTransferQueue：一个由链表结构组成的无界阻塞队列</li>
+<li>LinkedBlockingDeque：一个由链表结构组成的双向阻塞队列</li>
+</ul>
+
+
+<p>ArrayBlockingQueue是一个用数组实现的有界阻塞队列。此队列按照FIFO的原则对元素进行排序。访问线程的公平性是使用可重入锁实现的。</p>
+
+<p>LinkedBlockingQueue是一个用链表实现的有界阻塞队列，此队列的默认和最大长度为Integer.MAX_VALUE。此队列按照先进先出的原则对元素进行排序。</p>
+
+<p>PriorityBlockingQueue是一个支持优先级的无界阻塞队列。默认情况下元素采用自然顺序升序排列。也可以自定义类实现compareTo()方法来指定元素排序规则，或者初始化PriorityBlockingQueue时，指定构造参数Comparator来对元素进行排序。需要注意的是不能保证同优先级元素的顺序。</p>
+
+<p>DelayQueue是一个支持延时获取元素的无界阻塞队列。队列使用PriorityQueue来实现。队列中的元素必须实现Delayed接口，在创建元素时可以指定多久才能从队列中获取当前元素。只有在延迟期满时才能从队列中提取元素。DelayQueue非常有用，可以将DelayQueue运用在以下应用场景。</p>
+
+<ul>
+<li>缓存系统的设计：可以用DelayQueue保存缓存元素的有效期，使用一个线程循环查询DelayQueue，一旦能从DelayQueue中获取元素时，表示缓存有效期到了。</li>
+<li>定时任务调度：使用DelayQueue保存当天将会执行的任务和执行时间，一旦从DelayQueue中获取到任务就开始执行，比如TimerQueue就是使用DelayQueue实现的。</li>
+</ul>
+
+
+<p>延时阻塞队列的实现很简单，当消费者从队列里获取元素时，如果元素没有达到延时时间，就阻塞当前线程。</p>
+
+<p>SyncrhonousQueue是一个不存储元素的阻塞队列。每一个put操作必须等待一个take操作，否则不能继续添加元素。它支持公平访问队列。默认情况下线程采用非公平性策略访问队列。SynchronousQueue可以看成是一个传球手，负责把生产者线程处理的数据直接传递给消费者线程。队列本身并不存储任何元素，非常适合传递性场景。SynchronousQueue的吞吐量高于LinkedBlockingQueue和ArrayBlockingQueue。</p>
+
+<p>LinkedTransferQueue是一个由链表结构组成的无界阻塞TransferQueue队列。相对于其他阻塞队列，LinkedTransferQueue多了tryTransfer和transfer方法。</p>
+
+<ul>
+<li>transfer方法：如果当前有消费者正在等待接收元素（消费者使用take()方法或带时间限制的poll()方法时），transfer方法可以把生产者传入的元素立即transfer给消费者。如果没有消费者在等待接收元素，transfer方法会将元素存放在队列tail节点，并等到该元素被消费者消费了才返回。</li>
+<li>tryTransfer方法：tryTransfer方法是用来试探生产者传入的元素是否能直接传给消费者。如果没有消费者等待接收元素，则返回false。和transfer方法的区别是tryTransfer方法无论消费者是否接收，方法立即返回，而transfer方法是必须等到消费者消费了才返回。对于带时间限制的tryTransfer(E e,long timeout, TimeUnit unit)方法，试图把生产者传入的元素直接传给消费者，但是如果没有消费者消费该元素则等待指定的时间再返回。如果超时还没消费元素，则返回false，如果在超时时间内消费了元素，则返回true。</li>
+</ul>
+
+
+<p>LinkedBlockingDeque是一个由链表结构组成的双向阻塞队列。所谓双向队列指的是可以从队列的两端插入和移除元素。双向队列因为多了一个操作队列的入口，在多线程同时入队时，也就减少了一半的竞争。相比其他的阻塞队列，LinkedBlockingDeque多了addFirst、addLast、offerFirst、offerLast、peekFirst、peekLast等方法。插入方法add等同于addLast，移除方法remove等同于removeFirst，take方法等同于takeFirst。在初始化LinkedBlockingDeque时可以设置容量防止其过度膨胀。LinkedBlockingDeque可以运用在“工作窃取”模式中。</p>
+
+<p>阻塞队列实现原理：使用通知模式实现。ArrayBlockingQueue使用了Condition来实现。</p>
+
+<p>可以自己<a href="https://github.com/flyfire/ReadJCIP/blob/master/src/main/java/com/solarexsoft/jcip/ch14/ConditionBoundedBuffer.java">参考</a>着实现一下。</p>
 
 <h3>reference</h3>
 
@@ -53,7 +217,7 @@
 
 <p>TL;DR</p>
 
-<p>以下是对<a href="http://gee.cs.oswego.edu/dl/papers/aqs.pdf">aqs.pdf</a>部分内容零散的翻译，其实《Java并发编程实战》中有一章介绍了AQS，我也做了笔记，可以在<a href="https://solarex.github.io/reading-notes/jcip/ch14.html">这里</a>看到。翻译很不专业，将就看下吧。如果想深入了解AQS，可以读下<a href="http://gee.cs.oswego.edu/dl/papers/aqs.pdf">aqs.pdf</a>或者看下本文reference部分的几篇文章。</p>
+<p>以下是对<a href="http://gee.cs.oswego.edu/dl/papers/aqs.pdf">aqs.pdf</a>部分内容零散的翻译，其实《Java并发编程实战》中有一章介绍了AQS，我也做了笔记，可以在<a href="https://solarex.github.io/reading-notes/jcip/ch14.html">这里</a>看到，对于AQS模板方法的使用，可以在<a href="https://solarex.github.io/reading-notes/the-art-of-java-concurrency-programming/ch05.html">这篇笔记</a>中看到。翻译很不专业，将就看下吧。如果想深入了解AQS，可以读下<a href="http://gee.cs.oswego.edu/dl/papers/aqs.pdf">aqs.pdf</a>或者看下本文reference部分的几篇文章。</p>
 
 <p>Synchronizers possess two kinds of methods : at least one <code>acquire</code> operation that blocks the calling thread unless/until the synchronization state allows it to proceed, and at least one <code>release</code> operation that changes synchronization state in a way that may allow one or more blocked threads to unblock.</p>
 
@@ -1390,7 +1554,7 @@ bool Thread::IsInterrupted() {
 
 <h3>守护线程</h3>
 
-<p>线程可分为两种，普通线程和守护线程（其实叫服务线程好理解些，这些线程一般是服务其他线程的）。在JVM启动时创建的所有线程中，除了主线程以外，其他的线程都是守护线程（例如垃圾回收器以及执行其他辅助工作的线程，signal catcher之类的）。</p>
+<p>线程可分为两种，普通线程和守护线程（其实叫服务线程好理解些，这些线程一般是服务其他线程的）。在JVM启动时创建的所有线程中，除了主线程以外，其他的线程都是守护线程（例如垃圾回收器以及执行其他辅助工作的线程，signal dispatcher之类的）。</p>
 
 <p>当创建一个新线程时，新线程将继承创建它的线程的守护状态。</p>
 

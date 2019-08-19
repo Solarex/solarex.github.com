@@ -9,7 +9,9 @@
   <meta name="author" content="Solarex">
 
   
-  <meta name="description" content="最近项目不太忙，解bug的间隙把百合仙子最近几年的博客翻看了一下，想起很多往事，权且把应该放到饭否的一些碎碎念放到这里吧。 仙子现在还在坚持使用InoReader，自从Google Reader关闭之后，我也尝试过几种替代工具，feedly，inoreader，QQ邮箱的阅读空间，把从Google &hellip;">
+  <meta name="description" content="自定义View总结 &ndash; 绘制 绘制基础 Canvas.drawColor(@ColorInt int color) 颜色填充
+drawCircle(float centerX, float centerY, float radius, Paint paint) 画圆
+Paint. &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -90,6 +92,69 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2019/01/12/summary-of-custom-views-part-i/">自定义View总结一</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2019-01-12T00:33:00+08:00" pubdate data-updated="true">Jan 12<span>th</span>, 2019</time>
+        
+         | <a href="/blog/2019/01/12/summary-of-custom-views-part-i/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h2>自定义View总结 &ndash; 绘制</h2>
+
+<h3>绘制基础</h3>
+
+<ul>
+<li><code>Canvas.drawColor(@ColorInt int color)</code> 颜色填充</li>
+<li><code>drawCircle(float centerX, float centerY, float radius, Paint paint)</code> 画圆</li>
+<li><code>Paint.setColor(int color)</code>,<code>Paint.setStyle(Paint.Style style)</code>,<code>Paint.setStrokeWidth(float width)</code>,<code>Paint.setAntiAlias(boolean aa)</code></li>
+<li><code>drawRect(float left, float top, float right, float bottom, Paint paint)</code> 画矩形</li>
+<li><code>drawPoint(float x, float y, Paint paint)</code> 画点</li>
+<li><code>drawPoints(float[] pts, int offset, int count, Paint paint) / drawPoints(float[] pts, Paint paint)</code> 画点（批量）</li>
+<li><code>drawOval(float left, float top, float right, float bottom, Paint paint)</code>画椭圆</li>
+<li><code>drawLine(float startX, float startY, float stopX, float stopY, Paint paint)</code> 画线</li>
+<li><code>drawLines(float[] pts, int offset, int count, Paint paint) / drawLines(float[] pts, Paint paint)</code> 画线（批量）</li>
+<li><code>drawRoundRect(float left, float top, float right, float bottom, float rx, float ry, Paint paint)</code> 画圆角矩形</li>
+<li><code>drawArc(float left, float top, float right, float bottom, float startAngle, float sweepAngle, boolean useCenter, Paint paint)</code> 绘制弧形或扇形</li>
+<li><code>drawPath(Path path, Paint paint)</code> 画自定义图形</li>
+<li><code>drawBitmap(Bitmap bitmap, float left, float top, Paint paint)</code> 画 Bitmap</li>
+<li><code>drawText(String text, float x, float y, Paint paint)</code>绘制文字</li>
+</ul>
+
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2019/01/12/summary-of-custom-views-part-i/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
   
   
     <article>
@@ -251,166 +316,6 @@
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2018/07/10/java-enum-syntactic-sugar/">Java枚举语法糖</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2018-07-10T14:24:00+08:00" pubdate data-updated="true">Jul 10<span>th</span>, 2018</time>
-        
-         | <a href="/blog/2018/07/10/java-enum-syntactic-sugar/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>Java从1.5引入枚举类型，EffectiveJava第2版item 30也建议我们使用枚举来代替int常量。我们从下面的<code>Enum</code>示例中看下枚举类型到底是什么。</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-<span class='line-number'>31</span>
-<span class='line-number'>32</span>
-<span class='line-number'>33</span>
-<span class='line-number'>34</span>
-<span class='line-number'>35</span>
-<span class='line-number'>36</span>
-<span class='line-number'>37</span>
-<span class='line-number'>38</span>
-<span class='line-number'>39</span>
-<span class='line-number'>40</span>
-<span class='line-number'>41</span>
-<span class='line-number'>42</span>
-<span class='line-number'>43</span>
-<span class='line-number'>44</span>
-<span class='line-number'>45</span>
-<span class='line-number'>46</span>
-<span class='line-number'>47</span>
-<span class='line-number'>48</span>
-<span class='line-number'>49</span>
-<span class='line-number'>50</span>
-<span class='line-number'>51</span>
-<span class='line-number'>52</span>
-<span class='line-number'>53</span>
-<span class='line-number'>54</span>
-<span class='line-number'>55</span>
-<span class='line-number'>56</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">Main</span> <span class="o">{</span>
-</span><span class='line'>    <span class="kd">enum</span> <span class="n">ExceptionHandleStrategy</span> <span class="o">{</span>
-</span><span class='line'>        <span class="n">IGNORE</span><span class="o">,</span>
-</span><span class='line'>        <span class="n">LOG</span> <span class="o">{</span>
-</span><span class='line'>            <span class="nd">@Override</span>
-</span><span class='line'>            <span class="kd">public</span> <span class="kt">void</span> <span class="nf">handle</span><span class="o">(</span><span class="n">Exception</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'>                <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">e</span><span class="o">.</span><span class="na">getLocalizedMessage</span><span class="o">());</span>
-</span><span class='line'>            <span class="o">}</span>
-</span><span class='line'>        <span class="o">},</span>
-</span><span class='line'>        <span class="n">THROW</span> <span class="o">{</span>
-</span><span class='line'>            <span class="nd">@Override</span>
-</span><span class='line'>            <span class="kd">public</span> <span class="kt">void</span> <span class="nf">handle</span><span class="o">(</span><span class="n">Exception</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'>                <span class="k">throw</span> <span class="k">new</span> <span class="nf">RuntimeException</span><span class="o">(</span><span class="n">e</span><span class="o">.</span><span class="na">getMessage</span><span class="o">());</span>
-</span><span class='line'>            <span class="o">}</span>
-</span><span class='line'>        <span class="o">};</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="kd">public</span> <span class="kt">void</span> <span class="nf">handle</span><span class="o">(</span><span class="n">Exception</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'>        <span class="o">}</span>
-</span><span class='line'>    <span class="o">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">args</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'>        <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">ExceptionHandleStrategy</span><span class="o">.</span><span class="na">IGNORE</span><span class="o">.</span><span class="na">getClass</span><span class="o">());</span>
-</span><span class='line'>        <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">ExceptionHandleStrategy</span><span class="o">.</span><span class="na">LOG</span><span class="o">.</span><span class="na">getClass</span><span class="o">());</span>
-</span><span class='line'>        <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">ExceptionHandleStrategy</span><span class="o">.</span><span class="na">THROW</span><span class="o">.</span><span class="na">getClass</span><span class="o">());</span>
-</span><span class='line'>        <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">EnumWithoutMethod</span><span class="o">.</span><span class="na">A</span><span class="o">.</span><span class="na">getClass</span><span class="o">());</span>
-</span><span class='line'>        <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">EnumWithoutMethod</span><span class="o">.</span><span class="na">B</span><span class="o">.</span><span class="na">getClass</span><span class="o">());</span>
-</span><span class='line'>        <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">EnumWithoutMethod</span><span class="o">.</span><span class="na">C</span><span class="o">.</span><span class="na">getClass</span><span class="o">());</span>
-</span><span class='line'>        <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">EnumWithVariable</span><span class="o">.</span><span class="na">A</span><span class="o">.</span><span class="na">getClass</span><span class="o">());</span>
-</span><span class='line'>        <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">EnumWithVariable</span><span class="o">.</span><span class="na">B</span><span class="o">.</span><span class="na">getClass</span><span class="o">());</span>
-</span><span class='line'>        <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">EnumWithVariable</span><span class="o">.</span><span class="na">C</span><span class="o">.</span><span class="na">getClass</span><span class="o">());</span>
-</span><span class='line'>        <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">EnumWithVariable</span><span class="o">.</span><span class="na">A</span><span class="o">.</span><span class="na">name</span><span class="o">());</span>
-</span><span class='line'>        <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">EnumWithVariable</span><span class="o">.</span><span class="na">A</span><span class="o">.</span><span class="na">getxxx</span><span class="o">());</span>
-</span><span class='line'>        <span class="n">ExceptionHandleStrategy</span><span class="o">.</span><span class="na">LOG</span><span class="o">.</span><span class="na">handle</span><span class="o">(</span><span class="k">new</span> <span class="n">RuntimeException</span><span class="o">(</span><span class="s">&quot;system just broken&quot;</span><span class="o">));</span>
-</span><span class='line'>    <span class="o">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="kd">enum</span> <span class="n">EnumWithoutMethod</span> <span class="o">{</span>
-</span><span class='line'>        <span class="n">A</span><span class="o">,</span>
-</span><span class='line'>        <span class="n">B</span><span class="o">,</span>
-</span><span class='line'>        <span class="n">C</span><span class="o">;</span>
-</span><span class='line'>    <span class="o">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="kd">enum</span> <span class="n">EnumWithVariable</span> <span class="o">{</span>
-</span><span class='line'>        <span class="n">A</span><span class="o">(</span><span class="s">&quot;wristband&quot;</span><span class="o">),</span>
-</span><span class='line'>        <span class="n">B</span><span class="o">(</span><span class="s">&quot;glucometer&quot;</span><span class="o">),</span>
-</span><span class='line'>        <span class="n">C</span><span class="o">(</span><span class="s">&quot;fit&quot;</span><span class="o">);</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="kd">private</span> <span class="n">String</span> <span class="n">name</span><span class="o">;</span>
-</span><span class='line'>        <span class="kd">public</span> <span class="n">String</span> <span class="nf">getxxx</span><span class="o">()</span> <span class="o">{</span>
-</span><span class='line'>            <span class="k">return</span> <span class="k">this</span><span class="o">.</span><span class="na">name</span><span class="o">;</span>
-</span><span class='line'>        <span class="o">}</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="n">EnumWithVariable</span><span class="o">(</span><span class="n">String</span> <span class="n">name</span><span class="o">){</span>
-</span><span class='line'>            <span class="k">this</span><span class="o">.</span><span class="na">name</span> <span class="o">=</span> <span class="n">name</span><span class="o">;</span>
-</span><span class='line'>        <span class="o">}</span>
-</span><span class='line'>    <span class="o">}</span>
-</span><span class='line'><span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2018/07/10/java-enum-syntactic-sugar/">Read on &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/4/">&larr; Older</a>
@@ -428,6 +333,10 @@
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2019/08/05/floyd-cycle-detection-in-linkedlist/">检测链表中是否有环</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2019/08/04/java-threadpoolexecutor/">Java线程池解析</a>
       </li>
     
@@ -441,10 +350,6 @@
     
       <li class="post">
         <a href="/blog/2019/06/28/futuretask/">Java FutureTask解析</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2019/05/28/thread/">Android Thread解析</a>
       </li>
     
   </ul>

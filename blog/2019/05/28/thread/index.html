@@ -1026,7 +1026,7 @@
 
 <h3>守护线程</h3>
 
-<p>线程可分为两种，普通线程和守护线程（其实叫服务线程好理解些，这些线程一般是服务其他线程的）。在JVM启动时创建的所有线程中，除了主线程以外，其他的线程都是守护线程（例如垃圾回收器以及执行其他辅助工作的线程，signal catcher之类的）。</p>
+<p>线程可分为两种，普通线程和守护线程（其实叫服务线程好理解些，这些线程一般是服务其他线程的）。在JVM启动时创建的所有线程中，除了主线程以外，其他的线程都是守护线程（例如垃圾回收器以及执行其他辅助工作的线程，signal dispatcher之类的）。</p>
 
 <p>当创建一个新线程时，新线程将继承创建它的线程的守护状态。</p>
 
@@ -1106,6 +1106,10 @@
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2019/08/05/floyd-cycle-detection-in-linkedlist/">检测链表中是否有环</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2019/08/04/java-threadpoolexecutor/">Java线程池解析</a>
       </li>
     
@@ -1119,10 +1123,6 @@
     
       <li class="post">
         <a href="/blog/2019/06/28/futuretask/">Java FutureTask解析</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2019/05/28/thread/">Android Thread解析</a>
       </li>
     
   </ul>

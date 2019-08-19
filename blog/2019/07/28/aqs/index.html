@@ -9,7 +9,7 @@
   <meta name="author" content="Solarex">
 
   
-  <meta name="description" content="AbstractQueuedSynchronizer是很多并发工具类如ReentrantLock的实现基础，本文对其进行分析。 TL;DR 以下是对aqs.pdf部分内容零散的翻译，其实《Java并发编程实战》中有一章介绍了AQS，我也做了笔记，可以在这里看到。翻译很不专业，将就看下吧。 &hellip;">
+  <meta name="description" content="AbstractQueuedSynchronizer是很多并发工具类如ReentrantLock的实现基础，本文对其进行分析。 TL;DR 以下是对aqs.pdf部分内容零散的翻译，其实《Java并发编程实战》中有一章介绍了AQS，我也做了笔记，可以在这里看到，对于AQS模板方法的使用， &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -125,7 +125,7 @@
 
 <p>TL;DR</p>
 
-<p>以下是对<a href="http://gee.cs.oswego.edu/dl/papers/aqs.pdf">aqs.pdf</a>部分内容零散的翻译，其实《Java并发编程实战》中有一章介绍了AQS，我也做了笔记，可以在<a href="https://solarex.github.io/reading-notes/jcip/ch14.html">这里</a>看到。翻译很不专业，将就看下吧。如果想深入了解AQS，可以读下<a href="http://gee.cs.oswego.edu/dl/papers/aqs.pdf">aqs.pdf</a>或者看下本文reference部分的几篇文章。</p>
+<p>以下是对<a href="http://gee.cs.oswego.edu/dl/papers/aqs.pdf">aqs.pdf</a>部分内容零散的翻译，其实《Java并发编程实战》中有一章介绍了AQS，我也做了笔记，可以在<a href="https://solarex.github.io/reading-notes/jcip/ch14.html">这里</a>看到，对于AQS模板方法的使用，可以在<a href="https://solarex.github.io/reading-notes/the-art-of-java-concurrency-programming/ch05.html">这篇笔记</a>中看到。翻译很不专业，将就看下吧。如果想深入了解AQS，可以读下<a href="http://gee.cs.oswego.edu/dl/papers/aqs.pdf">aqs.pdf</a>或者看下本文reference部分的几篇文章。</p>
 
 <p>Synchronizers possess two kinds of methods : at least one <code>acquire</code> operation that blocks the calling thread unless/until the synchronization state allows it to proceed, and at least one <code>release</code> operation that changes synchronization state in a way that may allow one or more blocked threads to unblock.</p>
 
@@ -418,6 +418,10 @@ An acquire operation proceeds as:</p>
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2019/08/05/floyd-cycle-detection-in-linkedlist/">检测链表中是否有环</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2019/08/04/java-threadpoolexecutor/">Java线程池解析</a>
       </li>
     
@@ -431,10 +435,6 @@ An acquire operation proceeds as:</p>
     
       <li class="post">
         <a href="/blog/2019/06/28/futuretask/">Java FutureTask解析</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2019/05/28/thread/">Android Thread解析</a>
       </li>
     
   </ul>

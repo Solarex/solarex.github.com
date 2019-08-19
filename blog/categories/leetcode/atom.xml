@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: leetcode | Solarex's Blog]]></title>
+  <link href="http://Solarex.github.io/blog/categories/leetcode/atom.xml" rel="self"/>
+  <link href="http://Solarex.github.io/"/>
+  <updated>2019-08-19T22:01:42+08:00</updated>
+  <id>http://Solarex.github.io/</id>
+  <author>
+    <name><![CDATA[Solarex]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[检测链表中是否有环]]></title>
+    <link href="http://Solarex.github.io/blog/2019/08/05/floyd-cycle-detection-in-linkedlist/"/>
+    <updated>2019-08-05T17:50:00+08:00</updated>
+    <id>http://Solarex.github.io/blog/2019/08/05/floyd-cycle-detection-in-linkedlist</id>
+    <content type="html"><![CDATA[<p>本文主要讲解如何检测链表中是否有环，如果有环确定环的起点。</p>
+
+<!-- more -->
+
+
+<h3>reference</h3>
+
+<ul>
+<li><a href="https://www.youtube.com/watch?v=zbozWoMgKW0">Detect loop in linked list(floyd algo / Tortoise and hare algo)</a></li>
+<li><a href="https://www.youtube.com/watch?v=LUm2ABqAs1w">Why Floyd&rsquo;s cycle detection algorithm works? Detecting loop in a linked list.</a></li>
+</ul>
+
+]]></content>
+  </entry>
+  
+</feed>
