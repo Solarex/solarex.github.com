@@ -14,7 +14,7 @@ categories:
 
 TL;DR
 
-以下是对[aqs.pdf](http://gee.cs.oswego.edu/dl/papers/aqs.pdf)部分内容零散的翻译，其实《Java并发编程实战》中有一章介绍了AQS，我也做了笔记，可以在[这里](https://solarex.github.io/reading-notes/jcip/ch14.html)看到。翻译很不专业，将就看下吧。如果想深入了解AQS，可以读下[aqs.pdf](http://gee.cs.oswego.edu/dl/papers/aqs.pdf)或者看下本文reference部分的几篇文章。
+以下是对[aqs.pdf](http://gee.cs.oswego.edu/dl/papers/aqs.pdf)部分内容零散的翻译，其实《Java并发编程实战》中有一章介绍了AQS，我也做了笔记，可以在[这里](https://solarex.github.io/reading-notes/jcip/ch14.html)看到，对于AQS模板方法的使用，可以在[这篇笔记](https://solarex.github.io/reading-notes/the-art-of-java-concurrency-programming/ch05.html)中看到。翻译很不专业，将就看下吧。如果想深入了解AQS，可以读下[aqs.pdf](http://gee.cs.oswego.edu/dl/papers/aqs.pdf)或者看下本文reference部分的几篇文章。
 
 Synchronizers possess two kinds of methods : at least one ``acquire`` operation that blocks the calling thread unless/until the synchronization state allows it to proceed, and at least one ``release`` operation that changes synchronization state in a way that may allow one or more blocked threads to unblock.
 
