@@ -46,6 +46,8 @@ footer: true
 + [数据结构和算法](https://github.com/flyfire/DataStructureAndAlgorithms)
 + [LeetCodeSolutions](https://github.com/flyfire/LeetCodeSolutions)
 + [数据结构重新学](https://github.com/flyfire/PlayingWithDataStructures)
++ [LeetCodeSolutionComments markdown](https://github.com/flyfire/LeetCodeSolutionComments)
++ [LeetCodeSolutionComments](https://solarex.github.io/leetcode-solution-comments/)
 
 <h3 id='flutter'>Flutter</h3>
 
