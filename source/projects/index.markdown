@@ -20,6 +20,7 @@ footer: true
 <h3 id='designpattern'>设计模式</h3>
 
 + [Java常用设计模式](https://github.com/flyfire/JavaDesignPatterns)
++ [HeadFirstDesignPatterns](https://github.com/flyfire/HeadFirstDesignPatterns)
 + // todo 常用设计模式优缺点及适用场景总结
 + // todo 设计模式读书笔记
 
