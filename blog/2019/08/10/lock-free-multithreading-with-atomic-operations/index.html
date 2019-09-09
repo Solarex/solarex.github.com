@@ -1,0 +1,524 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Lock-free multithreading with atomic operations - Solarex's Blog</title>
+  <meta name="author" content="Solarex">
+
+  
+  <meta name="description" content="清空Reeder发现internal/pointers一系列关于多线程的文章，感觉很不错，转载在此。 这是系列第三篇，期待作者继续更新~ Synchronizing threads at a lower level. The Greek word &ldquo;atom&rdquo; ( &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://Solarex.github.io/blog/2019/08/10/lock-free-multithreading-with-atomic-operations/">
+  <link href="/favicon.ico" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <script src="/javascripts/ender.js"></script>
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <link href="/atom.xml" rel="alternate" title="Solarex's Blog" type="application/atom+xml">
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<script>
+    var _hmt = _hmt || [];
+    (function() {
+          var hm = document.createElement("script");
+            hm.src = "https://hm.baidu.com/hm.js?2574e8b2c205dfe8ff89e239fa38ca27";
+              var s = document.getElementsByTagName("script")[0]; 
+                s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-42746457-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Solarex's Blog</a></h1>
+  
+    <h2>我只想过，平平淡淡的生活，欲望啊，请放过脆弱的我</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:Solarex.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="http://solarex.github.io/wiki">Wiki</a></li>
+  <li><a href="/projects">Project</a></li>
+  <li><a href="http://solarex.github.io/resume">Resume</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Lock-free Multithreading With Atomic Operations</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2019-08-10T10:16:00+08:00" pubdate data-updated="true">Aug 10<span>th</span>, 2019</time>
+        
+         | <a href="#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>清空Reeder发现internal/pointers一系列关于多线程的文章，感觉很不错，转载在此。</p>
+
+<p>这是系列第三篇，期待作者继续更新~</p>
+
+<p>Synchronizing threads at a lower level.</p>
+
+<!-- more -->
+
+
+<p>The Greek word &ldquo;atom&rdquo; (ἄτομος; atomos) means <em>uncuttable</em>. A task performed by a computer is said to be <strong>atomic</strong> when it is not divisible anymore: it can&rsquo;t be broken into smaller steps.</p>
+
+<p><em>Atomicity</em> is an important property of multithreaded operations: since they are indivisible, there is no way for a thread to <em>slip through</em> an atomic operation concurrently performed by another one. For example, when a thread atomically writes on shared data no other thread can read the modification half-complete. Conversely, when a thread atomically reads from shared data, it sees the value as it appeared at a single moment in time. In other words, there is no risk of <a href="https://www.internalpointers.com/post/gentle-introduction-multithreading#data-races"><strong>data races</strong></a>.</p>
+
+<p>In the <a href="https://www.internalpointers.com/post/introduction-thread-synchronization">previous chapter</a> I have introduced the so-called <strong>synchronization primitives</strong>, the most common tools for thread synchronization. They are used, among other things, to provide atomicity to operations that deal with data shared across multiple threads. How? They simply allow a single thread to do its concurrent job, while others are blocked by the operating system until the first one has finished. The rationale is that a blocked thread does no harm to others. Given their ability to freeze threads, such synchronization primitives are also known as <strong>blocking mechanisms</strong>.</p>
+
+<p>Any blocking mechanism seen in the previous chapter will work great for the vast majority of your applications. They are fast and reliable if used correctly. However, they introduce some drawbacks that you might want to take into account:</p>
+
+<ul>
+<li>they block other threads — a dormant thread simply waits for the wakeup signal, doing nothing: it could be wasting precious time;</li>
+<li>they could hang your application — if a thread holding a lock to a synchronization primitive crashes for whatever reason, the lock itself will be never released and the waiting threads will get stuck forever;</li>
+<li>you have little control over which thread will sleep — it&rsquo;s usually up to the operating system to choose which thread to block. This could lead to an unfortunate event known as <strong>priority inversion</strong>: a thread that is performing a very important task gets blocked by another one with a lower priority.</li>
+</ul>
+
+
+<p>Most of the time you don&rsquo;t care about these issues as they won&rsquo;t affect the correctness of your programs. On the other hand, sometimes having threads always up and running is desirable, especially if you want to take advantage of multi-processor/multi-core hardware. Or maybe you can&rsquo;t afford a system that could get stuck on a dead thread. Or again, the priority inversion problem looks too dangerous to ignore.</p>
+
+<h3>Lock-free programming to the rescue</h3>
+
+<p>The good <a href="news:">news:</a> there is another way to control concurrent tasks in your multithreaded app, in order to prevent points 1), 2) and 3) seen above. Known as <strong>lock-free programming</strong> or <strong>lockless programming</strong>, it&rsquo;s a technique to safely share changing data between multiple threads without the cost of locking and unlocking them.</p>
+
+<p>The bad <a href="news:">news:</a> this is low-level stuff. Way lower than using the traditional synchronization primitives like mutexes and semaphores: this time we will get closer to the metal. Despite this, I find lock-free programming a good mental challenge and a great opportunity to better understand how a computer actually works.</p>
+
+<p>Lock-free programming relies upon <strong>atomic instructions</strong>, operations performed directly by the CPU that occur atomically. Being the foundation of lock-free programming, in the rest of this article I will introduce atomic instructions first, then I will show you how to leverage them for concurrency control. Let&rsquo;s get started!</p>
+
+<h3>What are atomic instructions?</h3>
+
+<p>Think of any action performed by a computer, say for example displaying a picture on your screen. Such operation is made of many smaller ones: read the file into memory, de-compress the image, light up pixels on the screen and so on. If you recursively zoom into one of those sub-tasks, that is if you break it down into smaller and smaller pieces, you will eventually reach a dead end. The smallest, visible to a human operation performed by a processor is called <strong>machine instruction</strong>, a command executed by the hardware directly.</p>
+
+<center><p><img src="/images/software-hardware-layers.png"></p></center>
+
+
+<p>Depending on the CPU architecture, some machine instructions are atomic, that is they are performed in a single, uncuttable and uninterruptible step. Some others are not atomic instead: the processor does more work under the hood in form of even smaller operations, known as <strong>micro-operations</strong>. Let&rsquo;s focus on the former category: an atomic instruction is a CPU operation that cannot be further broken down. More specifically, atomic instructions can be grouped into two major classes: <strong>store and load</strong> and <strong>read-modify-write (RMW)</strong>.</p>
+
+<h4>Store and load atomic instructions</h4>
+
+<p>The building blocks any processor operates on: they are used to write (<strong>store</strong>) and read (<strong>load</strong>) data in memory. Many CPU architectures guarantee that these operations are atomic by nature, under some circumstances. For example, processors that implement the <a href="https://en.wikipedia.org/wiki/X86">x86 architecture</a> feature the <code>MOV</code> instruction, which reads bytes from memory and gives them to the CPU. This operation is guaranteed to be atomic if performed on <a href="https://www.ibm.com/support/knowledgecenter/en/SSUFAU_1.0.0/com.ibm.ent.pl1.zos.doc/lr/alnmnt.html"><strong>aligned</strong></a> data, that is information stored in memory in a way that makes it easy for the CPU to read it in a single shot.</p>
+
+<h4>Read-modify-write (RMW) atomic instructions</h4>
+
+<p>Some more complex operations can&rsquo;t be performed with simple stores and loads alone. For example, incrementing a value in memory would require a mixture of at least three atomic load and store instructions, making the outcome non-atomic as a whole. <strong>Read-modify-write</strong> instructions fill the gap by giving you the ability to compute multiple operations in one atomic step. There are many instructions in this class. Some CPU architectures provide them all, some others only a subset. To name a few:</p>
+
+<ul>
+<li><a href="https://en.wikipedia.org/wiki/Test-and-set"><strong>test-and-set</strong></a> — writes 1 to a memory location and returns the old value in a single, atomic step;</li>
+<li><a href="https://en.wikipedia.org/wiki/Fetch-and-add"><strong>fetch-and-add</strong></a> — increments a value in memory and returns the old value in a single, atomic step;</li>
+<li><a href="https://en.wikipedia.org/wiki/Compare-and-swap"><strong>compare-and-swap (CAS)</strong></a> — compares the content of a memory location with a given value and, if they are equal, modifies the contents of that memory location to a new given value.</li>
+</ul>
+
+
+<p>All these instructions perform multiple things in memory in a single, atomic step. This is an important property that makes read-modify-write instructions suitable for lock-free multithreading operations. We will see why in few paragraphs.</p>
+
+<h3>Three levels of atomic instructions</h3>
+
+<p>All the instructions seen above belong to the hardware: they require you to talk directly to the CPU. Working this way is obviously difficult and non-portable, as some instructions might have different name across different architectures. Some operations might not even exist across different processor models! So it is unlikely you will touch these things, unless you are working on very low-level code for a specific machine.</p>
+
+<p>Climbing up to the software level, many operating systems provide their own versions of atomic instructions. Let&rsquo;s call them <strong>atomic operations</strong>, since we are abstracting away from their physical machine counterpart. For example, in Windows you may find the <a href="https://docs.microsoft.com/en-us/windows/desktop/sync/interlocked-variable-access">Interlocked API</a>, a set of functions that handle variables in an atomic manner. MacOS does the same with its <a href="https://developer.apple.com/documentation/kernel/osatomic_h?language=objc">OSAtomic.h</a> header. They surely conceal the hardware implementation, but you are still bound to a specific environment.</p>
+
+<p>The best way to perform portable atomic operations is to rely upon the ones provided by the programming language of choice. In Java for example you will find the <code>java.util.concurrent.atomic</code> package; C++ provides the <code>std::atomic</code> header; Haskell has the <code>Data.Atomics</code> package and so on. Generally speaking, it is likely to find support for atomic operations if a programming language deals with multithreading. This way is up to the compiler (if it&rsquo;s a compiled language) or the virtual machine (if it&rsquo;s an interpreted language) to find the best instructions for implementing atomic operations, whether from the underlying operating system API or directly from the hardware.</p>
+
+<center><p><img src="/images/atomics-levels.png"></p></center>
+
+
+<p>For example, GCC — a C++ compiler — usually transforms C++ atomic operations and objects straight into machine instructions. It also tries to emulate a specific operation that doesn&rsquo;t map directly to the hardware with other atomic machine instructions if available. The worst-case scenario: on a platform that doesn&rsquo;t provide atomic operations it may rely upon other blocking strategies, which wouldn&rsquo;t be lock-free, of course.</p>
+
+<h3>Leveraging atomic operations in multithreading</h3>
+
+<p>Let&rsquo;s now see how atomic operations are used. Consider incrementing a simple variable, an task that is not atomic by nature as it is made of three different steps — read the value, increment it, store the new value back. Traditionally, you would regulate the operation with a mutex (pseudocode):</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="n">mutex</span> <span class="o">=</span> <span class="n">initialize_mutex</span><span class="p">()</span>
+</span><span class='line'><span class="n">x</span>     <span class="o">=</span> <span class="mi">0</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">reader_thread</span><span class="p">()</span>
+</span><span class='line'>    <span class="n">mutex</span><span class="p">.</span><span class="n">lock</span><span class="p">()</span>
+</span><span class='line'>    <span class="n">print</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+</span><span class='line'>    <span class="n">mutex</span><span class="p">.</span><span class="n">unlock</span><span class="p">()</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">writer_thread</span><span class="p">()</span>
+</span><span class='line'>    <span class="n">mutex</span><span class="p">.</span><span class="n">lock</span><span class="p">()</span>
+</span><span class='line'>    <span class="n">x</span><span class="o">++</span>
+</span><span class='line'>    <span class="n">mutex</span><span class="p">.</span><span class="n">unlock</span><span class="p">()</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The first thread that acquires the lock makes progress, while others sit and wait in line until it has finished.</p>
+
+<p>Conversely, the lock-free approach introduces a different pattern: threads are free to run without any impediment, by employing atomic operations. For example:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="n">x</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">reader_thread</span><span class="p">()</span>
+</span><span class='line'>    <span class="n">print</span><span class="p">(</span><span class="n">load</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">writer_thread</span><span class="p">()</span>
+</span><span class='line'>    <span class="n">fetch_and_add</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>I assume that <code>fetch_and_add()</code> and <code>load()</code> are atomic operations based on the corresponding hardware instructions. As you may notice, nothing is locked here. Multiple threads that call those functions concurrently can all make progress. The atomicity of <code>load()</code> makes sure that no reader thread will read the shared value half-complete, as well as no writer thread will damage it with a partial write thanks to <code>fetch_and_add()</code>.</p>
+
+<h4>Atomic operations in the real world</h4>
+
+<p>Now, this example reveals us an important property of atomic operations: they work only with primitive types — booleans, chars, shorts, ints and so on. On the other hand, actual programs require synchronization for more complex structures like arrays, vectors, objects, vectors of arrays, objects containing arrays, &hellip; . How can we guarantee atomicity on such convoluted entities with simple operations based on primitive types?</p>
+
+<p>Lock-free programming forces you to think out of the box of the usual synchronization primitives. You don&rsquo;t protect a shared resource with atomic operations directly, as you would do with a mutex or a semaphore. Rather, you build <strong>lock-free algorithms</strong> or <strong>lock-free data structures</strong>, based on atomic operations to determine how multiple threads will access your data.</p>
+
+<p>For example, the <em>fetch-and-add</em> operation seen before can be used to make a rudimentary semaphore that, in turn, you would employ to regulate threads. Not surprisingly all the traditional, blocking synchronization entities are based on atomic operations.</p>
+
+<p>People have written countless lock-free data structures like <a href="https://github.com/facebook/folly/blob/master/folly/AtomicHashMap.h">Folly&rsquo;s AtomicHashMap</a>, the <a href="https://www.boost.org/doc/libs/1_70_0/doc/html/lockfree.html">Boost.Lockfree library</a>, multi-producer/multi-consumer <a href="https://github.com/cameron314/concurrentqueue">FIFO queues</a> or algorithms like <a href="https://www.youtube.com/watch?v=rxQ5K9lo034">read-copy-update (RCU)</a> and <a href="https://en.wikipedia.org/wiki/Shadow_paging">Shadow Paging</a> to name a few. Writing these atomic weapons from scratch is hard, let alone making them work correctly. This is why most of the time you may want to employ existing, battle-tested algorithms and structures instead of rolling your owns.</p>
+
+<h3>The compare-and-swap (CAS) loop</h3>
+
+<p>Moving closer to real-world applications, the <strong>compare-and-swap loop</strong> (a.k.a. <strong>CAS loop</strong>) is probably the most common strategy in lock-free programming, whether you are using existing data structures or are writing algorithms from the ground up. It is based on the corresponding <em>compare-and-swap</em> atomic operation and has a nice property: it supports multiple writers. This is an important feature of a concurrent algorithm especially when used in complex systems.</p>
+
+<p>The CAS loop is interesting also because it introduces a recurring pattern in lock-free code, as well as some theoretical concepts to reason about. Let&rsquo;s take a closer look.</p>
+
+<h4>A CAS loop in action</h4>
+
+<p>A CAS function provided by an operating system or a programming language might look like this:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="n">boolean</span> <span class="nf">compare_and_swap</span><span class="p">(</span><span class="n">shared_data</span><span class="p">,</span> <span class="n">expected_value</span><span class="p">,</span> <span class="n">new_value</span><span class="p">);</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>It takes in input a reference/pointer to some shared data, the expected value it currently takes on and the new value you want to apply. The function replaces the current value with the new one (and returns <code>true</code>) only if the value hasn&rsquo;t changed, that is if <code>shared_data.value == expected_value</code>.</p>
+
+<p>In a CAS loop the idea is to repeatedly trying to compare and swap until the operation is successful. On each iteration you feed the CAS function with the reference/pointer, the expected value and the desired one. This is necessary in order to cope with any other writer thread that is doing the same thing concurrently: the CAS function fails if another thread has changed the data in the meantime, that is if the shared data no longer matches the expected value. Multiple writers support!</p>
+
+<p>Suppose we want to replicate the fetch-and-add algorithm seen in the previous snippet with a CAS loop. It would look roughly like this (pseudocode):</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="n">x</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">reader_thread</span><span class="p">()</span>
+</span><span class='line'>    <span class="n">print</span><span class="p">(</span><span class="n">load</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">writer_thread</span><span class="p">()</span>
+</span><span class='line'>    <span class="n">temp</span> <span class="o">=</span> <span class="n">load</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>                              <span class="c1">// (1)</span>
+</span><span class='line'>    <span class="k">while</span><span class="p">(</span><span class="o">!</span><span class="n">compare_and_swap</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">temp</span><span class="p">,</span> <span class="n">temp</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span> <span class="c1">// (2)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>In (1) the algorithm loads the existing value of the shared data, then it tries to swap it with the new value until success (2), that is until the CAS function returns <code>true</code>.</p>
+
+<h4>The swapping paradigm</h4>
+
+<p>As said before, the CAS loop introduces a recurring pattern in many lock-free algorithms:</p>
+
+<ul>
+<li>create a <em>local copy</em> of the shared data;</li>
+<li>modify the local copy as needed;</li>
+<li>when ready, update the shared data by <em>swapping</em> it with the local copy created before.</li>
+</ul>
+
+
+<p>Point 3) is the key: the swap is performed atomically through an atomic operation. The dirty job is done <em>locally</em> by the writer thread and then published only when ready. This way another thread can observe the shared data only in two states: either the old one, or the new one. No half-complete or corrupted updates, thanks to the atomic swap.</p>
+
+<p>This is also philosophically different from the locking approach: in a lock-free algorithm threads get in touch only during that tiny atomic swap, running undisturbed and unaware of others for the rest of the time. The point of contact between threads is now shrinked down and limited to the duration of the atomic operation.</p>
+
+<h4>A gentle form of locking</h4>
+
+<p>The <em>spin until success</em> strategy seen above is employed in many lock-free algorithms and is called <strong>spinlock</strong>: a simple loop where the thread repeatedly tries to perform something until successful. It&rsquo;s a form of gentle lock where the thread is up and running — no sleep forced by the operating system, although no progress is made until the loop is over. Regular locks employed in mutexes or semaphores are way more expensive, as the suspend/wakeup cycle requires a lot of work under the hood.</p>
+
+<h4>The ABA problem</h4>
+
+<p>Instructions in lines (1) and (2) are atomic indeed, yet distinct. Another thread might slip through the cracks and change the value of the shared data once has been read in (1). Specifically, it could turn the initial value, say <code>A</code>, into another value, say <code>B</code>, and then bring it back to <code>A</code> right before the compare and swap operation has started in (2). The thread that is running the CAS loop wouldn&rsquo;t notice the change and perform the swap successfully. This is known as the <strong>ABA problem</strong>: sometimes you can easily ignore it if you algorithm is simple as the one above, sometimes you want to prevent it instead as it would introduce subtle bugs in your programs. Luckily there are <a href="https://en.wikipedia.org/wiki/Compare-and-swap#ABA_problem">several workarounds</a> for this.</p>
+
+<h4>You can swap anything inside a CAS loop</h4>
+
+<p>The CAS loop is often used to swap pointers, a type supported by the <em>compare-and-swap</em> operation. This is useful when you want to modify a complex collection of data like a class or an array: just create the local copy, modify it as needed and then when ready swap a pointer to the local data with a pointer to the global data. This way global data will point to the memory allocated for the local copy and other threads will see up-to-date information.</p>
+
+<p>This technique allows you to successfully synchronize non-primitive entities, yet is difficult to make it work correctly. What if, after the swap, a reader thread is still reading the old pointer? How to properly delete the previous copy without generating dangerous dangling pointers? Once again engineers have found many solutions such as using a language that supports <a href="https://en.wikipedia.org/wiki/Garbage_collection_(computer_science">garbage collection</a> or esoteric techniques like <a href="https://aturon.github.io/blog/2015/08/27/epoch/">epoch-based memory reclamation</a>, <a href="https://en.wikipedia.org/wiki/Hazard_pointer">hazard pointers</a> or <a href="https://en.wikipedia.org/wiki/Reference_counting">reference counting</a>.</p>
+
+<h3>Lock-freedom vs. wait-freedom</h3>
+
+<p>Every algorithm or data structure based on atomic operations can be clustered into two groups: <strong>lock-free</strong> or <strong>wait-free</strong>. This is an important distinction when you have to evaluate the impact of atomic-based tools on the performance of your program.</p>
+
+<p>Lock-free algorithms allow the remaining threads to continue doing useful work even if one of them is temporarily busy. In other words, at least one thread always makes progress. The CAS loop is a perfect example of lock-free because if a single iteration of the CAS loop fails, it’s usually because some other thread has modified the shared resource successfully. However, a lock-free algorithm might spend an unpredictable amount of time just spinning, especially when there are many threads competing for the same resource: technically speaking, when the <strong>contention</strong> is high. Pushing it to the limits, a lock-free algorithm could be far less efficient with CPU resources than a mutex that puts blocked threads to sleep.</p>
+
+<p>On the other hand in wait-free algorithms, a subset of lock-free ones, any thread can complete its work in a finite number or steps, regardless of the execution speed or the workload level of others. The first snippet in this article based on the <em>fetch-and-add</em> operation is an example of a wait-free algorithm: no loops, no retries, just undisturbed flow. Also, wait-free algorithms are <strong>fault-tolerant</strong>: no thread can be prevented from completing an operation by failures of other processes, or by arbitrary variations in their speed. These properties make wait-free algorithms suitable for complex <a href="https://en.wikipedia.org/wiki/Real-time_computing">real-time systems</a> where the predictable behavior of concurrent code is a must.</p>
+
+<center><p><img src="/images/lock-free-wait-free.png"></p></center>
+
+
+<p>Wait-freedom is a highly desired property of concurrent code, yet very difficult to obtain. All in all, whether you are building a blocking, a lock-free or a wait-free algorithm the golden rule is to always benchmark your code and measure the results. Sometimes a good old mutex can outperform fancier synchronization primitives, especially when the concurrent task complexity is high.</p>
+
+<h3>Closing notes</h3>
+
+<p>Atomic operations are a necessary part of lock-free programming, even on single-processor machines. Without atomicity, a thread could be interrupted halfway through the transaction, possibly leading to an inconsistent state. In this article I have just scratched the surface: a new world of problems opens up as soon as you add multicores/multiprocessors to the equation. Topics like <strong>sequential consistency</strong> and <strong>memory barriers</strong> are critical pieces of the puzzle and can&rsquo;t be overlooked if you want to get the best out of your lock-free algorithms. I will cover them all in the next episode.</p>
+
+<h3>reference</h3>
+
+<ul>
+<li><a href="https://www.internalpointers.com/post/lock-free-multithreading-atomic-operations">Lock-free multithreading with atomic operations</a></li>
+</ul>
+
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Solarex</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2019-08-10T10:16:00+08:00" pubdate data-updated="true">Aug 10<span>th</span>, 2019</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/concurrency/'>concurrency</a>, <a class='category' href='/blog/categories/dev/'>dev</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2019/08/09/introduction-to-thread-synchronization/" title="Previous Post: Introduction to thread synchronization">&laquo; Introduction to thread synchronization</a>
+      
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2019/08/10/lock-free-multithreading-with-atomic-operations/">Lock-free multithreading with atomic operations</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2019/08/09/introduction-to-thread-synchronization/">Introduction to thread synchronization</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2019/08/07/a-gentle-introduction-to-multithreading/">A gentle introduction to multithreading</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2019/08/05/floyd-cycle-detection-in-linkedlist/">检测链表中是否有环</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2019/08/04/java-threadpoolexecutor/">Java线程池解析</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/flyfire">@flyfire</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'flyfire',
+            count: 5,
+            skip_forks: false,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+<section class="googleplus googleplus-hidden">
+  <h1>
+    <a href="https://plus.google.com/107384356964511479070?rel=author">
+      <img src="http://www.google.com/images/icons/ui/gprofile_button-32.png" width="32" height="32">
+      Google+
+    </a>
+  </h1>
+</section>
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2019 - Solarex -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+  - <span class="credit">Theme by <a href="http://www.gehaxelt.in">Gehaxelt</a></span>
+  <span class="credit">and <a href="http://www.it-solutions-neef.de">IT Solutions Neef</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'solarex-blog';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://Solarex.github.io/blog/2019/08/10/lock-free-multithreading-with-atomic-operations/';
+        var disqus_url = 'http://Solarex.github.io/blog/2019/08/10/lock-free-multithreading-with-atomic-operations/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

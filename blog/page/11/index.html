@@ -9,7 +9,7 @@
   <meta name="author" content="Solarex">
 
   
-  <meta name="description" content="At this year’s Google I/O, Google released a preview to the upcoming Android version. The so called L Developer Preview. This is a very big &hellip;">
+  <meta name="description" content="In the previous post, we discussed adding proper support for data set changes and targeted scrolling. In this installment of the series, we will &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -90,6 +90,170 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/01/13/building-a-recyclerview-layoutmanager-part-iii/">Building a RecyclerView LayoutManager Part III</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2016-01-13T00:48:00+08:00" pubdate data-updated="true">Jan 13<span>th</span>, 2016</time>
+        
+         | <a href="/blog/2016/01/13/building-a-recyclerview-layoutmanager-part-iii/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>In the previous post, we discussed adding proper support for data set changes and targeted scrolling. In this installment of the series, we will focus on properly supporting animations in your fancy new LayoutManager.In case you’ve forgotten, the code samples are <a href="https://github.com/devunwired/recyclerview-playground">on GitHub</a>.</p>
+
+<h2>The Problem With Free</h2>
+
+<p>We talked about notifyDataSetChanged() the last time, but you may have noticed that changing the data in this way doesn’t animate the change**. RecyclerView includes a new API for making animated changes, which requires you to notify the adapter which positions in the adapter have changed, and what the action was:</p>
+
+<ul>
+<li><code>notifyItemInserted()</code> and <code>notifyItemRangeInserted()</code>: Insertion of new item(s) at the given position(s).</li>
+<li><code>notifyItemChanged()</code> and <code>notifyItemRangeChanged()</code>: Invalidate he item(s) at the given position(s), nothing structural has changed in the data set.</li>
+<li><code>notifyItemRemoved()</code> and <code>notifyItemRangeRemoved()</code>: Removal of the item(s) at the given position(s).</li>
+<li><code>notifyItemMoved()</code>: An item has relocated to a new position in the data set.</li>
+</ul>
+
+
+<p>By default, your LayoutManager will get “simple item animations” for free when these methods are used. These animations are simply based on whether each current view position is still present in the layout after a change. New views are faded in, removed views are faded out, and other views are moved to their new location. Here’s what our grid layout looks like with the free animations:</p>
+
+<center><img src="/images/building_recyclerview_layoutmanager_animation.gif" width="380" height="674" /></center>
+
+
+
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2016/01/13/building-a-recyclerview-layoutmanager-part-iii/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/01/11/building-a-recyclerview-layoutmanager-part-ii/">Building a RecyclerView LayoutManager Part II</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2016-01-11T00:48:00+08:00" pubdate data-updated="true">Jan 11<span>th</span>, 2016</time>
+        
+         | <a href="/blog/2016/01/11/building-a-recyclerview-layoutmanager-part-ii/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>In the last post,  we walked through the core functionality necessary for building a RecyclerView LayoutManager. In this post, we are going to add support for a few additional features that the average adapter-based view is expected to have.A reminder that the entire sample application can be found <a href="https://github.com/devunwired/recyclerview-playground">here on GitHub</a>.</p>
+
+<h2>Supporting Item Decorations</h2>
+
+<p><code>RecyclerView</code> has a really neat feature in which an <code>RecyclerView.ItemDecoration</code> instance can be supplied to do custom drawing alongside the child view content, as well as provide insets (margins) that will apply to the child views without the need for modifying layout parameters. The latter places a constraint on how the children should be laid out that the <code>LayoutManager</code> implementation must support.The <a href="https://github.com/devunwired/recyclerview-playground">RecyclerPlayground</a> repository uses a few different decorators in the examples to illustrate how they are implemented.</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2016/01/11/building-a-recyclerview-layoutmanager-part-ii/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/01/10/building-a-recyclerview-layoutmanager-part-i/">Building a RecyclerView LayoutManager Part I</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2016-01-10T00:48:00+08:00" pubdate data-updated="true">Jan 10<span>th</span>, 2016</time>
+        
+         | <a href="/blog/2016/01/10/building-a-recyclerview-layoutmanager-part-i/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>By now, if you’re an Android developer paying any attention, you’ve at least heard of RecyclerView; a new component that will be added to the support library to facilitate custom implementations of high-performance view collections by facilitating view recycling. Others have already done a remarkable job describing the basics of how to use RecyclerView with the built-in pieces already provided, including item animations. So rather than dive into all that again, here are some resources to get you up to speed:</p>
+
+<ul>
+<li><a href="http://www.grokkingandroid.com/first-glance-androids-recyclerview/">A First Glance at Android’s RecyclerView</a></li>
+<li><a href="http://lucasr.org/2014/07/31/the-new-twowayview/">The new TwoWayView</a></li>
+<li><a href="https://github.com/gabrielemariotti/RecyclerViewItemAnimators">RecyclerViewItemAnimators</a></li>
+</ul>
+
+
+<p>In this series of posts, we will be focused on the low-level details involved in building your own LayoutManager implementation, to do something a bit more complex than a simple vertical or horizontal scrolling list.</p>
+
+<pre><code>Before going any further, a warning is in order. The LayoutManager API allows powerful and complex layout recycling because it doesn’t do much for you; these implementations involve a fair amount of code you have to write yourself. As with any project involving custom views, don’t get caught in a trap of over-optimizing or over-generalizing your code. Build the features you need for the application use case you’re concerned with.
+</code></pre>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2016/01/10/building-a-recyclerview-layoutmanager-part-i/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
   
   
     <article>
@@ -723,182 +887,6 @@
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2015/11/23/android-starting-window/">Android Starting Window</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2015-11-23T12:48:00+08:00" pubdate data-updated="true">Nov 23<span>rd</span>, 2015</time>
-        
-         | <a href="/blog/2015/11/23/android-starting-window/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p><center><img src="/images/android_robot.png" width="255" height="300" /></center></p>
-
-
-
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2015/11/23/android-starting-window/">Read on &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2015/09/22/android-message-handling-mechanism/">Android Message Handling Mechanism</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2015-09-22T17:28:00+08:00" pubdate data-updated="true">Sep 22<span>nd</span>, 2015</time>
-        
-         | <a href="/blog/2015/09/22/android-message-handling-mechanism/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p><p><center><img src="/images/android_robot.png" width="255" height="300"></center></p>
-
-<p>Android is a message driven, message driven several elements:</p>
-
-<ul>
-<li>The message says: Message</li>
-<li>Message queue: MessageQueue</li>
-<li>The news cycle, remove the message processing for circulation: Looper</li>
-<li>Message processing, message loop out messages from the message queue should be carried out after the processing of messages: Handler</li>
-</ul>
-
-
-<p>Usually we use most often is <code>Message</code> and <code>Handler</code>, if you use <code>HandlerThread</code> or similar <code>HandlerThread</code> things may come into contact with <code>Looper</code>, while <code>MessageQueue</code> is used inside <code>Looper</code>, for the standard SDK, we are unable to instantiate and use (constructor is package visibility).
-　　
-We usually come into contact with <code>Looper</code>, <code>Message</code>, <code>Handler</code> are realized by JAVA, Android for Linux based systems, the bottom with a C, C++, and NDK exist, how could the message driven model only exists in the JAVA layer, in fact, there are corresponding to the Java layer such as <code>Looper</code>, <code>MessageQueue</code> in the Native layer.</p>
-
-<p>Android是消息驱动的，实现消息驱动有几个要素：</p>
-
-<ul>
-<li>消息的表示：Message</li>
-<li>消息队列：MessageQueue</li>
-<li>消息循环，用于循环取出消息进行处理：Looper</li>
-<li>消息处理，消息循环从消息队列中取出消息后要对消息进行处理：Handler</li>
-</ul>
-
-
-<p>平时我们最常使用的就是Message与Handler了，如果使用过HandlerThread或者自己实现类似HandlerThread的东西可能还会接触到Looper，而MessageQueue是Looper内部使用的，对于标准的SDK，我们是无法实例化并使用的（构造函数是包可见性）。</p>
-
-<p>我们平时接触到的Looper、Message、Handler都是用JAVA实现的，Android做为基于Linux的系统，底层用C、C++实现的，而且还有NDK的存在，消息驱动的模型怎么可能只存在于JAVA层，实际上，在Native层存在与Java层对应的类如Looper、MessageQueue等。</p>
-
-<p></div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2015/09/22/android-message-handling-mechanism/">Read on &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2015/05/05/mac-dev-setup/">Setup Mac Development Environment</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2015-05-05T12:04:00+08:00" pubdate data-updated="true">May 5<span>th</span>, 2015</time>
-        
-         | <a href="/blog/2015/05/05/mac-dev-setup/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p><center><img src="/images/apple_mac_logo.jpg" width=225 height=225/></center></p>
-
-
-
-
-<h2 id="system-preferences">System preferences</h2>
-
-
-<p>In Apple Icon > System Preferences:</p>
-
-<ul>
-<li>Trackpad > Tap to click</li>
-<li>Keyboard > Key Repeat > Fast (all the way to the right)</li>
-<li>Keyboard > Delay Until Repeat > Short (all the way to the right)</li>
-<li>Dock > Automatically hide and show the Dock</li>
-</ul>
-
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2015/05/05/mac-dev-setup/">Read on &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/12/">&larr; Older</a>
@@ -916,23 +904,23 @@ We usually come into contact with <code>Looper</code>, <code>Message</code>, <co
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2019/08/10/lock-free-multithreading-with-atomic-operations/">Lock-free multithreading with atomic operations</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2019/08/09/introduction-to-thread-synchronization/">Introduction to thread synchronization</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2019/08/07/a-gentle-introduction-to-multithreading/">A gentle introduction to multithreading</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2019/08/05/floyd-cycle-detection-in-linkedlist/">检测链表中是否有环</a>
       </li>
     
       <li class="post">
         <a href="/blog/2019/08/04/java-threadpoolexecutor/">Java线程池解析</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2019/08/01/java-blockingqueue/">Java BlockingQueue解析</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2019/07/28/aqs/">Java AQS解析</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2019/06/28/futuretask/">Java FutureTask解析</a>
       </li>
     
   </ul>

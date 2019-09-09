@@ -4,7 +4,7 @@
   <title><![CDATA[Category: concurrency | Solarex's Blog]]></title>
   <link href="http://Solarex.github.io/blog/categories/concurrency/atom.xml" rel="self"/>
   <link href="http://Solarex.github.io/"/>
-  <updated>2019-08-26T23:07:46+08:00</updated>
+  <updated>2019-09-09T11:49:12+08:00</updated>
   <id>http://Solarex.github.io/</id>
   <author>
     <name><![CDATA[Solarex]]></name>
@@ -12,6 +12,513 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Lock-free multithreading with atomic operations]]></title>
+    <link href="http://Solarex.github.io/blog/2019/08/10/lock-free-multithreading-with-atomic-operations/"/>
+    <updated>2019-08-10T10:16:00+08:00</updated>
+    <id>http://Solarex.github.io/blog/2019/08/10/lock-free-multithreading-with-atomic-operations</id>
+    <content type="html"><![CDATA[<p>清空Reeder发现internal/pointers一系列关于多线程的文章，感觉很不错，转载在此。</p>
+
+<p>这是系列第三篇，期待作者继续更新~</p>
+
+<p>Synchronizing threads at a lower level.</p>
+
+<!-- more -->
+
+
+<p>The Greek word &ldquo;atom&rdquo; (ἄτομος; atomos) means <em>uncuttable</em>. A task performed by a computer is said to be <strong>atomic</strong> when it is not divisible anymore: it can&rsquo;t be broken into smaller steps.</p>
+
+<p><em>Atomicity</em> is an important property of multithreaded operations: since they are indivisible, there is no way for a thread to <em>slip through</em> an atomic operation concurrently performed by another one. For example, when a thread atomically writes on shared data no other thread can read the modification half-complete. Conversely, when a thread atomically reads from shared data, it sees the value as it appeared at a single moment in time. In other words, there is no risk of <a href="https://www.internalpointers.com/post/gentle-introduction-multithreading#data-races"><strong>data races</strong></a>.</p>
+
+<p>In the <a href="https://www.internalpointers.com/post/introduction-thread-synchronization">previous chapter</a> I have introduced the so-called <strong>synchronization primitives</strong>, the most common tools for thread synchronization. They are used, among other things, to provide atomicity to operations that deal with data shared across multiple threads. How? They simply allow a single thread to do its concurrent job, while others are blocked by the operating system until the first one has finished. The rationale is that a blocked thread does no harm to others. Given their ability to freeze threads, such synchronization primitives are also known as <strong>blocking mechanisms</strong>.</p>
+
+<p>Any blocking mechanism seen in the previous chapter will work great for the vast majority of your applications. They are fast and reliable if used correctly. However, they introduce some drawbacks that you might want to take into account:</p>
+
+<ul>
+<li>they block other threads — a dormant thread simply waits for the wakeup signal, doing nothing: it could be wasting precious time;</li>
+<li>they could hang your application — if a thread holding a lock to a synchronization primitive crashes for whatever reason, the lock itself will be never released and the waiting threads will get stuck forever;</li>
+<li>you have little control over which thread will sleep — it&rsquo;s usually up to the operating system to choose which thread to block. This could lead to an unfortunate event known as <strong>priority inversion</strong>: a thread that is performing a very important task gets blocked by another one with a lower priority.</li>
+</ul>
+
+
+<p>Most of the time you don&rsquo;t care about these issues as they won&rsquo;t affect the correctness of your programs. On the other hand, sometimes having threads always up and running is desirable, especially if you want to take advantage of multi-processor/multi-core hardware. Or maybe you can&rsquo;t afford a system that could get stuck on a dead thread. Or again, the priority inversion problem looks too dangerous to ignore.</p>
+
+<h3>Lock-free programming to the rescue</h3>
+
+<p>The good <a href="news:">news:</a> there is another way to control concurrent tasks in your multithreaded app, in order to prevent points 1), 2) and 3) seen above. Known as <strong>lock-free programming</strong> or <strong>lockless programming</strong>, it&rsquo;s a technique to safely share changing data between multiple threads without the cost of locking and unlocking them.</p>
+
+<p>The bad <a href="news:">news:</a> this is low-level stuff. Way lower than using the traditional synchronization primitives like mutexes and semaphores: this time we will get closer to the metal. Despite this, I find lock-free programming a good mental challenge and a great opportunity to better understand how a computer actually works.</p>
+
+<p>Lock-free programming relies upon <strong>atomic instructions</strong>, operations performed directly by the CPU that occur atomically. Being the foundation of lock-free programming, in the rest of this article I will introduce atomic instructions first, then I will show you how to leverage them for concurrency control. Let&rsquo;s get started!</p>
+
+<h3>What are atomic instructions?</h3>
+
+<p>Think of any action performed by a computer, say for example displaying a picture on your screen. Such operation is made of many smaller ones: read the file into memory, de-compress the image, light up pixels on the screen and so on. If you recursively zoom into one of those sub-tasks, that is if you break it down into smaller and smaller pieces, you will eventually reach a dead end. The smallest, visible to a human operation performed by a processor is called <strong>machine instruction</strong>, a command executed by the hardware directly.</p>
+
+<center><p><img src="http://Solarex.github.io/images/software-hardware-layers.png"></p></center>
+
+
+<p>Depending on the CPU architecture, some machine instructions are atomic, that is they are performed in a single, uncuttable and uninterruptible step. Some others are not atomic instead: the processor does more work under the hood in form of even smaller operations, known as <strong>micro-operations</strong>. Let&rsquo;s focus on the former category: an atomic instruction is a CPU operation that cannot be further broken down. More specifically, atomic instructions can be grouped into two major classes: <strong>store and load</strong> and <strong>read-modify-write (RMW)</strong>.</p>
+
+<h4>Store and load atomic instructions</h4>
+
+<p>The building blocks any processor operates on: they are used to write (<strong>store</strong>) and read (<strong>load</strong>) data in memory. Many CPU architectures guarantee that these operations are atomic by nature, under some circumstances. For example, processors that implement the <a href="https://en.wikipedia.org/wiki/X86">x86 architecture</a> feature the <code>MOV</code> instruction, which reads bytes from memory and gives them to the CPU. This operation is guaranteed to be atomic if performed on <a href="https://www.ibm.com/support/knowledgecenter/en/SSUFAU_1.0.0/com.ibm.ent.pl1.zos.doc/lr/alnmnt.html"><strong>aligned</strong></a> data, that is information stored in memory in a way that makes it easy for the CPU to read it in a single shot.</p>
+
+<h4>Read-modify-write (RMW) atomic instructions</h4>
+
+<p>Some more complex operations can&rsquo;t be performed with simple stores and loads alone. For example, incrementing a value in memory would require a mixture of at least three atomic load and store instructions, making the outcome non-atomic as a whole. <strong>Read-modify-write</strong> instructions fill the gap by giving you the ability to compute multiple operations in one atomic step. There are many instructions in this class. Some CPU architectures provide them all, some others only a subset. To name a few:</p>
+
+<ul>
+<li><a href="https://en.wikipedia.org/wiki/Test-and-set"><strong>test-and-set</strong></a> — writes 1 to a memory location and returns the old value in a single, atomic step;</li>
+<li><a href="https://en.wikipedia.org/wiki/Fetch-and-add"><strong>fetch-and-add</strong></a> — increments a value in memory and returns the old value in a single, atomic step;</li>
+<li><a href="https://en.wikipedia.org/wiki/Compare-and-swap"><strong>compare-and-swap (CAS)</strong></a> — compares the content of a memory location with a given value and, if they are equal, modifies the contents of that memory location to a new given value.</li>
+</ul>
+
+
+<p>All these instructions perform multiple things in memory in a single, atomic step. This is an important property that makes read-modify-write instructions suitable for lock-free multithreading operations. We will see why in few paragraphs.</p>
+
+<h3>Three levels of atomic instructions</h3>
+
+<p>All the instructions seen above belong to the hardware: they require you to talk directly to the CPU. Working this way is obviously difficult and non-portable, as some instructions might have different name across different architectures. Some operations might not even exist across different processor models! So it is unlikely you will touch these things, unless you are working on very low-level code for a specific machine.</p>
+
+<p>Climbing up to the software level, many operating systems provide their own versions of atomic instructions. Let&rsquo;s call them <strong>atomic operations</strong>, since we are abstracting away from their physical machine counterpart. For example, in Windows you may find the <a href="https://docs.microsoft.com/en-us/windows/desktop/sync/interlocked-variable-access">Interlocked API</a>, a set of functions that handle variables in an atomic manner. MacOS does the same with its <a href="https://developer.apple.com/documentation/kernel/osatomic_h?language=objc">OSAtomic.h</a> header. They surely conceal the hardware implementation, but you are still bound to a specific environment.</p>
+
+<p>The best way to perform portable atomic operations is to rely upon the ones provided by the programming language of choice. In Java for example you will find the <code>java.util.concurrent.atomic</code> package; C++ provides the <code>std::atomic</code> header; Haskell has the <code>Data.Atomics</code> package and so on. Generally speaking, it is likely to find support for atomic operations if a programming language deals with multithreading. This way is up to the compiler (if it&rsquo;s a compiled language) or the virtual machine (if it&rsquo;s an interpreted language) to find the best instructions for implementing atomic operations, whether from the underlying operating system API or directly from the hardware.</p>
+
+<center><p><img src="http://Solarex.github.io/images/atomics-levels.png"></p></center>
+
+
+<p>For example, GCC — a C++ compiler — usually transforms C++ atomic operations and objects straight into machine instructions. It also tries to emulate a specific operation that doesn&rsquo;t map directly to the hardware with other atomic machine instructions if available. The worst-case scenario: on a platform that doesn&rsquo;t provide atomic operations it may rely upon other blocking strategies, which wouldn&rsquo;t be lock-free, of course.</p>
+
+<h3>Leveraging atomic operations in multithreading</h3>
+
+<p>Let&rsquo;s now see how atomic operations are used. Consider incrementing a simple variable, an task that is not atomic by nature as it is made of three different steps — read the value, increment it, store the new value back. Traditionally, you would regulate the operation with a mutex (pseudocode):</p>
+
+<p>```c
+mutex = initialize_mutex()
+x     = 0</p>
+
+<p>reader_thread()</p>
+
+<pre><code>mutex.lock()
+print(x)
+mutex.unlock()
+</code></pre>
+
+<p>writer_thread()</p>
+
+<pre><code>mutex.lock()
+x++
+mutex.unlock()
+</code></pre>
+
+<p>```</p>
+
+<p>The first thread that acquires the lock makes progress, while others sit and wait in line until it has finished.</p>
+
+<p>Conversely, the lock-free approach introduces a different pattern: threads are free to run without any impediment, by employing atomic operations. For example:</p>
+
+<p>```c
+x = 0</p>
+
+<p>reader_thread()</p>
+
+<pre><code>print(load(x))
+</code></pre>
+
+<p>writer_thread()</p>
+
+<pre><code>fetch_and_add(x, 1)
+</code></pre>
+
+<p>```</p>
+
+<p>I assume that <code>fetch_and_add()</code> and <code>load()</code> are atomic operations based on the corresponding hardware instructions. As you may notice, nothing is locked here. Multiple threads that call those functions concurrently can all make progress. The atomicity of <code>load()</code> makes sure that no reader thread will read the shared value half-complete, as well as no writer thread will damage it with a partial write thanks to <code>fetch_and_add()</code>.</p>
+
+<h4>Atomic operations in the real world</h4>
+
+<p>Now, this example reveals us an important property of atomic operations: they work only with primitive types — booleans, chars, shorts, ints and so on. On the other hand, actual programs require synchronization for more complex structures like arrays, vectors, objects, vectors of arrays, objects containing arrays, &hellip; . How can we guarantee atomicity on such convoluted entities with simple operations based on primitive types?</p>
+
+<p>Lock-free programming forces you to think out of the box of the usual synchronization primitives. You don&rsquo;t protect a shared resource with atomic operations directly, as you would do with a mutex or a semaphore. Rather, you build <strong>lock-free algorithms</strong> or <strong>lock-free data structures</strong>, based on atomic operations to determine how multiple threads will access your data.</p>
+
+<p>For example, the <em>fetch-and-add</em> operation seen before can be used to make a rudimentary semaphore that, in turn, you would employ to regulate threads. Not surprisingly all the traditional, blocking synchronization entities are based on atomic operations.</p>
+
+<p>People have written countless lock-free data structures like <a href="https://github.com/facebook/folly/blob/master/folly/AtomicHashMap.h">Folly&rsquo;s AtomicHashMap</a>, the <a href="https://www.boost.org/doc/libs/1_70_0/doc/html/lockfree.html">Boost.Lockfree library</a>, multi-producer/multi-consumer <a href="https://github.com/cameron314/concurrentqueue">FIFO queues</a> or algorithms like <a href="https://www.youtube.com/watch?v=rxQ5K9lo034">read-copy-update (RCU)</a> and <a href="https://en.wikipedia.org/wiki/Shadow_paging">Shadow Paging</a> to name a few. Writing these atomic weapons from scratch is hard, let alone making them work correctly. This is why most of the time you may want to employ existing, battle-tested algorithms and structures instead of rolling your owns.</p>
+
+<h3>The compare-and-swap (CAS) loop</h3>
+
+<p>Moving closer to real-world applications, the <strong>compare-and-swap loop</strong> (a.k.a. <strong>CAS loop</strong>) is probably the most common strategy in lock-free programming, whether you are using existing data structures or are writing algorithms from the ground up. It is based on the corresponding <em>compare-and-swap</em> atomic operation and has a nice property: it supports multiple writers. This is an important feature of a concurrent algorithm especially when used in complex systems.</p>
+
+<p>The CAS loop is interesting also because it introduces a recurring pattern in lock-free code, as well as some theoretical concepts to reason about. Let&rsquo;s take a closer look.</p>
+
+<h4>A CAS loop in action</h4>
+
+<p>A CAS function provided by an operating system or a programming language might look like this:</p>
+
+<p><code>c
+boolean compare_and_swap(shared_data, expected_value, new_value);
+</code></p>
+
+<p>It takes in input a reference/pointer to some shared data, the expected value it currently takes on and the new value you want to apply. The function replaces the current value with the new one (and returns <code>true</code>) only if the value hasn&rsquo;t changed, that is if <code>shared_data.value == expected_value</code>.</p>
+
+<p>In a CAS loop the idea is to repeatedly trying to compare and swap until the operation is successful. On each iteration you feed the CAS function with the reference/pointer, the expected value and the desired one. This is necessary in order to cope with any other writer thread that is doing the same thing concurrently: the CAS function fails if another thread has changed the data in the meantime, that is if the shared data no longer matches the expected value. Multiple writers support!</p>
+
+<p>Suppose we want to replicate the fetch-and-add algorithm seen in the previous snippet with a CAS loop. It would look roughly like this (pseudocode):</p>
+
+<p>```c
+x = 0</p>
+
+<p>reader_thread()</p>
+
+<pre><code>print(load(x))
+</code></pre>
+
+<p>writer_thread()</p>
+
+<pre><code>temp = load(x)                              // (1)
+while(!compare_and_swap(x, temp, temp + 1)) // (2)
+</code></pre>
+
+<p>```</p>
+
+<p>In (1) the algorithm loads the existing value of the shared data, then it tries to swap it with the new value until success (2), that is until the CAS function returns <code>true</code>.</p>
+
+<h4>The swapping paradigm</h4>
+
+<p>As said before, the CAS loop introduces a recurring pattern in many lock-free algorithms:</p>
+
+<ul>
+<li>create a <em>local copy</em> of the shared data;</li>
+<li>modify the local copy as needed;</li>
+<li>when ready, update the shared data by <em>swapping</em> it with the local copy created before.</li>
+</ul>
+
+
+<p>Point 3) is the key: the swap is performed atomically through an atomic operation. The dirty job is done <em>locally</em> by the writer thread and then published only when ready. This way another thread can observe the shared data only in two states: either the old one, or the new one. No half-complete or corrupted updates, thanks to the atomic swap.</p>
+
+<p>This is also philosophically different from the locking approach: in a lock-free algorithm threads get in touch only during that tiny atomic swap, running undisturbed and unaware of others for the rest of the time. The point of contact between threads is now shrinked down and limited to the duration of the atomic operation.</p>
+
+<h4>A gentle form of locking</h4>
+
+<p>The <em>spin until success</em> strategy seen above is employed in many lock-free algorithms and is called <strong>spinlock</strong>: a simple loop where the thread repeatedly tries to perform something until successful. It&rsquo;s a form of gentle lock where the thread is up and running — no sleep forced by the operating system, although no progress is made until the loop is over. Regular locks employed in mutexes or semaphores are way more expensive, as the suspend/wakeup cycle requires a lot of work under the hood.</p>
+
+<h4>The ABA problem</h4>
+
+<p>Instructions in lines (1) and (2) are atomic indeed, yet distinct. Another thread might slip through the cracks and change the value of the shared data once has been read in (1). Specifically, it could turn the initial value, say <code>A</code>, into another value, say <code>B</code>, and then bring it back to <code>A</code> right before the compare and swap operation has started in (2). The thread that is running the CAS loop wouldn&rsquo;t notice the change and perform the swap successfully. This is known as the <strong>ABA problem</strong>: sometimes you can easily ignore it if you algorithm is simple as the one above, sometimes you want to prevent it instead as it would introduce subtle bugs in your programs. Luckily there are <a href="https://en.wikipedia.org/wiki/Compare-and-swap#ABA_problem">several workarounds</a> for this.</p>
+
+<h4>You can swap anything inside a CAS loop</h4>
+
+<p>The CAS loop is often used to swap pointers, a type supported by the <em>compare-and-swap</em> operation. This is useful when you want to modify a complex collection of data like a class or an array: just create the local copy, modify it as needed and then when ready swap a pointer to the local data with a pointer to the global data. This way global data will point to the memory allocated for the local copy and other threads will see up-to-date information.</p>
+
+<p>This technique allows you to successfully synchronize non-primitive entities, yet is difficult to make it work correctly. What if, after the swap, a reader thread is still reading the old pointer? How to properly delete the previous copy without generating dangerous dangling pointers? Once again engineers have found many solutions such as using a language that supports <a href="https://en.wikipedia.org/wiki/Garbage_collection_(computer_science">garbage collection</a> or esoteric techniques like <a href="https://aturon.github.io/blog/2015/08/27/epoch/">epoch-based memory reclamation</a>, <a href="https://en.wikipedia.org/wiki/Hazard_pointer">hazard pointers</a> or <a href="https://en.wikipedia.org/wiki/Reference_counting">reference counting</a>.</p>
+
+<h3>Lock-freedom vs. wait-freedom</h3>
+
+<p>Every algorithm or data structure based on atomic operations can be clustered into two groups: <strong>lock-free</strong> or <strong>wait-free</strong>. This is an important distinction when you have to evaluate the impact of atomic-based tools on the performance of your program.</p>
+
+<p>Lock-free algorithms allow the remaining threads to continue doing useful work even if one of them is temporarily busy. In other words, at least one thread always makes progress. The CAS loop is a perfect example of lock-free because if a single iteration of the CAS loop fails, it’s usually because some other thread has modified the shared resource successfully. However, a lock-free algorithm might spend an unpredictable amount of time just spinning, especially when there are many threads competing for the same resource: technically speaking, when the <strong>contention</strong> is high. Pushing it to the limits, a lock-free algorithm could be far less efficient with CPU resources than a mutex that puts blocked threads to sleep.</p>
+
+<p>On the other hand in wait-free algorithms, a subset of lock-free ones, any thread can complete its work in a finite number or steps, regardless of the execution speed or the workload level of others. The first snippet in this article based on the <em>fetch-and-add</em> operation is an example of a wait-free algorithm: no loops, no retries, just undisturbed flow. Also, wait-free algorithms are <strong>fault-tolerant</strong>: no thread can be prevented from completing an operation by failures of other processes, or by arbitrary variations in their speed. These properties make wait-free algorithms suitable for complex <a href="https://en.wikipedia.org/wiki/Real-time_computing">real-time systems</a> where the predictable behavior of concurrent code is a must.</p>
+
+<center><p><img src="http://Solarex.github.io/images/lock-free-wait-free.png"></p></center>
+
+
+<p>Wait-freedom is a highly desired property of concurrent code, yet very difficult to obtain. All in all, whether you are building a blocking, a lock-free or a wait-free algorithm the golden rule is to always benchmark your code and measure the results. Sometimes a good old mutex can outperform fancier synchronization primitives, especially when the concurrent task complexity is high.</p>
+
+<h3>Closing notes</h3>
+
+<p>Atomic operations are a necessary part of lock-free programming, even on single-processor machines. Without atomicity, a thread could be interrupted halfway through the transaction, possibly leading to an inconsistent state. In this article I have just scratched the surface: a new world of problems opens up as soon as you add multicores/multiprocessors to the equation. Topics like <strong>sequential consistency</strong> and <strong>memory barriers</strong> are critical pieces of the puzzle and can&rsquo;t be overlooked if you want to get the best out of your lock-free algorithms. I will cover them all in the next episode.</p>
+
+<h3>reference</h3>
+
+<ul>
+<li><a href="https://www.internalpointers.com/post/lock-free-multithreading-atomic-operations">Lock-free multithreading with atomic operations</a></li>
+</ul>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Introduction to thread synchronization]]></title>
+    <link href="http://Solarex.github.io/blog/2019/08/09/introduction-to-thread-synchronization/"/>
+    <updated>2019-08-09T10:15:00+08:00</updated>
+    <id>http://Solarex.github.io/blog/2019/08/09/introduction-to-thread-synchronization</id>
+    <content type="html"><![CDATA[<p>清空Reeder发现internal/pointers一系列关于多线程的文章，感觉很不错，转载在此。</p>
+
+<p>这是系列第二篇。</p>
+
+<p>A look at one of the most popular ways of concurrency control in a multithreaded application.</p>
+
+<!-- more -->
+
+
+<p>As emerged from <a href="https://www.internalpointers.com/post/gentle-introduction-multithreading">my previous introduction to multithreading</a>, writing concurrent code can be tricky. Two big problems might emerge: data races, when a writer thread modifies the memory while a reader thread is reading it and race conditions, when two or more threads do their job in an unpredictable order. Luckily for us there are several ways to prevent these errors: in this article I will take a look at the most common one known as <strong>synchronization</strong>.</p>
+
+<h3>What is synchronization</h3>
+
+<p>Synchronization is a bag of tricks that make sure two or more threads behave themselves. More specifically, synchronization will help you to achieve at least two important features in your multithreaded program:</p>
+
+<ul>
+<li><strong>atomicity</strong> — if your code contains instructions that operate on data shared across multiple threads, an unregulated concurrent access to that data might trigger a data race. The code segment that contains those instructions is called <strong>critical section</strong>. You want to make sure that critical sections are executed <em>atomically</em>: as defined in the previous episode, an <a href="https://www.internalpointers.com/post/gentle-introduction-multithreading#data-races">atomic operation</a> can&rsquo;t be broken into smaller ones, so that while a thread is executing it no other thread can slip through;</li>
+<li><strong>ordering</strong> — sometimes you want two or more threads to perform their job in a predictable order, or put a restriction on how many threads can access a specific resource. Normally you don&rsquo;t have control over these things, which might be the root cause of race conditions. With synchronization you can orchestrate your threads to perform according to a plan.</li>
+</ul>
+
+
+<p>Synchronization is implemented through special objects called <strong>synchronization primitives</strong> provided by the operating system or any programming language that supports threading. You then make use of such synchronization primitives in your code to make sure your threads don&rsquo;t trigger data races, race conditions or both.</p>
+
+<p>Synchronization takes place both in hardware and software, as well as between threads and operating system processes. This article is about synchronization of software threads: the physical counterpart and process synchronization are fascinating topics that will surely get some love in a future post.</p>
+
+<h3>Common synchronization primitives</h3>
+
+<p>The most important synchronization primitives are <strong>mutexes</strong>, <strong>semaphores</strong> and <strong>condition variables</strong>. There are no official definitions for these terms, so different texts and implementations associate slightly different characteristics with each primitive.</p>
+
+<p>Operating systems provide these tools natively. For example Linux and macOS support <strong>POSIX threads</strong>, also known as <strong>pthreads</strong>, a set of functions that allows you to write safe multithreaded applications. Windows has its own synchronization tools in the C Run-Time Libraries (CRT): conceptually similar to POSIX threads functions but with different names.</p>
+
+<p>Unless you are writing very low-level code, you usually want to employ the synchronization primitives shipped with the programming language of your choice. Every programming language that deals with multithreading has its own toolbox of synchronization primitives, along with other functions to fiddle around with threads. For example Java provides the <code>java.util.concurrent</code> package, modern C++ has its own <code>thread</code> library, C# ships the <code>System.Threading</code> namespace and so on. All these functions and objects are based upon the underlying operating system primitives, of course.</p>
+
+<p>There are many other synchronization tools around. In this article I&rsquo;ll stick to the three mentioned above, as they act as a foundation often used to build more complex entities. Let&rsquo;s take a closer look.</p>
+
+<h3>Mutexes</h3>
+
+<p>A <strong>mutex</strong> (<strong>mut</strong>ual <strong>ex</strong>clusion) is a synchronization primitive that puts a restriction around a critical section, in order to prevent data races. A mutex guarantees <em>atomicity</em>, by making sure that only one thread accesses the critical section at a time.</p>
+
+<p>Technically, a mutex is a global object in your application, shared across multiple threads, that provides two functions usually called <code>lock</code> and <code>unlock</code>. A thread that is about to enter the critical section calls <code>lock</code> to lock the mutex; when it&rsquo;s done, that is when the critical section is over, the same thread calls <code>unlock</code> to unlock it. The important feature of a mutex: only the thread that locks the mutex is allowed to unlock it later on.</p>
+
+<p>If another thread jumps in and tries to lock a locked mutex, the operating system puts it to sleep until the first thread has finished its task and has unlocked the mutex. This way only one thread can access the critical section; any other thread is excluded from it and must wait for the unlock. For this reason a mutex is also known as a <strong>locking mechanism</strong>.</p>
+
+<p>You can use a mutex to protect simple actions like a concurrent read and write of a shared variable, as well as bigger and more complex operations that need to be executed by one thread at a time, such as writing to a log file or modifying a database. Anyway, the mutex lock/unlock operations always match the boundaries of the critical section.</p>
+
+<h3>Recursive mutexes</h3>
+
+<p>In any regular mutex implementation, a thread that locks a mutex twice causes an error. A <strong>recursive mutex</strong> allows this, instead: a thread can lock a recursive mutex multiple times without unlocking it first. However no other thread can lock the recursive mutex until all the locks held by the first thread have been released. This synchronization primitive is also known as <strong>reentrant mutex</strong>, where <strong>reentrancy</strong> is the ability to call a function multiple times (i.e. to enter it again) before the previous invocations are over.</p>
+
+<p>Recursive mutexes are difficult to work with and are error-prone. You have to keep track of which thread has locked the mutex how many times and make sure the same thread unlocks it completely. Failing to do so would leave locked mutexes around with nasty consequences. Most of the time a regular mutex is enough.</p>
+
+<h3>Reader/Writer Mutexes</h3>
+
+<p>As we know from the previous episode, multiple threads can concurrently read from a shared resource without harm as long as they don&rsquo;t modify it. So why bother locking a mutex if some of your threads are operating in &ldquo;read-only&rdquo; mode? For example consider a concurrent database that is frequently read by many threads, while another thread seldomly writes updates. You certainly need a mutex to protect the read/write access, but most of the time you would end up locking it just for read operations, preventing other reading threads to do their job.</p>
+
+<p>A <strong>reader/writer mutex</strong> allows <em>concurrent</em> reads from multiple threads and <em>exclusive</em> writes from a single thread to a shared resource. It can be locked in <em>read</em> or <em>write</em> mode. To modify a resource, a thread must first acquire the exclusive write lock. An exclusive write lock is not permitted until all read locks have been released.</p>
+
+<h3>Semaphores</h3>
+
+<p>A <strong>semaphore</strong> is a synchronization primitive used to orchestrate threads: which one starts first, how many threads can access a resource and so on. Like a street semaphore regulates the traffic, a programming semaphore regulates the multithreading flow: for this reason a semaphore is also known as a <strong>signaling mechanism</strong>. It can be seen as an evolution of a mutex, because it guarantees both <em>ordering</em> and <em>atomicity</em>. However in a few paragraphs I will show you why using semaphores for atomicity only is not a great idea.</p>
+
+<p>Technically, a semaphore is a global object in your application, shared across multiple threads, that contains a <em>numeric counter</em> managed by two functions: one that increases the counter, another one that decreases it. Historically called <code>P</code> and <code>V</code>, modern implementations use more friendly names for those functions such as <code>acquire</code> and <code>release</code>.</p>
+
+<p>A semaphore controls the access to a shared resource: the counter determines the maximum number of threads that can simultaneously access it. At the beginning of your program, when the semaphore gets initialized, you choose that number according to your needs. Then, a thread that wants to access a shared resource calls <code>acquire</code>:</p>
+
+<ul>
+<li>if the counter is <em>greater than zero</em> the thread can proceed. The counter gets reduced by one right away, then the current thread starts doing its job. When done, it calls <code>release</code> which in turn increases the counter by one.</li>
+<li>if the counter is <em>equal to zero</em> the thread cannot proceed: other threads have already filled up the available space. The current thread is put to sleep by the operating system and will wake up when the semaphore counter becomes greater than zero again (that is when any other thread calls <code>release</code> once its job is done).</li>
+</ul>
+
+
+<p>Unlike a mutex, <em>any thread can release a semaphore</em>, not only the one that has acquired it in the first place.</p>
+
+<p>A single semaphore is used to limit the number of threads accessing a shared resource: for example to cap the number of multithreaded database connections, where each thread is triggered by someone connecting to your server.</p>
+
+<p>By combining multiple semaphores together you can solve thread ordering problems: for example the thread that renders a web page in your browser must start after the thread that downloads the HTML files from the Internet. Thread A would notify thread B when it&rsquo;s done, so that B can wake up and proceed with its job: this is also known as the famous <a href="https://en.wikipedia.org/wiki/Producer%E2%80%93consumer_problem">Producer-Consumer problem</a>.</p>
+
+<h3>Binary semaphores</h3>
+
+<p>A semaphore whose counter is restricted to the values 0 and 1 is called <strong>binary semaphore</strong>: only one thread at a time can access the shared resource. Wait: this is basically a mutex protecting a critical section! You can actually replicate the mutex behavior with a binary semaphore. However there are two important points to keep in mind:</p>
+
+<ul>
+<li>a mutex can be unlocked only by thread that had locked it first, while a semaphore can be released from any other thread. This could lead to confusion and subtle bugs if what you want is just a locking mechanism;</li>
+<li>semaphores are signaling mechanisms that orchestrate threads, while mutexes are locking mechanisms that protects shared resources. You should not use semaphores to protect shared resources, nor mutexes for signaling: your intent will be more clear to you and to anyone who will read your code.</li>
+</ul>
+
+
+<h3>Condition variables</h3>
+
+<p>Condition variables are another synchronization primitive designed for <em>ordering</em>. They are used for sending a wake up signal across different threads. A condition variable always goes hand in hand with a mutex; using it alone doesn&rsquo;t make sense.</p>
+
+<p>Technically, a condition variable is a global object in your application, shared across multiple threads, that provides three functions usually called <code>wait</code>, <code>notify_one</code> and <code>notify_all</code>, plus a mechanism to pass it an existing mutex to work with (the exact way depends on the implementation).</p>
+
+<p>A thread that calls <code>wait</code> on the condition variable is put to sleep by the operating system. Then another thread that wants to wake it up invokes <code>notify_one</code> or <code>notify_all</code>. The difference is that <code>notify_one</code> unfreezes only one thread, while <code>notify_all</code> sends the wake up call to all the threads that are sleeping after the <code>wait</code> call on the condition variable. The mutex is used internally to provide the sleep/wakeup mechanism.</p>
+
+<p>Condition variables are a powerful mechanism to send signals between threads that you couldn&rsquo;t achieve with mutexes alone. For example you can use them to solve the Producer-Consumer problem once again, where thread A emits a signal when it&rsquo;s done so that thread B can start its job.</p>
+
+<h3>Common problems in synchronization</h3>
+
+<p>All the synchronization primitives described in this article have something in common: they put threads to sleep. For this reason they are also called <strong>blocking mechanisms</strong>. A blocking mechanism is a good way to prevent concurrent access to a shared resource if you want to avoid data races or race conditions: a sleeping thread does no harm. But it can trigger unfortunate side effects. Let&rsquo;s take a quick look at them.</p>
+
+<h4>Deadlock</h4>
+
+<p>A <strong>deadlock</strong> occurs when a thread is waiting for a shared variable that another thread holds, and this second thread is waiting for a shared variable that the first thread holds. These things usually happen when working with multiple mutexes: the two threads remain waiting forever in an infinite circular loop: thread A waits for thread B which waits for thread A which waits for thread B which&hellip;</p>
+
+<h4>Starvation</h4>
+
+<p>A thread goes in <strong>starvation</strong> mode when it doesn&rsquo;t get enough love: it remains stuck indefinitely in its sleep state while waiting for access to a shared resource that is continuously given to other threads. For example a poorly designed semaphore-based algorithm might forget to wake up one of the many threads behind the waiting line, by giving precedence only to a subset of them. The starving thread would wait forever without doing any useful work.</p>
+
+<h4>Spurious wake-ups</h4>
+
+<p>This is a subtle problem that comes from how condition variables are actually implemented in some operating systems. In a <strong>spurious wake-up</strong> a thread wakes up even if not signaled through the condition variable. That&rsquo;s why most synchronization primitives also include a way to check if the wakeup signal really comes from the condition variable the thread is waiting on.</p>
+
+<h4>Priority inversion</h4>
+
+<p><strong>Priority inversion</strong> occurs when a thread performing a high-priority task is blocked waiting for a lower-priority thread to release a resource, such as a mutex. For example when the thread that outputs audio to the soundcard (high priority) is blocked by the thread that displays the interface (low priority), resulting in a bad glitch through your speakers.</p>
+
+<h3>What&rsquo;s next</h3>
+
+<p>All these synchronization problems have been studied for years and many solutions, both technical and architectural are available. A careful design and a bit of experience help a lot in prevention. Also, given the <a href="https://www.internalpointers.com/post/gentle-introduction-multithreading#race-conditions">non-deterministic</a>, (i.e. extremely hard) nature of multithreaded applications, people have developed interesting tools to detect errors and potential pitfalls in concurrent code. Projects like <a href="https://github.com/google/sanitizers/wiki/ThreadSanitizerCppManual">Google&rsquo;s TSan</a> or <a href="http://valgrind.org/docs/manual/hg-manual.html">Helgrind</a> are just a few of them.</p>
+
+<p>However, sometimes you want to take a different route and get rid of any blocking mechanism in your multithreaded application. This would mean to enter the <strong>non-blocking</strong> realm: a very low-level territory, where threads are never put to sleep by the operating system and concurrency is regulated through <strong>atomic primitives</strong> and <strong>lock-free data structures</strong>. It&rsquo;s a challenging field, not always necessary, which can boost the speed of your software or wreak havoc on it. But this is a story for the next episode&hellip;</p>
+
+<h3>reference</h3>
+
+<ul>
+<li><a href="https://www.internalpointers.com/post/introduction-thread-synchronization">Introduction to thread synchronization</a></li>
+</ul>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[A gentle introduction to multithreading]]></title>
+    <link href="http://Solarex.github.io/blog/2019/08/07/a-gentle-introduction-to-multithreading/"/>
+    <updated>2019-08-07T10:14:00+08:00</updated>
+    <id>http://Solarex.github.io/blog/2019/08/07/a-gentle-introduction-to-multithreading</id>
+    <content type="html"><![CDATA[<p>清空Reeder发现internal/pointers一系列关于多线程的文章，感觉很不错，转载在此。</p>
+
+<p>这是系列第一篇。</p>
+
+<p>Approaching the world of concurrency, one step at a time.</p>
+
+<!-- more -->
+
+
+<p>Modern computers have the ability to perform multiple operations at the same time. Supported by hardware advancements and smarter operating systems, this feature makes your programs run faster, both in terms of speed of execution and responsiveness.</p>
+
+<p>Writing software that takes advantage of such power is fascinating, yet tricky: it requires you to understand what happens under your computer&rsquo;s hood. In this first episode I&rsquo;ll try to scratch the surface of <strong>threads</strong>, one of the tools provided by operating systems to perform this kind of magic. Let&rsquo;s go!</p>
+
+<h3>Processes and threads: naming things the right way</h3>
+
+<p>Modern operating systems can run multiple programs at the same time. That&rsquo;s why you can read this article in your browser (a program) while listening to music on your media player (another program). Each program is known as a <strong>process</strong> that is being executed. The operating system knows many software tricks to make a process run along with others, as well as taking advantage from the underlying hardware. Either way, the final outcome is that you <em>sense</em> all your programs to be running simultaneously.</p>
+
+<p>Running processes in an operating system is not the only way to perform several operations at the same time. Each process is able to run simultaneous sub-tasks within itself, called <strong>threads</strong>. You can think of a thread as a slice of the process itself. Every process triggers at least one thread on startup, which is called the <strong>main thread</strong>. Then, according to the program/programmer&rsquo;s needs, additional threads may be started or terminated. <strong>Multithreading</strong> is about running multiple threads within a single process.</p>
+
+<p>For example, it is likely that your media player runs multiple threads: one for rendering the interface — this is usually the main thread, another one for playing the music and so on.</p>
+
+<p>You can think of the operating system as a container that holds multiple processes, where each process is a container that holds multiple threads. In this article I will focus on threads only, but the whole topic is fascinating and deserves more in-depth analysis in the future.</p>
+
+<center><p><img src="http://Solarex.github.io/images/processes-threads.png"></p></center>
+
+
+<h3>The differences between processes and threads</h3>
+
+<p>Each process has its own chunk of memory assigned by the operating system. By default that memory cannot be shared with other processes: your browser has no access to the memory assigned to your media player and vice versa. The same thing happens if you run two <strong>instances</strong> of the same process, that is if you launch your browser twice. The operating system treats each instance as a new process with its own separate portion of memory assigned. So, by default, two or more processes have no way to share data, unless they perform advanced tricks — the so-called <strong>inter-process communication (IPC)</strong>.</p>
+
+<p>Unlike processes, threads share the same chunk of memory assigned to their parent process by the operating system: data in the media player main interface can be easily accessed by the audio engine and vice versa. Therefore is easier for two threads to talk to eachother. On top of that, threads are usually lighter than a process: they take less resources and are faster to create, that&rsquo;s why they are also called <strong>lightweight processes</strong>.</p>
+
+<p>Threads are a handy way to make your program perform multiple operations at the same time. Without threads you would have to write one program per task, run them as processes and synchronize them through the operating system. This would be more difficult (IPC is tricky) and slower (processes are heavier than threads).</p>
+
+<h3>Green threads, of fibers</h3>
+
+<p>Threads mentioned so far are an operating system thing: a process that wants to fire a new thread has to talk to the operating system. Not every platform natively support threads, though. <strong>Green threads</strong>, also known as <strong>fibers</strong> are a kind of emulation that makes multithreaded programs work in environments that don&rsquo;t provide that capability. For example a virtual machine might implement green threads in case the underlying operating system doesn&rsquo;t have native thread support.</p>
+
+<p>Green threads are faster to create and to manage because they completely bypass the operating system, but also have disadvantages. I will write about such topic in one of the next episodes.</p>
+
+<p>The name &ldquo;green threads&rdquo; refers to the Green Team at Sun Microsystem that designed the original Java thread library in the 90s. Today Java no longer makes use of green threads: they switched to native ones back in 2000. Some other programming languages — Go, Haskell or Rust to name a few — implement equivalents of green threads instead of native ones.</p>
+
+<h3>What threads are used for</h3>
+
+<p>Why should a process employ multiple threads? As I mentioned before, doing things in parallel greatly speeds up things. Say you are about to render a movie in your movie editor. The editor could be smart enough to spread the rendering operation across multiple threads, where each thread processes a chunk of the final movie. So if with one thread the task would take, say, one hour, with two threads it would take 30 minutes; with four threads 15 minutes, and so on.</p>
+
+<p>Is it really that simple? There are three important points to consider:</p>
+
+<ul>
+<li>not every program needs to be multithreaded. If your app performs sequential operations or often waits on the user to do something, multithreading might not be that beneficial;</li>
+<li>you just don&rsquo;t throw more threads to an application to make it run faster: each sub-task has to be thought and designed carefully to perform parallel operations;</li>
+<li>it is not 100% guaranteed that threads will perform their operations truly in parallel, that is <em>at the same time</em>: it really depends on the underlying hardware.</li>
+</ul>
+
+
+<p>The last one is crucial: if your computer doesn&rsquo;t support multiple operations at the same time, the operating system has to fake them. We will see how in a minute. For now let&rsquo;s think of <strong>concurrency</strong> as the <em>perception</em> of having tasks that run at the same time, while <strong>true parallelism</strong> as tasks that literally run at the same time.</p>
+
+<center><p><img src="http://Solarex.github.io/images/concurrency-parallelism.png"></p></center>
+
+
+<h3>What makes concurrency and parallelism possible</h3>
+
+<p>The <strong>central processing unit (CPU)</strong> in your computer does the hard work of running programs. It is made of several parts, the main one being the so-called <strong>core</strong>: that&rsquo;s where computations are actually performed. A core is capable of running only one operation at a time.</p>
+
+<p>This is of course a major drawback. For this reason operating systems have developed advanced techniques to give the user the ability to running multiple processes (or threads) at once, especially on graphical environments, even on a single core machine. The most important one is called <strong>preemptive multitasking</strong>, where <strong>preemption</strong> is the ability of interrupting a task, switching to another one and then resuming the first task at a later time.</p>
+
+<p>So if your CPU has only one core, part of a operating system&rsquo;s job is to spread that single core computing power across multiple processes or threads, which are executed one after the other in a loop. This operation gives you the illusion of having more than one program running in parallel, or a single program doing multiple things at the same time (if multithreaded). Concurrency is met, but true parallelism — the ability to run processes <em>simultaneously</em> — is still missing.</p>
+
+<p>Today modern CPUs have more than one core under the hood, where each one performs an independent operation at a time. This means that with two or more cores true parallelism is possible. For example, my Intel Core i7 has four cores: it can run four different processes or threads at the same time, simultaneously.</p>
+
+<p>Operating systems are able to detect the number of CPU cores and assign processes or threads to each one of them. A thread may be allocated to whatever core the operating system likes, and this kind of scheduling is completely transparent for the program being run. Additionally, preemptive multitasking might kick in in case all cores are busy. This gives you the ability to run more processes and threads than the actual number or cores available in your machine.</p>
+
+<h3>Multi-threading application on a single core: does it make sense?</h3>
+
+<p>True parallelism on a single-core machine is impossible to achieve. Nevertheless it still makes sense to write a multithreaded program, if your application can benefit from it. When a process employs multiple threads, preemptive multitasking can keep the app running even if one of those threads performs a slow or blocking task.</p>
+
+<p>Say for example you are working on a desktop app that reads some data from a very slow disk. If you write the program with just one thread, the whole app would freeze until the disk operation is finished: the CPU power assigned to the only thread is wasted while waiting for the disk to wake up. Of course the operating system is running many other processes besides this one, but your specific application will not be making any progress.</p>
+
+<p>Let&rsquo;s rethink your app in a multithreaded way. Thread A is responsible for the disk access, while thread B takes care of the main interface. If thread A gets stuck waiting because the device is slow, thread B can still run the main interface, keeping your program responsive. This is possible because, having two threads, the operating system can switch the CPU resources between them without getting stuck on the slower one.</p>
+
+<h3>More threads, more problems</h3>
+
+<p>As we know, threads share the same chunk of memory of their parent process. This makes extremely easy for two or more of them to exchange data within the same application. For example: a movie editor might hold a big portion of shared memory containing the video timeline. Such shared memory is being read by several worker threads designated for rendering the movie to a file. They all just need a handle (e.g. a pointer) to that memory area in order to read from it and output rendered frames to disk.</p>
+
+<p>Things run smoothly as long as two or more threads <em>read</em> from the same memory location. The troubles kick in when at least one of them <em>writes</em> to the shared memory, while others are reading from it. Two problems can occur at this point:</p>
+
+<ul>
+<li><strong>data race</strong> — while a writer thread modifies the memory, a reader thread might be reading from it. If the writer has not finished its work yet, the reader will get corrupted data;</li>
+<li><strong>race condition</strong> — a reader thread is supposed to read only after a writer has written. What if the opposite happens? More subtle than a data race, a race condition is about two or more threads doing their job in an unpredictable order, when in fact the operations should be performed in the proper sequence to be done correctly. Your program can trigger a race condition even if it has been protected against data races.</li>
+</ul>
+
+
+<h3>The concept of thread safety</h3>
+
+<p>A piece of code is said to be <strong>thread-safe</strong> if it works correctly, that is without data races or race conditions, even if many threads are executing it simultaneously. You might have noticed that some programming libraries declare themselves as being thread-safe: if you are writing a multithreaded program you want to make sure that any other third-party function can be used across different threads without triggering concurrency problems.</p>
+
+<h3>The root cause of data races</h3>
+
+<p>We know that a CPU core can perform only one machine instruction at a time. Such instruction is said to be <strong>atomic</strong> because it&rsquo;s indivisible: it can&rsquo;t be broken into smaller operations. The Greek word &ldquo;atom&rdquo; (ἄτομος; atomos) means <em>uncuttable</em>.</p>
+
+<p>The property of being indivisible makes atomic operations thread-safe by nature. When a thread performs an atomic write on shared data, no other thread can read the modification half-complete. Conversely, when a thread performs an atomic read on shared data, it reads the entire value as it appeared at a single moment in time. There is no way for a thread to <em>slip through</em> an atomic operation, thus no data race can happen.</p>
+
+<p>The bad news is that the vast majority of operations out there are non-atomic. Even a trivial assignment like <code>x = 1</code> on some hardware might be composed of multiple atomic machine instructions, making the assignment itself non-atomic as a whole. So a data race is triggered if a thread reads <code>x</code> while another one performs the assignment.</p>
+
+<h3>The root cause of race conditions</h3>
+
+<p>Preemptive multitasking gives the operating system full control over thread management: it can start, stop and pause threads according to advanced scheduling algorithms. You as a programmer cannot control the time or order of execution. In fact, there is no guarantee that a simple code like this:</p>
+
+<p><code>java
+writer_thread.start()
+reader_thread.start()
+</code></p>
+
+<p>would start the two threads in that specific order. Run this program several times and you will notice how it behaves differently on each run: sometimes the writer thread starts first, sometimes the reader does instead. You will surely hit a race condition if your program needs the writer to always run before the reader.</p>
+
+<p>This behavior is called <strong>non-deterministic</strong>: the outcome changes each time and you can&rsquo;t predict it. Debugging programs affected by a race condition is very annoying because you can&rsquo;t always reproduce the problem in a controlled way.</p>
+
+<h3>Teach threads to get along: concurrency control</h3>
+
+<p>Both data races and race conditions are real-world problems: some people even <a href="https://en.wikipedia.org/wiki/Therac-25">died because of them</a>. The art of accommodating two or more concurrent threads is called <strong>concurrency control</strong>: operating systems and programming languages offer several solutions to take care of it. The most important ones:</p>
+
+<ul>
+<li><strong>synchronization</strong> — a way to ensure that resources will be used by only one thread at a time. Synchronization is about marking specific parts of your code as &ldquo;protected&rdquo; so that two or more concurrent threads do not simultaneously execute it, screwing up your shared data;</li>
+<li><strong>atomic operations</strong> — a bunch of non-atomic operations (like the assignment mentioned before) can be turned into atomic ones thanks to special instructions provided by the operating system. This way the shared data is always kept in a valid state, no matter how other threads access it;</li>
+<li><strong>immutable data</strong> — shared data is marked as immutable, nothing can change it: threads are only allowed to read from it, eliminating the root cause. As we know threads can safely read from the same memory location as long as they don&rsquo;t modify it. This is the main philosophy behind <a href="https://en.wikipedia.org/wiki/Functional_programming">functional programming</a>.</li>
+</ul>
+
+
+<p>I will cover all this fascinating topics in the next episodes of this mini-series about concurrency. Stay tuned!</p>
+
+<h3>refreence</h3>
+
+<ul>
+<li><a href="https://www.internalpointers.com/post/gentle-introduction-multithreading">A gentle introduction to multithreading</a></li>
+</ul>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Java线程池解析]]></title>
@@ -200,1371 +707,6 @@
 
 <ul>
 <li><a href="https://javadoop.com/post/java-concurrent-queue">解读 java 并发队列 BlockingQueue</a></li>
-</ul>
-
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Java AQS解析]]></title>
-    <link href="http://Solarex.github.io/blog/2019/07/28/aqs/"/>
-    <updated>2019-07-28T16:59:00+08:00</updated>
-    <id>http://Solarex.github.io/blog/2019/07/28/aqs</id>
-    <content type="html"><![CDATA[<p><code>AbstractQueuedSynchronizer</code>是很多并发工具类如<code>ReentrantLock</code>的实现基础，本文对其进行分析。</p>
-
-<!-- more -->
-
-
-<p>TL;DR</p>
-
-<p>以下是对<a href="http://gee.cs.oswego.edu/dl/papers/aqs.pdf">aqs.pdf</a>部分内容零散的翻译，其实《Java并发编程实战》中有一章介绍了AQS，我也做了笔记，可以在<a href="https://solarex.github.io/reading-notes/jcip/ch14.html">这里</a>看到，对于AQS模板方法的使用，可以在<a href="https://solarex.github.io/reading-notes/the-art-of-java-concurrency-programming/ch05.html">这篇笔记</a>中看到。翻译很不专业，将就看下吧。如果想深入了解AQS，可以读下<a href="http://gee.cs.oswego.edu/dl/papers/aqs.pdf">aqs.pdf</a>或者看下本文reference部分的几篇文章。</p>
-
-<p>Synchronizers possess two kinds of methods : at least one <code>acquire</code> operation that blocks the calling thread unless/until the synchronization state allows it to proceed, and at least one <code>release</code> operation that changes synchronization state in a way that may allow one or more blocked threads to unblock.</p>
-
-<p>同步器提供两种方法：一个<code>acquire</code>方法在同步状态不允许线程通过运行时阻塞线程，一个<code>release</code>方法改变同步状态来允许一个或多个被阻塞的线程继续运行。</p>
-
-<p>The <code>java.util.concurrent</code> package does not define a single unified API for synchronizers. Some are defined via common interfaces (e.g., <code>Lock</code>), but others contain only specialized versions. So, <code>acquire</code> and <code>release</code> operations take a range of names and forms across different classes. For example, methods <code>Lock.lock</code>,<code>Semaphore.acquire</code>, <code>CountDownLatch.await</code>, and <code>FutureTask.get</code> all map to <code>acquire</code> operations in the framework. However, the package does maintain consistent conventions across classes to support a range of common usage options. When meaningful, each synchronizer supports:
-+ Nonblocking synchronization attempts (for example,<code>tryLock</code>) as well as blocking versions.
-+ Optional timeouts, so applications can give up waiting.
-+ Cancellability via interruption, usually separated into one version of acquire that is cancellable, and one that isn&rsquo;t.</p>
-
-<p>JUC没有为同步器定义一个统一的API。有一些是在通用的接口中定义的，比如<code>Lock</code>，但是其他的包括一些特殊的版本。所以不同同步器的<code>acquire</code>和<code>release</code>方法在名字和形态上表现不同。比如，<code>Lock.lock</code>，<code>Semaphore.acquire</code>，<code>CountDownLatch.await</code>和<code>FutureTask.get</code>和AQS框架中的<code>acquire</code>方法相对应。但是JUC框架在通用操作上保持了一致性。对于同步器来说，一般都支持以下操作：</p>
-
-<ul>
-<li>非阻塞尝试和阻塞尝试，比如<code>Lock.tryLock</code>和<code>Lock.lock</code></li>
-<li>可选的超时，超时后线程可以放弃等待尝试</li>
-<li>在等待获取尝试的时候，对线程中断的响应或不响应</li>
-</ul>
-
-
-<p>Synchronizers may vary according to whether they manage only <code>exclusive</code> states – those in which only one thread at a time may continue past a possible blocking point – versus possible <code>shared</code> states in which multiple threads can at least sometimes proceed.Regular lock classes of course maintain only exclusive state, but counting semaphores, for example, may be acquired by as many threads as the count permits. To be widely useful, the framework must support both modes of operation.</p>
-
-<p>同步器可能会因为共享状态是独占还是可共享的而不同。一般锁维护的是独占状态，同时只能有一个线程持有锁，但是Semaphore可能同时被多个线程获取。AQS对这两种模式都提供了支持。</p>
-
-<p>The <code>java.util.concurrent</code> package also defines interface <code>Condition</code>, supporting monitor-style <code>await/signal</code> operations that may be associated with <code>exclusive Lock</code> classes, and whose implementations are intrinsically intertwined with their associated Lock classes.</p>
-
-<p>JUC框架还定义了<code>Condition</code>接口，来提供和内置锁<code>wait/notify</code>类似的操作，<code>Condition</code>的<code>await/signal</code>方法和独占锁绑定在一起。</p>
-
-<p>The basic ideas behind a synchronizer are quite straightforward.
-An acquire operation proceeds as:</p>
-
-<p>```java
-while (synchronization state does not allow acquire) {</p>
-
-<pre><code>enqueue current thread if not already queued;
-possibly block current thread;
-</code></pre>
-
-<p>}
-dequeue current thread if it was queued;
-```</p>
-
-<p>And a release operation is:</p>
-
-<p><code>java
-update synchronization state;
-if (state may permit a blocked thread to acquire)
-unblock one or more queued threads;
-</code></p>
-
-<p>Support for these operations requires the coordination of three basic components:
-+ Atomically managing synchronization state
-+ Blocking and unblocking threads
-+ Maintaining queues</p>
-
-<p>同步器背后的思想很简单，三个基本的部分构成了对同步器的支持：</p>
-
-<ul>
-<li>原子更新同步状态</li>
-<li>线程的阻塞和唤醒</li>
-<li>线程等待队列</li>
-</ul>
-
-
-<p>Class <code>AbstractQueuedSynchronizer</code> maintains synchronization state using only a single (32bit) int, and exports <code>getState</code>, <code>setState</code>, and <code>compareAndSetState</code> operations to access and update this state. These methods in turn rely on <code>java.util.concurrent.atomic</code> support providing JSR133 (Java Memory Model) compliant <code>volatile</code> semantics on <code>reads and writes</code>, and access to native <code>compare-and-swap</code> or <code>loadlinked/store-conditional</code> instructions to implement <code>compareAndSetState</code>, that atomically sets state to a given new value only if it holds a given expected value.</p>
-
-<p><code>AbstractQueuedSynchronizer</code>用一个32位的int值来表示同步状态，暴露了<code>getState</code>, <code>setState</code>和<code>compareAndSetState</code> 方法来获取和更新同步状态。这些方法依赖JMM底层模型对<code>volatile</code>变量的语义支持，依赖CPU的<code>compare-and-swap</code> 或 <code>loadlinked/store-conditional</code> 指令来完成<code>compareAndSetState</code>操作。CAS操作原子地设置同步状态为新的值，只有同步状态等于期待的原值时才会成功。</p>
-
-<p>Restricting synchronization state to a 32bit <code>int</code> was a pragmatic decision. While JSR166 also provides atomic operations on 64bit <code>long</code> fields, these must still be emulated using internal locks on enough platforms that the resulting synchronizers would not perform well. In the future, it seems likely that a second base class, specialized for use with 64bit state (i.e., with long control arguments), will be added. However, there is not now a compelling reason to include it in the package. Currently, 32 bits suffice for most applications. Only one <code>java.util.concurrent</code> synchronizer class, <code>CyclicBarrier</code>, would require more bits to maintain state, so instead uses locks (as do most higher-level utilities in the package).</p>
-
-<p>JUC已经提供了<code>AbstractQueuedLongSynchronizer</code>，<code>AbstractQueuedLongSynchronizer</code>用<code>long</code>来表示同步状态。</p>
-
-<p>Concrete classes based on <code>AbstractQueuedSynchronizer</code> must define methods <code>tryAcquire</code> and <code>tryRelease</code> in terms of these exported state methods in order to control the <code>acquire</code> and <code>release</code> operations. The <code>tryAcquire</code> method must return <code>true</code> if synchronization was acquired, and the <code>tryRelease</code> method must return <code>true</code> if the new synchronization state may allow future acquires. These methods accept a single <code>int</code> argument that can be used to communicate desired state; for example in a reentrant lock, to re-establish the recursion count when re-acquiring the lock after returning from a condition wait.Many synchronizers do not need such an argument, and so just ignore it.</p>
-
-<p>AQS的具体实现类必须实现<code>tryAcquire</code> 和 <code>tryRelease</code>以便获得AQS提供的 <code>acquire</code> 和 <code>release</code> 操作。如果同步状态允许线程通过，<code>tryAcquire</code>方法必须返回<code>true</code>，<code>tryRelease</code>必须返回<code>true</code>如果新的同步状态允许阻塞的线程通过。<code>tryAcquire</code>和<code>tryRelease</code>接受一个<code>int</code>类型的参数，很多同步器不需要这个参数，直接忽略了它。</p>
-
-<p>Until JSR166, there was no Java API available to block and unblock threads for purposes of creating synchronizers that are not based on built-in monitors. The only candidates were <code>Thread.suspend</code> and <code>Thread.resume</code>, which are unusable because they encounter an unsolvable race problem: If an unblocking thread invokes <code>resume</code> before the blocking thread has executed <code>suspend</code>, the <code>resume</code> operation will have no effect.</p>
-
-<p>在JSR166之前，没有Java API来提供除了基于内置锁之外的线程阻塞唤醒同步操作。可选的有<code>Thread.suspend</code>和<code>Thread.resume</code>，但是如果一个线程在<code>suspend</code>之前先调用了<code>resume</code>，<code>resume</code>将无效。</p>
-
-<p>The <code>java.util.concurrent.locks</code> package includes a <code>LockSupport</code> class with methods that address this problem. Method <code>LockSupport.park</code> blocks the current thread unless or until a <code>LockSupport.unpark</code> has been issued. (Spurious wakeups are also permitted.) Calls to <code>unpark</code> are not &ldquo;counted&rdquo;, so multiple unparks before a park only unblock a single park.Additionally, this applies per-thread, not per-synchronizer. A thread invoking park on a new synchronizer might return immediately because of a &ldquo;leftover&rdquo; unpark from a previous usage. However, in the absence of an unpark, its next invocation will block. While it would be possible to explicitly clear this state, it is not worth doing so. It is more efficient to invoke park multiple times when it happens to be necessary.This simple mechanism is similar to those used, at some level, in the Solaris-9 thread library, in WIN32 &ldquo;consumable events&rdquo;,and in the Linux NPTL thread library, and so maps efficiently to each of these on the most common platforms Java runs on.(However, the current Sun Hotspot JVM reference implementation on Solaris and Linux actually uses a pthread condvar in order to fit into the existing runtime design.) The park method also supports optional relative and absolute timeouts, and is integrated with JVM <code>Thread.interrupt</code> support — interrupting a thread unparks it.</p>
-
-<p>JUC提供了<code>LockSupport</code>来解决这个问题。<code>LockSupport</code>还支持可选的超时，而且提供了对线程中断的支持。</p>
-
-<p>The heart of the framework is maintenance of queues of blocked threads, which are restricted here to FIFO queues. Thus, the framework does not support priority-based synchronization.These days, there is little controversy that the most appropriate choices for synchronization queues are non-blocking data structures that do not themselves need to be constructed using lower-level locks. And of these, there are two main candidates: variants of Mellor-Crummey and Scott (MCS) locks, and variants of Craig, Landin, and Hagersten (CLH) locks.Historically, CLH locks have been used only in spinlocks.However, they appeared more amenable than MCS for use in the synchronizer framework because they are more easily adapted to handle cancellation and timeouts, so were chosen as a basis. The resulting design is far enough removed from the original CLH structure to require explanation.A CLH queue is not very queue-like, because its enqueuing and dequeuing operations are intimately tied to its uses as a lock. It is a linked queue accessed via two atomically updatable fields,head and tail, both initially pointing to a dummy node.</p>
-
-<p>AQS的等待队列是CLH队列的变种。</p>
-
-<p>A new node, node, is enqueued using an atomic operation:</p>
-
-<p><code>java
-do { pred = tail;
-} while(!tail.compareAndSet(pred, node));
-</code></p>
-
-<p>The <code>release</code> status for each node is kept in its predecessor node.So, the &ldquo;spin&rdquo; of a spinlock looks like:</p>
-
-<p><code>java
-while (pred.status != RELEASED) ; // spin
-</code></p>
-
-<p>A dequeue operation after this spin simply entails setting the head field to the node that just got the lock:</p>
-
-<p><code>java
-head = node;
-</code></p>
-
-<p>新节点入队通过CAS设置<code>tail</code>来实现，当前节点的释放状态取决于前驱节点的状态。自旋结束后出队一个节点会把<code>head</code>设置为这个节点。</p>
-
-<p>AQS的等待队列使用<code>next</code>指针保存了后继节点，用<code>status</code>保存了节点代表的线程的状态，比如可能线程已经取消了等待。</p>
-
-<p>Omitting such details, the general form of the resulting implementation of the basic acquire operation (exclusive,noninterruptible, untimed case only) is:</p>
-
-<p>```java
-if (!tryAcquire(arg)) {</p>
-
-<pre><code>node = create and enqueue new node;
-pred = node's effective predecessor;
-while (pred is not head node || !tryAcquire(arg)) {
-    if (pred's signal bit is set)
-        park();
-    else
-        compareAndSet pred's signal bit to true;
-    pred = node's effective predecessor;
-}
-head = node;
-</code></pre>
-
-<p>}
-```</p>
-
-<p>And the release operation is:</p>
-
-<p>```java
-if (tryRelease(arg) &amp;&amp; head node&rsquo;s signal bit is set) {</p>
-
-<pre><code>compareAndSet head's signal bit to false;
-unpark head's successor, if one exists
-</code></pre>
-
-<p>}
-```</p>
-
-<p>The synchronizer framework provides a <code>ConditionObject</code> class for use by synchronizers that maintain exclusive synchronization and conform to the Lock interface. Any number of condition objects may be attached to a lock object, providing classic monitor-style <code>await</code>, <code>signal</code>, and <code>signalAll</code> operations, including those with timeouts, along with some inspection and monitoring methods.</p>
-
-<p>AQS框架还提供了<code>ConditionObject</code>来提供和内置锁<code>wait/notify/notifyAll</code>类似的<code>await/signal/signalAll</code>功能。</p>
-
-<p>The <code>ConditionObject</code> class enables conditions to be efficiently integrated with other synchronization operations,again by fixing some design decisions. This class supports only Java-style monitor access rules in which condition operations are legal only when the lock owning the condition is held by the current thread. Thus, a <code>ConditionObject</code> attached to a ReentrantLock acts in the same way as do built-in monitors (via <code>Object.wait</code> etc), differing only in method names, extra functionality, and the fact that users can declare multiple conditions per lock.A <code>ConditionObject</code> uses the same internal queue nodes as synchronizers, but maintains them on a separate condition queue.The signal operation is implemented as a queue transfer from the condition queue to the lock queue, without necessarily waking up the signalled thread before it has re-acquired its lock.</p>
-
-<p>The basic await operation is:</p>
-
-<p><code>java
- create and add new node to condition queue;
- release lock;
- block until node is on lock queue;
- re-acquire lock;
-</code></p>
-
-<p>And the signal operation is:</p>
-
-<p><code>java
- transfer the first node from condition queue to lock queue;
-</code></p>
-
-<p><code>ConditionObject</code>提供和内置锁类似的功能，在一个<code>Lock</code>上可以声明多个<code>ConditionObject</code>。<code>ConditionObject</code>使用condition queue来维护等待队列，condition queue上的节点和lock queue中的节点相同，<code>await</code>是入condition queue，<code>signal</code>是从condition queue中转移到lock queue中。</p>
-
-<p>Because these operations are performed only when the lock is held, they can use sequential linked queue operations (using a <code>nextWaiter</code> field in nodes) to maintain the condition queue.The transfer operation simply unlinks the first node from the condition queue, and then uses CLH insertion to attach it to the lock queue. The main complication in implementing these operations is dealing with cancellation of condition waits due to timeouts or <code>Thread.interrupt</code>. A cancellation and signal occuring at approximately the same time encounter a race whose outcome conforms to the specifications for built-in monitors. As revised in JSR133, these require that if an interrupt occurs before a signal, then the <code>await</code> method must, after re-acquiring the lock, throw <code>InterruptedException</code>. But if it is interrupted after a signal, then the method must return without throwing an exception, but with its thread interrupt status set.</p>
-
-<p>transfer操作是从将condition queue里的第一个节点从condition queue中移除，插入到lock queue中去。如果在<code>signal</code>之前发生了线程中断，那么<code>await</code>必须在重新获取锁之后抛出<code>InterruptedException</code>。如果在<code>signal</code>之后发生了中断，那么线程中断状态将被设置，但是不会抛出异常。</p>
-
-<p>Here are sketches of how java.util.concurrent synchronizer classes are defined using this framework:</p>
-
-<ul>
-<li>The <code>ReentrantLock</code> class uses synchronization state to hold the (recursive) lock count. When a lock is acquired, it also records the identity of the current thread to check recursions and detect illegal state exceptions when the wrong thread tries to unlock. The class also uses the provided <code>ConditionObject</code>, and exports other monitoring and inspection methods. The class supports an optional &ldquo;fair&rdquo; mode by internally declaring two different <code>AbstractQueuedSynchronizer</code> subclasses (the fair one disabling barging) and setting each <code>ReentrantLock</code> instance to use the appropriate one upon construction.</li>
-<li>The <code>ReentrantReadWriteLock</code> class uses 16 bits of the synchronization state to hold the write lock count, and the remaining 16 bits to hold the read lock count. The <code>WriteLock</code> is otherwise structured in the same way as <code>ReentrantLock</code>.The <code>ReadLock</code> uses the <code>acquireShared</code> methods to enable multiple readers.</li>
-<li>The <code>Semaphore</code> class (a counting semaphore) uses the synchronization state to hold the current count. It defines <code>acquireShared</code> to decrement the count or block if nonpositive, and <code>tryRelease</code> to increment the count, possibly unblocking threads if it is now positive.</li>
-<li>The <code>CountDownLatch</code> class uses the synchronization state to represent the count. All acquires pass when it reaches zero.</li>
-<li>The <code>FutureTask</code> class uses the synchronization state to represent the run-state of a future (initial, running, cancelled,done). Setting or cancelling a future invokes <code>release</code>,unblocking threads waiting for its computed value via <code>acquire</code>.</li>
-<li>The <code>SynchronousQueue</code> class (a CSP-style handoff) uses internal wait-nodes that match up producers and consumers. It uses the synchronization state to allow a producer to proceed when a consumer takes the item, and vice-versa.</li>
-</ul>
-
-
-<p>JUC框架中几个使用AQS的同步器类的内部实现。</p>
-
-<h3>reference</h3>
-
-<ul>
-<li><a href="https://javadoop.com/post/AbstractQueuedSynchronizer">一行一行源码分析清楚 AbstractQueuedSynchronizer</a></li>
-<li><a href="https://javadoop.com/post/AbstractQueuedSynchronizer-2">一行一行源码分析清楚 AbstractQueuedSynchronizer（二）</a></li>
-<li><a href="https://javadoop.com/post/AbstractQueuedSynchronizer-3">一行一行源码分析清楚 AbstractQueuedSynchronizer（三）</a></li>
-<li><a href="http://ifeve.com/introduce-abstractqueuedsynchronizer/">AbstractQueuedSynchronizer的介绍和原理分析</a></li>
-<li><a href="https://www.infoq.cn/article/jdk1.8-abstractqueuedsynchronizer">深度解析 Java 8：JDK1.8 AbstractQueuedSynchronizer 的实现分析（上）</a></li>
-<li><a href="https://www.infoq.cn/article/java8-abstractqueuedsynchronizer">深度解析 Java 8：AbstractQueuedSynchronizer 的实现分析（下）</a></li>
-<li><a href="https://juejin.im/post/5aeb07ab6fb9a07ac36350c8">深入理解AbstractQueuedSynchronizer(AQS)</a></li>
-<li><a href="https://liuzhengyang.github.io/2017/05/12/aqs/">AbstractQueuedSynchronizer使用和源码分析</a></li>
-<li><a href="https://www.jianshu.com/p/e7659436538b">AbstractQueuedSynchronizer 源码分析 (基于Java 8)</a></li>
-<li><a href="https://segmentfault.com/a/1190000014221325">源码分析JDK8之AbstractQueuedSynchronizer</a></li>
-<li><a href="http://gee.cs.oswego.edu/dl/papers/aqs.pdf">aqs.pdf</a></li>
-<li><a href="http://www.cs.tau.ac.il/~shanir/nir-pubs-web/Papers/CLH.pdf">CLH.pdf</a></li>
-<li><a href="https://coderbee.net/index.php/concurrent/20131115/577">自旋锁、排队自旋锁、MCS锁、CLH锁</a></li>
-</ul>
-
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Java FutureTask解析]]></title>
-    <link href="http://Solarex.github.io/blog/2019/06/28/futuretask/"/>
-    <updated>2019-06-28T16:59:00+08:00</updated>
-    <id>http://Solarex.github.io/blog/2019/06/28/futuretask</id>
-    <content type="html"><![CDATA[<p>本文主要对FutureTask源码进行分析。</p>
-
-<!-- more -->
-
-
-<p>Java中一般通过继承Thread类或实现Runnable接口来创建线程，但是这两种方式都有个缺陷，就是不能在线程执行完成后获取执行的结果，因此Java1.5之后提供了<code>Callable</code>和<code>Future</code>接口，通过他们就可以在任务执行完成之后获取到任务的执行结果。</p>
-
-<h3>Callable接口</h3>
-
-<p>```java
-/<em>*
- * A task that returns a result and may throw an exception.
- * Implementors define a single method with no arguments called
- * {@code call}.
- *
- * <p>The {@code Callable} interface is similar to {@link
- * java.lang.Runnable}, in that both are designed for classes whose
- * instances are potentially executed by another thread.  A
- * {@code Runnable}, however, does not return a result and cannot
- * throw a checked exception.
- *
- * <p>The {@link Executors} class contains utility methods to
- * convert from other common forms to {@code Callable} classes.
- *
- * @see Executor
- * @since 1.5
- * @author Doug Lea
- * @param <V> the result type of method {@code call}
- </em>/
-@FunctionalInterface
-public interface Callable<V> {</p>
-
-<pre><code>/**
- * Computes a result, or throws an exception if unable to do so.
- *
- * @return computed result
- * @throws Exception if unable to compute a result
- */
-V call() throws Exception;
-</code></pre>
-
-<p>}
-```</p>
-
-<p>可以看到<code>Callable</code>是个泛型接口，泛型V代表返回值的类型，执行任务过程中如果有异常会抛出异常。</p>
-
-<h3>Future接口</h3>
-
-<p>```java
-/<em>*
- * A {@code Future} represents the result of an asynchronous
- * computation.  Methods are provided to check if the computation is
- * complete, to wait for its completion, and to retrieve the result of
- * the computation.  The result can only be retrieved using method
- * {@code get} when the computation has completed, blocking if
- * necessary until it is ready.  Cancellation is performed by the
- * {@code cancel} method.  Additional methods are provided to
- * determine if the task completed normally or was cancelled. Once a
- * computation has completed, the computation cannot be cancelled.
- * If you would like to use a {@code Future} for the sake
- * of cancellability but not provide a usable result, you can
- * declare types of the form {@code Future&lt;?>} and
- * return {@code null} as a result of the underlying task.
- *
- * <p>
- * <b>Sample Usage</b> (Note that the following classes are all
- * made-up.)
- *
- * <pre> {@code
- * interface ArchiveSearcher { String search(String target); }
- * class App {
- *   ExecutorService executor = &hellip;
- *   ArchiveSearcher searcher = &hellip;
- *   void showSearch(final String target)
- *       throws InterruptedException {
- *     Future<String> future
- *       = executor.submit(new Callable<String>() {
- *         public String call() {
- *             return searcher.search(target);
- *         }});
- *     displayOtherThings(); // do other things while searching
- *     try {
- *       displayText(future.get()); // use future
- *     } catch (ExecutionException ex) { cleanup(); return; }
- *   }
- * }}</pre>
- *
- * The {@link FutureTask} class is an implementation of {@code Future} that
- * implements {@code Runnable}, and so may be executed by an {@code Executor}.
- * For example, the above construction with {@code submit} could be replaced by:
- * <pre> {@code
- * FutureTask<String> future =
- *   new FutureTask&lt;>(new Callable<String>() {
- *     public String call() {
- *       return searcher.search(target);
- *   }});
- * executor.execute(future);}</pre>
- *
- * <p>Memory consistency effects: Actions taken by the asynchronous computation
- * <a href="package-summary.html#MemoryVisibility"> <i>happen-before</i></a>
- * actions following the corresponding {@code Future.get()} in another thread.
- *
- * @see FutureTask
- * @see Executor
- * @since 1.5
- * @author Doug Lea
- * @param <V> The result type returned by this Future&rsquo;s {@code get} method
- </em>/
-public interface Future<V> {</p>
-
-<pre><code>/**
- * Attempts to cancel execution of this task.  This attempt will
- * fail if the task has already completed, has already been cancelled,
- * or could not be cancelled for some other reason. If successful,
- * and this task has not started when {@code cancel} is called,
- * this task should never run.  If the task has already started,
- * then the {@code mayInterruptIfRunning} parameter determines
- * whether the thread executing this task should be interrupted in
- * an attempt to stop the task.
- *
- * &lt;p&gt;After this method returns, subsequent calls to {@link #isDone} will
- * always return {@code true}.  Subsequent calls to {@link #isCancelled}
- * will always return {@code true} if this method returned {@code true}.
- *
- * @param mayInterruptIfRunning {@code true} if the thread executing this
- * task should be interrupted; otherwise, in-progress tasks are allowed
- * to complete
- * @return {@code false} if the task could not be cancelled,
- * typically because it has already completed normally;
- * {@code true} otherwise
- */
-boolean cancel(boolean mayInterruptIfRunning);
-
-/**
- * Returns {@code true} if this task was cancelled before it completed
- * normally.
- *
- * @return {@code true} if this task was cancelled before it completed
- */
-boolean isCancelled();
-
-/**
- * Returns {@code true} if this task completed.
- *
- * Completion may be due to normal termination, an exception, or
- * cancellation -- in all of these cases, this method will return
- * {@code true}.
- *
- * @return {@code true} if this task completed
- */
-boolean isDone();
-
-/**
- * Waits if necessary for the computation to complete, and then
- * retrieves its result.
- *
- * @return the computed result
- * @throws CancellationException if the computation was cancelled
- * @throws ExecutionException if the computation threw an
- * exception
- * @throws InterruptedException if the current thread was interrupted
- * while waiting
- */
-V get() throws InterruptedException, ExecutionException;
-
-/**
- * Waits if necessary for at most the given time for the computation
- * to complete, and then retrieves its result, if available.
- *
- * @param timeout the maximum time to wait
- * @param unit the time unit of the timeout argument
- * @return the computed result
- * @throws CancellationException if the computation was cancelled
- * @throws ExecutionException if the computation threw an
- * exception
- * @throws InterruptedException if the current thread was interrupted
- * while waiting
- * @throws TimeoutException if the wait timed out
- */
-V get(long timeout, TimeUnit unit)
-    throws InterruptedException, ExecutionException, TimeoutException;
-</code></pre>
-
-<p>}
-```</p>
-
-<p><code>Future</code>代表任务异步执行的结果，通过<code>Future</code>接口可以查询任务执行的状态，取消任务执行，获取任务执行的结果。</p>
-
-<ul>
-<li>cancel方法尝试去取消任务的执行，如果任务已经完成，或者已经取消，或者由于其他原因无法被取消，cancel方法将返回false。如果cancel调用的时候，任务还没开始执行，任务将不被执行，cancel返回true。如果cancel调用的时候，任务已经开始执行，<code>mayInterruptIfRunning</code>决定执行任务的线程是否应该被中断来执行任务的执行。cancel方法调用返回true后，后续的<code>isDone</code>方法总是返回true，后续的<code>isCancelled</code>方法总是返回true。</li>
-<li>如果在任务完成之前被取消了，<code>isCancelled</code>方法会返回true。</li>
-<li>任务完成后，<code>isDone</code>方法会返回true。无论是正常的结束，抛出异常结束，被取消，<code>isDone</code>都会返回true。</li>
-<li>get方法会等待任务执行结束来获取任务执行的结果，如果任务已经执行结束，直接返回结果。可能抛出<code>CancellationException</code>如果任务被取消，<code>ExecutionException</code>如果任务执行过程中抛出了异常，<code>InterruptedException</code>如果当前线程在等待执行任务的线程的执行结果的过程中被中断了。</li>
-<li>get(long,TimeUnit)会等待最多设定的时间来获取结果。可能抛出<code>CancellationException</code>如果任务被取消，<code>ExecutionException</code>如果任务执行过程中抛出了异常，<code>InterruptedException</code>如果当前线程在等待执行任务的线程的执行结果的过程中被中断了，<code>TimeoutException</code>如果等待超时了。</li>
-</ul>
-
-
-<h3>FutureTask</h3>
-
-<p><code>Future</code>只是一个接口，<code>FutureTask</code>是<code>Future</code>的实现类。确切的说<code>FutureTask</code>实现了<code>RunnableFuture</code>接口，<code>RunnableFuture</code>接口扩展了<code>Runnable</code>和<code>Future</code>接口。</p>
-
-<h4>FutureTask任务执行的状态</h4>
-
-<p>```java</p>
-
-<pre><code>/**
- * The run state of this task, initially NEW.  The run state
- * transitions to a terminal state only in methods set,
- * setException, and cancel.  During completion, state may take on
- * transient values of COMPLETING (while outcome is being set) or
- * INTERRUPTING (only while interrupting the runner to satisfy a
- * cancel(true)). Transitions from these intermediate to final
- * states use cheaper ordered/lazy writes because values are unique
- * and cannot be further modified.
- *
- * Possible state transitions:
- * NEW -&gt; COMPLETING -&gt; NORMAL
- * NEW -&gt; COMPLETING -&gt; EXCEPTIONAL
- * NEW -&gt; CANCELLED
- * NEW -&gt; INTERRUPTING -&gt; INTERRUPTED
- */
-private volatile int state;
-private static final int NEW          = 0;
-private static final int COMPLETING   = 1;
-private static final int NORMAL       = 2;
-private static final int EXCEPTIONAL  = 3;
-private static final int CANCELLED    = 4;
-private static final int INTERRUPTING = 5;
-private static final int INTERRUPTED  = 6;
-</code></pre>
-
-<p>```</p>
-
-<p>可以看到<code>FutureTask</code>使用<code>volatile</code>变量<code>state</code>来表示任务执行的状态，初始时是<code>NEW</code>，在<code>set</code>，<code>setException</code>和<code>cancel</code>方法中会对<code>state</code>进行赋值。可能的状态转换有<code>NEW -&gt; COMPLETING -&gt; NORMAL</code>，<code>NEW -&gt; COMPLETING -&gt; EXCEPTIONAL</code>，<code>NEW -&gt; CANCELLED</code>，<code>NEW -&gt; INTERRUPTING -&gt; INTERRUPTED</code>。</p>
-
-<h4>FutureTask内部变量</h4>
-
-<p>```java</p>
-
-<pre><code>/** The underlying callable; nulled out after running */
-private Callable&lt;V&gt; callable;
-/** The result to return or exception to throw from get() */
-private Object outcome; // non-volatile, protected by state reads/writes
-/** The thread running the callable; CASed during run() */
-private volatile Thread runner;
-/** Treiber stack of waiting threads */
-private volatile WaitNode waiters;
-</code></pre>
-
-<p>```</p>
-
-<p><code>callable</code>表示将要执行的任务，<code>volatile</code>类型的变量<code>runner</code>表示执行任务的线程，<code>waiters</code>表示等待任务执行结果的线程队列。任务执行的结果用Object类型的<code>outcome</code>表示，可以看到并没有用<code>volatile</code>关键字来修饰，那不会有可见性问题吗？这个问题后面我们会提到。</p>
-
-<h4>FutureTask任务执行run</h4>
-
-<p>```java
-public void run() {</p>
-
-<pre><code>    if (state != NEW ||
-        !U.compareAndSwapObject(this, RUNNER, null, Thread.currentThread()))
-        return;
-    try {
-        Callable&lt;V&gt; c = callable;
-        if (c != null &amp;&amp; state == NEW) {
-            V result;
-            boolean ran;
-            try {
-                result = c.call();
-                ran = true;
-            } catch (Throwable ex) {
-                result = null;
-                ran = false;
-                setException(ex); // 任务执行抛出异常走setException
-            }
-            if (ran)
-                set(result); // 任务正常执行完成走set
-        }
-    } finally {
-        // runner must be non-null until state is settled to
-        // prevent concurrent calls to run()
-        runner = null;
-        // state must be re-read after nulling runner to prevent
-        // leaked interrupts
-        int s = state;
-        if (s &gt;= INTERRUPTING)
-            handlePossibleCancellationInterrupt(s);
-    }
-}
-</code></pre>
-
-<p>```</p>
-
-<p><code>run</code>方法首先对状态进行判断，并尝试CAS替换<code>runner</code>为当前线程，如果失败，表明已经有线程在执行任务了，直接返回，否则执行任务，如果任务执行过程中抛出了异常，走<code>setException</code>分支，如果任务正常结束，走<code>set</code>分支，下面看下这两个方法。</p>
-
-<h4>FutureTask的set和setException方法</h4>
-
-<p>```java</p>
-
-<pre><code>/**
- * Sets the result of this future to the given value unless
- * this future has already been set or has been cancelled.
- *
- * &lt;p&gt;This method is invoked internally by the {@link #run} method
- * upon successful completion of the computation.
- *
- * @param v the value
- */
-protected void set(V v) {
-    if (U.compareAndSwapInt(this, STATE, NEW, COMPLETING)) {
-        outcome = v;
-        U.putOrderedInt(this, STATE, NORMAL); // final state
-        finishCompletion();
-    }
-}
-/**
- * Removes and signals all waiting threads, invokes done(), and
- * nulls out callable.
- */
-private void finishCompletion() {
-    // assert state &gt; COMPLETING;
-    for (WaitNode q; (q = waiters) != null;) {
-        if (U.compareAndSwapObject(this, WAITERS, q, null)) {
-            for (;;) {
-                Thread t = q.thread;
-                if (t != null) {
-                    q.thread = null;
-                    LockSupport.unpark(t);
-                }
-                WaitNode next = q.next;
-                if (next == null)
-                    break;
-                q.next = null; // unlink to help gc
-                q = next;
-            }
-            break;
-        }
-    }
-
-    done();
-
-    callable = null;        // to reduce footprint
-}
-/**
- * Causes this future to report an {@link ExecutionException}
- * with the given throwable as its cause, unless this future has
- * already been set or has been cancelled.
- *
- * &lt;p&gt;This method is invoked internally by the {@link #run} method
- * upon failure of the computation.
- *
- * @param t the cause of failure
- */
-protected void setException(Throwable t) {
-    if (U.compareAndSwapInt(this, STATE, NEW, COMPLETING)) {
-        outcome = t;
-        U.putOrderedInt(this, STATE, EXCEPTIONAL); // final state
-        finishCompletion();
-    }
-}
-</code></pre>
-
-<p>```</p>
-
-<p>可以看到<code>set</code>和<code>setException</code>方法都是CAS对<code>state</code>进行赋值，并对<code>outcome</code>进行赋值，同时调用<code>finishCompletion</code>方法唤醒等待队列中的线程去获取任务执行的结果。在这里可以看到对<code>outcome</code>的写发生在对<code>volatile</code>变量<code>state</code>写之前，因此保证了<code>state</code>为<code>NORMAL</code>或<code>EXCEPTIONAL</code>时<code>outcome</code>变量的可见性。在<code>finishCompletion</code>中可以看到是对等待队列上的线程进行唤醒操作，那么这些线程是什么时候进行等待队列并阻塞的呢，接下来看<code>get</code>方法。</p>
-
-<h4>FutureTask的get方法</h4>
-
-<p>```java</p>
-
-<pre><code>/**
- * @throws CancellationException {@inheritDoc}
- */
-public V get() throws InterruptedException, ExecutionException {
-    int s = state;
-    if (s &lt;= COMPLETING)
-        s = awaitDone(false, 0L);
-    return report(s);
-}
-/**
- * @throws CancellationException {@inheritDoc}
- */
-public V get(long timeout, TimeUnit unit)
-    throws InterruptedException, ExecutionException, TimeoutException {
-    if (unit == null)
-        throw new NullPointerException();
-    int s = state;
-    if (s &lt;= COMPLETING &amp;&amp;
-        (s = awaitDone(true, unit.toNanos(timeout))) &lt;= COMPLETING)
-        throw new TimeoutException();
-    return report(s);
-}
-/**
- * Awaits completion or aborts on interrupt or timeout.
- *
- * @param timed true if use timed waits
- * @param nanos time to wait, if timed
- * @return state upon completion or at timeout
- */
-private int awaitDone(boolean timed, long nanos)
-    throws InterruptedException {
-    // The code below is very delicate, to achieve these goals:
-    // - call nanoTime exactly once for each call to park
-    // - if nanos &lt;= 0L, return promptly without allocation or nanoTime
-    // - if nanos == Long.MIN_VALUE, don't underflow
-    // - if nanos == Long.MAX_VALUE, and nanoTime is non-monotonic
-    //   and we suffer a spurious wakeup, we will do no worse than
-    //   to park-spin for a while
-    long startTime = 0L;    // Special value 0L means not yet parked
-    WaitNode q = null;
-    boolean queued = false;
-    for (;;) {
-        int s = state;
-        if (s &gt; COMPLETING) {
-            if (q != null)
-                q.thread = null;
-            return s;
-        }
-        else if (s == COMPLETING)
-            // We may have already promised (via isDone) that we are done
-            // so never return empty-handed or throw InterruptedException
-            Thread.yield();
-        else if (Thread.interrupted()) {
-            removeWaiter(q);
-            throw new InterruptedException();
-        }
-        else if (q == null) {
-            if (timed &amp;&amp; nanos &lt;= 0L)
-                return s;
-            q = new WaitNode();
-        }
-        else if (!queued)
-            queued = U.compareAndSwapObject(this, WAITERS,
-                                            q.next = waiters, q);
-        else if (timed) {
-            final long parkNanos;
-            if (startTime == 0L) { // first time
-                startTime = System.nanoTime();
-                if (startTime == 0L)
-                    startTime = 1L;
-                parkNanos = nanos;
-            } else {
-                long elapsed = System.nanoTime() - startTime;
-                if (elapsed &gt;= nanos) {
-                    removeWaiter(q);
-                    return state;
-                }
-                parkNanos = nanos - elapsed;
-            }
-            // nanoTime may be slow; recheck before parking
-            if (state &lt; COMPLETING)
-                LockSupport.parkNanos(this, parkNanos);
-        }
-        else
-            LockSupport.park(this);
-    }
-/**
- * Returns result or throws exception for completed task.
- *
- * @param s completed state value
- */
-@SuppressWarnings("unchecked")
-private V report(int s) throws ExecutionException {
-    Object x = outcome;
-    if (s == NORMAL)
-        return (V)x;
-    if (s &gt;= CANCELLED)
-        throw new CancellationException();
-    throw new ExecutionException((Throwable)x);
-}
-</code></pre>
-
-<p>```</p>
-
-<p>可以看到<code>get</code>的两个方法都是调用了<code>awaitDone</code>方法，下面重点看下<code>awaitDone</code>方法。</p>
-
-<p><code>awaitDone</code>方法里面有个for死循环，退出循环的只有<code>state &gt; COMPLETING</code>时<code>return state</code>，或者是在<code>Thread.interrupted()</code>返回true表示线程被中断时将线程从等待队列中移除并抛出<code>InterruptedException</code>。</p>
-
-<p>进入for循环的时候如果任务的状态已经完成或者任务执行的时候抛出了异常，也即<code>state &gt; COMPLETING</code>时，直接返回<code>state</code>，在<code>set</code>或者<code>setException</code>中会根据<code>state</code>进行<code>report</code>调用返回不同的状态。</p>
-
-<p>在for循环中如果当前线程被中断，则将当前线程从等待队列中移除并抛出<code>InterruptedException</code>异常。</p>
-
-<p>如果任务的状态<code>state &lt; COMPLETING</code>也即任务正在执行，当前线程也没有被中断，第一次进入for循环的时候会进入<code>q == null</code>分支，创建<code>WaitNode</code>节点。</p>
-
-<p>```java
-/**</p>
-
-<pre><code> * Simple linked list nodes to record waiting threads in a Treiber
- * stack.  See other classes such as Phaser and SynchronousQueue
- * for more detailed explanation.
- */
-static final class WaitNode {
-    volatile Thread thread;
-    volatile WaitNode next;
-    WaitNode() { thread = Thread.currentThread(); }
-}
-</code></pre>
-
-<p>```</p>
-
-<p>下次再进入for循环会进入<code>!queued</code>分支，尝试将刚创建的<code>WaitNode</code>节点的next指针指向<code>FutureTask</code>的<code>waiters</code>，并CAS替换<code>FutureTask</code>的<code>waiters</code>为刚创建的<code>WaitNode</code>节点，如果CAS失败，说明有其他线程也在进行CAS替换<code>FutureTask</code>的<code>waiters</code>的操作，并且成功了，下次再进for循环继续进行这个CAS操作，直到返回true，<code>queued</code>为true为止。到此，线程进入到了等待队列中，下次再进入for循环会根据是否<code>timed</code>来进行<code>LockSupport.parkNanos</code>或<code>LockSupport.park</code>阻塞线程操作，等待其他线程<code>unpark</code>来唤醒当前线程。那什么时候唤醒呢，其实在分析<code>run</code>方法的时候我们已经看到了在执行完后会进行<code>finishCompletion</code>操作，在<code>finishCompletion</code>方法中会唤醒等待队列中的线程。</p>
-
-<h4>FutureTask的cancel方法</h4>
-
-<p>```java
-public boolean cancel(boolean mayInterruptIfRunning) {</p>
-
-<pre><code>    if (!(state == NEW &amp;&amp;
-          U.compareAndSwapInt(this, STATE, NEW,
-              mayInterruptIfRunning ? INTERRUPTING : CANCELLED)))
-        return false;
-    try {    // in case call to interrupt throws exception
-        if (mayInterruptIfRunning) {
-            try {
-                Thread t = runner;
-                if (t != null)
-                    t.interrupt();
-            } finally { // final state
-                U.putOrderedInt(this, STATE, INTERRUPTED);
-            }
-        }
-    } finally {
-        finishCompletion();
-    }
-    return true;
-}
-</code></pre>
-
-<p>```</p>
-
-<p>如果<code>state == NEW &amp;&amp; U.compareAndSwapInt(this, STATE, NEW,mayInterruptIfRunning ? INTERRUPTING : CANCELLED)</code>返回false说明任务的<code>state</code>已经不是<code>NEW</code>了，直接返回false。否则根据<code>mayInterruptIfRunning</code>来对执行任务的线程<code>runner</code>进行中断操作。最后在<code>finally</code>块中进行了<code>finishCompletion</code>操作，来唤醒等待队列中的线程。</p>
-
-<h4>FutureTask的runAndReset方法</h4>
-
-<p>```java</p>
-
-<pre><code>/**
- * Executes the computation without setting its result, and then
- * resets this future to initial state, failing to do so if the
- * computation encounters an exception or is cancelled.  This is
- * designed for use with tasks that intrinsically execute more
- * than once.
- *
- * @return {@code true} if successfully run and reset
- */
-protected boolean runAndReset() {
-    if (state != NEW ||
-        !U.compareAndSwapObject(this, RUNNER, null, Thread.currentThread()))
-        return false;
-    boolean ran = false;
-    int s = state;
-    try {
-        Callable&lt;V&gt; c = callable;
-        if (c != null &amp;&amp; s == NEW) {
-            try {
-                c.call(); // don't set result
-                ran = true;
-            } catch (Throwable ex) {
-                setException(ex);
-            }
-        }
-    } finally {
-        // runner must be non-null until state is settled to
-        // prevent concurrent calls to run()
-        runner = null;
-        // state must be re-read after nulling runner to prevent
-        // leaked interrupts
-        s = state;
-        if (s &gt;= INTERRUPTING)
-            handlePossibleCancellationInterrupt(s);
-    }
-    return ran &amp;&amp; s == NEW;
-}
-</code></pre>
-
-<p>```</p>
-
-<p><code>runAndReset</code>方法相比<code>run</code>方法是在调用完<code>callable</code>的<code>call</code>方法后没有调用<code>set(result)</code>，没有对<code>state</code>任务状态进行转换，没有对<code>outcome</code>进行赋值，如果任务正常执行结束，<code>state</code>应该还是<code>NEW</code>，因此可以被重复调用。</p>
-
-<h4>FutureTask的isCancelled和isDone方法</h4>
-
-<p>```java</p>
-
-<pre><code>public boolean isCancelled() {
-    return state &gt;= CANCELLED;
-}
-
-public boolean isDone() {
-    return state != NEW;
-}
-</code></pre>
-
-<p>```</p>
-
-<p>都是对<code>state</code>的判断</p>
-
-<h3>reference</h3>
-
-<ul>
-<li><a href="https://stackoverflow.com/questions/14432400/why-outcome-object-in-futuretask-is-non-volatile">why outcome object in FutureTask is non-volatile?</a></li>
-</ul>
-
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Android Thread解析]]></title>
-    <link href="http://Solarex.github.io/blog/2019/05/28/thread/"/>
-    <updated>2019-05-28T16:58:00+08:00</updated>
-    <id>http://Solarex.github.io/blog/2019/05/28/thread</id>
-    <content type="html"><![CDATA[<p>本文主要分析Android平台上的Thread类源码，分为Java部分和native部分。</p>
-
-<!-- more -->
-
-
-<p>Java部分比较简单，大致过下各个方法吧。</p>
-
-<h3>线程创建</h3>
-
-<p>```java</p>
-
-<pre><code>/**
- * Initializes a Thread.
- *
- * @param g the Thread group
- * @param target the object whose run() method gets called
- * @param name the name of the new Thread
- * @param stackSize the desired stack size for the new thread, or
- *        zero to indicate that this parameter is to be ignored.
- */
-private void init(ThreadGroup g, Runnable target, String name, long stackSize) {
-    Thread parent = currentThread();
-    if (g == null) {
-        g = parent.getThreadGroup();
-    }
-
-    g.addUnstarted();
-    this.group = g;
-
-    this.target = target;
-    this.priority = parent.getPriority();
-    this.daemon = parent.isDaemon();
-    setName(name);
-
-    init2(parent);
-
-    /* Stash the specified stack size in case the VM cares */
-    this.stackSize = stackSize;
-    tid = nextThreadID();
-}
-private void init2(Thread parent) {
-    this.contextClassLoader = parent.getContextClassLoader();
-    this.inheritedAccessControlContext = AccessController.getContext();
-    if (parent.inheritableThreadLocals != null) {
-        this.inheritableThreadLocals = ThreadLocal.createInheritedMap(
-                parent.inheritableThreadLocals);
-    }
-}
-</code></pre>
-
-<p>```</p>
-
-<p>线程<code>NEW</code>出来的时候只是从创建它的线程那里继承一些属性，比如threadgroup，daemon状态，priority，stacksize，inheritableThreadLocals之类的。真正启动线程是在<code>start</code>方法里。</p>
-
-<h3>线程启动</h3>
-
-<p>```java
-/**</p>
-
-<pre><code> * Causes this thread to begin execution; the Java Virtual Machine
- * calls the &lt;code&gt;run&lt;/code&gt; method of this thread.
- * &lt;p&gt;
- * The result is that two threads are running concurrently: the
- * current thread (which returns from the call to the
- * &lt;code&gt;start&lt;/code&gt; method) and the other thread (which executes its
- * &lt;code&gt;run&lt;/code&gt; method).
- * &lt;p&gt;
- * It is never legal to start a thread more than once.
- * In particular, a thread may not be restarted once it has completed
- * execution.
- *
- * @exception  IllegalThreadStateException  if the thread was already
- *               started.
- * @see        #run()
- * @see        #stop()
- */
-public synchronized void start() {
-    /**
-     * This method is not invoked for the main method thread or "system"
-     * group threads created/set up by the VM. Any new functionality added
-     * to this method in the future may have to also be added to the VM.
-     *
-     * A zero status value corresponds to state "NEW".
-     */
-    // Android-changed: throw if 'started' is true
-    if (threadStatus != 0 || started)
-        throw new IllegalThreadStateException();
-
-    /* Notify the group that this thread is about to be started
-     * so that it can be added to the group's list of threads
-     * and the group's unstarted count can be decremented. */
-    group.add(this);
-
-    started = false;
-    try {
-        nativeCreate(this, stackSize, daemon);
-        started = true;
-    } finally {
-        try {
-            if (!started) {
-                group.threadStartFailed(this);
-            }
-        } catch (Throwable ignore) {
-            /* do nothing. If start0 threw a Throwable then
-              it will be passed up the call stack */
-        }
-    }
-}
-
-private native static void nativeCreate(Thread t, long stackSize, boolean daemon);
-</code></pre>
-
-<p>```</p>
-
-<p>```c++
-// <a href="http://androidxref.com/9.0.0_r3/xref/art/runtime/thread.cc#623">http://androidxref.com/9.0.0_r3/xref/art/runtime/thread.cc#623</a>
-void Thread::CreateNativeThread(JNIEnv<em> env, jobject java_peer, size_t stack_size, bool is_daemon) {
-  CHECK(java_peer != nullptr);
-  Thread</em> self = static_cast&lt;JNIEnvExt*>(env)&ndash;>GetSelf();</p>
-
-<p>  if (VLOG_IS_ON(threads)) {</p>
-
-<pre><code>ScopedObjectAccess soa(env);
-
-ArtField* f = jni::DecodeArtField(WellKnownClasses::java_lang_Thread_name);
-ObjPtr&lt;mirror::String&gt; java_name =
-    f-&gt;GetObject(soa.Decode&lt;mirror::Object&gt;(java_peer))-&gt;AsString();
-std::string thread_name;
-if (java_name != nullptr) {
-  thread_name = java_name-&gt;ToModifiedUtf8();
-} else {
-  thread_name = "(Unnamed)";
-}
-
-VLOG(threads) &lt;&lt; "Creating native thread for " &lt;&lt; thread_name;
-self-&gt;Dump(LOG_STREAM(INFO));
-</code></pre>
-
-<p>  }</p>
-
-<p>  Runtime* runtime = Runtime::Current();</p>
-
-<p>  // Atomically start the birth of the thread ensuring the runtime isn&rsquo;t shutting down.
-  bool thread_start_during_shutdown = false;
-  {</p>
-
-<pre><code>MutexLock mu(self, *Locks::runtime_shutdown_lock_);
-if (runtime-&gt;IsShuttingDownLocked()) {
-  thread_start_during_shutdown = true;
-} else {
-  runtime-&gt;StartThreadBirth();
-}
-</code></pre>
-
-<p>  }
-  if (thread_start_during_shutdown) {</p>
-
-<pre><code>ScopedLocalRef&lt;jclass&gt; error_class(env, env-&gt;FindClass("java/lang/InternalError"));
-env-&gt;ThrowNew(error_class.get(), "Thread starting during runtime shutdown");
-return;
-</code></pre>
-
-<p>  }</p>
-
-<p>  Thread* child_thread = new Thread(is_daemon);
-  // Use global JNI ref to hold peer live while child thread starts.
-  child_thread->tlsPtr_.jpeer = env->NewGlobalRef(java_peer);
-  stack_size = FixStackSize(stack_size);</p>
-
-<p>  // Thread.start is synchronized, so we know that nativePeer is 0, and know that we&rsquo;re not racing
-  // to assign it.
-  env->SetLongField(java_peer, WellKnownClasses::java_lang_Thread_nativePeer,</p>
-
-<pre><code>                reinterpret_cast&lt;jlong&gt;(child_thread));
-</code></pre>
-
-<p>  // Try to allocate a JNIEnvExt for the thread. We do this here as we might be out of memory and
-  // do not have a good way to report this on the child&rsquo;s side.
-  std::string error_msg;
-  std::unique_ptr<JNIEnvExt> child_jni_env_ext(</p>
-
-<pre><code>  JNIEnvExt::Create(child_thread, Runtime::Current()-&gt;GetJavaVM(), &amp;error_msg));
-</code></pre>
-
-<p>  int pthread_create_result = 0;
-  if (child_jni_env_ext.get() != nullptr) {</p>
-
-<pre><code>pthread_t new_pthread;
-pthread_attr_t attr;
-child_thread-&gt;tlsPtr_.tmp_jni_env = child_jni_env_ext.get();
-CHECK_PTHREAD_CALL(pthread_attr_init, (&amp;attr), "new thread");
-CHECK_PTHREAD_CALL(pthread_attr_setdetachstate, (&amp;attr, PTHREAD_CREATE_DETACHED),
-                   "PTHREAD_CREATE_DETACHED");
-CHECK_PTHREAD_CALL(pthread_attr_setstacksize, (&amp;attr, stack_size), stack_size);
-pthread_create_result = pthread_create(&amp;new_pthread,
-                                       &amp;attr,
-                                       Thread::CreateCallback,
-                                       child_thread);
-CHECK_PTHREAD_CALL(pthread_attr_destroy, (&amp;attr), "new thread");
-
-if (pthread_create_result == 0) {
-  // pthread_create started the new thread. The child is now responsible for managing the
-  // JNIEnvExt we created.
-  // Note: we can't check for tmp_jni_env == nullptr, as that would require synchronization
-  //       between the threads.
-  child_jni_env_ext.release();
-  return;
-}
-</code></pre>
-
-<p>  }</p>
-
-<p>  // Either JNIEnvExt::Create or pthread_create(3) failed, so clean up.
-  {</p>
-
-<pre><code>MutexLock mu(self, *Locks::runtime_shutdown_lock_);
-runtime-&gt;EndThreadBirth();
-</code></pre>
-
-<p>  }
-  // Manually delete the global reference since Thread::Init will not have been run.
-  env->DeleteGlobalRef(child_thread->tlsPtr<em>.jpeer);
-  child_thread->tlsPtr</em>.jpeer = nullptr;
-  delete child_thread;
-  child_thread = nullptr;
-  // TODO: remove from thread group?
-  env->SetLongField(java_peer, WellKnownClasses::java_lang_Thread_nativePeer, 0);
-  {</p>
-
-<pre><code>std::string msg(child_jni_env_ext.get() == nullptr ?
-    StringPrintf("Could not allocate JNI Env: %s", error_msg.c_str()) :
-    StringPrintf("pthread_create (%s stack) failed: %s",
-                             PrettySize(stack_size).c_str(), strerror(pthread_create_result)));
-ScopedObjectAccess soa(env);
-soa.Self()-&gt;ThrowOutOfMemoryError(msg.c_str());
-</code></pre>
-
-<p>  }
-}
-```</p>
-
-<p>一大堆代码只需要记住进行了<code>pthread_create</code>系统调用即可。</p>
-
-<h3>线程状态</h3>
-
-<p>```java
-/**</p>
-
-<pre><code> * A thread state.  A thread can be in one of the following states:
- * &lt;ul&gt;
- * &lt;li&gt;{@link #NEW}&lt;br&gt;
- *     A thread that has not yet started is in this state.
- *     &lt;/li&gt;
- * &lt;li&gt;{@link #RUNNABLE}&lt;br&gt;
- *     A thread executing in the Java virtual machine is in this state.
- *     &lt;/li&gt;
- * &lt;li&gt;{@link #BLOCKED}&lt;br&gt;
- *     A thread that is blocked waiting for a monitor lock
- *     is in this state.
- *     &lt;/li&gt;
- * &lt;li&gt;{@link #WAITING}&lt;br&gt;
- *     A thread that is waiting indefinitely for another thread to
- *     perform a particular action is in this state.
- *     &lt;/li&gt;
- * &lt;li&gt;{@link #TIMED_WAITING}&lt;br&gt;
- *     A thread that is waiting for another thread to perform an action
- *     for up to a specified waiting time is in this state.
- *     &lt;/li&gt;
- * &lt;li&gt;{@link #TERMINATED}&lt;br&gt;
- *     A thread that has exited is in this state.
- *     &lt;/li&gt;
- * &lt;/ul&gt;
- *
- * &lt;p&gt;
- * A thread can be in only one state at a given point in time.
- * These states are virtual machine states which do not reflect
- * any operating system thread states.
- *
- * @since   1.5
- * @see #getState
- */
-public enum State {
-    /**
-     * Thread state for a thread which has not yet started.
-     */
-    NEW,
-
-    /**
-     * Thread state for a runnable thread.  A thread in the runnable
-     * state is executing in the Java virtual machine but it may
-     * be waiting for other resources from the operating system
-     * such as processor.
-     */
-    RUNNABLE,
-
-    /**
-     * Thread state for a thread blocked waiting for a monitor lock.
-     * A thread in the blocked state is waiting for a monitor lock
-     * to enter a synchronized block/method or
-     * reenter a synchronized block/method after calling
-     * {@link Object#wait() Object.wait}.
-     */
-    BLOCKED,
-
-    /**
-     * Thread state for a waiting thread.
-     * A thread is in the waiting state due to calling one of the
-     * following methods:
-     * &lt;ul&gt;
-     *   &lt;li&gt;{@link Object#wait() Object.wait} with no timeout&lt;/li&gt;
-     *   &lt;li&gt;{@link #join() Thread.join} with no timeout&lt;/li&gt;
-     *   &lt;li&gt;{@link LockSupport#park() LockSupport.park}&lt;/li&gt;
-     * &lt;/ul&gt;
-     *
-     * &lt;p&gt;A thread in the waiting state is waiting for another thread to
-     * perform a particular action.
-     *
-     * For example, a thread that has called &lt;tt&gt;Object.wait()&lt;/tt&gt;
-     * on an object is waiting for another thread to call
-     * &lt;tt&gt;Object.notify()&lt;/tt&gt; or &lt;tt&gt;Object.notifyAll()&lt;/tt&gt; on
-     * that object. A thread that has called &lt;tt&gt;Thread.join()&lt;/tt&gt;
-     * is waiting for a specified thread to terminate.
-     */
-    WAITING,
-
-    /**
-     * Thread state for a waiting thread with a specified waiting time.
-     * A thread is in the timed waiting state due to calling one of
-     * the following methods with a specified positive waiting time:
-     * &lt;ul&gt;
-     *   &lt;li&gt;{@link #sleep Thread.sleep}&lt;/li&gt;
-     *   &lt;li&gt;{@link Object#wait(long) Object.wait} with timeout&lt;/li&gt;
-     *   &lt;li&gt;{@link #join(long) Thread.join} with timeout&lt;/li&gt;
-     *   &lt;li&gt;{@link LockSupport#parkNanos LockSupport.parkNanos}&lt;/li&gt;
-     *   &lt;li&gt;{@link LockSupport#parkUntil LockSupport.parkUntil}&lt;/li&gt;
-     * &lt;/ul&gt;
-     */
-    TIMED_WAITING,
-
-    /**
-     * Thread state for a terminated thread.
-     * The thread has completed execution.
-     */
-    TERMINATED;
-}
-</code></pre>
-
-<p>```</p>
-
-<p>线程有6种状态，<code>NEW</code>表示线程新建，还没调用<code>start()</code>。<code>RUNNABLE</code>表示线程调用了<code>start</code>处于可运行状态，等待CPU调度。<code>BLOCKED</code>表示线程在等待获取monitor lock。当在线程中调用<code>Object.wait()</code>或<code>Thread.join()</code>或<code>LockSupport.park()</code>方法时线程进入<code>WAITING</code>状态，在线程中调用<code>Thread.sleep()</code>或<code>Object.wait(long)</code>或<code>Thread.join(long)</code>或<code>LockSupport.parkNanos(long)</code>或<code>LockSupport.parkUntil(long)</code>线程进入<code>TIMED_WAITING</code>状态。线程执行完操作后会进入<code>TERMINATED</code>状态。</p>
-
-<h3>线程中断</h3>
-
-<p>线程中一共有3个和中断有关的方法，分别是<code>interrupt()</code>，<code>isInterrupted()</code>和静态方法<code>interrupted</code>。我们分别看一下。</p>
-
-<h4>interrupt</h4>
-
-<p>```java
-/**</p>
-
-<pre><code> * Interrupts this thread.
- *
- * &lt;p&gt; Unless the current thread is interrupting itself, which is
- * always permitted, the {@link #checkAccess() checkAccess} method
- * of this thread is invoked, which may cause a {@link
- * SecurityException} to be thrown.
- *
- * &lt;p&gt; If this thread is blocked in an invocation of the {@link
- * Object#wait() wait()}, {@link Object#wait(long) wait(long)}, or {@link
- * Object#wait(long, int) wait(long, int)} methods of the {@link Object}
- * class, or of the {@link #join()}, {@link #join(long)}, {@link
- * #join(long, int)}, {@link #sleep(long)}, or {@link #sleep(long, int)},
- * methods of this class, then its interrupt status will be cleared and it
- * will receive an {@link InterruptedException}.
- *
- * &lt;p&gt; If this thread is blocked in an I/O operation upon an {@link
- * java.nio.channels.InterruptibleChannel InterruptibleChannel}
- * then the channel will be closed, the thread's interrupt
- * status will be set, and the thread will receive a {@link
- * java.nio.channels.ClosedByInterruptException}.
- *
- * &lt;p&gt; If this thread is blocked in a {@link java.nio.channels.Selector}
- * then the thread's interrupt status will be set and it will return
- * immediately from the selection operation, possibly with a non-zero
- * value, just as if the selector's {@link
- * java.nio.channels.Selector#wakeup wakeup} method were invoked.
- *
- * &lt;p&gt; If none of the previous conditions hold then this thread's interrupt
- * status will be set. &lt;/p&gt;
- *
- * &lt;p&gt; Interrupting a thread that is not alive need not have any effect.
- *
- * @throws  SecurityException
- *          if the current thread cannot modify this thread
- *
- * @revised 6.0
- * @spec JSR-51
- */
-public void interrupt() {
-    if (this != Thread.currentThread())
-        checkAccess();
-
-    synchronized (blockerLock) {
-        Interruptible b = blocker;
-        if (b != null) {
-            nativeInterrupt();
-            b.interrupt(this);
-            return;
-        }
-    }
-    nativeInterrupt();
-}
-@FastNative
-private native void nativeInterrupt();
-</code></pre>
-
-<p>```</p>
-
-<p>从注释我们可以看出调用Thread的<code>interrupt</code>方法，分为几种情况</p>
-
-<ul>
-<li>如果线程阻塞在<code>Object.wait()</code>、<code>Object.wait(long)</code>、<code>Object.wait(long,int)</code>、<code>Thread.join()</code>、<code>Thread.join(long)</code>、<code>Thread.join(long,int)</code>、<code>Thread.sleep(long)</code>、<code>Thread.sleep(long,int)</code>这些方法上，线程的中断状态将被清除，并抛出<code>InterruptedException</code>。</li>
-<li>如果阻塞在<code>java.nio.channels.InterruptibleChannel</code>IO操作操作上，线程的中断状态将被设置（这里有个疑惑，这里设置是指设置为true还是false，如果设置为false就表示线程状态被清除了，由于对NIO了解不多，这里暂时无法确定，从注释上下文理解应该是设置为true了）并抛出<code>java.nio.channels.ClosedByInterruptException</code></li>
-<li>如果阻塞在<code>java.nio.channels.Selector</code>上，线程的中断状态将被设置，并从<code>Selector</code>操作中返回。</li>
-<li>如果是其他情况，比如正在执行不会响应<code>interrupt</code>方法的方法（如<code>Socket</code>的读写或<code>ServerSocket</code>的<code>accept</code>），那么线程的中断状态将被设置。</li>
-</ul>
-
-
-<p>继续看<code>nativeInterrupt</code>方法，从<a href="http://androidxref.com/9.0.0_r3/xref/art/runtime/native/java_lang_Thread.cc">java_lang_thread.cc</a>中<a href="http://androidxref.com/9.0.0_r3/xref/art/runtime/native/java_lang_Thread.cc#126">Thread_nativeInterupt</a>可以看到是调用了<a href="http://androidxref.com/9.0.0_r3/xref/art/runtime/thread.cc#2416">Thread::Interrupt</a>。</p>
-
-<p>```c++
-// <a href="http://androidxref.com/9.0.0_r3/xref/art/runtime/thread.cc#2416">http://androidxref.com/9.0.0_r3/xref/art/runtime/thread.cc#2416</a>
-void Thread::Interrupt(Thread<em> self) {
-  MutexLock mu(self, </em>wait_mutex<em>);
-  if (tls32</em>.interrupted.LoadSequentiallyConsistent()) {</p>
-
-<pre><code>return;
-</code></pre>
-
-<p>  }
-  tls32_.interrupted.StoreSequentiallyConsistent(true);
-  NotifyLocked(self);
-}
-```</p>
-
-<p>可以看到只是设置了一下中断状态。</p>
-
-<h4>isInterrupted 和 interrupted</h4>
-
-<p>```java</p>
-
-<pre><code>/**
- * Tests whether this thread has been interrupted.  The &lt;i&gt;interrupted
- * status&lt;/i&gt; of the thread is unaffected by this method.
- *
- * &lt;p&gt;A thread interruption ignored because a thread was not alive
- * at the time of the interrupt will be reflected by this method
- * returning false.
- *
- * @return  &lt;code&gt;true&lt;/code&gt; if this thread has been interrupted;
- *          &lt;code&gt;false&lt;/code&gt; otherwise.
- * @see     #interrupted()
- * @revised 6.0
- */
-@FastNative
-public native boolean isInterrupted(); // 实例方法，返回中断状态
-
-/**
- * Tests whether the current thread has been interrupted.  The
- * &lt;i&gt;interrupted status&lt;/i&gt; of the thread is cleared by this method.  In
- * other words, if this method were to be called twice in succession, the
- * second call would return false (unless the current thread were
- * interrupted again, after the first call had cleared its interrupted
- * status and before the second call had examined it).
- *
- * &lt;p&gt;A thread interruption ignored because a thread was not alive
- * at the time of the interrupt will be reflected by this method
- * returning false.
- *
- * @return  &lt;code&gt;true&lt;/code&gt; if the current thread has been interrupted;
- *          &lt;code&gt;false&lt;/code&gt; otherwise.
- * @see #isInterrupted()
- * @revised 6.0
- */
-@FastNative
-public static native boolean interrupted();
-</code></pre>
-
-<p>```</p>
-
-<p>实例方法<code>isInterrupted</code>会返回线程的中断状态，静态方法<code>interrupted</code>会返回调用这个方法的线程的中断状态，并清除线程的中断状态，这也是清除中断状态的唯一方法，设置中断状态当然调用<code>interrupt</code>方法就好了。</p>
-
-<p>不妨看下native层实现：</p>
-
-<p>```c++
-// <a href="http://androidxref.com/9.0.0_r3/xref/art/runtime/thread.cc">http://androidxref.com/9.0.0_r3/xref/art/runtime/thread.cc</a>
-// Implements java.lang.Thread.interrupted.
-bool Thread::Interrupted() {
-  DCHECK_EQ(Thread::Current(), this);
-  // No other thread can concurrently reset the interrupted flag.
-  bool interrupted = tls32_.interrupted.LoadSequentiallyConsistent();
-  if (interrupted) {</p>
-
-<pre><code>tls32_.interrupted.StoreSequentiallyConsistent(false);
-</code></pre>
-
-<p>  }
-  return interrupted;
-}</p>
-
-<p>// Implements java.lang.Thread.isInterrupted.
-bool Thread::IsInterrupted() {
-  return tls32_.interrupted.LoadSequentiallyConsistent();
-}
-```</p>
-
-<h3>守护线程</h3>
-
-<p>线程可分为两种，普通线程和守护线程（其实叫服务线程好理解些，这些线程一般是服务其他线程的）。在JVM启动时创建的所有线程中，除了主线程以外，其他的线程都是守护线程（例如垃圾回收器以及执行其他辅助工作的线程，signal dispatcher之类的）。</p>
-
-<p>当创建一个新线程时，新线程将继承创建它的线程的守护状态。</p>
-
-<p>普通线程和守护线程之间的差异仅在于当线程退出时发生的操作。当一个线程退出时，JVM会检查其他正在运行的线程，如果这些线程都是守护线程，那么JVM会正常退出操作。当JVM停止时，所有仍然存在的守护线程都将被抛弃——既不会执行finally代码块，也不会执行回卷栈，而JVM只是直接退出。</p>
-
-<h3>reference</h3>
-
-<ul>
-<li>《Java并发编程实战》</li>
-<li><a href="http://gityuan.com/2016/09/24/android-thread/">Android平台上除了Java线程还有native线程，可以参考这篇</a></li>
 </ul>
 
 ]]></content>

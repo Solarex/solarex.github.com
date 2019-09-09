@@ -9,7 +9,7 @@
   <meta name="author" content="Solarex">
 
   
-  <meta name="description" content="Annotations with element-value pairs Annotations by themselves are really powerful. They give direct control over when an aspect should be run to the &hellip;">
+  <meta name="description" content="Choreographer is the one which acts like a interface between application view system and lower layer display system for rendering the views. &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -90,6 +90,145 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/10/10/choreographer-in-android/">Choreographer in Android</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2016-10-10T20:38:00+08:00" pubdate data-updated="true">Oct 10<span>th</span>, 2016</time>
+        
+         | <a href="/blog/2016/10/10/choreographer-in-android/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Choreographer is the one which acts like a interface between application view system and lower layer display system for rendering the views.</p>
+
+<p>ViewRootImpl is the ViewParent or root below which only Activity window DecorView will be attached. All the view layouts set by the activity through <code>setContentView()</code> will attached the DecorView whose parent is ViewRootImpl. Actually ViewRootImpl is not a View its just a ViewParent which handled and manages the View Hierarchies for displaying, handling input events etc.</p>
+
+<p>The number of root views that are active in your process. Each root view is associated with a window, so this can help you identify memory leaks involving dialogs or other windows.</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2016/10/10/choreographer-in-android/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/10/09/vsync-in-android/">VSYNC in Android</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2016-10-09T20:43:00+08:00" pubdate data-updated="true">Oct 9<span>th</span>, 2016</time>
+        
+         | <a href="/blog/2016/10/09/vsync-in-android/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h2>In Android What is VSYNC and its usage?</h2>
+
+<p>VSYNC is the event posted periodically by the kernal at fixed interval where the input handling, Animation and Window drawing happening synchroniiously at the same VSYNC interval. Below have given the detail explanation about the VSYNC event before VSYNC is introduced and after VSYNC is introduced.</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2016/10/09/vsync-in-android/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/09/20/aspect-oriented-programming-in-android/">Aspect Oriented Programming in Android</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2016-09-20T18:24:00+08:00" pubdate data-updated="true">Sep 20<span>th</span>, 2016</time>
+        
+         | <a href="/blog/2016/09/20/aspect-oriented-programming-in-android/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Aspect-oriented programming entails breaking down program logic into &ldquo;concerns&rdquo; (cohesive areas of functionality). This means, that with AOP, we can add executable blocks to some source code without explicitly changing it. This programming paradigm pretends that “cross-cutting concerns” (the logic needed at many places, without a single class where to implement them) should be implemented once and injected it many times into those places.</p>
+
+<p>Code injection becomes a very important part of AOP: it is useful for dealing with the mentioned &ldquo;concerns&rdquo; that cut across the whole application, such as logging or performance monitoring, and, using it in this way, should not be something used rarely as you might think, quite the contrary; every programmer will come into a situation where this ability of injecting code, could prevent a lot of pain and frustration.</p>
+
+<p>AOP is a paradigm that has been with us for many years, and I found it very useful to apply it to Android. After some investigation I consider that we can get a lot of advantages and very useful stuff when making use of it.</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2016/09/20/aspect-oriented-programming-in-android/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
   
   
     <article>
@@ -183,147 +322,6 @@
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2016/09/15/defining-pointcuts-by-pattern/">Defining Pointcuts by Pattern</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2016-09-15T16:16:00+08:00" pubdate data-updated="true">Sep 15<span>th</span>, 2016</time>
-        
-         | <a href="/blog/2016/09/15/defining-pointcuts-by-pattern/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h2>Pointcuts by pattern</h2>
-
-<p>Going through all the different ways of defining pointcuts and explaining them in an easy manner would be a near impossible feat for this post. Rather than aiming for the impossible let’s narrow down the scope, and talk about the most commonly used pointcut definitions and how we can experiment with them. We will get you started with defining your own pointcuts!</p>
-
-<p>You can get the code for this blog series at the Git repository <a href="https://github.com/Nosfert/AspectJ-Tutorial-jayway">here</a>.</p>
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2016/09/15/defining-pointcuts-by-pattern/">Read on &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2016/09/14/the-basics-of-aop/">The Basics of AOP</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2016-09-14T16:15:00+08:00" pubdate data-updated="true">Sep 14<span>th</span>, 2016</time>
-        
-         | <a href="/blog/2016/09/14/the-basics-of-aop/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h2>Aspect Oriented Programming</h2>
-
-<p>AOP is both a complex and quite simple thing. There has been a lot of buzz around AOP but recently the buzz has faded. The question that people still ask is “what do I do with it”. Hopefully you will have an idea of what it is and create your own thoughts on how you could use it.</p>
-
-<p>In this post I aim to describe what AOP actually is and how it works.</p>
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2016/09/14/the-basics-of-aop/">Read on &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2016/09/13/aspectj-dictionary/">AspectJ - Dictionary</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2016-09-13T16:13:00+08:00" pubdate data-updated="true">Sep 13<span>th</span>, 2016</time>
-        
-         | <a href="/blog/2016/09/13/aspectj-dictionary/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h2>What is <a href="https://en.wikipedia.org/wiki/Aspect-oriented_programming">AOP</a></h2>
-
-<p>Every time someone tries to explain AOP (Aspect Oriented Programming) they often use words like “magic” or “black magic”. And that’s understandable, especially if you come from an OOP world and come across AOP it really feels like “magic”: something is happening and you as a developer usually don’t know why, what or how.</p>
-
-<p>AspectJ is one of the more well-known implementations for AOP in Java and is developed by the Eclipse Foundation. In this series of articles we will be concentrating on AspectJ’s implementation of AOP and how it works in Java.So, let’s dive into AspectJ and make an effort of dispersing the mystic around the so-called “black magic”. Let’s start by building a dictionary with short explanations of some key terms.</p>
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2016/09/13/aspectj-dictionary/">Read on &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/9/">&larr; Older</a>
@@ -341,23 +339,23 @@
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2019/08/10/lock-free-multithreading-with-atomic-operations/">Lock-free multithreading with atomic operations</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2019/08/09/introduction-to-thread-synchronization/">Introduction to thread synchronization</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2019/08/07/a-gentle-introduction-to-multithreading/">A gentle introduction to multithreading</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2019/08/05/floyd-cycle-detection-in-linkedlist/">检测链表中是否有环</a>
       </li>
     
       <li class="post">
         <a href="/blog/2019/08/04/java-threadpoolexecutor/">Java线程池解析</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2019/08/01/java-blockingqueue/">Java BlockingQueue解析</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2019/07/28/aqs/">Java AQS解析</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2019/06/28/futuretask/">Java FutureTask解析</a>
       </li>
     
   </ul>

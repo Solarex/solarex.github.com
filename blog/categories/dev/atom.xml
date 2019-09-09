@@ -4,7 +4,7 @@
   <title><![CDATA[Category: dev | Solarex's Blog]]></title>
   <link href="http://Solarex.github.io/blog/categories/dev/atom.xml" rel="self"/>
   <link href="http://Solarex.github.io/"/>
-  <updated>2019-08-26T23:07:46+08:00</updated>
+  <updated>2019-09-09T11:49:12+08:00</updated>
   <id>http://Solarex.github.io/</id>
   <author>
     <name><![CDATA[Solarex]]></name>
@@ -12,6 +12,513 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Lock-free multithreading with atomic operations]]></title>
+    <link href="http://Solarex.github.io/blog/2019/08/10/lock-free-multithreading-with-atomic-operations/"/>
+    <updated>2019-08-10T10:16:00+08:00</updated>
+    <id>http://Solarex.github.io/blog/2019/08/10/lock-free-multithreading-with-atomic-operations</id>
+    <content type="html"><![CDATA[<p>清空Reeder发现internal/pointers一系列关于多线程的文章，感觉很不错，转载在此。</p>
+
+<p>这是系列第三篇，期待作者继续更新~</p>
+
+<p>Synchronizing threads at a lower level.</p>
+
+<!-- more -->
+
+
+<p>The Greek word &ldquo;atom&rdquo; (ἄτομος; atomos) means <em>uncuttable</em>. A task performed by a computer is said to be <strong>atomic</strong> when it is not divisible anymore: it can&rsquo;t be broken into smaller steps.</p>
+
+<p><em>Atomicity</em> is an important property of multithreaded operations: since they are indivisible, there is no way for a thread to <em>slip through</em> an atomic operation concurrently performed by another one. For example, when a thread atomically writes on shared data no other thread can read the modification half-complete. Conversely, when a thread atomically reads from shared data, it sees the value as it appeared at a single moment in time. In other words, there is no risk of <a href="https://www.internalpointers.com/post/gentle-introduction-multithreading#data-races"><strong>data races</strong></a>.</p>
+
+<p>In the <a href="https://www.internalpointers.com/post/introduction-thread-synchronization">previous chapter</a> I have introduced the so-called <strong>synchronization primitives</strong>, the most common tools for thread synchronization. They are used, among other things, to provide atomicity to operations that deal with data shared across multiple threads. How? They simply allow a single thread to do its concurrent job, while others are blocked by the operating system until the first one has finished. The rationale is that a blocked thread does no harm to others. Given their ability to freeze threads, such synchronization primitives are also known as <strong>blocking mechanisms</strong>.</p>
+
+<p>Any blocking mechanism seen in the previous chapter will work great for the vast majority of your applications. They are fast and reliable if used correctly. However, they introduce some drawbacks that you might want to take into account:</p>
+
+<ul>
+<li>they block other threads — a dormant thread simply waits for the wakeup signal, doing nothing: it could be wasting precious time;</li>
+<li>they could hang your application — if a thread holding a lock to a synchronization primitive crashes for whatever reason, the lock itself will be never released and the waiting threads will get stuck forever;</li>
+<li>you have little control over which thread will sleep — it&rsquo;s usually up to the operating system to choose which thread to block. This could lead to an unfortunate event known as <strong>priority inversion</strong>: a thread that is performing a very important task gets blocked by another one with a lower priority.</li>
+</ul>
+
+
+<p>Most of the time you don&rsquo;t care about these issues as they won&rsquo;t affect the correctness of your programs. On the other hand, sometimes having threads always up and running is desirable, especially if you want to take advantage of multi-processor/multi-core hardware. Or maybe you can&rsquo;t afford a system that could get stuck on a dead thread. Or again, the priority inversion problem looks too dangerous to ignore.</p>
+
+<h3>Lock-free programming to the rescue</h3>
+
+<p>The good <a href="news:">news:</a> there is another way to control concurrent tasks in your multithreaded app, in order to prevent points 1), 2) and 3) seen above. Known as <strong>lock-free programming</strong> or <strong>lockless programming</strong>, it&rsquo;s a technique to safely share changing data between multiple threads without the cost of locking and unlocking them.</p>
+
+<p>The bad <a href="news:">news:</a> this is low-level stuff. Way lower than using the traditional synchronization primitives like mutexes and semaphores: this time we will get closer to the metal. Despite this, I find lock-free programming a good mental challenge and a great opportunity to better understand how a computer actually works.</p>
+
+<p>Lock-free programming relies upon <strong>atomic instructions</strong>, operations performed directly by the CPU that occur atomically. Being the foundation of lock-free programming, in the rest of this article I will introduce atomic instructions first, then I will show you how to leverage them for concurrency control. Let&rsquo;s get started!</p>
+
+<h3>What are atomic instructions?</h3>
+
+<p>Think of any action performed by a computer, say for example displaying a picture on your screen. Such operation is made of many smaller ones: read the file into memory, de-compress the image, light up pixels on the screen and so on. If you recursively zoom into one of those sub-tasks, that is if you break it down into smaller and smaller pieces, you will eventually reach a dead end. The smallest, visible to a human operation performed by a processor is called <strong>machine instruction</strong>, a command executed by the hardware directly.</p>
+
+<center><p><img src="http://Solarex.github.io/images/software-hardware-layers.png"></p></center>
+
+
+<p>Depending on the CPU architecture, some machine instructions are atomic, that is they are performed in a single, uncuttable and uninterruptible step. Some others are not atomic instead: the processor does more work under the hood in form of even smaller operations, known as <strong>micro-operations</strong>. Let&rsquo;s focus on the former category: an atomic instruction is a CPU operation that cannot be further broken down. More specifically, atomic instructions can be grouped into two major classes: <strong>store and load</strong> and <strong>read-modify-write (RMW)</strong>.</p>
+
+<h4>Store and load atomic instructions</h4>
+
+<p>The building blocks any processor operates on: they are used to write (<strong>store</strong>) and read (<strong>load</strong>) data in memory. Many CPU architectures guarantee that these operations are atomic by nature, under some circumstances. For example, processors that implement the <a href="https://en.wikipedia.org/wiki/X86">x86 architecture</a> feature the <code>MOV</code> instruction, which reads bytes from memory and gives them to the CPU. This operation is guaranteed to be atomic if performed on <a href="https://www.ibm.com/support/knowledgecenter/en/SSUFAU_1.0.0/com.ibm.ent.pl1.zos.doc/lr/alnmnt.html"><strong>aligned</strong></a> data, that is information stored in memory in a way that makes it easy for the CPU to read it in a single shot.</p>
+
+<h4>Read-modify-write (RMW) atomic instructions</h4>
+
+<p>Some more complex operations can&rsquo;t be performed with simple stores and loads alone. For example, incrementing a value in memory would require a mixture of at least three atomic load and store instructions, making the outcome non-atomic as a whole. <strong>Read-modify-write</strong> instructions fill the gap by giving you the ability to compute multiple operations in one atomic step. There are many instructions in this class. Some CPU architectures provide them all, some others only a subset. To name a few:</p>
+
+<ul>
+<li><a href="https://en.wikipedia.org/wiki/Test-and-set"><strong>test-and-set</strong></a> — writes 1 to a memory location and returns the old value in a single, atomic step;</li>
+<li><a href="https://en.wikipedia.org/wiki/Fetch-and-add"><strong>fetch-and-add</strong></a> — increments a value in memory and returns the old value in a single, atomic step;</li>
+<li><a href="https://en.wikipedia.org/wiki/Compare-and-swap"><strong>compare-and-swap (CAS)</strong></a> — compares the content of a memory location with a given value and, if they are equal, modifies the contents of that memory location to a new given value.</li>
+</ul>
+
+
+<p>All these instructions perform multiple things in memory in a single, atomic step. This is an important property that makes read-modify-write instructions suitable for lock-free multithreading operations. We will see why in few paragraphs.</p>
+
+<h3>Three levels of atomic instructions</h3>
+
+<p>All the instructions seen above belong to the hardware: they require you to talk directly to the CPU. Working this way is obviously difficult and non-portable, as some instructions might have different name across different architectures. Some operations might not even exist across different processor models! So it is unlikely you will touch these things, unless you are working on very low-level code for a specific machine.</p>
+
+<p>Climbing up to the software level, many operating systems provide their own versions of atomic instructions. Let&rsquo;s call them <strong>atomic operations</strong>, since we are abstracting away from their physical machine counterpart. For example, in Windows you may find the <a href="https://docs.microsoft.com/en-us/windows/desktop/sync/interlocked-variable-access">Interlocked API</a>, a set of functions that handle variables in an atomic manner. MacOS does the same with its <a href="https://developer.apple.com/documentation/kernel/osatomic_h?language=objc">OSAtomic.h</a> header. They surely conceal the hardware implementation, but you are still bound to a specific environment.</p>
+
+<p>The best way to perform portable atomic operations is to rely upon the ones provided by the programming language of choice. In Java for example you will find the <code>java.util.concurrent.atomic</code> package; C++ provides the <code>std::atomic</code> header; Haskell has the <code>Data.Atomics</code> package and so on. Generally speaking, it is likely to find support for atomic operations if a programming language deals with multithreading. This way is up to the compiler (if it&rsquo;s a compiled language) or the virtual machine (if it&rsquo;s an interpreted language) to find the best instructions for implementing atomic operations, whether from the underlying operating system API or directly from the hardware.</p>
+
+<center><p><img src="http://Solarex.github.io/images/atomics-levels.png"></p></center>
+
+
+<p>For example, GCC — a C++ compiler — usually transforms C++ atomic operations and objects straight into machine instructions. It also tries to emulate a specific operation that doesn&rsquo;t map directly to the hardware with other atomic machine instructions if available. The worst-case scenario: on a platform that doesn&rsquo;t provide atomic operations it may rely upon other blocking strategies, which wouldn&rsquo;t be lock-free, of course.</p>
+
+<h3>Leveraging atomic operations in multithreading</h3>
+
+<p>Let&rsquo;s now see how atomic operations are used. Consider incrementing a simple variable, an task that is not atomic by nature as it is made of three different steps — read the value, increment it, store the new value back. Traditionally, you would regulate the operation with a mutex (pseudocode):</p>
+
+<p>```c
+mutex = initialize_mutex()
+x     = 0</p>
+
+<p>reader_thread()</p>
+
+<pre><code>mutex.lock()
+print(x)
+mutex.unlock()
+</code></pre>
+
+<p>writer_thread()</p>
+
+<pre><code>mutex.lock()
+x++
+mutex.unlock()
+</code></pre>
+
+<p>```</p>
+
+<p>The first thread that acquires the lock makes progress, while others sit and wait in line until it has finished.</p>
+
+<p>Conversely, the lock-free approach introduces a different pattern: threads are free to run without any impediment, by employing atomic operations. For example:</p>
+
+<p>```c
+x = 0</p>
+
+<p>reader_thread()</p>
+
+<pre><code>print(load(x))
+</code></pre>
+
+<p>writer_thread()</p>
+
+<pre><code>fetch_and_add(x, 1)
+</code></pre>
+
+<p>```</p>
+
+<p>I assume that <code>fetch_and_add()</code> and <code>load()</code> are atomic operations based on the corresponding hardware instructions. As you may notice, nothing is locked here. Multiple threads that call those functions concurrently can all make progress. The atomicity of <code>load()</code> makes sure that no reader thread will read the shared value half-complete, as well as no writer thread will damage it with a partial write thanks to <code>fetch_and_add()</code>.</p>
+
+<h4>Atomic operations in the real world</h4>
+
+<p>Now, this example reveals us an important property of atomic operations: they work only with primitive types — booleans, chars, shorts, ints and so on. On the other hand, actual programs require synchronization for more complex structures like arrays, vectors, objects, vectors of arrays, objects containing arrays, &hellip; . How can we guarantee atomicity on such convoluted entities with simple operations based on primitive types?</p>
+
+<p>Lock-free programming forces you to think out of the box of the usual synchronization primitives. You don&rsquo;t protect a shared resource with atomic operations directly, as you would do with a mutex or a semaphore. Rather, you build <strong>lock-free algorithms</strong> or <strong>lock-free data structures</strong>, based on atomic operations to determine how multiple threads will access your data.</p>
+
+<p>For example, the <em>fetch-and-add</em> operation seen before can be used to make a rudimentary semaphore that, in turn, you would employ to regulate threads. Not surprisingly all the traditional, blocking synchronization entities are based on atomic operations.</p>
+
+<p>People have written countless lock-free data structures like <a href="https://github.com/facebook/folly/blob/master/folly/AtomicHashMap.h">Folly&rsquo;s AtomicHashMap</a>, the <a href="https://www.boost.org/doc/libs/1_70_0/doc/html/lockfree.html">Boost.Lockfree library</a>, multi-producer/multi-consumer <a href="https://github.com/cameron314/concurrentqueue">FIFO queues</a> or algorithms like <a href="https://www.youtube.com/watch?v=rxQ5K9lo034">read-copy-update (RCU)</a> and <a href="https://en.wikipedia.org/wiki/Shadow_paging">Shadow Paging</a> to name a few. Writing these atomic weapons from scratch is hard, let alone making them work correctly. This is why most of the time you may want to employ existing, battle-tested algorithms and structures instead of rolling your owns.</p>
+
+<h3>The compare-and-swap (CAS) loop</h3>
+
+<p>Moving closer to real-world applications, the <strong>compare-and-swap loop</strong> (a.k.a. <strong>CAS loop</strong>) is probably the most common strategy in lock-free programming, whether you are using existing data structures or are writing algorithms from the ground up. It is based on the corresponding <em>compare-and-swap</em> atomic operation and has a nice property: it supports multiple writers. This is an important feature of a concurrent algorithm especially when used in complex systems.</p>
+
+<p>The CAS loop is interesting also because it introduces a recurring pattern in lock-free code, as well as some theoretical concepts to reason about. Let&rsquo;s take a closer look.</p>
+
+<h4>A CAS loop in action</h4>
+
+<p>A CAS function provided by an operating system or a programming language might look like this:</p>
+
+<p><code>c
+boolean compare_and_swap(shared_data, expected_value, new_value);
+</code></p>
+
+<p>It takes in input a reference/pointer to some shared data, the expected value it currently takes on and the new value you want to apply. The function replaces the current value with the new one (and returns <code>true</code>) only if the value hasn&rsquo;t changed, that is if <code>shared_data.value == expected_value</code>.</p>
+
+<p>In a CAS loop the idea is to repeatedly trying to compare and swap until the operation is successful. On each iteration you feed the CAS function with the reference/pointer, the expected value and the desired one. This is necessary in order to cope with any other writer thread that is doing the same thing concurrently: the CAS function fails if another thread has changed the data in the meantime, that is if the shared data no longer matches the expected value. Multiple writers support!</p>
+
+<p>Suppose we want to replicate the fetch-and-add algorithm seen in the previous snippet with a CAS loop. It would look roughly like this (pseudocode):</p>
+
+<p>```c
+x = 0</p>
+
+<p>reader_thread()</p>
+
+<pre><code>print(load(x))
+</code></pre>
+
+<p>writer_thread()</p>
+
+<pre><code>temp = load(x)                              // (1)
+while(!compare_and_swap(x, temp, temp + 1)) // (2)
+</code></pre>
+
+<p>```</p>
+
+<p>In (1) the algorithm loads the existing value of the shared data, then it tries to swap it with the new value until success (2), that is until the CAS function returns <code>true</code>.</p>
+
+<h4>The swapping paradigm</h4>
+
+<p>As said before, the CAS loop introduces a recurring pattern in many lock-free algorithms:</p>
+
+<ul>
+<li>create a <em>local copy</em> of the shared data;</li>
+<li>modify the local copy as needed;</li>
+<li>when ready, update the shared data by <em>swapping</em> it with the local copy created before.</li>
+</ul>
+
+
+<p>Point 3) is the key: the swap is performed atomically through an atomic operation. The dirty job is done <em>locally</em> by the writer thread and then published only when ready. This way another thread can observe the shared data only in two states: either the old one, or the new one. No half-complete or corrupted updates, thanks to the atomic swap.</p>
+
+<p>This is also philosophically different from the locking approach: in a lock-free algorithm threads get in touch only during that tiny atomic swap, running undisturbed and unaware of others for the rest of the time. The point of contact between threads is now shrinked down and limited to the duration of the atomic operation.</p>
+
+<h4>A gentle form of locking</h4>
+
+<p>The <em>spin until success</em> strategy seen above is employed in many lock-free algorithms and is called <strong>spinlock</strong>: a simple loop where the thread repeatedly tries to perform something until successful. It&rsquo;s a form of gentle lock where the thread is up and running — no sleep forced by the operating system, although no progress is made until the loop is over. Regular locks employed in mutexes or semaphores are way more expensive, as the suspend/wakeup cycle requires a lot of work under the hood.</p>
+
+<h4>The ABA problem</h4>
+
+<p>Instructions in lines (1) and (2) are atomic indeed, yet distinct. Another thread might slip through the cracks and change the value of the shared data once has been read in (1). Specifically, it could turn the initial value, say <code>A</code>, into another value, say <code>B</code>, and then bring it back to <code>A</code> right before the compare and swap operation has started in (2). The thread that is running the CAS loop wouldn&rsquo;t notice the change and perform the swap successfully. This is known as the <strong>ABA problem</strong>: sometimes you can easily ignore it if you algorithm is simple as the one above, sometimes you want to prevent it instead as it would introduce subtle bugs in your programs. Luckily there are <a href="https://en.wikipedia.org/wiki/Compare-and-swap#ABA_problem">several workarounds</a> for this.</p>
+
+<h4>You can swap anything inside a CAS loop</h4>
+
+<p>The CAS loop is often used to swap pointers, a type supported by the <em>compare-and-swap</em> operation. This is useful when you want to modify a complex collection of data like a class or an array: just create the local copy, modify it as needed and then when ready swap a pointer to the local data with a pointer to the global data. This way global data will point to the memory allocated for the local copy and other threads will see up-to-date information.</p>
+
+<p>This technique allows you to successfully synchronize non-primitive entities, yet is difficult to make it work correctly. What if, after the swap, a reader thread is still reading the old pointer? How to properly delete the previous copy without generating dangerous dangling pointers? Once again engineers have found many solutions such as using a language that supports <a href="https://en.wikipedia.org/wiki/Garbage_collection_(computer_science">garbage collection</a> or esoteric techniques like <a href="https://aturon.github.io/blog/2015/08/27/epoch/">epoch-based memory reclamation</a>, <a href="https://en.wikipedia.org/wiki/Hazard_pointer">hazard pointers</a> or <a href="https://en.wikipedia.org/wiki/Reference_counting">reference counting</a>.</p>
+
+<h3>Lock-freedom vs. wait-freedom</h3>
+
+<p>Every algorithm or data structure based on atomic operations can be clustered into two groups: <strong>lock-free</strong> or <strong>wait-free</strong>. This is an important distinction when you have to evaluate the impact of atomic-based tools on the performance of your program.</p>
+
+<p>Lock-free algorithms allow the remaining threads to continue doing useful work even if one of them is temporarily busy. In other words, at least one thread always makes progress. The CAS loop is a perfect example of lock-free because if a single iteration of the CAS loop fails, it’s usually because some other thread has modified the shared resource successfully. However, a lock-free algorithm might spend an unpredictable amount of time just spinning, especially when there are many threads competing for the same resource: technically speaking, when the <strong>contention</strong> is high. Pushing it to the limits, a lock-free algorithm could be far less efficient with CPU resources than a mutex that puts blocked threads to sleep.</p>
+
+<p>On the other hand in wait-free algorithms, a subset of lock-free ones, any thread can complete its work in a finite number or steps, regardless of the execution speed or the workload level of others. The first snippet in this article based on the <em>fetch-and-add</em> operation is an example of a wait-free algorithm: no loops, no retries, just undisturbed flow. Also, wait-free algorithms are <strong>fault-tolerant</strong>: no thread can be prevented from completing an operation by failures of other processes, or by arbitrary variations in their speed. These properties make wait-free algorithms suitable for complex <a href="https://en.wikipedia.org/wiki/Real-time_computing">real-time systems</a> where the predictable behavior of concurrent code is a must.</p>
+
+<center><p><img src="http://Solarex.github.io/images/lock-free-wait-free.png"></p></center>
+
+
+<p>Wait-freedom is a highly desired property of concurrent code, yet very difficult to obtain. All in all, whether you are building a blocking, a lock-free or a wait-free algorithm the golden rule is to always benchmark your code and measure the results. Sometimes a good old mutex can outperform fancier synchronization primitives, especially when the concurrent task complexity is high.</p>
+
+<h3>Closing notes</h3>
+
+<p>Atomic operations are a necessary part of lock-free programming, even on single-processor machines. Without atomicity, a thread could be interrupted halfway through the transaction, possibly leading to an inconsistent state. In this article I have just scratched the surface: a new world of problems opens up as soon as you add multicores/multiprocessors to the equation. Topics like <strong>sequential consistency</strong> and <strong>memory barriers</strong> are critical pieces of the puzzle and can&rsquo;t be overlooked if you want to get the best out of your lock-free algorithms. I will cover them all in the next episode.</p>
+
+<h3>reference</h3>
+
+<ul>
+<li><a href="https://www.internalpointers.com/post/lock-free-multithreading-atomic-operations">Lock-free multithreading with atomic operations</a></li>
+</ul>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Introduction to thread synchronization]]></title>
+    <link href="http://Solarex.github.io/blog/2019/08/09/introduction-to-thread-synchronization/"/>
+    <updated>2019-08-09T10:15:00+08:00</updated>
+    <id>http://Solarex.github.io/blog/2019/08/09/introduction-to-thread-synchronization</id>
+    <content type="html"><![CDATA[<p>清空Reeder发现internal/pointers一系列关于多线程的文章，感觉很不错，转载在此。</p>
+
+<p>这是系列第二篇。</p>
+
+<p>A look at one of the most popular ways of concurrency control in a multithreaded application.</p>
+
+<!-- more -->
+
+
+<p>As emerged from <a href="https://www.internalpointers.com/post/gentle-introduction-multithreading">my previous introduction to multithreading</a>, writing concurrent code can be tricky. Two big problems might emerge: data races, when a writer thread modifies the memory while a reader thread is reading it and race conditions, when two or more threads do their job in an unpredictable order. Luckily for us there are several ways to prevent these errors: in this article I will take a look at the most common one known as <strong>synchronization</strong>.</p>
+
+<h3>What is synchronization</h3>
+
+<p>Synchronization is a bag of tricks that make sure two or more threads behave themselves. More specifically, synchronization will help you to achieve at least two important features in your multithreaded program:</p>
+
+<ul>
+<li><strong>atomicity</strong> — if your code contains instructions that operate on data shared across multiple threads, an unregulated concurrent access to that data might trigger a data race. The code segment that contains those instructions is called <strong>critical section</strong>. You want to make sure that critical sections are executed <em>atomically</em>: as defined in the previous episode, an <a href="https://www.internalpointers.com/post/gentle-introduction-multithreading#data-races">atomic operation</a> can&rsquo;t be broken into smaller ones, so that while a thread is executing it no other thread can slip through;</li>
+<li><strong>ordering</strong> — sometimes you want two or more threads to perform their job in a predictable order, or put a restriction on how many threads can access a specific resource. Normally you don&rsquo;t have control over these things, which might be the root cause of race conditions. With synchronization you can orchestrate your threads to perform according to a plan.</li>
+</ul>
+
+
+<p>Synchronization is implemented through special objects called <strong>synchronization primitives</strong> provided by the operating system or any programming language that supports threading. You then make use of such synchronization primitives in your code to make sure your threads don&rsquo;t trigger data races, race conditions or both.</p>
+
+<p>Synchronization takes place both in hardware and software, as well as between threads and operating system processes. This article is about synchronization of software threads: the physical counterpart and process synchronization are fascinating topics that will surely get some love in a future post.</p>
+
+<h3>Common synchronization primitives</h3>
+
+<p>The most important synchronization primitives are <strong>mutexes</strong>, <strong>semaphores</strong> and <strong>condition variables</strong>. There are no official definitions for these terms, so different texts and implementations associate slightly different characteristics with each primitive.</p>
+
+<p>Operating systems provide these tools natively. For example Linux and macOS support <strong>POSIX threads</strong>, also known as <strong>pthreads</strong>, a set of functions that allows you to write safe multithreaded applications. Windows has its own synchronization tools in the C Run-Time Libraries (CRT): conceptually similar to POSIX threads functions but with different names.</p>
+
+<p>Unless you are writing very low-level code, you usually want to employ the synchronization primitives shipped with the programming language of your choice. Every programming language that deals with multithreading has its own toolbox of synchronization primitives, along with other functions to fiddle around with threads. For example Java provides the <code>java.util.concurrent</code> package, modern C++ has its own <code>thread</code> library, C# ships the <code>System.Threading</code> namespace and so on. All these functions and objects are based upon the underlying operating system primitives, of course.</p>
+
+<p>There are many other synchronization tools around. In this article I&rsquo;ll stick to the three mentioned above, as they act as a foundation often used to build more complex entities. Let&rsquo;s take a closer look.</p>
+
+<h3>Mutexes</h3>
+
+<p>A <strong>mutex</strong> (<strong>mut</strong>ual <strong>ex</strong>clusion) is a synchronization primitive that puts a restriction around a critical section, in order to prevent data races. A mutex guarantees <em>atomicity</em>, by making sure that only one thread accesses the critical section at a time.</p>
+
+<p>Technically, a mutex is a global object in your application, shared across multiple threads, that provides two functions usually called <code>lock</code> and <code>unlock</code>. A thread that is about to enter the critical section calls <code>lock</code> to lock the mutex; when it&rsquo;s done, that is when the critical section is over, the same thread calls <code>unlock</code> to unlock it. The important feature of a mutex: only the thread that locks the mutex is allowed to unlock it later on.</p>
+
+<p>If another thread jumps in and tries to lock a locked mutex, the operating system puts it to sleep until the first thread has finished its task and has unlocked the mutex. This way only one thread can access the critical section; any other thread is excluded from it and must wait for the unlock. For this reason a mutex is also known as a <strong>locking mechanism</strong>.</p>
+
+<p>You can use a mutex to protect simple actions like a concurrent read and write of a shared variable, as well as bigger and more complex operations that need to be executed by one thread at a time, such as writing to a log file or modifying a database. Anyway, the mutex lock/unlock operations always match the boundaries of the critical section.</p>
+
+<h3>Recursive mutexes</h3>
+
+<p>In any regular mutex implementation, a thread that locks a mutex twice causes an error. A <strong>recursive mutex</strong> allows this, instead: a thread can lock a recursive mutex multiple times without unlocking it first. However no other thread can lock the recursive mutex until all the locks held by the first thread have been released. This synchronization primitive is also known as <strong>reentrant mutex</strong>, where <strong>reentrancy</strong> is the ability to call a function multiple times (i.e. to enter it again) before the previous invocations are over.</p>
+
+<p>Recursive mutexes are difficult to work with and are error-prone. You have to keep track of which thread has locked the mutex how many times and make sure the same thread unlocks it completely. Failing to do so would leave locked mutexes around with nasty consequences. Most of the time a regular mutex is enough.</p>
+
+<h3>Reader/Writer Mutexes</h3>
+
+<p>As we know from the previous episode, multiple threads can concurrently read from a shared resource without harm as long as they don&rsquo;t modify it. So why bother locking a mutex if some of your threads are operating in &ldquo;read-only&rdquo; mode? For example consider a concurrent database that is frequently read by many threads, while another thread seldomly writes updates. You certainly need a mutex to protect the read/write access, but most of the time you would end up locking it just for read operations, preventing other reading threads to do their job.</p>
+
+<p>A <strong>reader/writer mutex</strong> allows <em>concurrent</em> reads from multiple threads and <em>exclusive</em> writes from a single thread to a shared resource. It can be locked in <em>read</em> or <em>write</em> mode. To modify a resource, a thread must first acquire the exclusive write lock. An exclusive write lock is not permitted until all read locks have been released.</p>
+
+<h3>Semaphores</h3>
+
+<p>A <strong>semaphore</strong> is a synchronization primitive used to orchestrate threads: which one starts first, how many threads can access a resource and so on. Like a street semaphore regulates the traffic, a programming semaphore regulates the multithreading flow: for this reason a semaphore is also known as a <strong>signaling mechanism</strong>. It can be seen as an evolution of a mutex, because it guarantees both <em>ordering</em> and <em>atomicity</em>. However in a few paragraphs I will show you why using semaphores for atomicity only is not a great idea.</p>
+
+<p>Technically, a semaphore is a global object in your application, shared across multiple threads, that contains a <em>numeric counter</em> managed by two functions: one that increases the counter, another one that decreases it. Historically called <code>P</code> and <code>V</code>, modern implementations use more friendly names for those functions such as <code>acquire</code> and <code>release</code>.</p>
+
+<p>A semaphore controls the access to a shared resource: the counter determines the maximum number of threads that can simultaneously access it. At the beginning of your program, when the semaphore gets initialized, you choose that number according to your needs. Then, a thread that wants to access a shared resource calls <code>acquire</code>:</p>
+
+<ul>
+<li>if the counter is <em>greater than zero</em> the thread can proceed. The counter gets reduced by one right away, then the current thread starts doing its job. When done, it calls <code>release</code> which in turn increases the counter by one.</li>
+<li>if the counter is <em>equal to zero</em> the thread cannot proceed: other threads have already filled up the available space. The current thread is put to sleep by the operating system and will wake up when the semaphore counter becomes greater than zero again (that is when any other thread calls <code>release</code> once its job is done).</li>
+</ul>
+
+
+<p>Unlike a mutex, <em>any thread can release a semaphore</em>, not only the one that has acquired it in the first place.</p>
+
+<p>A single semaphore is used to limit the number of threads accessing a shared resource: for example to cap the number of multithreaded database connections, where each thread is triggered by someone connecting to your server.</p>
+
+<p>By combining multiple semaphores together you can solve thread ordering problems: for example the thread that renders a web page in your browser must start after the thread that downloads the HTML files from the Internet. Thread A would notify thread B when it&rsquo;s done, so that B can wake up and proceed with its job: this is also known as the famous <a href="https://en.wikipedia.org/wiki/Producer%E2%80%93consumer_problem">Producer-Consumer problem</a>.</p>
+
+<h3>Binary semaphores</h3>
+
+<p>A semaphore whose counter is restricted to the values 0 and 1 is called <strong>binary semaphore</strong>: only one thread at a time can access the shared resource. Wait: this is basically a mutex protecting a critical section! You can actually replicate the mutex behavior with a binary semaphore. However there are two important points to keep in mind:</p>
+
+<ul>
+<li>a mutex can be unlocked only by thread that had locked it first, while a semaphore can be released from any other thread. This could lead to confusion and subtle bugs if what you want is just a locking mechanism;</li>
+<li>semaphores are signaling mechanisms that orchestrate threads, while mutexes are locking mechanisms that protects shared resources. You should not use semaphores to protect shared resources, nor mutexes for signaling: your intent will be more clear to you and to anyone who will read your code.</li>
+</ul>
+
+
+<h3>Condition variables</h3>
+
+<p>Condition variables are another synchronization primitive designed for <em>ordering</em>. They are used for sending a wake up signal across different threads. A condition variable always goes hand in hand with a mutex; using it alone doesn&rsquo;t make sense.</p>
+
+<p>Technically, a condition variable is a global object in your application, shared across multiple threads, that provides three functions usually called <code>wait</code>, <code>notify_one</code> and <code>notify_all</code>, plus a mechanism to pass it an existing mutex to work with (the exact way depends on the implementation).</p>
+
+<p>A thread that calls <code>wait</code> on the condition variable is put to sleep by the operating system. Then another thread that wants to wake it up invokes <code>notify_one</code> or <code>notify_all</code>. The difference is that <code>notify_one</code> unfreezes only one thread, while <code>notify_all</code> sends the wake up call to all the threads that are sleeping after the <code>wait</code> call on the condition variable. The mutex is used internally to provide the sleep/wakeup mechanism.</p>
+
+<p>Condition variables are a powerful mechanism to send signals between threads that you couldn&rsquo;t achieve with mutexes alone. For example you can use them to solve the Producer-Consumer problem once again, where thread A emits a signal when it&rsquo;s done so that thread B can start its job.</p>
+
+<h3>Common problems in synchronization</h3>
+
+<p>All the synchronization primitives described in this article have something in common: they put threads to sleep. For this reason they are also called <strong>blocking mechanisms</strong>. A blocking mechanism is a good way to prevent concurrent access to a shared resource if you want to avoid data races or race conditions: a sleeping thread does no harm. But it can trigger unfortunate side effects. Let&rsquo;s take a quick look at them.</p>
+
+<h4>Deadlock</h4>
+
+<p>A <strong>deadlock</strong> occurs when a thread is waiting for a shared variable that another thread holds, and this second thread is waiting for a shared variable that the first thread holds. These things usually happen when working with multiple mutexes: the two threads remain waiting forever in an infinite circular loop: thread A waits for thread B which waits for thread A which waits for thread B which&hellip;</p>
+
+<h4>Starvation</h4>
+
+<p>A thread goes in <strong>starvation</strong> mode when it doesn&rsquo;t get enough love: it remains stuck indefinitely in its sleep state while waiting for access to a shared resource that is continuously given to other threads. For example a poorly designed semaphore-based algorithm might forget to wake up one of the many threads behind the waiting line, by giving precedence only to a subset of them. The starving thread would wait forever without doing any useful work.</p>
+
+<h4>Spurious wake-ups</h4>
+
+<p>This is a subtle problem that comes from how condition variables are actually implemented in some operating systems. In a <strong>spurious wake-up</strong> a thread wakes up even if not signaled through the condition variable. That&rsquo;s why most synchronization primitives also include a way to check if the wakeup signal really comes from the condition variable the thread is waiting on.</p>
+
+<h4>Priority inversion</h4>
+
+<p><strong>Priority inversion</strong> occurs when a thread performing a high-priority task is blocked waiting for a lower-priority thread to release a resource, such as a mutex. For example when the thread that outputs audio to the soundcard (high priority) is blocked by the thread that displays the interface (low priority), resulting in a bad glitch through your speakers.</p>
+
+<h3>What&rsquo;s next</h3>
+
+<p>All these synchronization problems have been studied for years and many solutions, both technical and architectural are available. A careful design and a bit of experience help a lot in prevention. Also, given the <a href="https://www.internalpointers.com/post/gentle-introduction-multithreading#race-conditions">non-deterministic</a>, (i.e. extremely hard) nature of multithreaded applications, people have developed interesting tools to detect errors and potential pitfalls in concurrent code. Projects like <a href="https://github.com/google/sanitizers/wiki/ThreadSanitizerCppManual">Google&rsquo;s TSan</a> or <a href="http://valgrind.org/docs/manual/hg-manual.html">Helgrind</a> are just a few of them.</p>
+
+<p>However, sometimes you want to take a different route and get rid of any blocking mechanism in your multithreaded application. This would mean to enter the <strong>non-blocking</strong> realm: a very low-level territory, where threads are never put to sleep by the operating system and concurrency is regulated through <strong>atomic primitives</strong> and <strong>lock-free data structures</strong>. It&rsquo;s a challenging field, not always necessary, which can boost the speed of your software or wreak havoc on it. But this is a story for the next episode&hellip;</p>
+
+<h3>reference</h3>
+
+<ul>
+<li><a href="https://www.internalpointers.com/post/introduction-thread-synchronization">Introduction to thread synchronization</a></li>
+</ul>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[A gentle introduction to multithreading]]></title>
+    <link href="http://Solarex.github.io/blog/2019/08/07/a-gentle-introduction-to-multithreading/"/>
+    <updated>2019-08-07T10:14:00+08:00</updated>
+    <id>http://Solarex.github.io/blog/2019/08/07/a-gentle-introduction-to-multithreading</id>
+    <content type="html"><![CDATA[<p>清空Reeder发现internal/pointers一系列关于多线程的文章，感觉很不错，转载在此。</p>
+
+<p>这是系列第一篇。</p>
+
+<p>Approaching the world of concurrency, one step at a time.</p>
+
+<!-- more -->
+
+
+<p>Modern computers have the ability to perform multiple operations at the same time. Supported by hardware advancements and smarter operating systems, this feature makes your programs run faster, both in terms of speed of execution and responsiveness.</p>
+
+<p>Writing software that takes advantage of such power is fascinating, yet tricky: it requires you to understand what happens under your computer&rsquo;s hood. In this first episode I&rsquo;ll try to scratch the surface of <strong>threads</strong>, one of the tools provided by operating systems to perform this kind of magic. Let&rsquo;s go!</p>
+
+<h3>Processes and threads: naming things the right way</h3>
+
+<p>Modern operating systems can run multiple programs at the same time. That&rsquo;s why you can read this article in your browser (a program) while listening to music on your media player (another program). Each program is known as a <strong>process</strong> that is being executed. The operating system knows many software tricks to make a process run along with others, as well as taking advantage from the underlying hardware. Either way, the final outcome is that you <em>sense</em> all your programs to be running simultaneously.</p>
+
+<p>Running processes in an operating system is not the only way to perform several operations at the same time. Each process is able to run simultaneous sub-tasks within itself, called <strong>threads</strong>. You can think of a thread as a slice of the process itself. Every process triggers at least one thread on startup, which is called the <strong>main thread</strong>. Then, according to the program/programmer&rsquo;s needs, additional threads may be started or terminated. <strong>Multithreading</strong> is about running multiple threads within a single process.</p>
+
+<p>For example, it is likely that your media player runs multiple threads: one for rendering the interface — this is usually the main thread, another one for playing the music and so on.</p>
+
+<p>You can think of the operating system as a container that holds multiple processes, where each process is a container that holds multiple threads. In this article I will focus on threads only, but the whole topic is fascinating and deserves more in-depth analysis in the future.</p>
+
+<center><p><img src="http://Solarex.github.io/images/processes-threads.png"></p></center>
+
+
+<h3>The differences between processes and threads</h3>
+
+<p>Each process has its own chunk of memory assigned by the operating system. By default that memory cannot be shared with other processes: your browser has no access to the memory assigned to your media player and vice versa. The same thing happens if you run two <strong>instances</strong> of the same process, that is if you launch your browser twice. The operating system treats each instance as a new process with its own separate portion of memory assigned. So, by default, two or more processes have no way to share data, unless they perform advanced tricks — the so-called <strong>inter-process communication (IPC)</strong>.</p>
+
+<p>Unlike processes, threads share the same chunk of memory assigned to their parent process by the operating system: data in the media player main interface can be easily accessed by the audio engine and vice versa. Therefore is easier for two threads to talk to eachother. On top of that, threads are usually lighter than a process: they take less resources and are faster to create, that&rsquo;s why they are also called <strong>lightweight processes</strong>.</p>
+
+<p>Threads are a handy way to make your program perform multiple operations at the same time. Without threads you would have to write one program per task, run them as processes and synchronize them through the operating system. This would be more difficult (IPC is tricky) and slower (processes are heavier than threads).</p>
+
+<h3>Green threads, of fibers</h3>
+
+<p>Threads mentioned so far are an operating system thing: a process that wants to fire a new thread has to talk to the operating system. Not every platform natively support threads, though. <strong>Green threads</strong>, also known as <strong>fibers</strong> are a kind of emulation that makes multithreaded programs work in environments that don&rsquo;t provide that capability. For example a virtual machine might implement green threads in case the underlying operating system doesn&rsquo;t have native thread support.</p>
+
+<p>Green threads are faster to create and to manage because they completely bypass the operating system, but also have disadvantages. I will write about such topic in one of the next episodes.</p>
+
+<p>The name &ldquo;green threads&rdquo; refers to the Green Team at Sun Microsystem that designed the original Java thread library in the 90s. Today Java no longer makes use of green threads: they switched to native ones back in 2000. Some other programming languages — Go, Haskell or Rust to name a few — implement equivalents of green threads instead of native ones.</p>
+
+<h3>What threads are used for</h3>
+
+<p>Why should a process employ multiple threads? As I mentioned before, doing things in parallel greatly speeds up things. Say you are about to render a movie in your movie editor. The editor could be smart enough to spread the rendering operation across multiple threads, where each thread processes a chunk of the final movie. So if with one thread the task would take, say, one hour, with two threads it would take 30 minutes; with four threads 15 minutes, and so on.</p>
+
+<p>Is it really that simple? There are three important points to consider:</p>
+
+<ul>
+<li>not every program needs to be multithreaded. If your app performs sequential operations or often waits on the user to do something, multithreading might not be that beneficial;</li>
+<li>you just don&rsquo;t throw more threads to an application to make it run faster: each sub-task has to be thought and designed carefully to perform parallel operations;</li>
+<li>it is not 100% guaranteed that threads will perform their operations truly in parallel, that is <em>at the same time</em>: it really depends on the underlying hardware.</li>
+</ul>
+
+
+<p>The last one is crucial: if your computer doesn&rsquo;t support multiple operations at the same time, the operating system has to fake them. We will see how in a minute. For now let&rsquo;s think of <strong>concurrency</strong> as the <em>perception</em> of having tasks that run at the same time, while <strong>true parallelism</strong> as tasks that literally run at the same time.</p>
+
+<center><p><img src="http://Solarex.github.io/images/concurrency-parallelism.png"></p></center>
+
+
+<h3>What makes concurrency and parallelism possible</h3>
+
+<p>The <strong>central processing unit (CPU)</strong> in your computer does the hard work of running programs. It is made of several parts, the main one being the so-called <strong>core</strong>: that&rsquo;s where computations are actually performed. A core is capable of running only one operation at a time.</p>
+
+<p>This is of course a major drawback. For this reason operating systems have developed advanced techniques to give the user the ability to running multiple processes (or threads) at once, especially on graphical environments, even on a single core machine. The most important one is called <strong>preemptive multitasking</strong>, where <strong>preemption</strong> is the ability of interrupting a task, switching to another one and then resuming the first task at a later time.</p>
+
+<p>So if your CPU has only one core, part of a operating system&rsquo;s job is to spread that single core computing power across multiple processes or threads, which are executed one after the other in a loop. This operation gives you the illusion of having more than one program running in parallel, or a single program doing multiple things at the same time (if multithreaded). Concurrency is met, but true parallelism — the ability to run processes <em>simultaneously</em> — is still missing.</p>
+
+<p>Today modern CPUs have more than one core under the hood, where each one performs an independent operation at a time. This means that with two or more cores true parallelism is possible. For example, my Intel Core i7 has four cores: it can run four different processes or threads at the same time, simultaneously.</p>
+
+<p>Operating systems are able to detect the number of CPU cores and assign processes or threads to each one of them. A thread may be allocated to whatever core the operating system likes, and this kind of scheduling is completely transparent for the program being run. Additionally, preemptive multitasking might kick in in case all cores are busy. This gives you the ability to run more processes and threads than the actual number or cores available in your machine.</p>
+
+<h3>Multi-threading application on a single core: does it make sense?</h3>
+
+<p>True parallelism on a single-core machine is impossible to achieve. Nevertheless it still makes sense to write a multithreaded program, if your application can benefit from it. When a process employs multiple threads, preemptive multitasking can keep the app running even if one of those threads performs a slow or blocking task.</p>
+
+<p>Say for example you are working on a desktop app that reads some data from a very slow disk. If you write the program with just one thread, the whole app would freeze until the disk operation is finished: the CPU power assigned to the only thread is wasted while waiting for the disk to wake up. Of course the operating system is running many other processes besides this one, but your specific application will not be making any progress.</p>
+
+<p>Let&rsquo;s rethink your app in a multithreaded way. Thread A is responsible for the disk access, while thread B takes care of the main interface. If thread A gets stuck waiting because the device is slow, thread B can still run the main interface, keeping your program responsive. This is possible because, having two threads, the operating system can switch the CPU resources between them without getting stuck on the slower one.</p>
+
+<h3>More threads, more problems</h3>
+
+<p>As we know, threads share the same chunk of memory of their parent process. This makes extremely easy for two or more of them to exchange data within the same application. For example: a movie editor might hold a big portion of shared memory containing the video timeline. Such shared memory is being read by several worker threads designated for rendering the movie to a file. They all just need a handle (e.g. a pointer) to that memory area in order to read from it and output rendered frames to disk.</p>
+
+<p>Things run smoothly as long as two or more threads <em>read</em> from the same memory location. The troubles kick in when at least one of them <em>writes</em> to the shared memory, while others are reading from it. Two problems can occur at this point:</p>
+
+<ul>
+<li><strong>data race</strong> — while a writer thread modifies the memory, a reader thread might be reading from it. If the writer has not finished its work yet, the reader will get corrupted data;</li>
+<li><strong>race condition</strong> — a reader thread is supposed to read only after a writer has written. What if the opposite happens? More subtle than a data race, a race condition is about two or more threads doing their job in an unpredictable order, when in fact the operations should be performed in the proper sequence to be done correctly. Your program can trigger a race condition even if it has been protected against data races.</li>
+</ul>
+
+
+<h3>The concept of thread safety</h3>
+
+<p>A piece of code is said to be <strong>thread-safe</strong> if it works correctly, that is without data races or race conditions, even if many threads are executing it simultaneously. You might have noticed that some programming libraries declare themselves as being thread-safe: if you are writing a multithreaded program you want to make sure that any other third-party function can be used across different threads without triggering concurrency problems.</p>
+
+<h3>The root cause of data races</h3>
+
+<p>We know that a CPU core can perform only one machine instruction at a time. Such instruction is said to be <strong>atomic</strong> because it&rsquo;s indivisible: it can&rsquo;t be broken into smaller operations. The Greek word &ldquo;atom&rdquo; (ἄτομος; atomos) means <em>uncuttable</em>.</p>
+
+<p>The property of being indivisible makes atomic operations thread-safe by nature. When a thread performs an atomic write on shared data, no other thread can read the modification half-complete. Conversely, when a thread performs an atomic read on shared data, it reads the entire value as it appeared at a single moment in time. There is no way for a thread to <em>slip through</em> an atomic operation, thus no data race can happen.</p>
+
+<p>The bad news is that the vast majority of operations out there are non-atomic. Even a trivial assignment like <code>x = 1</code> on some hardware might be composed of multiple atomic machine instructions, making the assignment itself non-atomic as a whole. So a data race is triggered if a thread reads <code>x</code> while another one performs the assignment.</p>
+
+<h3>The root cause of race conditions</h3>
+
+<p>Preemptive multitasking gives the operating system full control over thread management: it can start, stop and pause threads according to advanced scheduling algorithms. You as a programmer cannot control the time or order of execution. In fact, there is no guarantee that a simple code like this:</p>
+
+<p><code>java
+writer_thread.start()
+reader_thread.start()
+</code></p>
+
+<p>would start the two threads in that specific order. Run this program several times and you will notice how it behaves differently on each run: sometimes the writer thread starts first, sometimes the reader does instead. You will surely hit a race condition if your program needs the writer to always run before the reader.</p>
+
+<p>This behavior is called <strong>non-deterministic</strong>: the outcome changes each time and you can&rsquo;t predict it. Debugging programs affected by a race condition is very annoying because you can&rsquo;t always reproduce the problem in a controlled way.</p>
+
+<h3>Teach threads to get along: concurrency control</h3>
+
+<p>Both data races and race conditions are real-world problems: some people even <a href="https://en.wikipedia.org/wiki/Therac-25">died because of them</a>. The art of accommodating two or more concurrent threads is called <strong>concurrency control</strong>: operating systems and programming languages offer several solutions to take care of it. The most important ones:</p>
+
+<ul>
+<li><strong>synchronization</strong> — a way to ensure that resources will be used by only one thread at a time. Synchronization is about marking specific parts of your code as &ldquo;protected&rdquo; so that two or more concurrent threads do not simultaneously execute it, screwing up your shared data;</li>
+<li><strong>atomic operations</strong> — a bunch of non-atomic operations (like the assignment mentioned before) can be turned into atomic ones thanks to special instructions provided by the operating system. This way the shared data is always kept in a valid state, no matter how other threads access it;</li>
+<li><strong>immutable data</strong> — shared data is marked as immutable, nothing can change it: threads are only allowed to read from it, eliminating the root cause. As we know threads can safely read from the same memory location as long as they don&rsquo;t modify it. This is the main philosophy behind <a href="https://en.wikipedia.org/wiki/Functional_programming">functional programming</a>.</li>
+</ul>
+
+
+<p>I will cover all this fascinating topics in the next episodes of this mini-series about concurrency. Stay tuned!</p>
+
+<h3>refreence</h3>
+
+<ul>
+<li><a href="https://www.internalpointers.com/post/gentle-introduction-multithreading">A gentle introduction to multithreading</a></li>
+</ul>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Dagger2学习]]></title>
@@ -185,1158 +692,6 @@ public final void boobar() {
 
 <ul>
 <li><a href="https://www.benf.org/other/cfr/kotlin-defaults.html">How does Kotlin generate default arguments?</a></li>
-</ul>
-
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[自定义View总结三]]></title>
-    <link href="http://Solarex.github.io/blog/2019/03/12/summary-of-custom-views-part-iii/"/>
-    <updated>2019-03-12T00:34:00+08:00</updated>
-    <id>http://Solarex.github.io/blog/2019/03/12/summary-of-custom-views-part-iii</id>
-    <content type="html"><![CDATA[<h3>自定义View总结 &ndash; 触摸反馈</h3>
-
-<p>之前分析了<a href="http://solarex.github.io/blog/2018/03/25/android-touch-system/">Android触摸事件分发机制</a>，在自定义View的时候进行触摸反馈，一般都是重写<code>onTouchEvent</code>，当然也有一些工具类可以使用，本文就对这些工具类进行总结，他们是<code>ViewConfiguration</code>，<code>Scroller</code>，<code>OverScroller</code>，<code>VelocityTracker</code>，<code>GestureDetector</code>，<code>ScaleGestureDetector</code>，<code>ViewDragHelper</code>。</p>
-
-<!-- more -->
-
-
-<h4>ViewConfiguration</h4>
-
-<p><code>ViewConfiguration</code>定义了一些UI系统用用到的常量，包括timeouts,sizes,distances。timeouts比如<code>DEFAULT_LONG_PRESS_TIMEOUT</code>,<code>DOUBLE_TAP_TIMEOUT</code>等，sizes包括<code>SCROLL_BAR_SIZE</code>等，distances我们平时自定义View的时候可能用的比较多，常用的有<code>getScaledTouchSlop</code>来判断是否是滑动，<code>getScaledPagingTouchSlop</code>来判断是否是翻页滑动，自己写<code>ViewPager</code>的时候可以用到，<code>getScaledMaximumFlingVelocity</code>和<code>getMinimumFlingVelocity</code>来对惯性滑动进行判断处理。</p>
-
-<h3>Scroller &amp; OverScroller</h3>
-
-<p><code>View</code>的<code>scrollTo</code>和<code>scrollBy</code>是瞬间完成的，如果需要<code>View</code>的滑动有个动画效果，说白了，就是View的位置移动有段时间间隔，可以使用<code>Scroller</code>或<code>OverScroller</code>来完成。<code>Scroller</code>本身无法让View滑动，它主要是个计算器，得配合View的<code>computeScroll</code>使用才能完成这个功能，或者不使用View的<code>computeScroll</code>，你自己写个<code>Runnable</code>，在<code>Runnable</code>里面进行<code>Scroller</code>计算完成的判断并调用View的<code>scrollTo</code>，然后再<code>postOnAnimation(this)</code>将自身传入再次调用即可。</p>
-
-<p>使用<code>computeScroll</code>的样板代码如下：</p>
-
-<p>```java
-Scroller scroller = new Scroller(context);</p>
-
-<p>// 缓慢滚动到指定位置
-private void smoothScrollTo(int destX, int destY) {</p>
-
-<pre><code>int scrollx = getScrollX();
-int dx = destX - scrollx;
-scroller.startScroll(scrollx, 0, dx, 0, 1000);
-// 这步很重要，触发下面的 computeScroll
-invalidate();
-</code></pre>
-
-<p>}</p>
-
-<p>@Override
-public void computeScroll() {</p>
-
-<pre><code>if(scroller.computeScrollOffset()) {
-    scrollTo(scroller.getCurrX(), scroller.getCurrY());
-    // 这步继续触发 computeScroll，Scroller会更新x,y，View继续scrollTo新位置
-    postInvalidate();或者invalidate();
-}
-</code></pre>
-
-<p>}
-```</p>
-
-<p><code>OverScroller</code>的<code>startScroll</code>，<code>fling</code>方法和<code>Scroller</code>类似，不再赘述，除此之外<code>OverScroller</code>还有一个带over参数的<code>fling</code>函数<code>public void fling(int startX, int startY, int velocityX, int velocityY, int minX, int maxX, int minY, int maxY, int overX, int overY)</code>可以滑动超出View的边界。</p>
-
-<h4>VelocityTracker</h4>
-
-<p>速度追踪，用于追踪手指在滑动过程中的速度，包括水平和垂直方向的速度，一般配合<code>Scroller</code>的<code>fling</code>使用。它的使用过程很简单，首先，在View的<code>onTouchEvent</code>方法中追踪当前单击事件的速度：</p>
-
-<p><code>java
-// onTouchEvent
-VelocityTracker velocityTracker = VelocityTracker.obtain();
-velocityTracker.addMovement(event);
-</code></p>
-
-<p>接着，在手指抬起，也就是<code>ACTION_UP</code>的时候，获取速度：</p>
-
-<p><code>java
-// onTouchEvent ACTION_UP
-velocityTracker.computeCurrentVelocity(1000);
-int xVel = (int) velocityTracker.getXVelocity();
-int yVel = (int) velocityTracker.getYVelocity();
-/* do something like fling */
-velocityTracker.clear();
-velocityTracker.recycle(); // 重置并回收
-</code></p>
-
-<p>速度的计算公式是<code>速度=(终点位置 - 起点位置)/时间段</code>，所以逆着手机坐标系的正方向滑动，所产生的速度为负值。另外记得要重置并回收<code>VelocityTracker</code>。</p>
-
-<h4>GestureDetector &amp; ScaleGestureDetector</h4>
-
-<p><code>GestureDetector</code>手势检测，用于辅助检测用户的单击、滑动、长按、双击等行为。<code>ScaleGestureDetector</code>主要是双指或多指的pinch zoom放大缩小行为。要使用<code>GestureDetector</code>也很简单，参考如下过程。</p>
-
-<p>首先，创建<code>GestureDetector</code>对象并实现<code>GestureDetector.OnGestureListener</code>接口，根据需要也可以实现<code>GestureDetector.OnDoubleTapListener</code>接口或者<code>GestureDetector.OnContextClickListener</code>接口，或者使用<code>SimpleOnGestureListener</code>来在自己感兴趣的方法中做处理。</p>
-
-<table>
-<thead>
-<tr>
-<th></th>
-<th align="center">        方法名        </th>
-<th align="center">                             描述                             </th>
-<th align="center">      所属接口       </th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td></td>
-<td align="center">        onDown        </td>
-<td align="center">            手指轻触屏幕，由1个<code>ACTION_DOWN</code>触发            </td>
-<td align="center">  OnGestureListener  </td>
-</tr>
-<tr>
-<td></td>
-<td align="center">     onShowPress      </td>
-<td align="center">    手指轻触屏幕，尚未松开或拖动，由1个<code>ACTION_DOWN</code>触发    </td>
-<td align="center">  OnGestureListener  </td>
-</tr>
-<tr>
-<td></td>
-<td align="center">    onSingleTapUp     </td>
-<td align="center">   手指轻触屏幕后松开，随着<code>ACTION_UP</code>触发，这是单击行为    </td>
-<td align="center">  OnGestureListener  </td>
-</tr>
-<tr>
-<td></td>
-<td align="center">       onScroll       </td>
-<td align="center"> 手指按下屏幕并拖动，由1个<code>ACTION_DOWN</code>及多个<code>ACTION_MOVE</code>触发，这是拖动行为 </td>
-<td align="center">  OnGestureListener  </td>
-</tr>
-<tr>
-<td></td>
-<td align="center">     onLongPress      </td>
-<td align="center">                             长按                             </td>
-<td align="center">  OnGestureListener  </td>
-</tr>
-<tr>
-<td></td>
-<td align="center">       onFling        </td>
-<td align="center"> 按下屏幕快速滑动后松开，由1个<code>ACTION_DOWN</code>多个<code>ACTION_MOVE</code>和1个<code>ACTION_UP</code>触发，快速滑动 </td>
-<td align="center">  OnGestureListener  </td>
-</tr>
-<tr>
-<td></td>
-<td align="center">     onDoubleTap      </td>
-<td align="center"> 双击，由2次连续的单击组成，不可能和onSingleTapConfirmed共存  </td>
-<td align="center"> OnDoubleTapListener </td>
-</tr>
-<tr>
-<td></td>
-<td align="center"> onSingleTapConfirmed </td>
-<td align="center">                        严格的单击行为                        </td>
-<td align="center"> OnDoubleTapListener </td>
-</tr>
-<tr>
-<td></td>
-<td align="center">   onDoubleTapEvent   </td>
-<td align="center"> 发生了双击行为，在双击期间，<code>ACTION_DOWN</code>、<code>ACTION_MOVE</code>、<code>ACTION_UP</code>都会触发此回调 </td>
-<td align="center"> OnDoubleTapListener </td>
-</tr>
-</tbody>
-</table>
-
-
-<p>接着，接管目标View的<code>onTouchEvent</code>方法</p>
-
-<p><code>java
-// onTouchEvent
-boolean consume = mGestureDetector.onTouchEvent(event);
-return consume;
-</code></p>
-
-<p>事件经过判断后就会回调我们实现的listener中的方法。如果只是监听滑动相关的可以自己在<code>onTouchEvent</code>方法的<code>ACTION_MOVE</code>中调用<code>View</code>的<code>scrollTo(x,y)</code>来实现View的滑动，如果是监听双击这种行为的话，就使用<code>GestureDetector</code>。</p>
-
-<p><code>ScaleGestureDetector</code>是处理放大缩小手势的，使用和<code>GestureDetector</code>类似。</p>
-
-<table>
-<thead>
-<tr>
-<th></th>
-<th align="center">                           方法名                            </th>
-<th align="center">                             描述                             </th>
-<th align="center">        所属接口        </th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td></td>
-<td align="center">   public boolean onScale(ScaleGestureDetector detector);    </td>
-<td align="center"> 通过调用detector.getScaleFactor来获得放大的系数，来进行进一步处理，比如对ImageView的Matrix进行操作等等，返回值代表事件有没有被消费 </td>
-<td align="center"> OnScaleGestureListener |</td>
-</tr>
-<tr>
-<td></td>
-<td align="center"> public boolean onScaleBegin(ScaleGestureDetector detector); </td>
-<td align="center"> 如果要检测放大缩小手势，返回true，类似于<code>ACTION_DOWN</code>对事件感兴趣返回true </td>
-<td align="center"> OnScaleGestureListener |</td>
-</tr>
-<tr>
-<td></td>
-<td align="center">   public void onScaleEnd(ScaleGestureDetector detector);    </td>
-<td align="center"> 放大或缩小结束，可以调用detector.getFocusX()或detector.getFocusY()来获取焦点 </td>
-<td align="center"> OnScaleGestureListener |</td>
-</tr>
-</tbody>
-</table>
-
-
-<h3>ViewDragHelper &amp; View.OnDragListener</h3>
-
-<p><code>ViewDragHelper</code>可以实现各种不同的滑动、拖放需求，使用参考如下过程。<code>ViewDragHelper</code>一般在自定义<code>ViewGroup</code>中使用。</p>
-
-<p>首先，初始化<code>ViewDragHelper</code>，实现<code>ViewDragHelper.Callback</code>。<code>mViewDragHelper = ViewDragHelper.create(viewgroup, callback);</code></p>
-
-<p>然后，接管ViewGroup的事件处理，样板代码如下：</p>
-
-<p>```java
-@Override
-public boolean onInterceptTouchEvent(MotionEvent ev) {</p>
-
-<pre><code>return mViewDragHelper.shouldInterceptTouchEvent(ev);
-</code></pre>
-
-<p>}</p>
-
-<p>@Override
-public boolean onTouchEvent(MotionEvent ev) {</p>
-
-<pre><code>mViewDragHelper.processTouchEvent(ev);
-return true;
-</code></pre>
-
-<p>}
-```</p>
-
-<p>接着，处理<code>computeScroll</code>，<code>ViewDragHelper</code>内部也是通过<code>Scroller</code>来实现平滑移动的，样板代码如下：</p>
-
-<p>```java
-@Override
-public void computeScroll() {</p>
-
-<pre><code>if(mViewDragHelper.continueSettling(true)) {
-    ViewCompat.postInvalidateOnAnimation(this);
-}
-</code></pre>
-
-<p>}
-```</p>
-
-<table>
-<thead>
-<tr>
-<th></th>
-<th align="center">                            方法名                            </th>
-<th align="center">                             描述                             </th>
-<th align="center">        所属接口         </th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td></td>
-<td align="center"> public abstract boolean tryCaptureView(View child, int pointerId); </td>
-<td align="center">                哪个子View可以被拖动就返回true                </td>
-<td align="center"> ViewDragHelper.Callback |</td>
-</tr>
-<tr>
-<td></td>
-<td align="center"> public int clampViewPositionVertical(View child, int top, int dy) {     return 0; } </td>
-<td align="center">             限制被捕捉的View垂直方向上活动的范围             </td>
-<td align="center"> ViewDragHelper.Callback |</td>
-</tr>
-<tr>
-<td></td>
-<td align="center"> public int clampViewPositionHorizontal(View child, int left, int dx) {     return 0; } </td>
-<td align="center">              限制被捕捉View水平方向上活动的范围              </td>
-<td align="center"> ViewDragHelper.Callback |</td>
-</tr>
-<tr>
-<td></td>
-<td align="center"> public void onViewCaptured(View capturedChild, int activePointerId) {} </td>
-<td align="center">                    View被捕捉的时候被调用                    </td>
-<td align="center"> ViewDragHelper.Callback |</td>
-</tr>
-<tr>
-<td></td>
-<td align="center"> public void onViewPositionChanged(View changedView, int left, int top, int dx, int dy) {} </td>
-<td align="center">                被捕捉的View位置发生变化时调用                </td>
-<td align="center"> ViewDragHelper.Callback |</td>
-</tr>
-<tr>
-<td></td>
-<td align="center">       public void onViewDragStateChanged(int state) {}       </td>
-<td align="center"> drag state变化时调用，STATE_IDLE，STATE_DRAGGING，STATE_SETTLING </td>
-<td align="center"> ViewDragHelper.Callback |</td>
-</tr>
-<tr>
-<td></td>
-<td align="center"> public void onViewReleased(View releasedChild, float xvel, float yvel) {} </td>
-<td align="center">                       View被松开时调用                       </td>
-<td align="center"> ViewDragHelper.Callback |</td>
-</tr>
-<tr>
-<td></td>
-<td align="center">  public void onEdgeTouched(int edgeFlags, int pointerId) {}  </td>
-<td align="center">            没有View被捕捉，父View的边缘被touch到             </td>
-<td align="center"> ViewDragHelper.Callback |</td>
-</tr>
-<tr>
-<td></td>
-<td align="center"> public boolean onEdgeLock(int edgeFlags) {     return false; } </td>
-<td align="center">                                                              </td>
-<td align="center"> ViewDragHelper.Callback |</td>
-</tr>
-<tr>
-<td></td>
-<td align="center"> public void onEdgeDragStarted(int edgeFlags, int pointerId) {} </td>
-<td align="center">                                                              </td>
-<td align="center"> ViewDragHelper.Callback |</td>
-</tr>
-<tr>
-<td></td>
-<td align="center"> public int getOrderedChildIndex(int index) {     return index; } </td>
-<td align="center">                                                              </td>
-<td align="center"> ViewDragHelper.Callback |</td>
-</tr>
-<tr>
-<td></td>
-<td align="center"> public int getViewHorizontalDragRange(View child) {     return 0; } </td>
-<td align="center">                                                              </td>
-<td align="center"> ViewDragHelper.Callback |</td>
-</tr>
-<tr>
-<td></td>
-<td align="center"> public int getViewVerticalDragRange(View child) {     return 0; } </td>
-<td align="center">                                                              </td>
-<td align="center"> ViewDragHelper.Callback |</td>
-</tr>
-</tbody>
-</table>
-
-
-<p><code>View.OnDragListener</code>只有一个方法<code>boolean onDrag(View v, DragEvent event);</code>，当拖拽事件被分发到View时调用。<code>DragEvent</code>有几个状态可以在其中做处理<code>ACTION_DRAG_STARTED</code>，<code>ACTION_DRAG_ENDED</code>，<code>ACTION_DRAG_ENTERED</code>，<code>ACTION_DRAG_EXITED</code>。View开始拖动可以调用<code>ViewCompat.startDragAndDrop(@NonNull View v, ClipData data,View.DragShadowBuilder shadowBuilder, Object localState, int flags)</code>来开始拖动，这样会在View上方出现一个Shadow来表示被拖动的View。</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[自定义View总结二]]></title>
-    <link href="http://Solarex.github.io/blog/2019/02/12/summary-of-custom-views-part-ii/"/>
-    <updated>2019-02-12T00:34:00+08:00</updated>
-    <id>http://Solarex.github.io/blog/2019/02/12/summary-of-custom-views-part-ii</id>
-    <content type="html"><![CDATA[<h3>自定义View总结 &ndash; 布局</h3>
-
-<h4>布局基础</h4>
-
-<p>布局过程，就是程序在运行时利用布局文件中的代码来计算出实际尺寸和位置的过程。有两个阶段，测量阶段和布局阶段，分别对应<code>measure</code>和<code>layout</code>。</p>
-
-<p>对于一个<code>View</code>而言，默认的<code>onMeasure</code>实现是：</p>
-
-<!-- more -->
-
-
-<p>```java</p>
-
-<pre><code>/**
- * &lt;p&gt;
- * Measure the view and its content to determine the measured width and the
- * measured height. This method is invoked by {@link #measure(int, int)} and
- * should be overridden by subclasses to provide accurate and efficient
- * measurement of their contents.
- * &lt;/p&gt;
- *
- * &lt;p&gt;
- * &lt;strong&gt;CONTRACT:&lt;/strong&gt; When overriding this method, you
- * &lt;em&gt;must&lt;/em&gt; call {@link #setMeasuredDimension(int, int)} to store the
- * measured width and height of this view. Failure to do so will trigger an
- * &lt;code&gt;IllegalStateException&lt;/code&gt;, thrown by
- * {@link #measure(int, int)}. Calling the superclass'
- * {@link #onMeasure(int, int)} is a valid use.
- * &lt;/p&gt;
- *
- * &lt;p&gt;
- * The base class implementation of measure defaults to the background size,
- * unless a larger size is allowed by the MeasureSpec. Subclasses should
- * override {@link #onMeasure(int, int)} to provide better measurements of
- * their content.
- * &lt;/p&gt;
- *
- * &lt;p&gt;
- * If this method is overridden, it is the subclass's responsibility to make
- * sure the measured height and width are at least the view's minimum height
- * and width ({@link #getSuggestedMinimumHeight()} and
- * {@link #getSuggestedMinimumWidth()}).
- * &lt;/p&gt;
- *
- * @param widthMeasureSpec horizontal space requirements as imposed by the parent.
- *                         The requirements are encoded with
- *                         {@link android.view.View.MeasureSpec}.
- * @param heightMeasureSpec vertical space requirements as imposed by the parent.
- *                         The requirements are encoded with
- *                         {@link android.view.View.MeasureSpec}.
- *
- * @see #getMeasuredWidth()
- * @see #getMeasuredHeight()
- * @see #setMeasuredDimension(int, int)
- * @see #getSuggestedMinimumHeight()
- * @see #getSuggestedMinimumWidth()
- * @see android.view.View.MeasureSpec#getMode(int)
- * @see android.view.View.MeasureSpec#getSize(int)
- */
-protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-    setMeasuredDimension(getDefaultSize(getSuggestedMinimumWidth(), widthMeasureSpec),
-            getDefaultSize(getSuggestedMinimumHeight(), heightMeasureSpec));
-}
-
-/**
- * Utility to return a default size. Uses the supplied size if the
- * MeasureSpec imposed no constraints. Will get larger if allowed
- * by the MeasureSpec.
- *
- * @param size Default size for this view
- * @param measureSpec Constraints imposed by the parent
- * @return The size this view should be.
- */
-public static int getDefaultSize(int size, int measureSpec) {
-    int result = size;
-    int specMode = MeasureSpec.getMode(measureSpec);
-    int specSize = MeasureSpec.getSize(measureSpec);
-
-    switch (specMode) {
-    case MeasureSpec.UNSPECIFIED:
-        result = size;
-        break;
-    case MeasureSpec.AT_MOST:
-    case MeasureSpec.EXACTLY:
-        result = specSize;
-        break;
-    }
-    return result;
-}
-
-/**
- * Returns the suggested minimum width that the view should use. This
- * returns the maximum of the view's minimum width
- * and the background's minimum width
- *  ({@link android.graphics.drawable.Drawable#getMinimumWidth()}).
- * &lt;p&gt;
- * When being used in {@link #onMeasure(int, int)}, the caller should still
- * ensure the returned width is within the requirements of the parent.
- *
- * @return The suggested minimum width of the view.
- */
-protected int getSuggestedMinimumWidth() {
-    return (mBackground == null) ? mMinWidth : max(mMinWidth, mBackground.getMinimumWidth());
-}
-</code></pre>
-
-<p>```</p>
-
-<p>可以看到在<code>getDefault</code>方法中对<code>AT_MOST</code>(<code>wrap_content</code>)和<code>EXACTLY</code>(<code>match_parent</code>)的处理都是用父View的size来作为了子View的size，这种处理有的时候是不合适的，需要我们额外做些处理，下面是一个在写自定义View的时候的一个utils方法：</p>
-
-<p>```java</p>
-
-<pre><code>public static int measure(int measureSpec, int defaultSize){
-    int result = defaultSize;
-    int specMode = View.MeasureSpec.getMode(measureSpec);
-    int specSize = View.MeasureSpec.getSize(measureSpec);
-    if (specMode == View.MeasureSpec.EXACTLY){
-        result = specSize;
-    } else if (specMode == View.MeasureSpec.AT_MOST){
-        result = Math.min(specSize, defaultSize);
-    }
-    return result;
-}
-</code></pre>
-
-<p>```</p>
-
-<p>测量阶段，<code>measure()</code>方法被父View调用，在<code>measure()</code>中做一些准备和优化工作后，调用<code>onMeasure()</code>来进行实际的自我测量。<code>onMeasure()</code>中做的事，<code>View</code>和<code>ViewGroup</code>不太一样：</p>
-
-<ul>
-<li><code>View</code>在<code>onMeasure()</code>中根据父View传过来的MeasureSpec约束计算自己的大小并调用<code>setMeasuredDimension</code>保存下来。</li>
-<li><code>ViewGroup</code>在<code>onMeasure</code>中调用<code>measureChildren</code>测量子View，并根据子View计算出的期望大小来计算出它们的实际尺寸和位置然后保存。同时根据子View的尺寸和位置来计算出自己的尺寸并保存。</li>
-</ul>
-
-
-<p>在<code>ViewGroup</code>测量子View的时候，也就是调用<code>childView.measure()</code>的时候需要将自己的约束MeasureSpec传递给子View，这个MeasureSpec如何计算，下面会说。回到最顶层的父View，也即<code>DecorView</code>，它的MeasureSpec是<code>LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT</code>。</p>
-
-<p>布局过程，<code>layout()</code>方法被父View调用，在<code>layout()</code>方法中它会保存父View传进来的自己的位置和尺寸，并且调用<code>onLayout</code>来进行实际的内部布局。<code>onLayout</code>中做的事，<code>View</code>和<code>ViewGroup</code>也不一样：</p>
-
-<ul>
-<li><code>View</code>由于没有子View，它的<code>onLayout</code>什么也不做</li>
-<li><code>ViewGroup</code>在<code>onLayout</code>中会调用自己所有子View的<code>layout</code>方法，把它们的尺寸和位置传给它们，让它们完成自我的内部布局。</li>
-</ul>
-
-
-<h4>全新定义 View 的尺寸</h4>
-
-<p>子View在计算的时候需要保证计算结果满足父View MeasureSpec对自己的尺寸限制。<code>ViewGroup</code>提供了几个工具方法供我们调用：</p>
-
-<p>```</p>
-
-<pre><code>/**
- * Ask all of the children of this view to measure themselves, taking into
- * account both the MeasureSpec requirements for this view and its padding.
- * We skip children that are in the GONE state The heavy lifting is done in
- * getChildMeasureSpec.
- *
- * @param widthMeasureSpec The width requirements for this view
- * @param heightMeasureSpec The height requirements for this view
- */
-protected void measureChildren(int widthMeasureSpec, int heightMeasureSpec) {
-    final int size = mChildrenCount;
-    final View[] children = mChildren;
-    for (int i = 0; i &lt; size; ++i) {
-        final View child = children[i];
-        if ((child.mViewFlags &amp; VISIBILITY_MASK) != GONE) {
-            measureChild(child, widthMeasureSpec, heightMeasureSpec);
-        }
-    }
-}
-
-/**
- * Ask one of the children of this view to measure itself, taking into
- * account both the MeasureSpec requirements for this view and its padding.
- * The heavy lifting is done in getChildMeasureSpec.
- *
- * @param child The child to measure
- * @param parentWidthMeasureSpec The width requirements for this view
- * @param parentHeightMeasureSpec The height requirements for this view
- */
-protected void measureChild(View child, int parentWidthMeasureSpec,
-        int parentHeightMeasureSpec) {
-    final LayoutParams lp = child.getLayoutParams();
-
-    final int childWidthMeasureSpec = getChildMeasureSpec(parentWidthMeasureSpec,
-            mPaddingLeft + mPaddingRight, lp.width);
-    final int childHeightMeasureSpec = getChildMeasureSpec(parentHeightMeasureSpec,
-            mPaddingTop + mPaddingBottom, lp.height);
-
-    child.measure(childWidthMeasureSpec, childHeightMeasureSpec);
-}
-
-/**
- * Does the hard part of measureChildren: figuring out the MeasureSpec to
- * pass to a particular child. This method figures out the right MeasureSpec
- * for one dimension (height or width) of one child view.
- *
- * The goal is to combine information from our MeasureSpec with the
- * LayoutParams of the child to get the best possible results. For example,
- * if the this view knows its size (because its MeasureSpec has a mode of
- * EXACTLY), and the child has indicated in its LayoutParams that it wants
- * to be the same size as the parent, the parent should ask the child to
- * layout given an exact size.
- *
- * @param spec The requirements for this view
- * @param padding The padding of this view for the current dimension and
- *        margins, if applicable
- * @param childDimension How big the child wants to be in the current
- *        dimension
- * @return a MeasureSpec integer for the child
- */
-public static int getChildMeasureSpec(int spec, int padding, int childDimension) {
-    int specMode = MeasureSpec.getMode(spec);
-    int specSize = MeasureSpec.getSize(spec);
-
-    int size = Math.max(0, specSize - padding);
-
-    int resultSize = 0;
-    int resultMode = 0;
-
-    switch (specMode) {
-    // Parent has imposed an exact size on us
-    case MeasureSpec.EXACTLY:
-        if (childDimension &gt;= 0) {
-            resultSize = childDimension;
-            resultMode = MeasureSpec.EXACTLY;
-        } else if (childDimension == LayoutParams.MATCH_PARENT) {
-            // Child wants to be our size. So be it.
-            resultSize = size;
-            resultMode = MeasureSpec.EXACTLY;
-        } else if (childDimension == LayoutParams.WRAP_CONTENT) {
-            // Child wants to determine its own size. It can't be
-            // bigger than us.
-            resultSize = size;
-            resultMode = MeasureSpec.AT_MOST;
-        }
-        break;
-
-    // Parent has imposed a maximum size on us
-    case MeasureSpec.AT_MOST:
-        if (childDimension &gt;= 0) {
-            // Child wants a specific size... so be it
-            resultSize = childDimension;
-            resultMode = MeasureSpec.EXACTLY;
-        } else if (childDimension == LayoutParams.MATCH_PARENT) {
-            // Child wants to be our size, but our size is not fixed.
-            // Constrain child to not be bigger than us.
-            resultSize = size;
-            resultMode = MeasureSpec.AT_MOST;
-        } else if (childDimension == LayoutParams.WRAP_CONTENT) {
-            // Child wants to determine its own size. It can't be
-            // bigger than us.
-            resultSize = size;
-            resultMode = MeasureSpec.AT_MOST;
-        }
-        break;
-
-    // Parent asked to see how big we want to be
-    case MeasureSpec.UNSPECIFIED:
-        if (childDimension &gt;= 0) {
-            // Child wants a specific size... let him have it
-            resultSize = childDimension;
-            resultMode = MeasureSpec.EXACTLY;
-        } else if (childDimension == LayoutParams.MATCH_PARENT) {
-            // Child wants to be our size... find out how big it should
-            // be
-            resultSize = View.sUseZeroUnspecifiedMeasureSpec ? 0 : size;
-            resultMode = MeasureSpec.UNSPECIFIED;
-        } else if (childDimension == LayoutParams.WRAP_CONTENT) {
-            // Child wants to determine its own size.... find out how
-            // big it should be
-            resultSize = View.sUseZeroUnspecifiedMeasureSpec ? 0 : size;
-            resultMode = MeasureSpec.UNSPECIFIED;
-        }
-        break;
-    }
-    //noinspection ResourceType
-    return MeasureSpec.makeMeasureSpec(resultSize, resultMode);
-}
-</code></pre>
-
-<p>```</p>
-
-<p>可以看到子View<code>MeasureSpec</code>是由3个因素共同决定的，父View的<code>MeasureSpec</code>，<code>padding</code>，<code>LayoutParams</code>中的值，其中父View的<code>MeasureSpec</code>是从<code>DecorView</code>一层层约束下来得到的，不难理解，那<code>LayoutParams</code>是从哪里来的呢？   其实<code>LayoutParams</code>是在<code>LayoutInflater</code>解析xml布局的时候，父布局会根据xml中的<code>layout_width</code>和<code>layout_height</code>来给子View<code>generateLayoutParams</code>保存在子View中，所以，可以认为子View的<code>LayoutParams</code>实际上保存的是布局中的开发者对View的要求。</p>
-
-<p>着重看下<code>getChildMeasureSpec</code>这个方法，这个方法对父View尺寸有无限制的情况下子View的大小应该如何进行了处理，注释的比较清楚，就不解释了。</p>
-
-<h4>定制 Layout(ViewGroup) 的内部布局</h4>
-
-<p>通过重写<code>onMeasure()</code>来计算内部布局，重写<code>onLayout</code>来摆放子View。</p>
-
-<p>重写<code>onMeasure()</code>的三个步骤：</p>
-
-<ul>
-<li>调用每个子View的<code>measure</code>方法来计算子View的尺寸</li>
-<li>计算子View的位置并保存子View的位置和尺寸</li>
-<li>计算自己的尺寸并用<code>setMeasuredDimension()</code>保存</li>
-</ul>
-
-
-<p>计算子View尺寸的关键在于<code>measure()</code>方法的两个MeasureSpec参数的计算。子View的<code>MeasureSpec</code>的计算方式：</p>
-
-<ul>
-<li>结合开发者的要求（xml中的layout_打头的属性）和自己的可用空间（自己的尺寸上限-已用尺寸）</li>
-<li>尺寸上限根据自己的<code>MeasureSpec</code>中的mode而定，<code>EXACTLY/AT_MOST</code>尺寸上限为<code>MeasureSpec</code>中的size，<code>UNSPECIFIED</code>尺寸无上限。</li>
-</ul>
-
-
-<p>重写<code>onLayout</code>的方式，在<code>onLayout</code>里调用每个子View的<code>layout()</code>。</p>
-
-<h4>reference</h4>
-
-<ul>
-<li><a href="https://hencoder.com/tag/bu-ju/">自定义 View &ndash; 布局</a></li>
-</ul>
-
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[自定义View总结一]]></title>
-    <link href="http://Solarex.github.io/blog/2019/01/12/summary-of-custom-views-part-i/"/>
-    <updated>2019-01-12T00:33:00+08:00</updated>
-    <id>http://Solarex.github.io/blog/2019/01/12/summary-of-custom-views-part-i</id>
-    <content type="html"><![CDATA[<h2>自定义View总结 &ndash; 绘制</h2>
-
-<h3>绘制基础</h3>
-
-<ul>
-<li><code>Canvas.drawColor(@ColorInt int color)</code> 颜色填充</li>
-<li><code>drawCircle(float centerX, float centerY, float radius, Paint paint)</code> 画圆</li>
-<li><code>Paint.setColor(int color)</code>,<code>Paint.setStyle(Paint.Style style)</code>,<code>Paint.setStrokeWidth(float width)</code>,<code>Paint.setAntiAlias(boolean aa)</code></li>
-<li><code>drawRect(float left, float top, float right, float bottom, Paint paint)</code> 画矩形</li>
-<li><code>drawPoint(float x, float y, Paint paint)</code> 画点</li>
-<li><code>drawPoints(float[] pts, int offset, int count, Paint paint) / drawPoints(float[] pts, Paint paint)</code> 画点（批量）</li>
-<li><code>drawOval(float left, float top, float right, float bottom, Paint paint)</code>画椭圆</li>
-<li><code>drawLine(float startX, float startY, float stopX, float stopY, Paint paint)</code> 画线</li>
-<li><code>drawLines(float[] pts, int offset, int count, Paint paint) / drawLines(float[] pts, Paint paint)</code> 画线（批量）</li>
-<li><code>drawRoundRect(float left, float top, float right, float bottom, float rx, float ry, Paint paint)</code> 画圆角矩形</li>
-<li><code>drawArc(float left, float top, float right, float bottom, float startAngle, float sweepAngle, boolean useCenter, Paint paint)</code> 绘制弧形或扇形</li>
-<li><code>drawPath(Path path, Paint paint)</code> 画自定义图形</li>
-<li><code>drawBitmap(Bitmap bitmap, float left, float top, Paint paint)</code> 画 Bitmap</li>
-<li><code>drawText(String text, float x, float y, Paint paint)</code>绘制文字</li>
-</ul>
-
-
-<!-- more -->
-
-
-<h4>Path</h4>
-
-<ul>
-<li><code>addCircle(float x, float y, float radius, Direction dir)</code> 添加圆</li>
-<li><code>addOval(float left, float top, float right, float bottom, Direction dir) / addOval(RectF oval, Direction dir)</code>添加椭圆</li>
-<li><code>addRect(float left, float top, float right, float bottom, Direction dir) / addRect(RectF rect, Direction dir)</code>添加矩形</li>
-<li><code>addRoundRect(RectF rect, float rx, float ry, Direction dir) / addRoundRect(float left, float top, float right, float bottom, float rx, float ry, Direction dir) / addRoundRect(RectF rect, float[] radii, Direction dir) / addRoundRect(float left, float top, float right, float bottom, float[] radii, Direction dir)</code>添加圆角矩形</li>
-<li><code>addPath(Path path)</code> 添加另一个 Path</li>
-<li><code>lineTo(float x, float y) / rLineTo(float x, float y)</code>画直线</li>
-<li><code>quadTo(float x1, float y1, float x2, float y2) / rQuadTo(float dx1, float dy1, float dx2, float dy2)</code>画二次贝塞尔曲线</li>
-<li><code>cubicTo(float x1, float y1, float x2, float y2, float x3, float y3) / rCubicTo(float x1, float y1, float x2, float y2, float x3, float y3)</code> 画三次贝塞尔曲线</li>
-<li><code>moveTo(float x, float y) / rMoveTo(float x, float y)</code>移动到目标位置</li>
-<li><code>arcTo(RectF oval, float startAngle, float sweepAngle, boolean forceMoveTo) / arcTo(float left, float top, float right, float bottom, float startAngle, float sweepAngle, boolean forceMoveTo) / arcTo(RectF oval, float startAngle, float sweepAngle)</code> 画弧形</li>
-<li><code>addArc(float left, float top, float right, float bottom, float startAngle, float sweepAngle) / addArc(RectF oval, float startAngle, float sweepAngle)</code>,<code>addArc()</code> 只是一个直接使用了 <code>forceMoveTo = true</code> 的简化版 <code>arcTo()</code></li>
-<li><code>close()</code>封闭当前子图形</li>
-<li><code>Path.setFillType(Path.FillType ft)</code> 设置填充方式</li>
-</ul>
-
-
-<h3>Paint详解</h3>
-
-<center><p><img src="http://Solarex.github.io/images/canvas-color.jpg" alt="Canvas绘制的内容，有三层对颜色的处理"></p></center>
-
-
-<h4>颜色</h4>
-
-<table>
-<thead>
-<tr>
-<th></th>
-<th align="center">     canvas 方法      </th>
-<th> 像素颜色的设置方式 </th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td></td>
-<td align="center"> drawColor/RGB/ARGB() </td>
-<td> 直接作为参数传入   |</td>
-</tr>
-<tr>
-<td></td>
-<td align="center"> drawBitmap() </td>
-<td> 与<code>bitmap</code>参数的像素颜色相同 |</td>
-</tr>
-<tr>
-<td></td>
-<td align="center"> 图形和文字(drawCircle()/drawPath()/drawText()&hellip;) </td>
-<td> 在<code>paint</code>参数中设置 |</td>
-</tr>
-</tbody>
-</table>
-
-
-<h5>直接设置颜色<code>Paint.setColor(int color)</code>,<code>Paint.setARGB(int a,int r,int g,int b)</code></h5>
-
-<h5>setShader(Shader shader) 设置shader</h5>
-
-<ul>
-<li><p>shader着色器，它和直接设置颜色的区别是，着色器设置的是一个颜色方案，或者说是一套着色规则。</p></li>
-<li><p>LinearGradient 线性渐变</p></li>
-<li><p>RadialGradient 辐射渐变，辐射渐变很好理解，就是从中心向周围辐射状的渐变。</p></li>
-<li><p>SweepGradient 扫描渐变</p></li>
-<li><p>BitmapShader 用 Bitmap 来着色，其实也就是用 Bitmap 的像素来作为图形或文字的填充。</p></li>
-<li><p>ComposeShader 混合着色器 所谓混合，就是把两个 Shader 一起使用。</p></li>
-</ul>
-
-
-<h5>setColorFilter(ColorFilter colorFilter)</h5>
-
-<p>为绘制设置颜色过滤。颜色过滤的意思，就是为绘制的内容设置一个统一的过滤策略，然后 Canvas.drawXXX() 方法会对每个像素都进行过滤后再绘制出来。</p>
-
-<ul>
-<li><code>LightingColorFilter(int mul, int add)</code></li>
-</ul>
-
-
-<p><code>java
-R' = R * mul.R / 0xff + add.R  
-G' = G * mul.G / 0xff + add.G  
-B' = B * mul.B / 0xff + add.B  
-</code></p>
-
-<ul>
-<li><code>PorterDuffColorFilter(int color, PorterDuff.Mode mode)</code></li>
-<li><code>ColorMatrixColorFilter</code></li>
-</ul>
-
-
-<p><code>ColorMatrixColorFilter</code> 使用一个 <code>ColorMatrix</code> 来对颜色进行处理。 <code>ColorMatrix</code> 这个类，内部是一个 4x5 的矩阵：</p>
-
-<p>```java
-[ a, b, c, d, e,
-  f, g, h, i, j,
-  k, l, m, n, o,
-  p, q, r, s, t ]</p>
-
-<p>R’ = a<em>R + b</em>G + c<em>B + d</em>A + e;<br/>
-G’ = f<em>R + g</em>G + h<em>B + i</em>A + j;<br/>
-B’ = k<em>R + l</em>G + m<em>B + n</em>A + o;<br/>
-A’ = p<em>R + q</em>G + r<em>B + s</em>A + t;
-```</p>
-
-<p><a href="https://github.com/chengdazhi/StyleImageView">StyleImageView</a></p>
-
-<h5>setXfermode(Xfermode xfermode)</h5>
-
-<ul>
-<li><p>使用离屏缓冲（Off-screen Buffer）</p></li>
-<li><p>控制好透明区域</p></li>
-</ul>
-
-
-<h4>效果</h4>
-
-<h5>setAntiAlias (boolean aa) 设置抗锯齿</h5>
-
-<h5>setStyle(Paint.Style style)</h5>
-
-<h5>线条形状</h5>
-
-<ul>
-<li><p><code>setStrokeWidth(float width)</code></p></li>
-<li><p><code>setStrokeCap(Paint.Cap cap)</code></p></li>
-<li><p><code>setStrokeJoin(Paint.Join join)</code></p></li>
-<li><p><code>setStrokeMiter(float miter)</code></p></li>
-</ul>
-
-
-<h5>色彩优化</h5>
-
-<ul>
-<li><p><code>setDither(boolean dither)</code> 设置图像的抖动</p></li>
-<li><p><code>setFilterBitmap(boolean filter)</code> 设置是否使用双线性过滤来绘制 Bitmap</p></li>
-</ul>
-
-
-<h5>setPathEffect(PathEffect effect)</h5>
-
-<p>使用 <code>PathEffect</code> 来给图形的轮廓设置效果。对 Canvas 所有的图形绘制有效，也就是  <code>drawLine() drawCircle() drawPath()</code> 这些方法。</p>
-
-<ul>
-<li><p><code>CornerPathEffect</code> 把所有拐角变成圆角</p></li>
-<li><p><code>DiscretePathEffect</code> 把线条进行随机的偏离，让轮廓变得乱七八糟。</p></li>
-<li><p><code>DashPathEffect</code> 使用虚线来绘制线条</p></li>
-<li><p><code>PathDashPathEffect</code> 这个方法比 DashPathEffect 多一个前缀 Path ，所以顾名思义，它是使用一个 Path 来绘制「虚线」。</p></li>
-<li><p><code>SumPathEffect</code> 这是一个组合效果类的 PathEffect 。它的行为特别简单，就是分别按照两种 PathEffect 分别对目标进行绘制。</p></li>
-<li><p><code>ComposePathEffect</code> 这也是一个组合效果类的 PathEffect 。不过它是先对目标 Path 使用一个 PathEffect，然后再对这个改变后的 Path 使用另一个 PathEffect。它的构造方法 <code>ComposePathEffect(PathEffect outerpe, PathEffect innerpe)</code> 中的两个  PathEffect 参数， innerpe 是先应用的， outerpe 是后应用的。</p></li>
-</ul>
-
-
-<h5>setShadowLayer(float radius, float dx, float dy, int shadowColor)</h5>
-
-<p>在之后的绘制内容下面加一层阴影。如果要清除阴影层，使用 clearShadowLayer() 。</p>
-
-<ul>
-<li><p>在硬件加速开启的情况下， setShadowLayer() 只支持文字的绘制，文字之外的绘制必须关闭硬件加速才能正常绘制阴影。</p></li>
-<li><p>如果 shadowColor 是半透明的，阴影的透明度就使用 shadowColor 自己的透明度；而如果 shadowColor 是不透明的，阴影的透明度就使用 paint 的透明度。</p></li>
-</ul>
-
-
-<h5>setMaskFilter(MaskFilter maskfilter)</h5>
-
-<p>为之后的绘制设置 <code>MaskFilter</code>。上一个方法 <code>setShadowLayer()</code> 是设置的在绘制层下方的附加效果；而这个 <code>MaskFilter</code> 和它相反，设置的是在绘制层上方的附加效果。</p>
-
-<ul>
-<li><p><code>BlurMaskFilter</code> 模糊效果的 MaskFilter。<code>BlurMaskFilter(float radius, BlurMaskFilter.Blur style)</code> 中， radius 参数是模糊的范围， style 是模糊的类型。NORMAL: 内外都模糊绘制，SOLID: 内部正常绘制，外部模糊，INNER: 内部模糊，外部不绘制，OUTER: 内部不绘制，外部模糊。</p></li>
-<li><p><code>EmbossMaskFilter</code> 浮雕效果的 MaskFilter。</p></li>
-</ul>
-
-
-<h5>获取绘制的 Path</h5>
-
-<p>根据 paint 的设置，计算出绘制 Path 或文字时的实际 Path。所谓实际 Path ，指的就是 drawPath() 的绘制内容的轮廓，要算上线条宽度和设置的 PathEffect。</p>
-
-<ul>
-<li><p><code>getFillPath(Path src, Path dst)</code>，<code>getFillPath(src, dst)</code> 方法就能获取这个实际 Path。方法的参数里，src 是原 Path ，而 dst 就是实际 Path 的保存位置。 <code>getFillPath(src, dst)</code> 会计算出实际 Path，然后把结果保存在 dst 里。</p></li>
-<li><p><code>getTextPath(String text, int start, int end, float x, float y, Path path) / getTextPath(char[] text, int index, int count, float x, float y, Path path)</code> 文字的绘制，虽然是使用 Canvas.drawText() 方法，但其实在下层，文字信息全是被转化成图形，对图形进行绘制的。  getTextPath() 方法，获取的就是目标文字所对应的 Path</p></li>
-</ul>
-
-
-<h4>Paint初始化类</h4>
-
-<ul>
-<li><p><code>reset()</code></p></li>
-<li><p><code>set(Paint src)</code></p></li>
-<li><p><code>setFlags(int flags)</code></p></li>
-</ul>
-
-
-<h3>文字的绘制</h3>
-
-<h5>Canvas 绘制文字的方式</h5>
-
-<ul>
-<li><p><code>drawText(String text, float x, float y, Paint paint)</code></p></li>
-<li><p><code>drawTextRun()</code></p></li>
-<li><p><code>drawTextOnPath()</code></p></li>
-<li><p><code>StaticLayout</code></p></li>
-</ul>
-
-
-<h5>Paint 对文字绘制的辅助</h5>
-
-<ul>
-<li><p><code>setTextSize(float textSize)</code></p></li>
-<li><p><code>setTypeface(Typeface typeface)</code></p></li>
-<li><p><code>setFakeBoldText(boolean fakeBoldText)</code> 伪粗体（ fake bold ），因为它并不是通过选用更高 weight 的字体让文字变粗，而是通过程序在运行时把文字给「描粗」了</p></li>
-<li><p><code>setStrikeThruText(boolean strikeThruText)</code> 是否加删除线</p></li>
-<li><p><code>setUnderlineText(boolean underlineText)</code> 是否加下划线</p></li>
-<li><p><code>setTextSkewX(float skewX)</code> 设置文字横向错切角度。其实就是文字倾斜度的啦。</p></li>
-<li><p><code>setTextScaleX(float scaleX)</code> 设置文字横向放缩。也就是文字变胖变瘦。</p></li>
-<li><p><code>setLetterSpacing(float letterSpacing)</code> 设置字符间距。默认值是 0。</p></li>
-<li><p><code>setFontFeatureSettings(String settings)</code></p></li>
-<li><p><code>setTextAlign(Paint.Align align)</code> 设置文字的对齐方式。一共有三个值：LEFT CETNER 和 RIGHT。默认值为 LEFT。</p></li>
-<li><p><code>setTextLocale(Locale locale) / setTextLocales(LocaleList locales)</code> 设置绘制所使用的 Locale。</p></li>
-<li><p><code>setHinting(int mode)</code> 设置是否启用字体的 hinting （字体微调）。</p></li>
-<li><p><code>setElegantTextHeight(boolean elegant)</code> 设置是否开启文字的 elegant height 。开启之后，文字的高度就变优雅了</p></li>
-<li><p><code>setSubpixelText(boolean subpixelText)</code> 是否开启次像素级的抗锯齿（ sub-pixel anti-aliasing ）。</p></li>
-<li><p><code>setLinearText(boolean linearText)</code></p></li>
-<li><p><code>hasGlyph(String string)</code> 检查指定的字符串中是否是一个单独的字形 (glyph）。</p></li>
-</ul>
-
-
-<h5>测量文字尺寸类</h5>
-
-<ul>
-<li><p><code>float getFontSpacing()</code> 获取推荐的行距。</p></li>
-<li><p><code>FontMetircs getFontMetrics()</code> 获取 Paint 的 FontMetrics。<code>FontMetrics</code> 是个相对专业的工具类，它提供了几个文字排印方面的数值：<code>ascent</code>,  <code>descent</code>, <code>top</code>, <code>bottom</code>, <code>leading</code>。<code>ascent</code> 和 <code>descent</code> 这两个值还可以通过 <code>Paint.ascent()</code> 和 <code>Paint.descent()</code> 来快捷获取。</p></li>
-<li><p><code>getTextBounds(String text, int start, int end, Rect bounds)</code> 获取文字的显示范围。</p></li>
-<li><p><code>float measureText(String text)</code> 测量文字的宽度并返回。</p></li>
-</ul>
-
-
-<p>如果你用代码分别使用 getTextBounds() 和 measureText() 来测量文字的宽度，你会发现  measureText() 测出来的宽度总是比 getTextBounds() 大一点点。这是因为这两个方法其实测量的是两个不一样的东西。getTextBounds: 它测量的是文字的显示范围（关键词：显示）。形象点来说，你这段文字外放置一个可变的矩形，然后把矩形尽可能地缩小，一直小到这个矩形恰好紧紧包裹住文字，那么这个矩形的范围，就是这段文字的 bounds。measureText(): 它测量的是文字绘制时所占用的宽度（关键词：占用）。前面已经讲过，一个文字在界面中，往往需要占用比他的实际显示宽度更多一点的宽度，以此来让文字和文字之间保留一些间距，不会显得过于拥挤。</p>
-
-<ul>
-<li><p><code>getTextWidths(String text, float[] widths)</code> 获取字符串中每个字符的宽度，并把结果填入参数 widths。</p></li>
-<li><p><code>int breakText(String text, boolean measureForwards, float maxWidth, float[] measuredWidth)</code> 这个方法也是用来测量文字宽度的。但和 measureText() 的区别是， breakText() 是在给出宽度上限的前提下测量文字的宽度。如果文字的宽度超出了上限，那么在临近超限的位置截断文字。</p></li>
-</ul>
-
-
-<h5>光标相关</h5>
-
-<ul>
-<li><p><code>getRunAdvance(CharSequence text, int start, int end, int contextStart, int contextEnd, boolean isRtl, int offset)</code> 对于一段文字，计算出某个字符处光标的 x 坐标。</p></li>
-<li><p><code>getOffsetForAdvance(CharSequence text, int start, int end, int contextStart, int contextEnd, boolean isRtl, float advance)</code> 给出一个位置的像素值，计算出文字中最接近这个位置的字符偏移量</p></li>
-</ul>
-
-
-<h3>Canvas 对绘制的辅助 clipXXX() 和 Matrix</h3>
-
-<h5>范围裁切</h5>
-
-<p>范围裁切有两个方法： <code>clipRect()</code> 和 <code>clipPath()</code>。裁切方法之后的绘制代码，都会被限制在裁切范围内。</p>
-
-<ul>
-<li><p><code>clipRect()</code></p></li>
-<li><p><code>clipPath()</code></p></li>
-</ul>
-
-
-<h5>几何变换</h5>
-
-<p>几何变换的使用大概分为三类：</p>
-
-<ul>
-<li>使用 Canvas 来做常见的二维变换；</li>
-<li>使用 Matrix 来做常见和不常见的二维变换；</li>
-<li>使用 Camera 来做三维变换。</li>
-</ul>
-
-
-<h6>使用 Canvas 来做常见的二维变换</h6>
-
-<ul>
-<li><p><code>Canvas.translate(float dx, float dy)</code> 平移</p></li>
-<li><p><code>Canvas.rotate(float degrees, float px, float py)</code> 旋转</p></li>
-<li><p><code>Canvas.scale(float sx, float sy, float px, float py)</code> 放缩</p></li>
-<li><p><code>skew(float sx, float sy)</code> 错切</p></li>
-</ul>
-
-
-<h6>使用 Matrix 来做变换</h6>
-
-<p>Matrix 做常见变换的方式：</p>
-
-<ul>
-<li>创建 Matrix 对象；</li>
-<li>调用 Matrix 的 <code>pre/postTranslate/Rotate/Scale/Skew()</code> 方法来设置几何变换；</li>
-<li>使用 <code>Canvas.setMatrix(matrix)</code> 或 <code>Canvas.concat(matrix)</code> 来把几何变换应用到 Canvas。</li>
-</ul>
-
-
-<p>把 Matrix 应用到 Canvas 有两个方法： <code>Canvas.setMatrix(matrix)</code> 和 <code>Canvas.concat(matrix)</code>。</p>
-
-<ul>
-<li><code>Canvas.setMatrix(matrix)</code>：用 Matrix 直接替换 Canvas 当前的变换矩阵，即抛弃 Canvas 当前的变换，改用 Matrix 的变换（注：根据下面评论里以及我在微信公众号中收到的反馈，不同的系统中 setMatrix(matrix) 的行为可能不一致，所以还是尽量用  concat(matrix) 吧）；</li>
-<li><code>Canvas.concat(matrix)</code>：用 Canvas 当前的变换矩阵和 Matrix 相乘，即基于 Canvas 当前的变换，叠加上 Matrix 中的变换。</li>
-</ul>
-
-
-<p>使用 Matrix 来做自定义变换</p>
-
-<ul>
-<li><code>Matrix.setPolyToPoly(float[] src, int srcIndex, float[] dst, int dstIndex, int pointCount)</code> 用点对点映射的方式设置变换。poly 就是「多」的意思。setPolyToPoly() 的作用是通过多点的映射的方式来直接设置变换。「多点映射」的意思就是把指定的点移动到给出的位置，从而发生形变。例如：(0, 0) &ndash;> (100, 100) 表示把 (0, 0) 位置的像素移动到 (100, 100) 的位置，这个是单点的映射，单点映射可以实现平移。而多点的映射，就可以让绘制内容任意地扭曲。</li>
-</ul>
-
-
-<h6>使用 Camera 来做三维变换</h6>
-
-<p>Camera 的三维变换有三类：旋转、平移、移动相机。</p>
-
-<ul>
-<li><p><code>Camera.rotate*()</code> 三维旋转 <code>Camera.rotate*()</code> 一共有四个方法： <code>rotateX(deg) rotateY(deg) rotateZ(deg) rotate(x, y, z)</code>。</p></li>
-<li><p><code>Camera.translate(float x, float y, float z)</code> 移动</p></li>
-<li><p><code>Camera.setLocation(x, y, z)</code> 设置虚拟相机的位置。在 Camera 中，相机的默认位置是 (0, 0, -8)（英寸）。8 x 72 = 576，所以它的默认位置是 (0, 0, -576)（像素）。</p></li>
-</ul>
-
-
-<h3>绘制顺序</h3>
-
-<h5>super.onDraw() 前 or 后？</h5>
-
-<h5><code>dispatchDraw()</code>：绘制子 View 的方法</h5>
-
-<h5>绘制过程简述</h5>
-
-<p>绘制过程中最典型的两个部分是上面讲到的主体和子 View，但它们并不是绘制过程的全部。除此之外，绘制过程还包含一些其他内容的绘制。具体来讲，一个完整的绘制过程会依次绘制以下几个内容：</p>
-
-<ul>
-<li>背景</li>
-<li>主体（onDraw()）</li>
-<li>子 View（dispatchDraw()）</li>
-<li>滑动边缘渐变和滑动条</li>
-<li>前景</li>
-</ul>
-
-
-<center><p><img src="http://Solarex.github.io/images/canvas-draw-process.jpg"/></p></center>
-
-
-<h5>onDrawForeground()</h5>
-
-<p>在 onDrawForeground() 中，会依次绘制滑动边缘渐变、滑动条和前景。</p>
-
-<h5>draw() 总调度方法</h5>
-
-<center><p><img src="http://Solarex.github.io/images/canvas-draw.jpg"/></p></center>
-
-
-<p>关于绘制方法，有两点需要注意一下：</p>
-
-<ul>
-<li><p>出于效率的考虑，ViewGroup 默认会绕过 <code>draw()</code> 方法，换而直接执行  <code>dispatchDraw()</code>，以此来简化绘制流程。所以如果你自定义了某个 ViewGroup 的子类（比如 LinearLayout）并且需要在它的除 <code>dispatchDraw()</code> 以外的任何一个绘制方法内绘制内容，你可能会需要调用 <code>View.setWillNotDraw(false)</code> 这行代码来切换到完整的绘制流程（是「可能」而不是「必须」的原因是，有些 ViewGroup 是已经调用过  setWillNotDraw(false) 了的，例如 ScrollView）。</p></li>
-<li><p>有的时候，一段绘制代码写在不同的绘制方法中效果是一样的，这时你可以选一个自己喜欢或者习惯的绘制方法来重写。但有一个例外：如果绘制代码既可以写在  <code>onDraw()</code> 里，也可以写在其他绘制方法里，那么优先写在 <code>onDraw()</code> ，因为 Android 有相关的优化，可以在不需要重绘的时候自动跳过 <code>onDraw()</code> 的重复执行，以提升开发效率。享受这种优化的只有 <code>onDraw()</code> 一个方法。</p></li>
-</ul>
-
-
-<h3>属性动画 Property Animation</h3>
-
-<p> Android 里动画是有一些分类的：动画可以分为两类：Animation 和 Transition；其中 Animation 又可以再分为 View Animation 和 Property Animation 两类： View Animation 是纯粹基于 framework 的绘制转变，Property Animation，属性动画，这是在 Android 3.0 开始引入的新的动画形式。</p>
-
-<p> ##### ViewPropertyAnimator</p>
-
-<p> <center><p><img src="http://Solarex.github.io/images/view-animate.jpg"/></p></center></p>
-
-<p> ##### ObjectAnimator</p>
-
-<p>使用方式：</p>
-
-<ul>
-<li>如果是自定义控件，需要添加 setter / getter 方法；</li>
-<li>用 ObjectAnimator.ofXXX() 创建 ObjectAnimator 对象；</li>
-<li>用 start() 方法执行动画。</li>
-</ul>
-
-
-<h5>通用方法</h5>
-
-<ul>
-<li><p><code>setDuration(int duration)</code> 设置动画时长</p></li>
-<li><p><code>setInterpolator(Interpolator interpolator)</code> 设置 Interpolator,<code>AccelerateDecelerateInterpolator</code>,<code>LinearInterpolator</code>,<code>AccelerateInterpolator</code>,<code>DecelerateInterpolator</code>,<code>AnticipateInterpolator</code>,<code>OvershootInterpolator</code>,<code>AnticipateOvershootInterpolator</code>,<code>BounceInterpolator</code>,<code>CycleInterpolator</code>,<code>PathInterpolator</code>,<code>FastOutLinearInInterpolator</code>,<code>FastOutSlowInInterpolator</code>,<code>LinearOutSlowInInterpolator</code></p></li>
-</ul>
-
-
-<h5>设置监听器</h5>
-
-<p>设置监听器的方法， ViewPropertyAnimator 和 ObjectAnimator 略微不一样：  ViewPropertyAnimator 用的是 setListener() 和 setUpdateListener() 方法，可以设置一个监听器，要移除监听器时通过 set[Update]Listener(null) 填 null 值来移除；而  ObjectAnimator 则是用 addListener() 和 addUpdateListener() 来添加一个或多个监听器，移除监听器则是通过 remove[Update]Listener() 来指定移除对象。另外，由于 ObjectAnimator 支持使用 pause() 方法暂停，所以它还多了一个  addPauseListener() / removePauseListener() 的支持；而 ViewPropertyAnimator 则独有  withStartAction() 和 withEndAction() 方法，可以设置一次性的动画开始或结束的监听。</p>
-
-<p>AnimatorListener 共有 4 个回调方法：</p>
-
-<ul>
-<li><p><code>onAnimationStart(Animator animation)</code></p></li>
-<li><p><code>onAnimationEnd(Animator animation)</code></p></li>
-<li><p><code>onAnimationCancel(Animator animation)</code></p></li>
-<li><p><code>onAnimationRepeat(Animator animation)</code></p></li>
-</ul>
-
-
-<p><code>AnimatorUpdateListener</code>它只有一个回调方法：<code>onAnimationUpdate(ValueAnimator animation)</code></p>
-
-<p><code>ViewPropertyAnimator.withStartAction/EndAction()</code>，<code>withStartAction() / withEndAction()</code> 是一次性的，在动画执行结束后就自动弃掉了，就算之后再重用 <code>ViewPropertyAnimator</code> 来做别的动画，用它们设置的回调也不会再被调用。而 <code>set/addListener()</code> 所设置的 <code>AnimatorListener</code> 是持续有效的，当动画重复执行时，回调总会被调用。<code>withEndAction()</code> 设置的回调只有在动画正常结束时才会被调用，而在动画被取消时不会被执行。这点和 <code>AnimatorListener.onAnimationEnd()</code> 的行为是不一致的。</p>
-
-<h5>TypeEvaluator</h5>
-
-<ul>
-<li><p><code>ArgbEvaluator</code></p></li>
-<li><p>自定义 Evaluator</p></li>
-</ul>
-
-
-<p>借助于 TypeEvaluator，属性动画就可以通过 ofObject() 来对不限定类型的属性做动画了。方式很简单：</p>
-
-<ul>
-<li><p>为目标属性写一个自定义的 TypeEvaluator</p></li>
-<li><p>使用 ofObject() 来创建 Animator，并把自定义的 TypeEvaluator 作为参数填入</p></li>
-</ul>
-
-
-<h5>PropertyValuesHolder 同一个动画中改变多个属性</h5>
-
-<h5>AnimatorSet 多个动画配合执行</h5>
-
-<h5>PropertyValuesHolders.ofKeyframe() 把同一个属性拆分</h5>
-
-<h3>硬件加速</h3>
-
-<ul>
-<li><p><a href="https://developer.android.google.cn/guide/topics/graphics/hardware-accel.html">Hardware Acceleration | Android Developers</a></p></li>
-<li><p><a href="https://www.youtube.com/watch?v=v9S5EO7CLjo">Google I/O 2011: Accelerated Android Rendering</a></p></li>
-</ul>
-
-
-<p>所谓硬件加速，指的是把某些计算工作交给专门的硬件来做，而不是和普通的计算工作一样交给 CPU 来处理。这样不仅减轻了 CPU 的压力，而且由于有了「专人」的处理，这份计算工作的速度也被加快了。这就是「硬件加速」。</p>
-
-<p>而对于 Android 来说，硬件加速有它专属的意思：在 Android 里，硬件加速专指把 View 中绘制的计算工作交给 GPU 来处理。进一步地再明确一下，这个「绘制的计算工作」指的就是把绘制方法中的那些 Canvas.drawXXX() 变成实际的像素这件事。</p>
-
-<p>在硬件加速关闭的时候，Canvas 绘制的工作方式是：把要绘制的内容写进一个  Bitmap，然后在之后的渲染过程中，这个 Bitmap 的像素内容被直接用于渲染到屏幕。这种绘制方式的主要计算工作在于把绘制操作转换为像素的过程（例如由一句  Canvas.drawCircle() 来获得一个具体的圆的像素信息），这个过程的计算是由 CPU 来完成的。而在硬件加速开启时，Canvas 的工作方式改变了：它只是把绘制的内容转换为 GPU 的操作保存了下来，然后就把它交给 GPU，最终由 GPU 来完成实际的显示工作。</p>
-
-<p>硬件加速不只是好处，也有它的限制：受到 GPU 绘制方式的限制，Canvas 的有些方法在硬件加速开启式会失效或无法正常工作。比如，在硬件加速开启时， clipPath() 在 API 18 及以上的系统中才有效。具体的 API 限制和 API 版本的关系如下图：</p>
-
-<center><p><img src="http://Solarex.github.io/images/hardware-acceleration.jpg"></p></center>
-
-
-<h5>View Layer</h5>
-
-<p>setLayerType() 这个方法，它的作用其实就是名字里的意思：设置 View Layer 的类型。所谓 View Layer，又称为离屏缓冲（Off-screen Buffer），它的作用是单独启用一块地方来绘制这个 View ，而不是使用软件绘制的 Bitmap 或者通过硬件加速的 GPU。这块「地方」可能是一块单独的 Bitmap，也可能是一块 OpenGL 的纹理（texture，OpenGL 的纹理可以简单理解为图像的意思），具体取决于硬件加速是否开启。采用什么来绘制 View 不是关键，关键在于当设置了 View Layer 的时候，它的绘制会被缓存下来，而且缓存的是最终的绘制结果，而不是像硬件加速那样只是把 GPU 的操作保存下来再交给 GPU 去计算。通过这样更进一步的缓存方式，View 的重绘效率进一步提高了：只要绘制的内容没有变，那么不论是 CPU 绘制还是 GPU 绘制，它们都不用重新计算，而只要只用之前缓存的绘制结果就可以了。</p>
-
-<p>基于这样的原理，在进行移动、旋转等（无需调用 invalidate()）的属性动画的时候开启 Hardware Layer 将会极大地提升动画的效率，因为在动画过程中 View 本身并没有发生改变，只是它的位置或角度改变了，而这种改变是可以由 GPU 通过简单计算就完成的，并不需要重绘整个 View。所以在这种动画的过程中开启 Hardware Layer，可以让本来就依靠硬件加速而变流畅了的动画变得更加流畅。</p>
-
-<p>不过一定要注意，只有你在对 translationX translationY rotation alpha 等无需调用  invalidate() 的属性做动画的时候，这种方法才适用，因为这种方法本身利用的就是当界面不发生时，缓存未更新所带来的时间的节省。所以简单地说——这种方式不适用于基于自定义属性绘制的动画。</p>
-
-<p>另外，由于设置了 View Layer 后，View 在初次绘制时以及每次 invalidate() 后重绘时，需要进行两次的绘制工作（一次绘制到 Layer，一次从 Layer 绘制到显示屏），所以其实它的每次绘制的效率是被降低了的。所以一定要慎重使用 View Layer，在需要用到它的时候再去使用。</p>
-
-<h3>reference</h3>
-
-<ul>
-<li><a href="https://github.com/xinghongfei/awesome-view">awesome-view</a></li>
-<li><a href="https://github.com/GcsSloop/AndroidNote/tree/master/CustomView">GcsSloop CustomView</a></li>
-<li><a href="https://blog.csdn.net/aigestudio/column/info/androidcustomview">Android自定义控件其实很简单</a></li>
-<li><a href="https://hencoder.com/tag/hui-zhi/">自定义View-绘制</a></li>
 </ul>
 
 ]]></content>

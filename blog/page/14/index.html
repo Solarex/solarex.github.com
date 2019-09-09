@@ -9,7 +9,9 @@
   <meta name="author" content="Solarex">
 
   
-  <meta name="description" content="OAuth是一个关于授权（authorization）的开放网络标准，在全世界得到广泛应用，目前的版本是2.0版。本文对OAuth 2.0的设计思路和运行流程，做一个简明通俗的解释，主要参考材料为RFC 6749。 应用场景 为了理解OAuth的适用场合，让我举一个假设的例子。有一个&#8221 &hellip;">
+  <meta name="description" content="Android Loader Life before Loaders
+Understanding the LoaderManager
+Implementing Loaders Android Loader This post gives a brief introduction to &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -90,6 +92,192 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/10/24/android-loader/">Android Loader</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-10-24T06:34:00+08:00" pubdate data-updated="true">Oct 24<span>th</span>, 2014</time>
+        
+         | <a href="/blog/2014/10/24/android-loader/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p><center><img src="/images/android_logo.jpg"/></center></p>
+
+
+<ul>
+<li><a href="#overview">Android Loader</a>
+
+<ul>
+<li><a href="#before">Life before Loaders</a></li>
+<li><a href="#loadermanager">Understanding the LoaderManager</a></li>
+<li><a href="#implementing">Implementing Loaders</a></li>
+</ul>
+</li>
+</ul>
+
+
+<h2 id="overview">Android Loader</h2>
+
+
+<p>This post gives a brief introduction to Loaders and the LoaderManager. The first section describes how data was loaded prior to the release of Android 3.0, pointing out out some of the flaws of the pre-Honeycomb APIs. The second section defines the purpose of each class and summarizes their powerful ability in asynchronously loading data.</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2014/10/24/android-loader/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/10/19/android-asynctask-pitfalls/">The Hidden Pitfalls of AsyncTask</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-10-19T15:56:00+08:00" pubdate data-updated="true">Oct 19<span>th</span>, 2014</time>
+        
+         | <a href="/blog/2014/10/19/android-asynctask-pitfalls/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p><center><img src="/images/android_logo.jpg"/></center></p>
+
+
+<p>I originally wrote this article when I was (foolishly) still using AsyncTasks. Nowadays I simply consider it a mistake in all cases. As you&rsquo;ll see from the original article, there are a lot of problems with it &ndash; and there are much better solutions.</p>
+
+<p>My preferred alternative these days are combining <a href="https://github.com/Netflix/RxJava">RxJava</a> with schedulers. You get the same effect as an <code>AsyncTask</code> with none of the problems, plus you get an awesome framework in addition. I know, recommending a library to solve a problem is irritating, but RxJava is worth looking at for many reasons.</p>
+
+<p>When <code>AsyncTask</code> was introduced to Android, it was labeled as “<a href="http://android-developers.blogspot.com/2009/05/painless-threading.html">Painless Threading</a>.” Its goal was to make background Threads which could interact with the UI thread easier. It was successful on that count, but it’s not exactly painless – there are a number of cases where <code>AsyncTask</code> is not a silver bullet. It is easy to blindly use <code>AsyncTask</code> without realizing what can go wrong if not handled with care. Below are some of the problems that can arise when using <code>AsyncTask</code> without fully understanding it.</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2014/10/19/android-asynctask-pitfalls/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/10/19/android-tips/">Android Tips</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-10-19T13:00:00+08:00" pubdate data-updated="true">Oct 19<span>th</span>, 2014</time>
+        
+         | <a href="/blog/2014/10/19/android-tips/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p><center><img src="/images/android_training.jpg"/></center></p>
+
+
+<ul>
+<li><a href="#overview">Android Tips and Tricks</a>
+
+<ul>
+<li><a href="#part1">Part I</a></li>
+<li><a href="#part2">Part II</a></li>
+<li><a href="#part3">Part III</a></li>
+<li><a href="#part4">Part IV</a></li>
+<li><a href="#part5">Part V</a></li>
+</ul>
+</li>
+</ul>
+
+
+<h2 id="overview">Android Tips and Tricks</h2>
+
+
+
+
+<h3 id="part1">Part I</h3>
+
+
+<ul>
+<li><p><code>Activity.startActivities()</code> &ndash; Nice for launching to the middle of an app flow.</p></li>
+<li><p><code>TextUtils.isEmpty()</code> &ndash; Simple utility I use everywhere.</p></li>
+<li><p><code>Html.fromHtml()</code> &ndash; Quick method for formatting Html. It&rsquo;s not particularly fast so I wouldn&rsquo;t use it constantly (e.g., don&rsquo;t use it just to bold part of a string &ndash; construct the Spannable manually instead), but it&rsquo;s fine for rendering text obtained from the web.</p></li>
+<li><p><code>TextView.setError()</code> &ndash; Nice UI when validating user input.</p></li>
+<li><p><code>Build.VERSION_CODES</code> &ndash; Not only is it handy for routing code, it&rsquo;s also summarizes behavioral differences between each version of Android.</p></li>
+</ul>
+
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2014/10/19/android-tips/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
   
   
     <article>
@@ -205,189 +393,6 @@
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2014/10/14/android-context/">Android Context</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-10-14T10:11:00+08:00" pubdate data-updated="true">Oct 14<span>th</span>, 2014</time>
-        
-         | <a href="/blog/2014/10/14/android-context/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><center><p><img src="/images/android_robot.png" width="255" height="300"></p></center>
-
-
-<p>Context is probably the most used element in Android applications…it may also be the most misused.Context objects are so common, and get passed around so frequently, it can be easy to create a situation you didn’t intend.  Loading resources, launching a new Activity, obtaining a system service, getting internal file paths, and creating views all require a Context (and that’s not even getting started on the full list!) to accomplish the task.  What I’d like to do is provide for you some insights on how Context works alongside some tips that will (hopefully) allow you to leverage it more effectively in your applications.</p>
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2014/10/14/android-context/">Read on &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2014/10/14/java-thread-tutorial/">Java Thread Tutorial</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-10-14T08:49:00+08:00" pubdate data-updated="true">Oct 14<span>th</span>, 2014</time>
-        
-         | <a href="/blog/2014/10/14/java-thread-tutorial/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><center><p><img src="/images/java-thread-tutorial.png" ></p></center>
-
-
-<ul>
-<li><a href="#overview">Java Thread and Multithreading Tutorial</a>
-
-<ul>
-<li><a href="#example">Java Thread Example</a></li>
-<li><a href="#sleep">Java Thread Sleep</a></li>
-<li><a href="#join">Java Thread Join</a></li>
-<li><a href="#states">Java Thread States</a></li>
-<li><a href="#wait">Java Thread wait, notify and notifyAll</a></li>
-<li><a href="#safety">Java Thread Safety and Java Synchronization</a></li>
-<li><a href="#exception">Java Exception in thread main</a></li>
-<li><a href="#singleton">Thread Safety in Singleton Class</a></li>
-<li><a href="#daemon">Java Daemon Thread</a></li>
-<li><a href="#threadlocal">Java Thread Local</a></li>
-<li><a href="#dump">Java Thread Dump</a></li>
-<li><a href="#deadlock">How to Analyze Deadlock and avoid it in Java</a></li>
-<li><a href="#timer">Java Timer Thread</a></li>
-<li><a href="#producer">Java Producer Consumer Problem</a></li>
-<li><a href="#pool">Java Thread Pool</a></li>
-<li><a href="#future">Java Callable Future</a></li>
-<li><a href="#futuretask">Java FutureTask Example</a></li>
-</ul>
-</li>
-</ul>
-
-
-<h2 id="overview">Java Thread and Multithreading Tutorial</h2>
-
-
-<p>There are two types of threads in an application – <code>user thread</code> and <code>daemon thread</code>. When we start an application, main is the first user thread created and we can create multiple user threads as well as daemon threads. When all the user threads are executed, JVM terminates the program.</p>
-
-<p>We can set different priorities to different Threads but it doesn’t guarantee that higher priority thread will execute first than lower priority thread. Thread scheduler is the part of Operating System implementation and when a Thread is started, it’s execution is controlled by Thread Scheduler and JVM doesn’t have any control on it’s execution.</p>
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2014/10/14/java-thread-tutorial/">Read on &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2014/10/13/android-main-thread/">A Journey on the Android Main Thread</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-10-13T16:51:00+08:00" pubdate data-updated="true">Oct 13<span>th</span>, 2014</time>
-        
-         | <a href="/blog/2014/10/13/android-main-thread/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>When facing bugs that were related to how we interact with the main thread, I decided to get a closer look at what the main thread really is.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">BigBang</span> <span class="o">{</span>
-</span><span class='line'>  <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="n">String</span><span class="o">...</span> <span class="n">args</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'>    <span class="c1">// The Java universe starts here.</span>
-</span><span class='line'>  <span class="o">}</span>
-</span><span class='line'><span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>All Java programs start with a call to a <code>public static void main()</code> method. This is true for Java Desktop programs, JEE servlet containers, and Android applications.</p>
-
-<p>When the Android system boots, it starts a Linux process called <code>ZygoteInit</code>. This process is a Dalvik VM that loads the <a href="https://android.googlesource.com/platform/frameworks/base/+/refs/heads/master/preloaded-classes">most common classes</a> of the Android SDK on a thread, and then waits.</p>
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2014/10/13/android-main-thread/">Read on &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/15/">&larr; Older</a>
@@ -405,23 +410,23 @@
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2019/08/10/lock-free-multithreading-with-atomic-operations/">Lock-free multithreading with atomic operations</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2019/08/09/introduction-to-thread-synchronization/">Introduction to thread synchronization</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2019/08/07/a-gentle-introduction-to-multithreading/">A gentle introduction to multithreading</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2019/08/05/floyd-cycle-detection-in-linkedlist/">检测链表中是否有环</a>
       </li>
     
       <li class="post">
         <a href="/blog/2019/08/04/java-threadpoolexecutor/">Java线程池解析</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2019/08/01/java-blockingqueue/">Java BlockingQueue解析</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2019/07/28/aqs/">Java AQS解析</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2019/06/28/futuretask/">Java FutureTask解析</a>
       </li>
     
   </ul>

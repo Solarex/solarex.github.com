@@ -383,12 +383,30 @@
         <lastmod>2019-08-14T17:56:09+08:00</lastmod>
     </url>
     <url>
+        <loc>
+            http://Solarex.github.io/blog/2019/08/07/a-gentle-introduction-to-multithreading/
+        </loc>
+        <lastmod>2019-09-09T11:37:30+08:00</lastmod>
+    </url>
+    <url>
+        <loc>
+            http://Solarex.github.io/blog/2019/08/09/introduction-to-thread-synchronization/
+        </loc>
+        <lastmod>2019-09-09T11:41:16+08:00</lastmod>
+    </url>
+    <url>
+        <loc>
+            http://Solarex.github.io/blog/2019/08/10/lock-free-multithreading-with-atomic-operations/
+        </loc>
+        <lastmod>2019-09-09T11:41:34+08:00</lastmod>
+    </url>
+    <url>
         <loc>http://Solarex.github.io/</loc>
-        <lastmod>2019-08-19T22:12:43+08:00</lastmod>
+        <lastmod>2019-09-09T11:41:34+08:00</lastmod>
     </url>
     <url>
         <loc>http://Solarex.github.io/projects/</loc>
-        <lastmod>2019-08-26T23:04:04+08:00</lastmod>
+        <lastmod>2019-09-09T11:46:05+08:00</lastmod>
     </url>
     <url>
         <loc>http://Solarex.github.io/about/</loc>
@@ -396,7 +414,7 @@
     </url>
     <url>
         <loc>http://Solarex.github.io/blog/archives/</loc>
-        <lastmod>2019-08-19T22:12:43+08:00</lastmod>
+        <lastmod>2019-09-09T11:41:34+08:00</lastmod>
     </url>
     <url>
         <loc>http://Solarex.github.io/search.html</loc>

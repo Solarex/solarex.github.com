@@ -9,7 +9,7 @@
   <meta name="author" content="Solarex">
 
   
-  <meta name="description" content="A common task in Android is to perform some background activity in another thread, meanwhile displaying a ProgressDialog to the user. Example of &hellip;">
+  <meta name="description" content="Unlike Ubuntu shipped with GNU command line tools,Mac OS X shipped with the BSD version,which make me WTF when I encountered with some compatibility &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -90,6 +90,247 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2015/03/22/using-gnu-command-line-tools-on-mac-os-x/">Using GNU Command Line Tools on Mac OS X</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2015-03-22T23:05:00+08:00" pubdate data-updated="true">Mar 22<span>nd</span>, 2015</time>
+        
+         | <a href="/blog/2015/03/22/using-gnu-command-line-tools-on-mac-os-x/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p><p><center><img src="/images/apple_mac_logo.jpg" width="225" height="225"></center>
+Unlike Ubuntu shipped with GNU command line tools,Mac OS X shipped with the BSD version,which make me WTF when I encountered with some compatibility issues.Fortunately,it&rsquo;s quit easy to install gnu tools by using homebrew in Mac OS X and set them as default.</p>
+
+<p></div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2015/03/22/using-gnu-command-line-tools-on-mac-os-x/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/10/31/android-best-practices-for-background-jobs/">[Training]Best Practices for Background Jobs</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-10-31T10:12:00+08:00" pubdate data-updated="true">Oct 31<span>st</span>, 2014</time>
+        
+         | <a href="/blog/2014/10/31/android-best-practices-for-background-jobs/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p><p><center><img src="/images/android_training.jpg"></center></p>
+
+<ul>
+<li><a href="#overview">Background jobs best practices</a>
+
+<ul>
+<li><a href="#running">Running in a background service</a></li>
+<li><a href="#loading">Loading data in the background</a></li>
+<li><a href="#managing">Managing the device awake state</a></li>
+</ul>
+</li>
+</ul>
+
+
+<p><h2 id="overview">Best Practices for Background Jobs</h2></p>
+
+<p>These classes show you how to run jobs in the background to boost your application’s performance and minimize its drain on the battery.</p>
+
+<p><h3 id="running">Running in a background service</h3></p>
+
+<p>This class describes how to implement an IntentService, send it work requests, and report its results to other components.</p>
+
+<h4>Creating a background service</h4>
+
+<p>The IntentService class provides a straightforward structure for running an operation on a single background thread. This allows it to handle long-running operations without affecting your user interface’s responsiveness. Also, an IntentService isn’t affected by most user interface lifecycle events, so it continues to run in circumstances that would shut down an AsyncTask.</p>
+
+<p>An IntentService has a few limitations:</p>
+
+<ul>
+<li>It can’t interact directly with your user interface. To put its results in the UI, you have to send them to an Activity.不能直接与UI交互</li>
+<li>Work requests run sequentially. If an operation is running in an IntentService, and you send it another request, the request waits until the first operation is finished.任务顺序执行</li>
+<li>An operation running on an IntentService can’t be interrupted.任务不可被打断</li>
+</ul>
+
+
+<p>However, in most cases an IntentService is the preferred way to simple background operations.</p>
+
+<p></div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2014/10/31/android-best-practices-for-background-jobs/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/10/31/android-multithreading-in-a-ui-environment/">Multithreading in a UI Environment</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-10-31T09:14:00+08:00" pubdate data-updated="true">Oct 31<span>st</span>, 2014</time>
+        
+         | <a href="/blog/2014/10/31/android-multithreading-in-a-ui-environment/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p><p><center><img src="/images/android_threads.png"></center></p>
+
+<h2>Why do we need multithreading in Android applications?</h2>
+
+<p>Let’s say you want to do a very long operation when the user pushes a button.If you are not using another thread, it will look something like this:</p>
+
+<p><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="o">((</span><span class="n">Button</span><span class="o">)</span><span class="n">findViewById</span><span class="o">(</span><span class="n">R</span><span class="o">.</span><span class="na">id</span><span class="o">.</span><span class="na">Button01</span><span class="o">)).</span><span class="na">setOnClickListener</span><span class="o">(</span>
+</span><span class='line'>             <span class="k">new</span> <span class="nf">OnClickListener</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>          <span class="nd">@Override</span>
+</span><span class='line'>          <span class="kd">public</span> <span class="kt">void</span> <span class="nf">onClick</span><span class="o">(</span><span class="n">View</span> <span class="n">v</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="kt">int</span> <span class="n">result</span> <span class="o">=</span> <span class="n">doLongOperation</span><span class="o">();</span>
+</span><span class='line'>            <span class="n">updateUI</span><span class="o">(</span><span class="n">result</span><span class="o">);</span>
+</span><span class='line'>          <span class="o">}</span>
+</span><span class='line'>      <span class="o">});</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>What will happen?The UI freezes. This is a really bad UI experience. The program may even crash.</p>
+
+<h2>The problem in using threads in a UI environment</h2>
+
+<p>So what will happen if we use a Thread for a long running operation.Let’s try a simple example:</p>
+
+<p><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="o">((</span><span class="n">Button</span><span class="o">)</span><span class="n">findViewById</span><span class="o">(</span><span class="n">R</span><span class="o">.</span><span class="na">id</span><span class="o">.</span><span class="na">Button01</span><span class="o">)).</span><span class="na">setOnClickListener</span><span class="o">(</span>
+</span><span class='line'><span class="k">new</span> <span class="nf">OnClickListener</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>          <span class="nd">@Override</span>
+</span><span class='line'>          <span class="kd">public</span> <span class="kt">void</span> <span class="nf">onClick</span><span class="o">(</span><span class="n">View</span> <span class="n">v</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>              <span class="o">(</span><span class="k">new</span> <span class="n">Thread</span><span class="o">(</span><span class="k">new</span> <span class="n">Runnable</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>                  <span class="nd">@Override</span>
+</span><span class='line'>                  <span class="kd">public</span> <span class="kt">void</span> <span class="nf">run</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>                    <span class="kt">int</span> <span class="n">result</span> <span class="o">=</span> <span class="n">doLongOperation</span><span class="o">();</span>
+</span><span class='line'>                    <span class="n">updateUI</span><span class="o">(</span><span class="n">result</span><span class="o">);</span>
+</span><span class='line'>                  <span class="o">}</span>
+</span><span class='line'>              <span class="o">})).</span><span class="na">start</span><span class="o">();</span>
+</span><span class='line'>
+</span><span class='line'>          <span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>The result in this case is that the application crashes.</p>
+
+<p><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>12-07 16:24:29.089: ERROR/AndroidRuntime<span class="o">(</span>315<span class="o">)</span>: FATAL EXCEPTION: Thread-8
+</span><span class='line'>12-07 16:24:29.089: ERROR/AndroidRuntime<span class="o">(</span>315<span class="o">)</span>: android.view.ViewRoot<span class="nv">$CalledFromWrongThreadException</span>: Only the original thread that created a view hierarchy can touch its views.
+</span><span class='line'>12-07 16:24:29.089: ERROR/AndroidRuntime<span class="o">(</span>315<span class="o">)</span>: at &hellip;Clearly the Android OS wont <span class="nb">let </span>threads other than the main thread change UI elements.
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>But why?Android UI toolkit, like many other UI environments, is not thread-safe.</p>
+
+<p></div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2014/10/31/android-multithreading-in-a-ui-environment/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
   
   
     <article>
@@ -199,192 +440,6 @@
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2014/10/24/android-loader/">Android Loader</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-10-24T06:34:00+08:00" pubdate data-updated="true">Oct 24<span>th</span>, 2014</time>
-        
-         | <a href="/blog/2014/10/24/android-loader/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p><center><img src="/images/android_logo.jpg"/></center></p>
-
-
-<ul>
-<li><a href="#overview">Android Loader</a>
-
-<ul>
-<li><a href="#before">Life before Loaders</a></li>
-<li><a href="#loadermanager">Understanding the LoaderManager</a></li>
-<li><a href="#implementing">Implementing Loaders</a></li>
-</ul>
-</li>
-</ul>
-
-
-<h2 id="overview">Android Loader</h2>
-
-
-<p>This post gives a brief introduction to Loaders and the LoaderManager. The first section describes how data was loaded prior to the release of Android 3.0, pointing out out some of the flaws of the pre-Honeycomb APIs. The second section defines the purpose of each class and summarizes their powerful ability in asynchronously loading data.</p>
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2014/10/24/android-loader/">Read on &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2014/10/19/android-asynctask-pitfalls/">The Hidden Pitfalls of AsyncTask</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-10-19T15:56:00+08:00" pubdate data-updated="true">Oct 19<span>th</span>, 2014</time>
-        
-         | <a href="/blog/2014/10/19/android-asynctask-pitfalls/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p><center><img src="/images/android_logo.jpg"/></center></p>
-
-
-<p>I originally wrote this article when I was (foolishly) still using AsyncTasks. Nowadays I simply consider it a mistake in all cases. As you&rsquo;ll see from the original article, there are a lot of problems with it &ndash; and there are much better solutions.</p>
-
-<p>My preferred alternative these days are combining <a href="https://github.com/Netflix/RxJava">RxJava</a> with schedulers. You get the same effect as an <code>AsyncTask</code> with none of the problems, plus you get an awesome framework in addition. I know, recommending a library to solve a problem is irritating, but RxJava is worth looking at for many reasons.</p>
-
-<p>When <code>AsyncTask</code> was introduced to Android, it was labeled as “<a href="http://android-developers.blogspot.com/2009/05/painless-threading.html">Painless Threading</a>.” Its goal was to make background Threads which could interact with the UI thread easier. It was successful on that count, but it’s not exactly painless – there are a number of cases where <code>AsyncTask</code> is not a silver bullet. It is easy to blindly use <code>AsyncTask</code> without realizing what can go wrong if not handled with care. Below are some of the problems that can arise when using <code>AsyncTask</code> without fully understanding it.</p>
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2014/10/19/android-asynctask-pitfalls/">Read on &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2014/10/19/android-tips/">Android Tips</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-10-19T13:00:00+08:00" pubdate data-updated="true">Oct 19<span>th</span>, 2014</time>
-        
-         | <a href="/blog/2014/10/19/android-tips/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p><center><img src="/images/android_training.jpg"/></center></p>
-
-
-<ul>
-<li><a href="#overview">Android Tips and Tricks</a>
-
-<ul>
-<li><a href="#part1">Part I</a></li>
-<li><a href="#part2">Part II</a></li>
-<li><a href="#part3">Part III</a></li>
-<li><a href="#part4">Part IV</a></li>
-<li><a href="#part5">Part V</a></li>
-</ul>
-</li>
-</ul>
-
-
-<h2 id="overview">Android Tips and Tricks</h2>
-
-
-
-
-<h3 id="part1">Part I</h3>
-
-
-<ul>
-<li><p><code>Activity.startActivities()</code> &ndash; Nice for launching to the middle of an app flow.</p></li>
-<li><p><code>TextUtils.isEmpty()</code> &ndash; Simple utility I use everywhere.</p></li>
-<li><p><code>Html.fromHtml()</code> &ndash; Quick method for formatting Html. It&rsquo;s not particularly fast so I wouldn&rsquo;t use it constantly (e.g., don&rsquo;t use it just to bold part of a string &ndash; construct the Spannable manually instead), but it&rsquo;s fine for rendering text obtained from the web.</p></li>
-<li><p><code>TextView.setError()</code> &ndash; Nice UI when validating user input.</p></li>
-<li><p><code>Build.VERSION_CODES</code> &ndash; Not only is it handy for routing code, it&rsquo;s also summarizes behavioral differences between each version of Android.</p></li>
-</ul>
-
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2014/10/19/android-tips/">Read on &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/14/">&larr; Older</a>
@@ -402,23 +457,23 @@
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2019/08/10/lock-free-multithreading-with-atomic-operations/">Lock-free multithreading with atomic operations</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2019/08/09/introduction-to-thread-synchronization/">Introduction to thread synchronization</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2019/08/07/a-gentle-introduction-to-multithreading/">A gentle introduction to multithreading</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2019/08/05/floyd-cycle-detection-in-linkedlist/">检测链表中是否有环</a>
       </li>
     
       <li class="post">
         <a href="/blog/2019/08/04/java-threadpoolexecutor/">Java线程池解析</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2019/08/01/java-blockingqueue/">Java BlockingQueue解析</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2019/07/28/aqs/">Java AQS解析</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2019/06/28/futuretask/">Java FutureTask解析</a>
       </li>
     
   </ul>

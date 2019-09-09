@@ -9,7 +9,7 @@
   <meta name="author" content="Solarex">
 
   
-  <meta name="description" content="reference ">
+  <meta name="description" content="Java代理有静态代理和动态代理之分。 静态代理 静态代理类图如下： ProxyObject持有RealObject的引用，在someOperation方法中可以代理RealObject做操作。 ">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -96,6 +96,147 @@
       
   <header>
     
+      <h1 class="entry-title"><a href="/blog/2018/04/26/java-proxy/">Java代理</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2018-04-26T10:07:00+08:00" pubdate data-updated="true">Apr 26<span>th</span>, 2018</time>
+        
+         | <a href="/blog/2018/04/26/java-proxy/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Java代理有静态代理和动态代理之分。</p>
+
+<h4>静态代理</h4>
+
+<p>静态代理类图如下：</p>
+
+<p><center><img src="/images/java-proxy-static.png" width=225 height=225/></center></p>
+
+
+<p><code>ProxyObject</code>持有<code>RealObject</code>的引用，在<code>someOperation</code>方法中可以代理<code>RealObject</code>做操作。</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2018/04/26/java-proxy/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2018/04/23/okhttp3-source-analysis/">Okhttp3源码分析</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2018-04-23T16:43:00+08:00" pubdate data-updated="true">Apr 23<span>rd</span>, 2018</time>
+        
+         | <a href="/blog/2018/04/23/okhttp3-source-analysis/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>周末在家断点调试了一下okhttp的执行流程，翻看了一下okhttp的源码，对okhttp有了一个大致的了解，在这记录一下。okhttp的精髓是<code>Dispatcher</code>和<code>Interceptor</code>，这里主要分析这两个。</p>
+
+<h1>Dispatcher</h1>
+
+<p><code>Dispatcher</code>是在<code>OkHttpClient.Builder</code>中实例化的，主要维护了<code>runningSyncCalls</code>，<code>runningAsyncCalls</code>,<code>readyAsyncCalls</code>三个队列。</p>
+
+<p>同步的请求在执行<code>execute</code>方法时会将<code>RealCall</code>对象添加到<code>runningSyncCalls</code>队列中去，然后调用<code>getResponseWithInterceptorChain</code>去获取<code>Response</code>，不管成功失败，在<code>finally</code>块中都会执行<code>runningSyncCalls.remove(realcall)</code>将<code>RealCall</code>对象移除出队列。类似于一个生产者消费者系统。</p>
+
+<p>异步的请求会将请求包装成一个<code>AsyncCall</code>，实际上就是一个Runnable，然后看<code>runningAsyncCalls</code>队列的长度是否小于<code>maxRequests</code>也即64并且同一个host的请求是否小于<code>maxRequestsPerHost</code>,如果满足则添加到<code>runningAsyncCalls</code>队列中去，并且调用线程池执行，否则添加到<code>readyAsyncCalls</code>队列中去。在<code>AsyncCall</code>这个<code>Runnable</code>的<code>run</code>方法中又会去调用<code>getResponseWithInterceptorChain</code>去获取<code>Response</code>，值得注意的是在<code>finally</code>块中，将<code>AsyncCall</code>移除出队列的时候会调用<code>promoteCalls</code>方法。</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2018/04/23/okhttp3-source-analysis/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2018/04/15/android-view-system/">View绘制流程分析</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2018-04-15T16:34:00+08:00" pubdate data-updated="true">Apr 15<span>th</span>, 2018</time>
+        
+         | <a href="/blog/2018/04/15/android-view-system/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content">
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
       <h1 class="entry-title"><a href="/blog/2018/04/08/nestedscrolling-analysis/">NestedScrolling分析</a></h1>
     
     
@@ -172,140 +313,6 @@
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2018/03/25/android-touch-system/">Android触摸事件分发机制</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2018-03-25T16:26:00+08:00" pubdate data-updated="true">Mar 25<span>th</span>, 2018</time>
-        
-         | <a href="/blog/2018/03/25/android-touch-system/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><iframe src="//player.bilibili.com/player.html?aid=24566744&cid=41274515&page=1" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true"> </iframe>
-
-
-<h4>reference</h4>
-
-<ul>
-<li><a href="https://github.com/devunwired/custom-touch-examples">custom-touch-examples</a></li>
-</ul>
-
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2018/03/23/volley-source-analysis/">Volley源码分析</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2018-03-23T16:24:00+08:00" pubdate data-updated="true">Mar 23<span>rd</span>, 2018</time>
-        
-         | <a href="/blog/2018/03/23/volley-source-analysis/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>本文主要对Volley源码进行分析。</p>
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2018/03/23/volley-source-analysis/">Read on &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2018/01/08/android-signature/">Android签名</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2018-01-08T09:49:00+08:00" pubdate data-updated="true">Jan 8<span>th</span>, 2018</time>
-        
-         | <a href="/blog/2018/01/08/android-signature/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h3>reference</h3>
-
-<ul>
-<li><a href="https://source.android.com/security/apksigning">V1</a></li>
-<li><a href="https://source.android.com/security/apksigning/v2">V2</a></li>
-<li><a href="https://source.android.com/security/apksigning/v3">V3</a></li>
-</ul>
-
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/7/">&larr; Older</a>
@@ -323,23 +330,23 @@
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2019/08/10/lock-free-multithreading-with-atomic-operations/">Lock-free multithreading with atomic operations</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2019/08/09/introduction-to-thread-synchronization/">Introduction to thread synchronization</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2019/08/07/a-gentle-introduction-to-multithreading/">A gentle introduction to multithreading</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2019/08/05/floyd-cycle-detection-in-linkedlist/">检测链表中是否有环</a>
       </li>
     
       <li class="post">
         <a href="/blog/2019/08/04/java-threadpoolexecutor/">Java线程池解析</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2019/08/01/java-blockingqueue/">Java BlockingQueue解析</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2019/07/28/aqs/">Java AQS解析</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2019/06/28/futuretask/">Java FutureTask解析</a>
       </li>
     
   </ul>

@@ -9,31 +9,8 @@
   <meta name="author" content="Solarex">
 
   
-  <meta name="description" content="Java从1.5引入枚举类型，EffectiveJava第2版item 30也建议我们使用枚举来代替int常量。我们从下面的Enum示例中看下枚举类型到底是什么。 1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-23
-24
-25 &hellip;">
+  <meta name="description" content="已迁移到gitbook，请访问EffectiveJava笔记。
+">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -114,6 +91,120 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2018/07/12/notes-on-effective-java/">EffectiveJava2nd读书笔记</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2018-07-12T14:30:00+08:00" pubdate data-updated="true">Jul 12<span>th</span>, 2018</time>
+        
+         | <a href="/blog/2018/07/12/notes-on-effective-java/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>已迁移到gitbook，请访问<a href="https://solarex.github.io/reading-notes/effective-java/readme.html">EffectiveJava笔记</a>。</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2018/07/11/notes-on-jvm/">深入理解Java虚拟机读书笔记</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2018-07-11T14:28:00+08:00" pubdate data-updated="true">Jul 11<span>th</span>, 2018</time>
+        
+         | <a href="/blog/2018/07/11/notes-on-jvm/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>已迁移到gitbook，请访问<a href="https://solarex.github.io/reading-notes/deep-into-jvm/readme.html">深入理解Java虚拟机笔记</a></p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2018/07/10/java-generics-syntactic-sugar/">Java泛型语法糖</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2018-07-10T14:24:00+08:00" pubdate data-updated="true">Jul 10<span>th</span>, 2018</time>
+        
+         | <a href="/blog/2018/07/10/java-generics-syntactic-sugar/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content">
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -318,161 +409,6 @@
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2018/07/01/datastructure-and-algorithms/">数据结构与算法</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2018-07-01T19:06:00+08:00" pubdate data-updated="true">Jul 1<span>st</span>, 2018</time>
-        
-         | <a href="/blog/2018/07/01/datastructure-and-algorithms/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h2>ArrayList</h2>
-
-<ul>
-<li>尾插效率高，支持随机访问</li>
-<li>中间插入或者删除效率低</li>
-<li>空间不够用时，自动增长为现有空间的1.5倍</li>
-<li>底层使用Object数组来存储数据，使用System.arrayCopy来移动元素</li>
-</ul>
-
-
-<h2>LinkedList</h2>
-
-<ul>
-<li>头插，中间插，删除效率高</li>
-<li>不支持随机访问</li>
-<li>MessageQueue中Message根据msg.when来进行插入，mMessages指向头结点</li>
-</ul>
-
-
-<h2>Vector</h2>
-
-<ul>
-<li>底层使用数组实现，增长看<code>capacityIncrement</code>，若<code>capacityIncrement</code>小于0，翻倍增长</li>
-<li>方法有<code>synchronized</code>修饰，线程安全</li>
-<li><code>Stack</code>栈底层实现使用的<code>Vector</code></li>
-<li><code>Stack</code>在同一端进行插入和删除，<code>FILO</code></li>
-<li>队列<code>Queue</code>是只允许在一端进行插入操作，而在另一端进行删除操作的线性表，插入的一端称为队尾，删除的一端称为队头</li>
-<li>把队列的头尾相接的顺序存储结构称为循环队列</li>
-<li>双端队列<code>Deque</code>是一种具有队列和栈的性质的数据结构，双端队列中的元素可以从两端弹出，其限定插入和删除操作在队列的两端进行。<code>LinkedList</code>，<code>ArrayDeque</code>实现了<code>Deque</code>接口,<code>LinkedBlockingQueue</code>实现了<code>BlockingDeque</code>接口</li>
-<li>优先级队列，<code>PriorityQueue</code>，<code>MessageQueue</code>根据<code>Message.when</code>来进行插入</li>
-</ul>
-
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2018/06/18/why-java-string-designed-as-final/">为什么String要被设计成final的</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2018-06-18T09:53:00+08:00" pubdate data-updated="true">Jun 18<span>th</span>, 2018</time>
-        
-         | <a href="/blog/2018/06/18/why-java-string-designed-as-final/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h2>Reference</h2>
-
-<ul>
-<li><a href="https://javarevisited.blogspot.com/2010/10/why-string-is-immutable-or-final-in-java.html">Why String is Immutable or Final in Java</a></li>
-</ul>
-
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2018/06/15/the-art-of-java-concurrency-programming-notes/">Java并发编程的艺术笔记</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2018-06-15T23:04:00+08:00" pubdate data-updated="true">Jun 15<span>th</span>, 2018</time>
-        
-         | <a href="/blog/2018/06/15/the-art-of-java-concurrency-programming-notes/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>已迁移到gitbook，请访问<a href="https://solarex.github.io/reading-notes/the-art-of-java-concurrency-programming/readme.html">Java并发编程的艺术笔记</a>。</p>
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2018/06/15/the-art-of-java-concurrency-programming-notes/">Read on &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/5/">&larr; Older</a>
@@ -490,23 +426,23 @@
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2019/08/10/lock-free-multithreading-with-atomic-operations/">Lock-free multithreading with atomic operations</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2019/08/09/introduction-to-thread-synchronization/">Introduction to thread synchronization</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2019/08/07/a-gentle-introduction-to-multithreading/">A gentle introduction to multithreading</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2019/08/05/floyd-cycle-detection-in-linkedlist/">检测链表中是否有环</a>
       </li>
     
       <li class="post">
         <a href="/blog/2019/08/04/java-threadpoolexecutor/">Java线程池解析</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2019/08/01/java-blockingqueue/">Java BlockingQueue解析</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2019/07/28/aqs/">Java AQS解析</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2019/06/28/futuretask/">Java FutureTask解析</a>
       </li>
     
   </ul>
