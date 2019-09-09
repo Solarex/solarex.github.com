@@ -21,6 +21,7 @@ footer: true
 
 + [Java常用设计模式](https://github.com/flyfire/JavaDesignPatterns)
 + [HeadFirstDesignPatterns](https://github.com/flyfire/HeadFirstDesignPatterns)
++ [HeadFirst设计模式读书笔记](https://solarex.github.io/reading-notes/head-first-design-patterns/readme.html),[设计模式之禅读书笔记](https://solarex.github.io/reading-notes/the-zen-of-design-patterns/readme.html)
 + // todo 常用设计模式优缺点及适用场景总结
 + // todo 设计模式读书笔记
 
