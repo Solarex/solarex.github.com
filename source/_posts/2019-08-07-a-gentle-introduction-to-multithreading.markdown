@@ -107,7 +107,7 @@ The bad news is that the vast majority of operations out there are non-atomic. E
 
 Preemptive multitasking gives the operating system full control over thread management: it can start, stop and pause threads according to advanced scheduling algorithms. You as a programmer cannot control the time or order of execution. In fact, there is no guarantee that a simple code like this:
 
-```nocode
+```java
 writer_thread.start()
 reader_thread.start()
 ```

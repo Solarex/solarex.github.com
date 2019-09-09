@@ -76,7 +76,7 @@ For example, GCC — a C++ compiler — usually transforms C++ atomic operations
 
 Let's now see how atomic operations are used. Consider incrementing a simple variable, an task that is not atomic by nature as it is made of three different steps — read the value, increment it, store the new value back. Traditionally, you would regulate the operation with a mutex (pseudocode):
 
-```nolang
+```c
 mutex = initialize_mutex()
 x     = 0
 
@@ -95,7 +95,7 @@ The first thread that acquires the lock makes progress, while others sit and wai
 
 Conversely, the lock-free approach introduces a different pattern: threads are free to run without any impediment, by employing atomic operations. For example:
 
-```nolang
+```c
 x = 0
 
 reader_thread()
@@ -127,7 +127,7 @@ The CAS loop is interesting also because it introduces a recurring pattern in lo
 
 A CAS function provided by an operating system or a programming language might look like this:
 
-```nolang
+```c
 boolean compare_and_swap(shared_data, expected_value, new_value);
 ```
 
@@ -137,7 +137,7 @@ In a CAS loop the idea is to repeatedly trying to compare and swap until the ope
 
 Suppose we want to replicate the fetch-and-add algorithm seen in the previous snippet with a CAS loop. It would look roughly like this (pseudocode):
 
-```nolang
+```c
 x = 0
 
 reader_thread()
