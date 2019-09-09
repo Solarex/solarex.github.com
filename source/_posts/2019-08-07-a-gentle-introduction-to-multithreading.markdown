@@ -8,7 +8,7 @@ categories:
 - dev
 ---
 
-清空Reeder发现internalpointers一系列关于多线程的文章，感觉很不错，转载在此。^O^
+清空Reeder发现internalpointers一系列关于多线程的文章，感觉很不错，转载在此。
 
 这是系列第一篇。
 
