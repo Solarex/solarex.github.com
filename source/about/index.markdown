@@ -10,10 +10,8 @@ It's amazing just the way you are!
 
 
 Email: <img src="/images/gmail.gif" ></img>
-Wechat: <img src="/images/wechat.png"/>
-
-
-<center><h3><em>SNS</em></h3></center>
+<center><em>Wechat</em></center>
+<center><img src="/images/wechat.png"/></center>
 
 + Solar[:4] + rex[:] = Solarex
 + [flyfire@github](https://github.com/flyfire),[solarex@github](https://github.com/solarex)
