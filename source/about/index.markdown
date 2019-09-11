@@ -23,6 +23,7 @@ footer: true
 + [flyfire@github](https://github.com/flyfire),[solarex@github](https://github.com/solarex)
 + [Weibo](http://weibo.com/Solarex)
 + [Zhihu](http://www.zhihu.com/people/solarex/)
++ [Telegram](https://t.me/Solarex)
 + <strike> [OldBlog](https://flyfire-blog.appspot.com/),[OldGallery](https://flyfire-img.appspot.com/),[OldDisc](https://flyfire-disc.appspot.com/) </strike>
 + [Stackoverflow](https://stackoverflow.com/users/2573305/)
 
