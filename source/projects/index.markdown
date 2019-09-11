@@ -17,13 +17,12 @@ footer: true
 + [模仿Android线程间通信机制](https://github.com/flyfire/SolarexHandler)
 + [模仿Glide的图像处理框架](https://github.com/flyfire/SolarexGlideDemo)
 
-<h3 id='designpattern'>设计模式</h3>
+<h3 id='designpatterns'>设计模式</h3>
 
 + [Java常用设计模式](https://github.com/flyfire/JavaDesignPatterns)
 + [HeadFirstDesignPatterns](https://github.com/flyfire/HeadFirstDesignPatterns)
 + [HeadFirst设计模式读书笔记](https://solarex.github.io/reading-notes/head-first-design-patterns/readme.html),[设计模式之禅读书笔记](https://solarex.github.io/reading-notes/the-zen-of-design-patterns/readme.html)
-+ // todo 常用设计模式优缺点及适用场景总结
-+ // todo 设计模式读书笔记
++ [设计模式学习源码](https://github.com/flyfire/DesignPatternsLearning)
 
 <h3 id='concurrency'>高并发</h3>
 
