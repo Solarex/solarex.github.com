@@ -4,7 +4,7 @@
   <title><![CDATA[Category: dev | Solarex's Blog]]></title>
   <link href="http://Solarex.github.io/blog/categories/dev/atom.xml" rel="self"/>
   <link href="http://Solarex.github.io/"/>
-  <updated>2019-09-16T17:02:45+08:00</updated>
+  <updated>2019-09-16T17:22:27+08:00</updated>
   <id>http://Solarex.github.io/</id>
   <author>
     <name><![CDATA[Solarex]]></name>
@@ -105,6 +105,8 @@
 <p><code>Constructor</code>的<code>newInstance</code>方法会对要反射类的<code>modifiers</code>进行判断，如果是<code>Enum</code>会直接抛出<code>IllegalArgumentException</code>异常。</p>
 
 <p>具体代码见<a href="https://github.com/flyfire/DesignPatternsLearning/blob/master/src/main/java/com/solarexsoft/designpatterns/pattern/creational/singleton/EnumSingleton.java">EnumSingleton.java</a></p>
+
+<p>从<a href="https://github.com/flyfire/DesignPatternsLearning/blob/master/src/main/java/com/solarexsoft/designpatterns/pattern/creational/singleton/EnumSingleton.jad">反编译后的代码</a>来看，Enum实现单例和饿汉式类似，都是在类加载静态初始化时初始化了实例对象。</p>
 
 <h3>Kotlin简单单例</h3>
 

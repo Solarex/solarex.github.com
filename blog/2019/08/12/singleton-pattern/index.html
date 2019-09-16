@@ -211,6 +211,8 @@
 
 <p>具体代码见<a href="https://github.com/flyfire/DesignPatternsLearning/blob/master/src/main/java/com/solarexsoft/designpatterns/pattern/creational/singleton/EnumSingleton.java">EnumSingleton.java</a></p>
 
+<p>从<a href="https://github.com/flyfire/DesignPatternsLearning/blob/master/src/main/java/com/solarexsoft/designpatterns/pattern/creational/singleton/EnumSingleton.jad">反编译后的代码</a>来看，Enum实现单例和饿汉式类似，都是在类加载静态初始化时初始化了实例对象。</p>
+
 <h3>Kotlin简单单例</h3>
 
 <p>kotlin实现单例很简单，声明为<code>object</code>即可。具体代码可见<a href="https://github.com/flyfire/DesignPatternsLearning/blob/master/src/main/java/com/solarexsoft/designpatterns/pattern/creational/singleton/KotlinSimpleSingleton.kt">KotlinSimpleSingleton.kt</a>。反编译代码可以看到，实际实现方式和饿汉式类似。</p>
