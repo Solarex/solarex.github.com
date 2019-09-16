@@ -193,7 +193,7 @@ public class Main {
 
 在看EffectiveJava的时候，看到作者认为Enum是实现单例的一种方式，``Enum``实现的单例帮我们处理了反射和序列化相关的问题，那它是怎么处理的呢？我们不妨看下源码来找下答案。
 
-<stike>首先看下``Enum``类的``readObject``方法：</strike>
+<strike>首先看下``Enum``类的``readObject``方法：</strike>
 
 ```java
 /**
@@ -205,7 +205,7 @@ private void readObject(ObjectInputStream in) throws IOException,
 }
 ```
 
-<stike>可以看到这个方法直接抛出了一个异常来阻止反序列化。</strike>
+<strike>可以看到这个方法直接抛出了一个异常来阻止反序列化。</strike>
 
 ``ObjectInputStream``的``readEnum``方法使用了``Enum.valueOf``方法来进行``Enum``的反序列化，保证了实例的唯一。
 
