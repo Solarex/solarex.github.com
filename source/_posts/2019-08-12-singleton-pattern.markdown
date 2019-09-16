@@ -91,6 +91,8 @@ EffectiveJava中告诉我们可以使用Enum来实现单例，并且这种方式
 
 具体代码见[EnumSingleton.java](https://github.com/flyfire/DesignPatternsLearning/blob/master/src/main/java/com/solarexsoft/designpatterns/pattern/creational/singleton/EnumSingleton.java)
 
+从[反编译后的代码](https://github.com/flyfire/DesignPatternsLearning/blob/master/src/main/java/com/solarexsoft/designpatterns/pattern/creational/singleton/EnumSingleton.jad)来看，Enum实现单例和饿汉式类似，都是在类加载静态初始化时初始化了实例对象。
+
 ### Kotlin简单单例
 
 kotlin实现单例很简单，声明为``object``即可。具体代码可见[KotlinSimpleSingleton.kt](https://github.com/flyfire/DesignPatternsLearning/blob/master/src/main/java/com/solarexsoft/designpatterns/pattern/creational/singleton/KotlinSimpleSingleton.kt)。反编译代码可以看到，实际实现方式和饿汉式类似。
