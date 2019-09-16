@@ -9,7 +9,7 @@
   <meta name="author" content="Solarex">
 
   
-  <meta name="description" content="In the previous post, we discussed adding proper support for data set changes and targeted scrolling. In this installment of the series, we will &hellip;">
+  <meta name="description" content="While writing what was intended to be the final post of this series, a discussion of predictive animations, I ran into a number of interesting &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -91,6 +91,56 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/01/15/building-a-recyclerview-layoutmanager-part-iv/">Building a RecyclerView LayoutManager Part IV</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2016-01-15T16:14:00+08:00" pubdate data-updated="true">Jan 15<span>th</span>, 2016</time>
+        
+         | <a href="/blog/2016/01/15/building-a-recyclerview-layoutmanager-part-iv/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>While writing what was intended to be the final post of this series, a discussion of predictive animations, I ran into a number of interesting challenges that I thought warranted their own discussion. This series began as an investigation into whether RecyclerView could easily handle a layout structure that could scroll in both the horizontal and vertical axes, and how difficult it would be for the developer to build their own LayoutManager. I chose a basic grid of uniform items as the structure, thinking it would be the most straightforward to implement.</p>
+
+<p>The following graphic represents the basic goal of what the implementation ought to achieve while the user scrolls around the screen.</p>
+
+<center><img src="/images/building_recyclerview_layoutmanager_redux.gif" width="600" height="360"></center>
+
+
+
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2016/01/15/building-a-recyclerview-layoutmanager-part-iv/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
   
   
     <article>
@@ -842,52 +892,6 @@
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2015/11/23/saving-android-view-state/">Saving Android View State Correctly</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2015-11-23T17:40:00+08:00" pubdate data-updated="true">Nov 23<span>rd</span>, 2015</time>
-        
-         | <a href="/blog/2015/11/23/saving-android-view-state/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p><center><img src="/images/android_training.jpg"/></center></p>
-
-
-
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2015/11/23/saving-android-view-state/">Read on &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/12/">&larr; Older</a>
@@ -905,6 +909,10 @@
     <ul id="recent_posts">
         
         <li class="post">
+            <a href="/blog/2019/08/12/singleton-pattern/">单例模式</a>
+        </li>
+        
+        <li class="post">
             <a href="/blog/2019/08/10/lock-free-multithreading-with-atomic-operations/">Lock-free multithreading with atomic operations</a>
         </li>
         
@@ -918,10 +926,6 @@
         
         <li class="post">
             <a href="/blog/2019/08/05/floyd-cycle-detection-in-linkedlist/">检测链表中是否有环</a>
-        </li>
-        
-        <li class="post">
-            <a href="/blog/2019/08/04/java-threadpoolexecutor/">Java线程池解析</a>
         </li>
         
     </ul>

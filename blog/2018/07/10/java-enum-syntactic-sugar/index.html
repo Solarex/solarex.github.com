@@ -500,7 +500,7 @@
 
 <p>在看EffectiveJava的时候，看到作者认为Enum是实现单例的一种方式，<code>Enum</code>实现的单例帮我们处理了反射和序列化相关的问题，那它是怎么处理的呢？我们不妨看下源码来找下答案。</p>
 
-<p>首先看下<code>Enum</code>类的<code>readObject</code>方法：</p>
+<p><strike>首先看下<code>Enum</code>类的<code>readObject</code>方法：</strike></p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -519,7 +519,9 @@
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>可以看到这个方法直接抛出了一个异常来阻止反序列化。</p>
+<p><strike>可以看到这个方法直接抛出了一个异常来阻止反序列化。</strike></p>
+
+<p><code>ObjectInputStream</code>的<code>readEnum</code>方法使用了<code>Enum.valueOf</code>方法来进行<code>Enum</code>的反序列化，保证了实例的唯一。</p>
 
 <p>再来看下如果我们想要使用反射来实例化一个枚举实例的时候会遇到什么问题，我们看下<code>Constructor</code>类的<code>newInstance</code>方法：</p>
 
@@ -643,6 +645,10 @@
     <ul id="recent_posts">
         
         <li class="post">
+            <a href="/blog/2019/08/12/singleton-pattern/">单例模式</a>
+        </li>
+        
+        <li class="post">
             <a href="/blog/2019/08/10/lock-free-multithreading-with-atomic-operations/">Lock-free multithreading with atomic operations</a>
         </li>
         
@@ -656,10 +662,6 @@
         
         <li class="post">
             <a href="/blog/2019/08/05/floyd-cycle-detection-in-linkedlist/">检测链表中是否有环</a>
-        </li>
-        
-        <li class="post">
-            <a href="/blog/2019/08/04/java-threadpoolexecutor/">Java线程池解析</a>
         </li>
         
     </ul>

@@ -9,7 +9,7 @@
   <meta name="author" content="Solarex">
 
   
-  <meta name="description" content="Over the last several years we’ve seen a whole range of ideas regarding the architecture of systems. These include: Hexagonal Architecture (a.k.a. &hellip;">
+  <meta name="description" content="Offline support for mobile applications can be thought of as the ability for the application to react gracefully to the lack of stability of the &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -91,6 +91,61 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/03/14/mobile-apps-offline-support/">Mobile Apps Offline Support</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2016-03-14T08:43:00+08:00" pubdate data-updated="true">Mar 14<span>th</span>, 2016</time>
+        
+         | <a href="/blog/2016/03/14/mobile-apps-offline-support/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Offline support for mobile applications can be thought of as the ability for the application to react gracefully to the lack of stability of the network connection. The rather new context of mobile devices introduced problems such as presence or absence of a network connection or even high latency and low bandwidth. These problems are rather new and thus not very well known to engineers starting with mobile development. Among other things building a mobile application which resilient to different network scenarios could mean:</p>
+
+<ul>
+<li>Displaying comprehensive error messages when network calls fail.</li>
+<li>Allowing the use of the application in “guest mode”, where certain features can be delayed until the user actually signs in.</li>
+<li>Visually displaying the absence of network connectivity on the UI (connected mode/offline mode).</li>
+<li>Disabling controls in the absence of network connectivity.</li>
+<li>Allowing the user to query and act on data while no network connection (offline data access).</li>
+<li>Testing the application under different network conditions!</li>
+</ul>
+
+
+<p>While all these things are extremely important from the usability point of view, there is one of these that can be particular complex, “offline data access”. There are several different scenarios or levels of offline data access that applications might need to support, and I’ll go through each next.</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2016/03/14/mobile-apps-offline-support/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
   
   
     <article>
@@ -303,56 +358,6 @@
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2016/01/15/building-a-recyclerview-layoutmanager-part-iv/">Building a RecyclerView LayoutManager Part IV</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2016-01-15T16:14:00+08:00" pubdate data-updated="true">Jan 15<span>th</span>, 2016</time>
-        
-         | <a href="/blog/2016/01/15/building-a-recyclerview-layoutmanager-part-iv/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>While writing what was intended to be the final post of this series, a discussion of predictive animations, I ran into a number of interesting challenges that I thought warranted their own discussion. This series began as an investigation into whether RecyclerView could easily handle a layout structure that could scroll in both the horizontal and vertical axes, and how difficult it would be for the developer to build their own LayoutManager. I chose a basic grid of uniform items as the structure, thinking it would be the most straightforward to implement.</p>
-
-<p>The following graphic represents the basic goal of what the implementation ought to achieve while the user scrolls around the screen.</p>
-
-<center><img src="/images/building_recyclerview_layoutmanager_redux.gif" width="600" height="360"></center>
-
-
-
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2016/01/15/building-a-recyclerview-layoutmanager-part-iv/">Read on &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/11/">&larr; Older</a>
@@ -370,6 +375,10 @@
     <ul id="recent_posts">
         
         <li class="post">
+            <a href="/blog/2019/08/12/singleton-pattern/">单例模式</a>
+        </li>
+        
+        <li class="post">
             <a href="/blog/2019/08/10/lock-free-multithreading-with-atomic-operations/">Lock-free multithreading with atomic operations</a>
         </li>
         
@@ -383,10 +392,6 @@
         
         <li class="post">
             <a href="/blog/2019/08/05/floyd-cycle-detection-in-linkedlist/">检测链表中是否有环</a>
-        </li>
-        
-        <li class="post">
-            <a href="/blog/2019/08/04/java-threadpoolexecutor/">Java线程池解析</a>
         </li>
         
     </ul>
