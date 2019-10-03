@@ -29,7 +29,7 @@ In Apple Icon > System Preferences:
 
 + ``brew doctor``,``brew update``,``brew list``,``brew search wget``,``brew install wget``,``brew outdated``,``brew upgrade``,``brew upgrade wget``,``brew uninstall wget --force``,``brew info wget``,``brew deps wget``,``brew edit wget``,``brew list --versions``,``brew cleanup``
 
-+ ``brew install caskroom/cask/brew-cask`` from [caskroom.io](http://caskroom.io/)
++ ``brew install caskroom/cask/brew-cask`` from [brew.sh](https://brew.sh/index_zh-cn)
 + ``brew cask search thunder``,``brew cask info thunder``,``brew cask edit thunder``,``brew cask uninstall thunder``
 
 ```bash
