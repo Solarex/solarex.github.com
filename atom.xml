@@ -4,7 +4,7 @@
   <title><![CDATA[Solarex's Blog]]></title>
   <link href="http://Solarex.github.io/atom.xml" rel="self"/>
   <link href="http://Solarex.github.io/"/>
-  <updated>2019-09-16T17:22:27+08:00</updated>
+  <updated>2019-10-06T21:02:58+08:00</updated>
   <id>http://Solarex.github.io/</id>
   <author>
     <name><![CDATA[Solarex]]></name>
@@ -12,6 +12,90 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Que Sera Sera]]></title>
+    <link href="http://Solarex.github.io/blog/2019/10/07/que-sera-sera/"/>
+    <updated>2019-10-07T22:07:00+08:00</updated>
+    <id>http://Solarex.github.io/blog/2019/10/07/que-sera-sera</id>
+    <content type="html"><![CDATA[<p>Whatever will be,will be~</p>
+
+<!-- more -->
+
+
+
+
+<center><iframe width="475" height="267" src="https://www.youtube.com/embed/924Ryk0jW7g" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></center>
+
+
+<p>国庆假期不想出去看人头，宅在家里吃老妈做的家乡菜，好惬意。</p>
+
+<p>公司最近有点不太平，融的钱估计烧得差不多了，大家心照不宣，都在等靴子落地。这有点打乱我的计划，不过也没太偏差，加速了一点而已。</p>
+
+<p>在<a href="http://daily.zhihu.com/story/9715197">知乎</a>上看到一篇文章，里面写到</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="err">人生的优化问题也无非是确定以下两点：一是你想成为的人，也就是目标函数；二是你必须做的事，也就是约束条件。</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>深以为然。给自己定了一些目标，在逐渐的朝着这些目标前进，现在也逐渐不那么焦虑。</p>
+
+<p>继续把上大学时候就很喜欢的一段话送给自己，<code>一个人就像一支队伍，对着自己的头脑和心灵招兵买马，不气馁，有召唤，爱自由</code>，希望过几年后回头看，自己能不后悔，如此足矣~</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[玫瑰少年]]></title>
+    <link href="http://Solarex.github.io/blog/2019/10/05/womxnly/"/>
+    <updated>2019-10-05T22:02:00+08:00</updated>
+    <id>http://Solarex.github.io/blog/2019/10/05/womxnly</id>
+    <content type="html"><![CDATA[<center><iframe width="483" height="272" src="https://www.youtube.com/embed/65IKNssGRPI" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></center>
+
+
+
+
+<!-- more -->
+
+
+<p>twitter timeline上好多推友在发十年的总结，看的感慨不已。。。</p>
+
+<p>回头看自己过去的十年，真的唏嘘不已，那个被学长搂在怀里调戏的面红耳赤的自己，那个被画室老板按在墙上壁咚吓得发抖的自己，那个被BF分手，回去找BF哭着求复合的自己，那个跟家人出柜，面对哭泣的老妈不知所措的自己。。。如果可以，好想回去抱抱那时的自己，告诉自己，不要急，慢慢来，不要怕，不妨多尝试一些。。。</p>
+
+<p>兜兜转转这么些年，终于跟家人和一些比较要好的同学出柜成功，终于可以在他们面前做真正的自己。</p>
+
+<p>我小的时候，就长得很清秀，人又比较瘦弱，营养不良的样子，总是被玩伴欺负，都不记得有多少次被推到在地上踢，现在想到都恨得牙痒痒，初中的时候被同学提着脚踝倒立在操场上，种种往事，不堪回首。。。</p>
+
+<p>最好的报复是美丽，最美的盛开是反击，你是你或是妳都行
+你并没有罪，有罪是这世界</p>
+
+<p>希望社会越来越包容吧，以上。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Android Studio 代理问题]]></title>
+    <link href="http://Solarex.github.io/blog/2019/09/18/android-studio-proxy/"/>
+    <updated>2019-09-18T14:15:00+08:00</updated>
+    <id>http://Solarex.github.io/blog/2019/09/18/android-studio-proxy</id>
+    <content type="html"><![CDATA[<p>Android Studio 设置代理后gradle sync失败，解决方法。</p>
+
+<!-- more -->
+
+
+<p>今天到公司后，新需求下来了，同步代码，sync工程，开完晨会发现gradle sync失败了。</p>
+
+<p>报错类似<code>could not resolve xxx</code>，AS是开了代理的，http代理8123端口，在AS里check connection连接baidu居然报错read timeout。心想不会是墙又升高了吧，最近要国庆啥的，在Chrome里面打开了一下，google访问正常，梯子还是好的。看了下v2ray config文件，1080 socks端口，8123 http端口，对的啊，感觉一脸懵逼。把AS代理切换到socks，check connection通了，可是gradle sync的时候v2ray报错<code>rejected  v2ray.com/core/proxy/socks: unknown Socks version: 67</code>，AS的socks代理貌似是有问题的，所以之前一直用http代理，现在的问题是socks代理工作正常，http代理出问题了。</p>
+
+<p><code>lsof -i:8123</code>发现是<code>privoxy</code>，尝试<code>kill -9 PID</code>了一下，发现杀死之后又会重启一个进程。开Activity Monitor，搜索<code>privoxy</code>发现<code>privoxy</code>路径是<code>~/Library/Application Support/ShadowsocksX-NG</code>，parent process是<code>launchd</code>，问题比较清晰了，<code>privoxy</code>是在开机的时候自动启动的，而且是SSR里面的，而SSR被我冷藏后<code>launch at login</code>取消了，SSR的socks端口号和v2ray的端口号不一样，导致<code>privoxy</code>转发socks流量出现了问题，而且v2ray命令行启动的时候没有报8123端口被占用，直接启动成功了。</p>
+
+<p>于是尝试取消开机启动SSR的<code>privoxy</code>，在<code>Users&amp;Groups</code>里<code>Login Items</code>看了一下没发现，搜索了一下发现了plist文件在<code>~/Library/LaunchAgents</code>，同时发现了一个工具<a href="https://nektony.com/mac-app-cleaner">App Cleaner &amp; Uninstaller</a>可以管理启动项。</p>
+
+<p><code>brew cask install app-cleaner</code>之后关闭ShadowsocksX-NG的启动项，重启电脑，启动v2ray，切换AS代理到到http代理，sync成功了。</p>
+
+<p>吐槽下AS的socks代理，真不给力。</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[单例模式]]></title>
@@ -4784,467 +4868,6 @@ An acquire operation proceeds as:</p>
     <updated>2018-07-12T14:30:00+08:00</updated>
     <id>http://Solarex.github.io/blog/2018/07/12/notes-on-effective-java</id>
     <content type="html"><![CDATA[<p>已迁移到gitbook，请访问<a href="https://solarex.github.io/reading-notes/effective-java/readme.html">EffectiveJava笔记</a>。</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[深入理解Java虚拟机读书笔记]]></title>
-    <link href="http://Solarex.github.io/blog/2018/07/11/notes-on-jvm/"/>
-    <updated>2018-07-11T14:28:00+08:00</updated>
-    <id>http://Solarex.github.io/blog/2018/07/11/notes-on-jvm</id>
-    <content type="html"><![CDATA[<p>已迁移到gitbook，请访问<a href="https://solarex.github.io/reading-notes/deep-into-jvm/readme.html">深入理解Java虚拟机笔记</a></p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Java泛型语法糖]]></title>
-    <link href="http://Solarex.github.io/blog/2018/07/10/java-generics-syntactic-sugar/"/>
-    <updated>2018-07-10T14:24:00+08:00</updated>
-    <id>http://Solarex.github.io/blog/2018/07/10/java-generics-syntactic-sugar</id>
-    <content type="html"><![CDATA[
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Java枚举语法糖]]></title>
-    <link href="http://Solarex.github.io/blog/2018/07/10/java-enum-syntactic-sugar/"/>
-    <updated>2018-07-10T14:24:00+08:00</updated>
-    <id>http://Solarex.github.io/blog/2018/07/10/java-enum-syntactic-sugar</id>
-    <content type="html"><![CDATA[<p>Java从1.5引入枚举类型，EffectiveJava第2版item 30也建议我们使用枚举来代替int常量。我们从下面的<code>Enum</code>示例中看下枚举类型到底是什么。</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-<span class='line-number'>31</span>
-<span class='line-number'>32</span>
-<span class='line-number'>33</span>
-<span class='line-number'>34</span>
-<span class='line-number'>35</span>
-<span class='line-number'>36</span>
-<span class='line-number'>37</span>
-<span class='line-number'>38</span>
-<span class='line-number'>39</span>
-<span class='line-number'>40</span>
-<span class='line-number'>41</span>
-<span class='line-number'>42</span>
-<span class='line-number'>43</span>
-<span class='line-number'>44</span>
-<span class='line-number'>45</span>
-<span class='line-number'>46</span>
-<span class='line-number'>47</span>
-<span class='line-number'>48</span>
-<span class='line-number'>49</span>
-<span class='line-number'>50</span>
-<span class='line-number'>51</span>
-<span class='line-number'>52</span>
-<span class='line-number'>53</span>
-<span class='line-number'>54</span>
-<span class='line-number'>55</span>
-<span class='line-number'>56</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">Main</span> <span class="o">{</span>
-</span><span class='line'>    <span class="kd">enum</span> <span class="n">ExceptionHandleStrategy</span> <span class="o">{</span>
-</span><span class='line'>        <span class="n">IGNORE</span><span class="o">,</span>
-</span><span class='line'>        <span class="n">LOG</span> <span class="o">{</span>
-</span><span class='line'>            <span class="nd">@Override</span>
-</span><span class='line'>            <span class="kd">public</span> <span class="kt">void</span> <span class="nf">handle</span><span class="o">(</span><span class="n">Exception</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'>                <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">e</span><span class="o">.</span><span class="na">getLocalizedMessage</span><span class="o">());</span>
-</span><span class='line'>            <span class="o">}</span>
-</span><span class='line'>        <span class="o">},</span>
-</span><span class='line'>        <span class="n">THROW</span> <span class="o">{</span>
-</span><span class='line'>            <span class="nd">@Override</span>
-</span><span class='line'>            <span class="kd">public</span> <span class="kt">void</span> <span class="nf">handle</span><span class="o">(</span><span class="n">Exception</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'>                <span class="k">throw</span> <span class="k">new</span> <span class="nf">RuntimeException</span><span class="o">(</span><span class="n">e</span><span class="o">.</span><span class="na">getMessage</span><span class="o">());</span>
-</span><span class='line'>            <span class="o">}</span>
-</span><span class='line'>        <span class="o">};</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="kd">public</span> <span class="kt">void</span> <span class="nf">handle</span><span class="o">(</span><span class="n">Exception</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'>        <span class="o">}</span>
-</span><span class='line'>    <span class="o">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">args</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'>        <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">ExceptionHandleStrategy</span><span class="o">.</span><span class="na">IGNORE</span><span class="o">.</span><span class="na">getClass</span><span class="o">());</span>
-</span><span class='line'>        <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">ExceptionHandleStrategy</span><span class="o">.</span><span class="na">LOG</span><span class="o">.</span><span class="na">getClass</span><span class="o">());</span>
-</span><span class='line'>        <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">ExceptionHandleStrategy</span><span class="o">.</span><span class="na">THROW</span><span class="o">.</span><span class="na">getClass</span><span class="o">());</span>
-</span><span class='line'>        <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">EnumWithoutMethod</span><span class="o">.</span><span class="na">A</span><span class="o">.</span><span class="na">getClass</span><span class="o">());</span>
-</span><span class='line'>        <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">EnumWithoutMethod</span><span class="o">.</span><span class="na">B</span><span class="o">.</span><span class="na">getClass</span><span class="o">());</span>
-</span><span class='line'>        <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">EnumWithoutMethod</span><span class="o">.</span><span class="na">C</span><span class="o">.</span><span class="na">getClass</span><span class="o">());</span>
-</span><span class='line'>        <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">EnumWithVariable</span><span class="o">.</span><span class="na">A</span><span class="o">.</span><span class="na">getClass</span><span class="o">());</span>
-</span><span class='line'>        <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">EnumWithVariable</span><span class="o">.</span><span class="na">B</span><span class="o">.</span><span class="na">getClass</span><span class="o">());</span>
-</span><span class='line'>        <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">EnumWithVariable</span><span class="o">.</span><span class="na">C</span><span class="o">.</span><span class="na">getClass</span><span class="o">());</span>
-</span><span class='line'>        <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">EnumWithVariable</span><span class="o">.</span><span class="na">A</span><span class="o">.</span><span class="na">name</span><span class="o">());</span>
-</span><span class='line'>        <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">EnumWithVariable</span><span class="o">.</span><span class="na">A</span><span class="o">.</span><span class="na">getxxx</span><span class="o">());</span>
-</span><span class='line'>        <span class="n">ExceptionHandleStrategy</span><span class="o">.</span><span class="na">LOG</span><span class="o">.</span><span class="na">handle</span><span class="o">(</span><span class="k">new</span> <span class="n">RuntimeException</span><span class="o">(</span><span class="s">&quot;system just broken&quot;</span><span class="o">));</span>
-</span><span class='line'>    <span class="o">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="kd">enum</span> <span class="n">EnumWithoutMethod</span> <span class="o">{</span>
-</span><span class='line'>        <span class="n">A</span><span class="o">,</span>
-</span><span class='line'>        <span class="n">B</span><span class="o">,</span>
-</span><span class='line'>        <span class="n">C</span><span class="o">;</span>
-</span><span class='line'>    <span class="o">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="kd">enum</span> <span class="n">EnumWithVariable</span> <span class="o">{</span>
-</span><span class='line'>        <span class="n">A</span><span class="o">(</span><span class="s">&quot;wristband&quot;</span><span class="o">),</span>
-</span><span class='line'>        <span class="n">B</span><span class="o">(</span><span class="s">&quot;glucometer&quot;</span><span class="o">),</span>
-</span><span class='line'>        <span class="n">C</span><span class="o">(</span><span class="s">&quot;fit&quot;</span><span class="o">);</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="kd">private</span> <span class="n">String</span> <span class="n">name</span><span class="o">;</span>
-</span><span class='line'>        <span class="kd">public</span> <span class="n">String</span> <span class="nf">getxxx</span><span class="o">()</span> <span class="o">{</span>
-</span><span class='line'>            <span class="k">return</span> <span class="k">this</span><span class="o">.</span><span class="na">name</span><span class="o">;</span>
-</span><span class='line'>        <span class="o">}</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="n">EnumWithVariable</span><span class="o">(</span><span class="n">String</span> <span class="n">name</span><span class="o">){</span>
-</span><span class='line'>            <span class="k">this</span><span class="o">.</span><span class="na">name</span> <span class="o">=</span> <span class="n">name</span><span class="o">;</span>
-</span><span class='line'>        <span class="o">}</span>
-</span><span class='line'>    <span class="o">}</span>
-</span><span class='line'><span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-
-
-<!-- more -->
-
-
-<p>执行<code>java -jar ~/Software/confs/cfr-0.140.jar --sugarenums false Main.class</code>后我们得到如下结果：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-<span class='line-number'>31</span>
-<span class='line-number'>32</span>
-<span class='line-number'>33</span>
-<span class='line-number'>34</span>
-<span class='line-number'>35</span>
-<span class='line-number'>36</span>
-<span class='line-number'>37</span>
-<span class='line-number'>38</span>
-<span class='line-number'>39</span>
-<span class='line-number'>40</span>
-<span class='line-number'>41</span>
-<span class='line-number'>42</span>
-<span class='line-number'>43</span>
-<span class='line-number'>44</span>
-<span class='line-number'>45</span>
-<span class='line-number'>46</span>
-<span class='line-number'>47</span>
-<span class='line-number'>48</span>
-<span class='line-number'>49</span>
-<span class='line-number'>50</span>
-<span class='line-number'>51</span>
-<span class='line-number'>52</span>
-<span class='line-number'>53</span>
-<span class='line-number'>54</span>
-<span class='line-number'>55</span>
-<span class='line-number'>56</span>
-<span class='line-number'>57</span>
-<span class='line-number'>58</span>
-<span class='line-number'>59</span>
-<span class='line-number'>60</span>
-<span class='line-number'>61</span>
-<span class='line-number'>62</span>
-<span class='line-number'>63</span>
-<span class='line-number'>64</span>
-<span class='line-number'>65</span>
-<span class='line-number'>66</span>
-<span class='line-number'>67</span>
-<span class='line-number'>68</span>
-<span class='line-number'>69</span>
-<span class='line-number'>70</span>
-<span class='line-number'>71</span>
-<span class='line-number'>72</span>
-<span class='line-number'>73</span>
-<span class='line-number'>74</span>
-<span class='line-number'>75</span>
-<span class='line-number'>76</span>
-<span class='line-number'>77</span>
-<span class='line-number'>78</span>
-<span class='line-number'>79</span>
-<span class='line-number'>80</span>
-<span class='line-number'>81</span>
-<span class='line-number'>82</span>
-<span class='line-number'>83</span>
-<span class='line-number'>84</span>
-<span class='line-number'>85</span>
-<span class='line-number'>86</span>
-<span class='line-number'>87</span>
-<span class='line-number'>88</span>
-<span class='line-number'>89</span>
-<span class='line-number'>90</span>
-<span class='line-number'>91</span>
-<span class='line-number'>92</span>
-<span class='line-number'>93</span>
-<span class='line-number'>94</span>
-<span class='line-number'>95</span>
-<span class='line-number'>96</span>
-<span class='line-number'>97</span>
-<span class='line-number'>98</span>
-<span class='line-number'>99</span>
-<span class='line-number'>100</span>
-<span class='line-number'>101</span>
-<span class='line-number'>102</span>
-<span class='line-number'>103</span>
-<span class='line-number'>104</span>
-<span class='line-number'>105</span>
-<span class='line-number'>106</span>
-<span class='line-number'>107</span>
-<span class='line-number'>108</span>
-<span class='line-number'>109</span>
-<span class='line-number'>110</span>
-<span class='line-number'>111</span>
-<span class='line-number'>112</span>
-<span class='line-number'>113</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kn">import</span> <span class="nn">java.io.PrintStream</span><span class="o">;</span>
-</span><span class='line'>
-</span><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">Main</span> <span class="o">{</span>
-</span><span class='line'>    <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">arrstring</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'>        <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(((</span><span class="n">Object</span><span class="o">)((</span><span class="n">Object</span><span class="o">)</span><span class="n">ExceptionHandleStrategy</span><span class="o">.</span><span class="na">IGNORE</span><span class="o">)).</span><span class="na">getClass</span><span class="o">());</span>
-</span><span class='line'>        <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(((</span><span class="n">Object</span><span class="o">)((</span><span class="n">Object</span><span class="o">)</span><span class="n">ExceptionHandleStrategy</span><span class="o">.</span><span class="na">LOG</span><span class="o">)).</span><span class="na">getClass</span><span class="o">());</span>
-</span><span class='line'>        <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(((</span><span class="n">Object</span><span class="o">)((</span><span class="n">Object</span><span class="o">)</span><span class="n">ExceptionHandleStrategy</span><span class="o">.</span><span class="na">THROW</span><span class="o">)).</span><span class="na">getClass</span><span class="o">());</span>
-</span><span class='line'>        <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(((</span><span class="n">Object</span><span class="o">)((</span><span class="n">Object</span><span class="o">)</span><span class="n">EnumWithoutMethod</span><span class="o">.</span><span class="na">A</span><span class="o">)).</span><span class="na">getClass</span><span class="o">());</span>
-</span><span class='line'>        <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(((</span><span class="n">Object</span><span class="o">)((</span><span class="n">Object</span><span class="o">)</span><span class="n">EnumWithoutMethod</span><span class="o">.</span><span class="na">B</span><span class="o">)).</span><span class="na">getClass</span><span class="o">());</span>
-</span><span class='line'>        <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(((</span><span class="n">Object</span><span class="o">)((</span><span class="n">Object</span><span class="o">)</span><span class="n">EnumWithoutMethod</span><span class="o">.</span><span class="na">C</span><span class="o">)).</span><span class="na">getClass</span><span class="o">());</span>
-</span><span class='line'>        <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(((</span><span class="n">Object</span><span class="o">)((</span><span class="n">Object</span><span class="o">)</span><span class="n">EnumWithVariable</span><span class="o">.</span><span class="na">A</span><span class="o">)).</span><span class="na">getClass</span><span class="o">());</span>
-</span><span class='line'>        <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(((</span><span class="n">Object</span><span class="o">)((</span><span class="n">Object</span><span class="o">)</span><span class="n">EnumWithVariable</span><span class="o">.</span><span class="na">B</span><span class="o">)).</span><span class="na">getClass</span><span class="o">());</span>
-</span><span class='line'>        <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(((</span><span class="n">Object</span><span class="o">)((</span><span class="n">Object</span><span class="o">)</span><span class="n">EnumWithVariable</span><span class="o">.</span><span class="na">C</span><span class="o">)).</span><span class="na">getClass</span><span class="o">());</span>
-</span><span class='line'>        <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">EnumWithVariable</span><span class="o">.</span><span class="na">A</span><span class="o">.</span><span class="na">name</span><span class="o">());</span>
-</span><span class='line'>        <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">EnumWithVariable</span><span class="o">.</span><span class="na">A</span><span class="o">.</span><span class="na">getxxx</span><span class="o">());</span>
-</span><span class='line'>        <span class="n">ExceptionHandleStrategy</span><span class="o">.</span><span class="na">LOG</span><span class="o">.</span><span class="na">handle</span><span class="o">(</span><span class="k">new</span> <span class="n">RuntimeException</span><span class="o">(</span><span class="s">&quot;system just broken&quot;</span><span class="o">));</span>
-</span><span class='line'>    <span class="o">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="kd">static</span> <span class="kd">final</span> <span class="kd">class</span> <span class="nc">EnumWithVariable</span>
-</span><span class='line'>    <span class="kd">extends</span> <span class="n">Enum</span><span class="o">&lt;</span><span class="n">EnumWithVariable</span><span class="o">&gt;</span> <span class="o">{</span>
-</span><span class='line'>        <span class="kd">public</span> <span class="kd">static</span> <span class="kd">final</span> <span class="cm">/* enum */</span> <span class="n">EnumWithVariable</span> <span class="n">A</span> <span class="o">=</span> <span class="k">new</span> <span class="n">EnumWithVariable</span><span class="o">(</span><span class="s">&quot;A&quot;</span><span class="o">,</span> <span class="mi">0</span><span class="o">,</span> <span class="s">&quot;wristband&quot;</span><span class="o">);</span>
-</span><span class='line'>        <span class="kd">public</span> <span class="kd">static</span> <span class="kd">final</span> <span class="cm">/* enum */</span> <span class="n">EnumWithVariable</span> <span class="n">B</span> <span class="o">=</span> <span class="k">new</span> <span class="n">EnumWithVariable</span><span class="o">(</span><span class="s">&quot;B&quot;</span><span class="o">,</span> <span class="mi">1</span><span class="o">,</span> <span class="s">&quot;glucometer&quot;</span><span class="o">);</span>
-</span><span class='line'>        <span class="kd">public</span> <span class="kd">static</span> <span class="kd">final</span> <span class="cm">/* enum */</span> <span class="n">EnumWithVariable</span> <span class="n">C</span> <span class="o">=</span> <span class="k">new</span> <span class="n">EnumWithVariable</span><span class="o">(</span><span class="s">&quot;C&quot;</span><span class="o">,</span> <span class="mi">2</span><span class="o">,</span> <span class="s">&quot;fit&quot;</span><span class="o">);</span>
-</span><span class='line'>        <span class="kd">private</span> <span class="n">String</span> <span class="n">name</span><span class="o">;</span>
-</span><span class='line'>        <span class="kd">private</span> <span class="kd">static</span> <span class="kd">final</span> <span class="cm">/* synthetic */</span> <span class="n">EnumWithVariable</span><span class="o">[]</span> <span class="n">$VALUES</span><span class="o">;</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="kd">public</span> <span class="kd">static</span> <span class="n">EnumWithVariable</span><span class="o">[]</span> <span class="nf">values</span><span class="o">()</span> <span class="o">{</span>
-</span><span class='line'>            <span class="k">return</span> <span class="o">(</span><span class="n">EnumWithVariable</span><span class="o">[])</span><span class="n">$VALUES</span><span class="o">.</span><span class="na">clone</span><span class="o">();</span>
-</span><span class='line'>        <span class="o">}</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="kd">public</span> <span class="kd">static</span> <span class="n">EnumWithVariable</span> <span class="nf">valueOf</span><span class="o">(</span><span class="n">String</span> <span class="n">string</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'>            <span class="k">return</span> <span class="n">Enum</span><span class="o">.</span><span class="na">valueOf</span><span class="o">(</span><span class="n">EnumWithVariable</span><span class="o">.</span><span class="na">class</span><span class="o">,</span> <span class="n">string</span><span class="o">);</span>
-</span><span class='line'>        <span class="o">}</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="kd">public</span> <span class="n">String</span> <span class="nf">getxxx</span><span class="o">()</span> <span class="o">{</span>
-</span><span class='line'>            <span class="k">return</span> <span class="k">this</span><span class="o">.</span><span class="na">name</span><span class="o">;</span>
-</span><span class='line'>        <span class="o">}</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="kd">private</span> <span class="nf">EnumWithVariable</span><span class="o">(</span><span class="n">String</span> <span class="n">string</span><span class="o">,</span> <span class="kt">int</span> <span class="n">n</span><span class="o">,</span> <span class="n">String</span> <span class="n">string2</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'>            <span class="kd">super</span><span class="o">(</span><span class="n">string</span><span class="o">,</span> <span class="n">n</span><span class="o">);</span>
-</span><span class='line'>            <span class="k">this</span><span class="o">.</span><span class="na">name</span> <span class="o">=</span> <span class="n">string2</span><span class="o">;</span>
-</span><span class='line'>        <span class="o">}</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="kd">static</span> <span class="o">{</span>
-</span><span class='line'>            <span class="n">$VALUES</span> <span class="o">=</span> <span class="k">new</span> <span class="n">EnumWithVariable</span><span class="o">[]{</span><span class="n">A</span><span class="o">,</span> <span class="n">B</span><span class="o">,</span> <span class="n">C</span><span class="o">};</span>
-</span><span class='line'>        <span class="o">}</span>
-</span><span class='line'>    <span class="o">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="kd">static</span> <span class="kd">final</span> <span class="kd">class</span> <span class="nc">EnumWithoutMethod</span>
-</span><span class='line'>    <span class="kd">extends</span> <span class="n">Enum</span><span class="o">&lt;</span><span class="n">EnumWithoutMethod</span><span class="o">&gt;</span> <span class="o">{</span>
-</span><span class='line'>        <span class="kd">public</span> <span class="kd">static</span> <span class="kd">final</span> <span class="cm">/* enum */</span> <span class="n">EnumWithoutMethod</span> <span class="n">A</span> <span class="o">=</span> <span class="k">new</span> <span class="n">EnumWithoutMethod</span><span class="o">(</span><span class="s">&quot;A&quot;</span><span class="o">,</span> <span class="mi">0</span><span class="o">);</span>
-</span><span class='line'>        <span class="kd">public</span> <span class="kd">static</span> <span class="kd">final</span> <span class="cm">/* enum */</span> <span class="n">EnumWithoutMethod</span> <span class="n">B</span> <span class="o">=</span> <span class="k">new</span> <span class="n">EnumWithoutMethod</span><span class="o">(</span><span class="s">&quot;B&quot;</span><span class="o">,</span> <span class="mi">1</span><span class="o">);</span>
-</span><span class='line'>        <span class="kd">public</span> <span class="kd">static</span> <span class="kd">final</span> <span class="cm">/* enum */</span> <span class="n">EnumWithoutMethod</span> <span class="n">C</span> <span class="o">=</span> <span class="k">new</span> <span class="n">EnumWithoutMethod</span><span class="o">(</span><span class="s">&quot;C&quot;</span><span class="o">,</span> <span class="mi">2</span><span class="o">);</span>
-</span><span class='line'>        <span class="kd">private</span> <span class="kd">static</span> <span class="kd">final</span> <span class="cm">/* synthetic */</span> <span class="n">EnumWithoutMethod</span><span class="o">[]</span> <span class="n">$VALUES</span><span class="o">;</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="kd">public</span> <span class="kd">static</span> <span class="n">EnumWithoutMethod</span><span class="o">[]</span> <span class="nf">values</span><span class="o">()</span> <span class="o">{</span>
-</span><span class='line'>            <span class="k">return</span> <span class="o">(</span><span class="n">EnumWithoutMethod</span><span class="o">[])</span><span class="n">$VALUES</span><span class="o">.</span><span class="na">clone</span><span class="o">();</span>
-</span><span class='line'>        <span class="o">}</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="kd">public</span> <span class="kd">static</span> <span class="n">EnumWithoutMethod</span> <span class="nf">valueOf</span><span class="o">(</span><span class="n">String</span> <span class="n">string</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'>            <span class="k">return</span> <span class="n">Enum</span><span class="o">.</span><span class="na">valueOf</span><span class="o">(</span><span class="n">EnumWithoutMethod</span><span class="o">.</span><span class="na">class</span><span class="o">,</span> <span class="n">string</span><span class="o">);</span>
-</span><span class='line'>        <span class="o">}</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="kd">private</span> <span class="nf">EnumWithoutMethod</span><span class="o">(</span><span class="n">String</span> <span class="n">string</span><span class="o">,</span> <span class="kt">int</span> <span class="n">n</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'>            <span class="kd">super</span><span class="o">(</span><span class="n">string</span><span class="o">,</span> <span class="n">n</span><span class="o">);</span>
-</span><span class='line'>        <span class="o">}</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="kd">static</span> <span class="o">{</span>
-</span><span class='line'>            <span class="n">$VALUES</span> <span class="o">=</span> <span class="k">new</span> <span class="n">EnumWithoutMethod</span><span class="o">[]{</span><span class="n">A</span><span class="o">,</span> <span class="n">B</span><span class="o">,</span> <span class="n">C</span><span class="o">};</span>
-</span><span class='line'>        <span class="o">}</span>
-</span><span class='line'>    <span class="o">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="kd">static</span> <span class="kd">class</span> <span class="nc">ExceptionHandleStrategy</span>
-</span><span class='line'>    <span class="kd">extends</span> <span class="n">Enum</span><span class="o">&lt;</span><span class="n">ExceptionHandleStrategy</span><span class="o">&gt;</span> <span class="o">{</span>
-</span><span class='line'>        <span class="kd">public</span> <span class="kd">static</span> <span class="kd">final</span> <span class="cm">/* enum */</span> <span class="n">ExceptionHandleStrategy</span> <span class="n">IGNORE</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ExceptionHandleStrategy</span><span class="o">(</span><span class="s">&quot;IGNORE&quot;</span><span class="o">,</span> <span class="mi">0</span><span class="o">);</span>
-</span><span class='line'>        <span class="kd">public</span> <span class="kd">static</span> <span class="kd">final</span> <span class="cm">/* enum */</span> <span class="n">ExceptionHandleStrategy</span> <span class="n">LOG</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ExceptionHandleStrategy</span><span class="o">(</span><span class="s">&quot;LOG&quot;</span><span class="o">,</span> <span class="mi">1</span><span class="o">){</span>
-</span><span class='line'>
-</span><span class='line'>            <span class="nd">@Override</span>
-</span><span class='line'>            <span class="kd">public</span> <span class="kt">void</span> <span class="nf">handle</span><span class="o">(</span><span class="n">Exception</span> <span class="n">exception</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'>                <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">exception</span><span class="o">.</span><span class="na">getLocalizedMessage</span><span class="o">());</span>
-</span><span class='line'>            <span class="o">}</span>
-</span><span class='line'>        <span class="o">};</span>
-</span><span class='line'>        <span class="kd">public</span> <span class="kd">static</span> <span class="kd">final</span> <span class="cm">/* enum */</span> <span class="n">ExceptionHandleStrategy</span> <span class="n">THROW</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ExceptionHandleStrategy</span><span class="o">(</span><span class="s">&quot;THROW&quot;</span><span class="o">,</span> <span class="mi">2</span><span class="o">){</span>
-</span><span class='line'>
-</span><span class='line'>            <span class="nd">@Override</span>
-</span><span class='line'>            <span class="kd">public</span> <span class="kt">void</span> <span class="nf">handle</span><span class="o">(</span><span class="n">Exception</span> <span class="n">exception</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'>                <span class="k">throw</span> <span class="k">new</span> <span class="nf">RuntimeException</span><span class="o">(</span><span class="n">exception</span><span class="o">.</span><span class="na">getMessage</span><span class="o">());</span>
-</span><span class='line'>            <span class="o">}</span>
-</span><span class='line'>        <span class="o">};</span>
-</span><span class='line'>        <span class="kd">private</span> <span class="kd">static</span> <span class="kd">final</span> <span class="cm">/* synthetic */</span> <span class="n">ExceptionHandleStrategy</span><span class="o">[]</span> <span class="n">$VALUES</span><span class="o">;</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="kd">public</span> <span class="kd">static</span> <span class="n">ExceptionHandleStrategy</span><span class="o">[]</span> <span class="nf">values</span><span class="o">()</span> <span class="o">{</span>
-</span><span class='line'>            <span class="k">return</span> <span class="o">(</span><span class="n">ExceptionHandleStrategy</span><span class="o">[])</span><span class="n">$VALUES</span><span class="o">.</span><span class="na">clone</span><span class="o">();</span>
-</span><span class='line'>        <span class="o">}</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="kd">public</span> <span class="kd">static</span> <span class="n">ExceptionHandleStrategy</span> <span class="nf">valueOf</span><span class="o">(</span><span class="n">String</span> <span class="n">string</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'>            <span class="k">return</span> <span class="n">Enum</span><span class="o">.</span><span class="na">valueOf</span><span class="o">(</span><span class="n">ExceptionHandleStrategy</span><span class="o">.</span><span class="na">class</span><span class="o">,</span> <span class="n">string</span><span class="o">);</span>
-</span><span class='line'>        <span class="o">}</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="kd">private</span> <span class="nf">ExceptionHandleStrategy</span><span class="o">(</span><span class="n">String</span> <span class="n">string</span><span class="o">,</span> <span class="kt">int</span> <span class="n">n</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'>            <span class="kd">super</span><span class="o">(</span><span class="n">string</span><span class="o">,</span> <span class="n">n</span><span class="o">);</span>
-</span><span class='line'>        <span class="o">}</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="kd">public</span> <span class="kt">void</span> <span class="nf">handle</span><span class="o">(</span><span class="n">Exception</span> <span class="n">exception</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'>        <span class="o">}</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="kd">static</span> <span class="o">{</span>
-</span><span class='line'>            <span class="n">$VALUES</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ExceptionHandleStrategy</span><span class="o">[]{</span><span class="n">IGNORE</span><span class="o">,</span> <span class="n">LOG</span><span class="o">,</span> <span class="n">THROW</span><span class="o">};</span>
-</span><span class='line'>        <span class="o">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="o">}</span>
-</span><span class='line'>
-</span><span class='line'><span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>可以看到我们的枚举类型都继承了<code>Enum</code>，编译器为我们生成了<code>$VALUES</code>类型数组，并在<code>static</code>静态块中进行了初始化。每个枚举类型实际上是个继承了<code>Enum</code>的类，并在类初始化的时候实例化了枚举类型的实例，可以看到非常重量级，实际上在Android开发中Google已经建议不要使用<code>Enum</code>，改而使用<code>@IntDef</code>之类的注解进行约束。</p>
-
-<p>在看EffectiveJava的时候，看到作者认为Enum是实现单例的一种方式，<code>Enum</code>实现的单例帮我们处理了反射和序列化相关的问题，那它是怎么处理的呢？我们不妨看下源码来找下答案。</p>
-
-<p><strike>首先看下<code>Enum</code>类的<code>readObject</code>方法：</strike></p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="cm">/**</span>
-</span><span class='line'><span class="cm">  * prevent default deserialization</span>
-</span><span class='line'><span class="cm">  */</span>
-</span><span class='line'><span class="kd">private</span> <span class="kt">void</span> <span class="nf">readObject</span><span class="o">(</span><span class="n">ObjectInputStream</span> <span class="n">in</span><span class="o">)</span> <span class="kd">throws</span> <span class="n">IOException</span><span class="o">,</span>
-</span><span class='line'>    <span class="n">ClassNotFoundException</span> <span class="o">{</span>
-</span><span class='line'>    <span class="k">throw</span> <span class="k">new</span> <span class="nf">InvalidObjectException</span><span class="o">(</span><span class="s">&quot;can&#39;t deserialize enum&quot;</span><span class="o">);</span>
-</span><span class='line'><span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p><strike>可以看到这个方法直接抛出了一个异常来阻止反序列化。</strike></p>
-
-<p><code>ObjectInputStream</code>的<code>readEnum</code>方法使用了<code>Enum.valueOf</code>方法来进行<code>Enum</code>的反序列化，保证了实例的唯一。</p>
-
-<p>再来看下如果我们想要使用反射来实例化一个枚举实例的时候会遇到什么问题，我们看下<code>Constructor</code>类的<code>newInstance</code>方法：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="n">T</span> <span class="nf">newInstance</span><span class="o">(</span><span class="n">Object</span> <span class="o">...</span> <span class="n">initargs</span><span class="o">)</span>
-</span><span class='line'>        <span class="kd">throws</span> <span class="n">InstantiationException</span><span class="o">,</span> <span class="n">IllegalAccessException</span><span class="o">,</span>
-</span><span class='line'>               <span class="n">IllegalArgumentException</span><span class="o">,</span> <span class="n">InvocationTargetException</span>
-</span><span class='line'>    <span class="o">{</span>
-</span><span class='line'>        <span class="k">if</span> <span class="o">(!</span><span class="n">override</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'>            <span class="k">if</span> <span class="o">(!</span><span class="n">Reflection</span><span class="o">.</span><span class="na">quickCheckMemberAccess</span><span class="o">(</span><span class="n">clazz</span><span class="o">,</span> <span class="n">modifiers</span><span class="o">))</span> <span class="o">{</span>
-</span><span class='line'>                <span class="n">Class</span><span class="o">&lt;?&gt;</span> <span class="n">caller</span> <span class="o">=</span> <span class="n">Reflection</span><span class="o">.</span><span class="na">getCallerClass</span><span class="o">();</span>
-</span><span class='line'>                <span class="n">checkAccess</span><span class="o">(</span><span class="n">caller</span><span class="o">,</span> <span class="n">clazz</span><span class="o">,</span> <span class="kc">null</span><span class="o">,</span> <span class="n">modifiers</span><span class="o">);</span>
-</span><span class='line'>            <span class="o">}</span>
-</span><span class='line'>        <span class="o">}</span>
-</span><span class='line'>        <span class="c1">// 阻止了通过反射来实例化Enum实例</span>
-</span><span class='line'>        <span class="k">if</span> <span class="o">((</span><span class="n">clazz</span><span class="o">.</span><span class="na">getModifiers</span><span class="o">()</span> <span class="o">&amp;</span> <span class="n">Modifier</span><span class="o">.</span><span class="na">ENUM</span><span class="o">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="o">)</span>
-</span><span class='line'>            <span class="k">throw</span> <span class="k">new</span> <span class="nf">IllegalArgumentException</span><span class="o">(</span><span class="s">&quot;Cannot reflectively create enum objects&quot;</span><span class="o">);</span>
-</span><span class='line'>        <span class="n">ConstructorAccessor</span> <span class="n">ca</span> <span class="o">=</span> <span class="n">constructorAccessor</span><span class="o">;</span>   <span class="c1">// read volatile</span>
-</span><span class='line'>        <span class="k">if</span> <span class="o">(</span><span class="n">ca</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'>            <span class="n">ca</span> <span class="o">=</span> <span class="n">acquireConstructorAccessor</span><span class="o">();</span>
-</span><span class='line'>        <span class="o">}</span>
-</span><span class='line'>        <span class="nd">@SuppressWarnings</span><span class="o">(</span><span class="s">&quot;unchecked&quot;</span><span class="o">)</span>
-</span><span class='line'>        <span class="n">T</span> <span class="n">inst</span> <span class="o">=</span> <span class="o">(</span><span class="n">T</span><span class="o">)</span> <span class="n">ca</span><span class="o">.</span><span class="na">newInstance</span><span class="o">(</span><span class="n">initargs</span><span class="o">);</span>
-</span><span class='line'>        <span class="k">return</span> <span class="n">inst</span><span class="o">;</span>
-</span><span class='line'>    <span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>可以看到在方法内如果发现要反射类的Modifier中有<code>Enum</code>标志，会直接抛出异常表示无法通过反射的方式来创建<code>Enum</code>实例。</p>
-
-<h3>reference</h3>
-
-<ul>
-<li><a href="https://www.benf.org/other/cfr/how-are-enums-implemented.html">How are Enums implemented?</a></li>
-</ul>
-
 ]]></content>
   </entry>
   

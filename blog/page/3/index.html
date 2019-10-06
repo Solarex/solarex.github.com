@@ -9,7 +9,7 @@
   <meta name="author" content="Solarex">
 
   
-  <meta name="description" content="reference Dagger2 Beginner Tutorial ">
+  <meta name="description" content="AbstractQueuedSynchronizer是很多并发工具类如ReentrantLock的实现基础，本文对其进行分析。 ">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -91,6 +91,135 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2019/07/28/aqs/">Java AQS解析</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2019-07-28T16:59:00+08:00" pubdate data-updated="true">Jul 28<span>th</span>, 2019</time>
+        
+         | <a href="/blog/2019/07/28/aqs/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p><code>AbstractQueuedSynchronizer</code>是很多并发工具类如<code>ReentrantLock</code>的实现基础，本文对其进行分析。</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2019/07/28/aqs/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2019/06/28/futuretask/">Java FutureTask解析</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2019-06-28T16:59:00+08:00" pubdate data-updated="true">Jun 28<span>th</span>, 2019</time>
+        
+         | <a href="/blog/2019/06/28/futuretask/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>本文主要对FutureTask源码进行分析。</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2019/06/28/futuretask/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2019/05/28/thread/">Android Thread解析</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2019-05-28T16:58:00+08:00" pubdate data-updated="true">May 28<span>th</span>, 2019</time>
+        
+         | <a href="/blog/2019/05/28/thread/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>本文主要分析Android平台上的Thread类源码，分为Java部分和native部分。</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2019/05/28/thread/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
   
   
     <article>
@@ -209,163 +338,6 @@
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2019/03/12/summary-of-custom-views-part-iii/">自定义View总结三</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2019-03-12T00:34:00+08:00" pubdate data-updated="true">Mar 12<span>th</span>, 2019</time>
-        
-         | <a href="/blog/2019/03/12/summary-of-custom-views-part-iii/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h3>自定义View总结 &ndash; 触摸反馈</h3>
-
-<p>之前分析了<a href="http://solarex.github.io/blog/2018/03/25/android-touch-system/">Android触摸事件分发机制</a>，在自定义View的时候进行触摸反馈，一般都是重写<code>onTouchEvent</code>，当然也有一些工具类可以使用，本文就对这些工具类进行总结，他们是<code>ViewConfiguration</code>，<code>Scroller</code>，<code>OverScroller</code>，<code>VelocityTracker</code>，<code>GestureDetector</code>，<code>ScaleGestureDetector</code>，<code>ViewDragHelper</code>。</p>
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2019/03/12/summary-of-custom-views-part-iii/">Read on &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2019/02/12/summary-of-custom-views-part-ii/">自定义View总结二</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2019-02-12T00:34:00+08:00" pubdate data-updated="true">Feb 12<span>th</span>, 2019</time>
-        
-         | <a href="/blog/2019/02/12/summary-of-custom-views-part-ii/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h3>自定义View总结 &ndash; 布局</h3>
-
-<h4>布局基础</h4>
-
-<p>布局过程，就是程序在运行时利用布局文件中的代码来计算出实际尺寸和位置的过程。有两个阶段，测量阶段和布局阶段，分别对应<code>measure</code>和<code>layout</code>。</p>
-
-<p>对于一个<code>View</code>而言，默认的<code>onMeasure</code>实现是：</p>
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2019/02/12/summary-of-custom-views-part-ii/">Read on &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2019/01/12/summary-of-custom-views-part-i/">自定义View总结一</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2019-01-12T00:33:00+08:00" pubdate data-updated="true">Jan 12<span>th</span>, 2019</time>
-        
-         | <a href="/blog/2019/01/12/summary-of-custom-views-part-i/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h2>自定义View总结 &ndash; 绘制</h2>
-
-<h3>绘制基础</h3>
-
-<ul>
-<li><code>Canvas.drawColor(@ColorInt int color)</code> 颜色填充</li>
-<li><code>drawCircle(float centerX, float centerY, float radius, Paint paint)</code> 画圆</li>
-<li><code>Paint.setColor(int color)</code>,<code>Paint.setStyle(Paint.Style style)</code>,<code>Paint.setStrokeWidth(float width)</code>,<code>Paint.setAntiAlias(boolean aa)</code></li>
-<li><code>drawRect(float left, float top, float right, float bottom, Paint paint)</code> 画矩形</li>
-<li><code>drawPoint(float x, float y, Paint paint)</code> 画点</li>
-<li><code>drawPoints(float[] pts, int offset, int count, Paint paint) / drawPoints(float[] pts, Paint paint)</code> 画点（批量）</li>
-<li><code>drawOval(float left, float top, float right, float bottom, Paint paint)</code>画椭圆</li>
-<li><code>drawLine(float startX, float startY, float stopX, float stopY, Paint paint)</code> 画线</li>
-<li><code>drawLines(float[] pts, int offset, int count, Paint paint) / drawLines(float[] pts, Paint paint)</code> 画线（批量）</li>
-<li><code>drawRoundRect(float left, float top, float right, float bottom, float rx, float ry, Paint paint)</code> 画圆角矩形</li>
-<li><code>drawArc(float left, float top, float right, float bottom, float startAngle, float sweepAngle, boolean useCenter, Paint paint)</code> 绘制弧形或扇形</li>
-<li><code>drawPath(Path path, Paint paint)</code> 画自定义图形</li>
-<li><code>drawBitmap(Bitmap bitmap, float left, float top, Paint paint)</code> 画 Bitmap</li>
-<li><code>drawText(String text, float x, float y, Paint paint)</code>绘制文字</li>
-</ul>
-
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2019/01/12/summary-of-custom-views-part-i/">Read on &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/4/">&larr; Older</a>
@@ -383,23 +355,23 @@
     <ul id="recent_posts">
         
         <li class="post">
+            <a href="/blog/2019/10/07/que-sera-sera/">Que Sera Sera</a>
+        </li>
+        
+        <li class="post">
+            <a href="/blog/2019/10/05/womxnly/">玫瑰少年</a>
+        </li>
+        
+        <li class="post">
+            <a href="/blog/2019/09/18/android-studio-proxy/">Android Studio 代理问题</a>
+        </li>
+        
+        <li class="post">
             <a href="/blog/2019/08/12/singleton-pattern/">单例模式</a>
         </li>
         
         <li class="post">
             <a href="/blog/2019/08/10/lock-free-multithreading-with-atomic-operations/">Lock-free multithreading with atomic operations</a>
-        </li>
-        
-        <li class="post">
-            <a href="/blog/2019/08/09/introduction-to-thread-synchronization/">Introduction to thread synchronization</a>
-        </li>
-        
-        <li class="post">
-            <a href="/blog/2019/08/07/a-gentle-introduction-to-multithreading/">A gentle introduction to multithreading</a>
-        </li>
-        
-        <li class="post">
-            <a href="/blog/2019/08/05/floyd-cycle-detection-in-linkedlist/">检测链表中是否有环</a>
         </li>
         
     </ul>

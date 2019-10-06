@@ -4,7 +4,7 @@
   <title><![CDATA[Category: tools | Solarex's Blog]]></title>
   <link href="http://Solarex.github.io/blog/categories/tools/atom.xml" rel="self"/>
   <link href="http://Solarex.github.io/"/>
-  <updated>2019-09-16T17:22:27+08:00</updated>
+  <updated>2019-10-06T21:02:58+08:00</updated>
   <id>http://Solarex.github.io/</id>
   <author>
     <name><![CDATA[Solarex]]></name>
@@ -12,6 +12,30 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Android Studio 代理问题]]></title>
+    <link href="http://Solarex.github.io/blog/2019/09/18/android-studio-proxy/"/>
+    <updated>2019-09-18T14:15:00+08:00</updated>
+    <id>http://Solarex.github.io/blog/2019/09/18/android-studio-proxy</id>
+    <content type="html"><![CDATA[<p>Android Studio 设置代理后gradle sync失败，解决方法。</p>
+
+<!-- more -->
+
+
+<p>今天到公司后，新需求下来了，同步代码，sync工程，开完晨会发现gradle sync失败了。</p>
+
+<p>报错类似<code>could not resolve xxx</code>，AS是开了代理的，http代理8123端口，在AS里check connection连接baidu居然报错read timeout。心想不会是墙又升高了吧，最近要国庆啥的，在Chrome里面打开了一下，google访问正常，梯子还是好的。看了下v2ray config文件，1080 socks端口，8123 http端口，对的啊，感觉一脸懵逼。把AS代理切换到socks，check connection通了，可是gradle sync的时候v2ray报错<code>rejected  v2ray.com/core/proxy/socks: unknown Socks version: 67</code>，AS的socks代理貌似是有问题的，所以之前一直用http代理，现在的问题是socks代理工作正常，http代理出问题了。</p>
+
+<p><code>lsof -i:8123</code>发现是<code>privoxy</code>，尝试<code>kill -9 PID</code>了一下，发现杀死之后又会重启一个进程。开Activity Monitor，搜索<code>privoxy</code>发现<code>privoxy</code>路径是<code>~/Library/Application Support/ShadowsocksX-NG</code>，parent process是<code>launchd</code>，问题比较清晰了，<code>privoxy</code>是在开机的时候自动启动的，而且是SSR里面的，而SSR被我冷藏后<code>launch at login</code>取消了，SSR的socks端口号和v2ray的端口号不一样，导致<code>privoxy</code>转发socks流量出现了问题，而且v2ray命令行启动的时候没有报8123端口被占用，直接启动成功了。</p>
+
+<p>于是尝试取消开机启动SSR的<code>privoxy</code>，在<code>Users&amp;Groups</code>里<code>Login Items</code>看了一下没发现，搜索了一下发现了plist文件在<code>~/Library/LaunchAgents</code>，同时发现了一个工具<a href="https://nektony.com/mac-app-cleaner">App Cleaner &amp; Uninstaller</a>可以管理启动项。</p>
+
+<p><code>brew cask install app-cleaner</code>之后关闭ShadowsocksX-NG的启动项，重启电脑，启动v2ray，切换AS代理到到http代理，sync成功了。</p>
+
+<p>吐槽下AS的socks代理，真不给力。</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Setup Mac Development Environment]]></title>
@@ -49,7 +73,7 @@
 /Library/Developer/CommandLineTools</code> to check if command line tools is installed</p></li>
 <li><p>install homebrew <code>ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"</code> from <a href="http://brew.sh/">brew.sh</a></p></li>
 <li><p><code>brew doctor</code>,<code>brew update</code>,<code>brew list</code>,<code>brew search wget</code>,<code>brew install wget</code>,<code>brew outdated</code>,<code>brew upgrade</code>,<code>brew upgrade wget</code>,<code>brew uninstall wget --force</code>,<code>brew info wget</code>,<code>brew deps wget</code>,<code>brew edit wget</code>,<code>brew list --versions</code>,<code>brew cleanup</code></p></li>
-<li><p><code>brew install caskroom/cask/brew-cask</code> from <a href="http://caskroom.io/">caskroom.io</a></p></li>
+<li><p><code>brew install caskroom/cask/brew-cask</code> from <a href="https://brew.sh/index_zh-cn">brew.sh</a></p></li>
 <li><code>brew cask search thunder</code>,<code>brew cask info thunder</code>,<code>brew cask edit thunder</code>,<code>brew cask uninstall thunder</code></li>
 </ul>
 
@@ -1639,8 +1663,8 @@ $ echo &lsquo;first commit&rsquo; | git commit-tree d8329f
 fdf4fc3344e67ab068f836878b6c4951e3b15f3d
 $ git cat-file -p fdf4fc3
 tree d8329fc1cc938780ffdd9f94e0d364e0ea74f579
-author Scott Chacon <a href="&#109;&#97;&#105;&#x6c;&#116;&#111;&#x3a;&#x73;&#x63;&#x68;&#97;&#99;&#111;&#110;&#64;&#x67;&#109;&#97;&#x69;&#108;&#46;&#x63;&#111;&#109;">&#x73;&#x63;&#x68;&#x61;&#99;&#111;&#x6e;&#64;&#103;&#109;&#x61;&#105;&#108;&#x2e;&#x63;&#x6f;&#109;</a> 1243040974 -0700
-committer Scott Chacon <a href="&#x6d;&#x61;&#x69;&#108;&#x74;&#111;&#58;&#x73;&#99;&#104;&#x61;&#x63;&#x6f;&#110;&#64;&#103;&#x6d;&#x61;&#105;&#x6c;&#x2e;&#x63;&#x6f;&#x6d;">&#115;&#99;&#x68;&#x61;&#x63;&#111;&#110;&#x40;&#103;&#x6d;&#x61;&#x69;&#x6c;&#x2e;&#x63;&#x6f;&#109;</a> 1243040974 -0700</p>
+author Scott Chacon <a href="&#109;&#97;&#x69;&#x6c;&#x74;&#111;&#58;&#x73;&#x63;&#x68;&#x61;&#99;&#x6f;&#110;&#64;&#103;&#x6d;&#97;&#105;&#x6c;&#46;&#x63;&#111;&#x6d;">&#115;&#99;&#104;&#x61;&#99;&#x6f;&#110;&#64;&#x67;&#x6d;&#x61;&#105;&#x6c;&#46;&#x63;&#x6f;&#x6d;</a> 1243040974 -0700
+committer Scott Chacon <a href="&#109;&#x61;&#105;&#108;&#x74;&#111;&#58;&#115;&#99;&#x68;&#97;&#99;&#x6f;&#x6e;&#64;&#103;&#x6d;&#x61;&#105;&#x6c;&#46;&#99;&#111;&#x6d;">&#115;&#x63;&#x68;&#97;&#99;&#111;&#x6e;&#x40;&#x67;&#109;&#x61;&#105;&#108;&#x2e;&#99;&#x6f;&#109;</a> 1243040974 -0700</p>
 
 <p>first commit
 $ echo &lsquo;second commit&rsquo; | git commit-tree 0155eb -p fdf4fc3
@@ -1649,7 +1673,7 @@ $ echo &lsquo;third commit&rsquo; | git commit-tree 3c4e9c -p cac0cab
 1a410efbd13591db07496601ebc7a059dd55cfe9
 $ git log &mdash;stat 1a410e
 commit 1a410efbd13591db07496601ebc7a059dd55cfe9
-Author: Scott Chacon <a href="&#109;&#97;&#x69;&#108;&#116;&#x6f;&#58;&#115;&#99;&#x68;&#x61;&#x63;&#x6f;&#110;&#x40;&#x67;&#x6d;&#x61;&#105;&#x6c;&#x2e;&#x63;&#x6f;&#109;">&#115;&#x63;&#x68;&#97;&#99;&#x6f;&#110;&#64;&#x67;&#x6d;&#x61;&#105;&#108;&#x2e;&#99;&#111;&#109;</a>
+Author: Scott Chacon <a href="&#109;&#x61;&#105;&#108;&#x74;&#111;&#x3a;&#x73;&#99;&#104;&#x61;&#99;&#x6f;&#110;&#64;&#103;&#x6d;&#97;&#105;&#x6c;&#46;&#x63;&#111;&#109;">&#x73;&#x63;&#104;&#97;&#x63;&#x6f;&#x6e;&#64;&#103;&#x6d;&#97;&#105;&#x6c;&#x2e;&#x63;&#x6f;&#109;</a>
 Date: Fri May 22 18:15:24 2009 -0700</p>
 
 <p>third commit</p>
@@ -1658,7 +1682,7 @@ Date: Fri May 22 18:15:24 2009 -0700</p>
 1 files changed, 1 insertions(+), 0 deletions(&ndash;)</p>
 
 <p>commit cac0cab538b970a37ea1e769cbbde608743bc96d
-Author: Scott Chacon <a href="&#x6d;&#x61;&#x69;&#x6c;&#x74;&#111;&#58;&#115;&#x63;&#x68;&#x61;&#99;&#x6f;&#x6e;&#x40;&#103;&#109;&#x61;&#105;&#x6c;&#x2e;&#99;&#x6f;&#109;">&#x73;&#x63;&#104;&#97;&#x63;&#x6f;&#x6e;&#64;&#103;&#109;&#x61;&#x69;&#x6c;&#x2e;&#x63;&#111;&#109;</a>
+Author: Scott Chacon <a href="&#109;&#x61;&#x69;&#108;&#116;&#x6f;&#58;&#115;&#x63;&#x68;&#97;&#x63;&#111;&#110;&#64;&#x67;&#x6d;&#97;&#105;&#108;&#x2e;&#99;&#x6f;&#109;">&#115;&#x63;&#x68;&#97;&#99;&#111;&#110;&#64;&#103;&#x6d;&#97;&#105;&#108;&#46;&#99;&#x6f;&#109;</a>
 Date: Fri May 22 18:14:29 2009 -0700</p>
 
 <p>second commit</p>
@@ -1668,7 +1692,7 @@ test.txt | 2 +&ndash;
 2 files changed, 2 insertions(+), 1 deletions(&ndash;)</p>
 
 <p>commit fdf4fc3344e67ab068f836878b6c4951e3b15f3d
-Author: Scott Chacon <a href="&#109;&#97;&#x69;&#x6c;&#x74;&#x6f;&#58;&#115;&#x63;&#x68;&#x61;&#99;&#111;&#x6e;&#x40;&#x67;&#109;&#97;&#105;&#x6c;&#x2e;&#99;&#x6f;&#x6d;">&#x73;&#x63;&#104;&#97;&#99;&#111;&#x6e;&#x40;&#x67;&#109;&#97;&#105;&#108;&#46;&#x63;&#x6f;&#109;</a>
+Author: Scott Chacon <a href="&#x6d;&#97;&#105;&#x6c;&#116;&#x6f;&#58;&#x73;&#x63;&#x68;&#97;&#99;&#111;&#x6e;&#64;&#x67;&#109;&#97;&#x69;&#x6c;&#46;&#x63;&#x6f;&#x6d;">&#x73;&#x63;&#x68;&#97;&#x63;&#x6f;&#110;&#64;&#x67;&#109;&#97;&#105;&#x6c;&#46;&#x63;&#111;&#x6d;</a>
 Date: Fri May 22 18:09:34 2009 -0700</p>
 
 <p>first commit</p>
@@ -1778,7 +1802,7 @@ $ git cat-file -p 9585191f37f7b0fb9444f35a9bf50de191beadc2
 object 1a410efbd13591db07496601ebc7a059dd55cfe9
 type commit
 tag v1.1
-tagger Scott Chacon <a href="&#109;&#x61;&#105;&#108;&#x74;&#111;&#58;&#x73;&#99;&#x68;&#97;&#x63;&#111;&#x6e;&#64;&#x67;&#109;&#x61;&#105;&#108;&#46;&#x63;&#x6f;&#109;">&#x73;&#99;&#104;&#97;&#x63;&#111;&#110;&#x40;&#x67;&#109;&#x61;&#105;&#108;&#x2e;&#x63;&#x6f;&#109;</a> Sat May 23 16:48:58 2009 -0700</p>
+tagger Scott Chacon <a href="&#x6d;&#97;&#x69;&#108;&#x74;&#111;&#x3a;&#x73;&#x63;&#104;&#97;&#99;&#x6f;&#x6e;&#64;&#103;&#x6d;&#97;&#x69;&#108;&#46;&#99;&#x6f;&#109;">&#115;&#x63;&#x68;&#97;&#99;&#x6f;&#110;&#64;&#103;&#x6d;&#97;&#x69;&#108;&#x2e;&#99;&#x6f;&#x6d;</a> Sat May 23 16:48:58 2009 -0700</p>
 
 <p>test tag
 $ git cat-file blob junio-gpg-pub
@@ -1987,17 +2011,17 @@ ab1afef HEAD@{1}: ab1afef80fac8e34258ff41fc1b867c702daa24b: updating HEAD
 <p>```bash
 $ git log -g
 commit 1a410efbd13591db07496601ebc7a059dd55cfe9
-Reflog: HEAD@{0} (Scott Chacon <a href="&#x6d;&#97;&#x69;&#x6c;&#116;&#111;&#x3a;&#x73;&#99;&#x68;&#x61;&#x63;&#x6f;&#110;&#x40;&#x67;&#109;&#x61;&#105;&#108;&#x2e;&#x63;&#111;&#x6d;">&#x73;&#99;&#104;&#97;&#99;&#x6f;&#x6e;&#x40;&#x67;&#109;&#97;&#x69;&#108;&#x2e;&#x63;&#x6f;&#x6d;</a>)
+Reflog: HEAD@{0} (Scott Chacon <a href="&#109;&#97;&#105;&#108;&#116;&#111;&#x3a;&#115;&#99;&#x68;&#97;&#99;&#111;&#110;&#64;&#103;&#x6d;&#97;&#105;&#108;&#46;&#99;&#111;&#109;">&#x73;&#x63;&#104;&#97;&#99;&#x6f;&#110;&#64;&#x67;&#109;&#97;&#x69;&#x6c;&#x2e;&#x63;&#x6f;&#109;</a>)
 Reflog message: updating HEAD
-Author: Scott Chacon <a href="&#109;&#97;&#105;&#108;&#x74;&#x6f;&#x3a;&#115;&#x63;&#x68;&#x61;&#99;&#x6f;&#x6e;&#x40;&#103;&#x6d;&#97;&#105;&#108;&#x2e;&#x63;&#x6f;&#x6d;">&#115;&#99;&#x68;&#x61;&#x63;&#111;&#110;&#64;&#x67;&#109;&#97;&#105;&#x6c;&#x2e;&#x63;&#111;&#x6d;</a>
+Author: Scott Chacon <a href="&#x6d;&#x61;&#x69;&#x6c;&#x74;&#x6f;&#58;&#x73;&#x63;&#x68;&#97;&#99;&#x6f;&#110;&#x40;&#x67;&#109;&#x61;&#x69;&#x6c;&#x2e;&#x63;&#x6f;&#109;">&#115;&#99;&#x68;&#x61;&#99;&#111;&#110;&#x40;&#x67;&#x6d;&#x61;&#105;&#108;&#x2e;&#x63;&#x6f;&#109;</a>
 Date: Fri May 22 18:22:37 2009 -0700</p>
 
 <p>third commit</p>
 
 <p>commit ab1afef80fac8e34258ff41fc1b867c702daa24b
-Reflog: HEAD@{1} (Scott Chacon <a href="&#109;&#x61;&#105;&#x6c;&#116;&#111;&#58;&#115;&#99;&#104;&#x61;&#99;&#x6f;&#110;&#64;&#103;&#109;&#x61;&#x69;&#108;&#46;&#x63;&#x6f;&#109;">&#115;&#99;&#104;&#x61;&#x63;&#111;&#110;&#x40;&#x67;&#x6d;&#x61;&#105;&#x6c;&#x2e;&#99;&#111;&#109;</a>)
+Reflog: HEAD@{1} (Scott Chacon <a href="&#x6d;&#x61;&#105;&#x6c;&#116;&#x6f;&#x3a;&#115;&#99;&#x68;&#x61;&#x63;&#111;&#x6e;&#x40;&#103;&#109;&#x61;&#105;&#108;&#x2e;&#99;&#x6f;&#109;">&#x73;&#x63;&#104;&#97;&#x63;&#x6f;&#x6e;&#64;&#x67;&#x6d;&#97;&#x69;&#108;&#x2e;&#x63;&#111;&#109;</a>)
 Reflog message: updating HEAD
-Author: Scott Chacon <a href="&#109;&#97;&#x69;&#108;&#116;&#x6f;&#58;&#x73;&#x63;&#x68;&#x61;&#99;&#111;&#110;&#64;&#103;&#109;&#97;&#x69;&#108;&#46;&#x63;&#111;&#x6d;">&#115;&#99;&#x68;&#x61;&#99;&#x6f;&#x6e;&#64;&#x67;&#x6d;&#x61;&#x69;&#108;&#x2e;&#99;&#x6f;&#109;</a>
+Author: Scott Chacon <a href="&#x6d;&#x61;&#105;&#108;&#x74;&#x6f;&#x3a;&#115;&#x63;&#x68;&#x61;&#x63;&#x6f;&#x6e;&#64;&#103;&#x6d;&#x61;&#x69;&#108;&#46;&#99;&#x6f;&#x6d;">&#115;&#x63;&#x68;&#x61;&#99;&#x6f;&#110;&#x40;&#103;&#109;&#97;&#x69;&#x6c;&#x2e;&#x63;&#x6f;&#109;</a>
 Date: Fri May 22 18:15:24 2009 -0700</p>
 
 <p>modified repo a bit
@@ -2153,62 +2177,6 @@ garbage: 0
 <li><a href="https://marklodato.github.io/visual-git-guide/index-zh-cn.html">图解Git</a></li>
 <li><a href="http://git.oschina.net/progit/index.html">ProGit</a></li>
 </ul>
-
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[SSH key settings for multi github accounts]]></title>
-    <link href="http://Solarex.github.io/blog/2014/06/02/ssh-key-config-for-multi-github-accounts/"/>
-    <updated>2014-06-02T15:13:00+08:00</updated>
-    <id>http://Solarex.github.io/blog/2014/06/02/ssh-key-config-for-multi-github-accounts</id>
-    <content type="html"><![CDATA[<p>在同一台电脑上有多个github账户时，切换ssh key会比较麻烦，可以使用ssh config来简化这一动作。</p>
-
-<p>在使用<code>ssh-keygen</code>时，为不同的账户选择不同的ssh key文件。</p>
-
-<p><code>bash
-hrh@Solarex:~$ ls ~/.ssh/
-id_rsa_accountA id_rsa_accountA.pub id_rsa_accountB id_rsa_accountB.pub known_hosts config
-</code></p>
-
-<p>在<code>~/.bashrc</code>中添加ssh key。</p>
-
-<p><code>bash
-ssh-add ~/.ssh/id_rsa_accountA &gt;/dev/null 2&gt;&amp;1
-ssh-add ~/.ssh/id_rsa_accountB &gt;/dev/null 2&gt;&amp;1
-</code></p>
-
-<p>配置ssh config文件<code>~/.ssh/config</code>。
-```bash</p>
-
-<h1>AccountA</h1>
-
-<p>Host github-a.com</p>
-
-<pre><code>HostName github.com
-User git
-IdentityFile ~/.ssh/id_rsa_accountA
-</code></pre>
-
-<h1>AccountB</h1>
-
-<p>Host github-b.com</p>
-
-<pre><code>HostName github.com
-User git
-IdentityFile ~/.ssh/id_rsa_accountB
-</code></pre>
-
-<p>```</p>
-
-<p>这样以后使用AccountA时可以<code>git clone git@github-a.com:user/repos.git local_dir</code>这样操作，clone下来后可以<code>cd local_dir</code>对<code>user.name</code>和<code>user.email</code>来进行config来覆盖global config，剩下的就和平时没有什么区别了，使用AccountB时相似操作就可以了。</p>
-
-<!-- more -->
-
-
-
-
-<script src="https://gist.github.com/flyfire/ecdf3b6d623923d73c07.js"></script>
 
 ]]></content>
   </entry>

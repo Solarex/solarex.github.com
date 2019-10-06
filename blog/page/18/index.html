@@ -9,7 +9,7 @@
   <meta name="author" content="Solarex">
 
   
-  <meta name="description" content=" C version C版本的hello,world深入详解之前上学的时候在SlideShare上看到过，记得当时大呼过瘾，许多C深入理解的知识基本上都被罗列了出来，现在看来仍然获益颇多。PDF版本可以在这里和这里下载。 ">
+  <meta name="description" content="Ref:Java Annotations tutorial,Wiki,How do Annotations Work In Java?, Annotation is special kind of Java construct used to decorate a class, method, &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -91,6 +91,323 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/09/12/java-annotations/">Java Annotations</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-09-12T12:52:00+08:00" pubdate data-updated="true">Sep 12<span>th</span>, 2014</time>
+        
+         | <a href="/blog/2014/09/12/java-annotations/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><center><p><img src="/images/java-annotations.png" width="210" height="135" alt="java"></p></center>
+
+
+<p>Ref:<a href="http://docs.oracle.com/javase/tutorial/java/annotations/">Java Annotations tutorial</a>,<a href="https://en.wikipedia.org/wiki/Java_annotation">Wiki</a>,<a href="http://java.dzone.com/articles/how-annotations-work-java">How do Annotations Work In Java?</a>,</p>
+
+<p>Annotation is special kind of Java construct used to decorate a class, method, field, parameter, variable, constructor, or package. It’s the vehicle chosen by JSR-175 to provide metadata.Java annotations are typically used for the following purposes:</p>
+
+<ul>
+<li>Compiler instructions</li>
+<li>Build-time instructions</li>
+<li>Runtime instructions</li>
+</ul>
+
+
+<h2>Basics</h2>
+
+<p>Annotations have a number of uses, among them:</p>
+
+<ul>
+<li>Information for the compiler — Annotations can be used by the compiler to detect errors or suppress warnings.</li>
+<li>Compile-time and deployment-time processing — Software tools can process annotation information to generate code, XML files, and so forth.</li>
+<li>Runtime processing — Some annotations are available to be examined at runtime.</li>
+</ul>
+
+
+<p>The format of an Annotation:In its simplest form, an annotation looks like <code>@Entity</code>,the annotation can include elements, which can be named or unnamed,if there is just one element named value, then the name can be omitted,if the annotation has no elements, then the parentheses can be omitted, as shown in the previous <code>@Override</code> example,it is also possible to use multiple annotations on the same declaration.If the annotations have the same type, then this is called a repeating annotation,repeating annotations are supported as of the Java SE 8 release.</p>
+
+<p>The predefined annotation types defined in java.lang are <code>@Deprecated</code>, <code>@Override</code>, and <code>@SuppressWarnings</code>.Note that the Javadoc tag starts with a lowercase d (<code>deprecated</code>)and the annotation starts with an uppercase D(<code>Deprecated</code>).</p>
+
+<p>Every compiler warning belongs to a category. The Java Language Specification lists two categories: <code>deprecation</code> and <code>unchecked</code>. The unchecked warning can occur when interfacing with legacy code written before the advent of generics. To suppress multiple categories of warnings, use the following syntax:<code>@SuppressWarnings({"unchecked", "deprecation"})</code>.</p>
+
+<p>Annotations can be applied to declarations: declarations of classes, fields, methods, and other program elements. When used on a declaration, each annotation often appears, by convention, on its own line.As of the Java SE 8 release, annotations can also be applied to the use of types.</p>
+
+<h2>Declaring an Annotation Type</h2>
+
+<p>Declaring an annotation type, syntax for doing this is:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="nd">@interface</span> <span class="n">ClassPreamble</span> <span class="o">{</span>
+</span><span class='line'>   <span class="n">String</span> <span class="nf">author</span><span class="o">();</span>
+</span><span class='line'>   <span class="n">String</span> <span class="nf">date</span><span class="o">();</span>
+</span><span class='line'>   <span class="kt">int</span> <span class="nf">currentRevision</span><span class="o">()</span> <span class="k">default</span> <span class="mi">1</span><span class="o">;</span>
+</span><span class='line'>   <span class="n">String</span> <span class="nf">lastModified</span><span class="o">()</span> <span class="k">default</span> <span class="s">&quot;N/A&quot;</span><span class="o">;</span>
+</span><span class='line'>   <span class="n">String</span> <span class="nf">lastModifiedBy</span><span class="o">()</span> <span class="k">default</span> <span class="s">&quot;N/A&quot;</span><span class="o">;</span>
+</span><span class='line'>   <span class="c1">// Note use of array</span>
+</span><span class='line'>   <span class="n">String</span><span class="o">[]</span> <span class="nf">reviewers</span><span class="o">();</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The annotation type definition looks similar to an interface definition where the keyword interface is preceded by the at sign (@) (@ = AT, as in annotation type). Annotation types are a form of interface.The body of the previous annotation definition contains annotation type element declarations, which look a lot like methods. Note that they can define optional default values.Annotations only support primitives, string and enumerations. All attributes of annotations are defined as methods and default values can also be provided.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="nd">@Target</span><span class="o">(</span><span class="n">ElementType</span><span class="o">.</span><span class="na">METHOD</span><span class="o">)</span>
+</span><span class='line'><span class="nd">@Retention</span><span class="o">(</span><span class="n">RetentionPolicy</span><span class="o">.</span><span class="na">RUNTIME</span><span class="o">)</span>
+</span><span class='line'><span class="nd">@interface</span> <span class="n">Todo</span> <span class="o">{</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="kd">enum</span> <span class="n">Priority</span> <span class="o">{</span><span class="n">LOW</span><span class="o">,</span> <span class="n">MEDIUM</span><span class="o">,</span> <span class="n">HIGH</span><span class="o">}</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="kd">enum</span> <span class="n">Status</span> <span class="o">{</span><span class="n">STARTED</span><span class="o">,</span> <span class="n">NOT_STARTED</span><span class="o">}</span>
+</span><span class='line'>    <span class="n">String</span> <span class="nf">author</span><span class="o">()</span> <span class="k">default</span> <span class="s">&quot;Yash&quot;</span><span class="o">;</span>
+</span><span class='line'>    <span class="n">Priority</span> <span class="nf">priority</span><span class="o">()</span> <span class="k">default</span> <span class="n">Priority</span><span class="o">.</span><span class="na">LOW</span><span class="o">;</span>
+</span><span class='line'>    <span class="n">Status</span> <span class="nf">status</span><span class="o">()</span> <span class="k">default</span> <span class="n">Status</span><span class="o">.</span><span class="na">NOT_STARTED</span><span class="o">;</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><strong>Note</strong>: To make the information in @ClassPreamble appear in Javadoc-generated documentation, you must annotate the @ClassPreamble definition with the @Documented annotation:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="c1">// import this to use @Documented</span>
+</span><span class='line'><span class="kn">import</span> <span class="nn">java.lang.annotation.*</span><span class="o">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="nd">@Documented</span>
+</span><span class='line'><span class="nd">@interface</span> <span class="n">ClassPreamble</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>   <span class="c1">// Annotation element definitions</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You can also define that your annotation is a qualifier for the <code>@Inject</code> annotation.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="nd">@javax.inject.Qualifier</span>
+</span><span class='line'><span class="nd">@Documented</span>
+</span><span class='line'><span class="nd">@Target</span><span class="o">({</span><span class="n">ElementType</span><span class="o">.</span><span class="na">FIELD</span><span class="o">,</span> <span class="n">ElementType</span><span class="o">.</span><span class="na">PARAMETER</span><span class="o">})</span>
+</span><span class='line'><span class="nd">@Retention</span><span class="o">(</span><span class="n">RetentionPolicy</span><span class="o">.</span><span class="na">RUNTIME</span><span class="o">)</span>
+</span><span class='line'><span class="kd">public</span> <span class="nd">@interface</span> <span class="n">Checker</span> <span class="o">{</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2014/09/12/java-annotations/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/09/04/java-class-loaded-and-initialized/">Java Class Loaded and Initialized</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-09-04T13:05:00+08:00" pubdate data-updated="true">Sep 4<span>th</span>, 2014</time>
+        
+         | <a href="/blog/2014/09/04/java-class-loaded-and-initialized/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><center><p><img src="/images/java_logo.svg" width="150" height="275" alt="java"></p></center>
+
+
+<h2>class loaded and initialized</h2>
+
+<p><code>java -verbose:class -classpath . org.solarex.TestClassLoader</code> get information about each class loaded.The “-verbose:class” option displays information about each class loaded.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kn">package</span> <span class="n">org</span><span class="o">.</span><span class="na">solarex</span><span class="o">.</span><span class="na">test</span><span class="o">;</span>
+</span><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">A</span><span class="o">{</span>
+</span><span class='line'>  <span class="kd">public</span> <span class="kt">void</span> <span class="nf">method</span><span class="o">(){</span>
+</span><span class='line'>      <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">&quot;inside of A&quot;</span><span class="o">);</span>
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kn">package</span> <span class="n">org</span><span class="o">.</span><span class="na">solarex</span><span class="o">.</span><span class="na">test</span><span class="o">;</span>
+</span><span class='line'><span class="kd">public</span> <span class="kt">void</span> <span class="n">TestLoader</span><span class="o">{</span>
+</span><span class='line'>  <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">args</span><span class="o">){</span>
+</span><span class='line'>      <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">&quot;Hello,world\n&quot;</span><span class="o">);</span>
+</span><span class='line'>      <span class="c1">// A aInstance = new A();</span>
+</span><span class='line'>      <span class="c1">// aInstance.method();</span>
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>  
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><code>javac -d . *.java</code>,<code>java -verbose:class -classpath . org.solarex.test.TestLoader</code>得到结果:</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2014/09/04/java-class-loaded-and-initialized/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/09/02/notes-on-git/">Git学习笔记</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-09-02T00:24:00+08:00" pubdate data-updated="true">Sep 2<span>nd</span>, 2014</time>
+        
+         | <a href="/blog/2014/09/02/notes-on-git/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><center><p><img src="/images/git-logo-black.png" width="455" height="190" alt="git" ></p></center>
+
+
+<h2>起步</h2>
+
+<p>Git 和其他版本控制系统的主要差别在于，Git 只关心文件数据的整体是否发生变化，而大多数其他系统则只关心文件内容的具体差异。这类系统（CVS，Subversion，Perforce，Bazaar 等等）每次记录有哪些文件作了更新，以及都更新了哪些行的什么内容。Git 并不保存这些前后变化的差异数据。实际上，Git 更像是把变化的文件作快照后，记录在一个微型的文件系统中。每次提交更新时，它会纵览一遍所有文件的指纹信息并对文件作一快照，然后保存一个指向这次快照的索引。为提高性能，若文件没有变化，Git 不会再次保存，而只对上次保存的快照作一链接。</p>
+
+<p>在保存到 Git 之前，所有数据都要进行内容的校验和（checksum）计算，并将此结果作为数据的唯一标识和索引。换句话说，不可能在你修改了文件或目录之后，Git 一无所知。这项特性作为 Git 的设计哲学，建在整体架构的最底层。所以如果文件在传输时变得不完整，或者磁盘损坏导致文件数据缺失，Git 都能立即察觉。Git 使用 SHA-1 算法计算数据的校验和，通过对文件的内容或目录的结构计算出一个 SHA-1 哈希值，作为指纹字符串。该字串由 40 个十六进制字符（0-9 及 a-f）组成。Git 的工作完全依赖于这类指纹字串，所以你会经常看到这样的哈希值。实际上，所有保存在 Git 数据库中的东西都是用此哈希值来作索引的，而不是靠文件名。</p>
+
+<p>常用的 Git 操作大多仅仅是把数据添加到数据库。因为任何一种不可逆的操作，比如删除数据，都会使回退或重现历史版本变得困难重重。在别的 VCS 中，若还未提交更新，就有可能丢失或者混淆一些修改的内容，但在 Git 里，一旦提交快照之后就完全不用担心丢失数据，特别是养成定期推送到其他仓库的习惯的话。</p>
+
+<p>对于任何一个文件，在 Git 内都只有三种状态：已提交（committed），已修改（modified）和已暂存（staged）。已提交表示该文件已经被安全地保存在本地数据库中了；已修改表示修改了某个文件，但还没有提交保存；已暂存表示把已修改的文件放在下次提交时要保存的清单中。</p>
+
+<p>每个项目都有一个 Git 目录（译注：如果 git clone 出来的话，就是其中 .git 的目录；如果 git clone &mdash;bare 的话，新建的目录本身就是 Git 目录。），它是 Git 用来保存元数据和对象数据库的地方。该目录非常重要，每次克隆镜像仓库的时候，实际拷贝的就是这个目录里面的数据。从项目中取出某个版本的所有文件和目录，用以开始后续工作的叫做工作目录。这些文件实际上都是从 Git 目录中的压缩对象数据库中提取出来的，接下来就可以在工作目录中对这些文件进行编辑。所谓的暂存区域只不过是个简单的文件，一般都放在 Git 目录中。有时候人们会把这个文件叫做索引文件，不过标准说法还是叫暂存区域。</p>
+
+<p>Git 提供了一个叫做 <code>git config</code> 的工具（译注：实际是 <code>git-config</code> 命令，只不过可以通过 git 加一个名字来呼叫此命令。），专门用来配置或读取相应的工作环境变量。而正是由这些环境变量，决定了 Git 在各个环节的具体工作方式和行为。这些变量可以存放在以下三个不同的地方：</p>
+
+<ul>
+<li><code>/etc/gitconfig</code> 文件：系统中对所有用户都普遍适用的配置。若使用 <code>git config</code> 时用 <code>--system</code> 选项，读写的就是这个文件。</li>
+<li><code>~/.gitconfig</code> 文件：用户目录下的配置文件只适用于该用户。若使用 <code>git config</code> 时用 <code>--global</code> 选项，读写的就是这个文件。</li>
+<li>当前项目的 git 目录中的配置文件（也就是工作目录中的 <code>.git/config</code> 文件）：这里的配置仅仅针对当前项目有效。每一个级别的配置都会覆盖上层的相同配置，所以 <code>.git/config</code> 里的配置会覆盖 <code>/etc/gitconfig</code> 中的同名变量。</li>
+</ul>
+
+
+<p>要检查已有的配置信息，可以使用 <code>git config --list</code> 命令。</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2014/09/02/notes-on-git/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
   
   
     <article>
@@ -232,239 +549,6 @@
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2014/06/02/checking-intent-availability/">Checking Intent Availability</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-06-02T11:41:00+08:00" pubdate data-updated="true">Jun 2<span>nd</span>, 2014</time>
-        
-         | <a href="/blog/2014/06/02/checking-intent-availability/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>Intents are probably Android’s most powerful tool. They tie together loosely coupled components and make it possible to start Activities that are not part of your own app. Using intents you can delegate to the Contacts app to select a contact or you can start the browser, share data and so on.</p>
-
-<p>The receiving apps declare intent filters which describe the intents its component react to. If you know which intent filters the app provides and if the components are publicly available you can start any Activity of any app on the users device.</p>
-
-<p>The problem is: How do you know if the app is installed – if you can use the Intent?</p>
-
-<p>The solution is to create the Intent and check if it is available:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kd">static</span> <span class="kt">boolean</span> <span class="nf">isIntentAvailable</span><span class="o">(</span><span class="n">Context</span> <span class="n">ctx</span><span class="o">,</span> <span class="n">Intent</span> <span class="n">intent</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'>   <span class="kd">final</span> <span class="n">PackageManager</span> <span class="n">mgr</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="na">getPackageManager</span><span class="o">();</span>
-</span><span class='line'>   <span class="n">List</span><span class="o">&lt;</span><span class="n">ResolveInfo</span><span class="o">&gt;</span> <span class="n">list</span> <span class="o">=</span>
-</span><span class='line'>      <span class="n">mgr</span><span class="o">.</span><span class="na">queryIntentActivities</span><span class="o">(</span><span class="n">intent</span><span class="o">,</span>
-</span><span class='line'>         <span class="n">PackageManager</span><span class="o">.</span><span class="na">MATCH_DEFAULT_ONLY</span><span class="o">);</span>
-</span><span class='line'>   <span class="k">return</span> <span class="n">list</span><span class="o">.</span><span class="na">size</span><span class="o">()</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="o">;</span>
-</span><span class='line'><span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>And we can use it this way:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kt">boolean</span> <span class="nf">onPrepareOptionsMenu</span><span class="o">(</span><span class="n">Menu</span> <span class="n">menu</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'>    <span class="kd">final</span> <span class="kt">boolean</span> <span class="n">scanAvailable</span> <span class="o">=</span> <span class="n">isIntentAvailable</span><span class="o">(</span><span class="k">this</span><span class="o">,</span>
-</span><span class='line'>        <span class="s">&quot;com.google.zxing.client.android.SCAN&quot;</span><span class="o">);</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="n">MenuItem</span> <span class="n">item</span><span class="o">;</span>
-</span><span class='line'>    <span class="n">item</span> <span class="o">=</span> <span class="n">menu</span><span class="o">.</span><span class="na">findItem</span><span class="o">(</span><span class="n">R</span><span class="o">.</span><span class="na">id</span><span class="o">.</span><span class="na">menu_item_add</span><span class="o">);</span>
-</span><span class='line'>    <span class="n">item</span><span class="o">.</span><span class="na">setEnabled</span><span class="o">(</span><span class="n">scanAvailable</span><span class="o">);</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">return</span> <span class="kd">super</span><span class="o">.</span><span class="na">onPrepareOptionsMenu</span><span class="o">(</span><span class="n">menu</span><span class="o">);</span>
-</span><span class='line'><span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>If you wanna check this before <code>startActivity</code> in case not caught by <code>ActivityNotFoundException</code>,here is another way:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="k">if</span> <span class="o">(</span><span class="n">intent</span><span class="o">.</span><span class="na">resolveActivity</span><span class="o">(</span><span class="n">ctx</span><span class="o">.</span><span class="na">getPackageManager</span><span class="o">())</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'>    <span class="n">ctx</span><span class="o">.</span><span class="na">startActivity</span><span class="o">(</span><span class="n">intent</span><span class="o">);</span>
-</span><span class='line'><span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
-</span><span class='line'>    <span class="n">log</span><span class="o">(</span><span class="s">&quot;No component can react to this intent = &quot;</span> <span class="o">+</span> <span class="n">intent</span><span class="o">);</span>
-</span><span class='line'><span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2013/12/24/recent-summary/">近阶段总结</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2013-12-24T22:06:00+08:00" pubdate data-updated="true">Dec 24<span>th</span>, 2013</time>
-        
-         | <a href="/blog/2013/12/24/recent-summary/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>没有什么比漫无目的的徘徊更让人心烦意乱，消磨意志的了，最近就处于这样一种状态。Android开发基础已经基本上掌握了，但是高级点的技巧依然无从下手，一个Service如何长时间运行不被杀，流量监控后台运行的机制是什么都不了解。为什么无从下手，因为不知道优秀的应用是如何实现的，借鉴都不知道从哪抄。要打破这种状态，不仅仅需要巩固基础知识，更重要的是要学习高级技巧。</p>
-
-<ul>
-<li><p>巩固基础知识，Android开发基础知识总结，Android Guides，Android Training必须看完，做好笔记。Java基础知识巩固复习，设计模式学习总结，Android框架采用了许多设计模式，把Java基础知识打牢固才能更好的为下一步学习Android框架打好基础。 书籍/资料：Pro Android 4 / Java 编程思想 / Head First 设计模式 / 大话设计模式 / 设计模式视频</p></li>
-<li><p>借鉴优秀应用，Google原生应用，Android SDK Sample，优秀开源应用，学习这些优秀的开源应用如何处理后台Service，如何处理多线程，如何进行网络连接尽可能地少消耗流量。。。如果有时间，可以看下Google I/O开发者大会和Google Developer Blog来跟随大师脚步学习大师的开发技巧。</p></li>
-<li><p>工具的学习使用，总结开发工具使用技巧，Vim，Git，Source Insight，自动构建工具Ant，Maven，build.xml，pom.xml文件编写规则。调教好Vim插件，为以后学习框架时打log，看框架打好基础。学会高效使用Git，Github，利用Github Wiki来做笔记，作总结。 书籍/资料：Ant 视频 / Maven in action</p></li>
-<li><p>为学习框架和Android系统做准备，Linux系统编程，操作系统原理，Linux网络编程这些都要大致过一遍，不用太细致深入，有个概念就可以了。 书籍：Android内核剖析 / LKD / MOS / UNP / APUE / CSAPP</p></li>
-</ul>
-
-
-<p>计划</p>
-
-<ul>
-<li>年前必须搞定基础知识复习总结。Android开发基础知识，Java基础知识总结。Android Guides/Android Training，Pro Android 4总结学习。Sundy教学视频。</li>
-<li>看Google 原生Settings应用。</li>
-<li>调教好Vim，Git。</li>
-</ul>
-
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2013/11/29/git-basic-config/">Git配置(持续更新)</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2013-11-29T23:14:00+08:00" pubdate data-updated="true">Nov 29<span>th</span>, 2013</time>
-        
-         | <a href="/blog/2013/11/29/git-basic-config/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><center><p><img src="/images/git-logo-black.png" width="182" height="76" alt="git"></p></center>
-
-
-<p>用git大概有2年多了吧，不过大都停留在<code>add</code>，<code>commit</code>，<code>clone</code>，<code>push</code>这些简单的操作上，最近看了git-scm网站的维护者，Pro.Git的作者的一个演讲，准备好好研究下git。以下是笔记，会不间断更新。</p>
-
-<p>最基础的git config莫过于<code>user.name</code>和<code>user.email</code>了吧。</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>git config --global user.name Solarex
-</span><span class='line'>git config --global user.email i@solarex.name
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>git <code>commit</code>的时候有时会发现在comment中需要换行，在命令行直接输入的话非常不方便，其实可以在自己喜欢的编辑器里面操作。</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>git config --global core.editor vim
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>这样git在执行<code>commit</code>操作时就会打开vim，就可以像编辑文本一样写comment了。</p>
-
-<p>在打印git log的时候，如果有色彩区分会好看很多。</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>git config --global color.ui auto
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>看一些视频的时候，经常会看到他们输入一些非常短的命令就执行了相应的操作，其实，这些可以通过<code>alias</code>实现。</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>git config --global alias.st <span class="s2">&quot;status&quot;</span>
-</span><span class='line'>git config --global alias.ci <span class="s2">&quot;commit -a -v&quot;</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>另外强烈推荐<code>tig</code>来查看git log，非常方便。Ubuntu下通过命令<code>sudo apt-get install tig</code>，Mac下通过<code>brew install tig</code>均可直接安装。</p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/19/">&larr; Older</a>
@@ -482,23 +566,23 @@
     <ul id="recent_posts">
         
         <li class="post">
+            <a href="/blog/2019/10/07/que-sera-sera/">Que Sera Sera</a>
+        </li>
+        
+        <li class="post">
+            <a href="/blog/2019/10/05/womxnly/">玫瑰少年</a>
+        </li>
+        
+        <li class="post">
+            <a href="/blog/2019/09/18/android-studio-proxy/">Android Studio 代理问题</a>
+        </li>
+        
+        <li class="post">
             <a href="/blog/2019/08/12/singleton-pattern/">单例模式</a>
         </li>
         
         <li class="post">
             <a href="/blog/2019/08/10/lock-free-multithreading-with-atomic-operations/">Lock-free multithreading with atomic operations</a>
-        </li>
-        
-        <li class="post">
-            <a href="/blog/2019/08/09/introduction-to-thread-synchronization/">Introduction to thread synchronization</a>
-        </li>
-        
-        <li class="post">
-            <a href="/blog/2019/08/07/a-gentle-introduction-to-multithreading/">A gentle introduction to multithreading</a>
-        </li>
-        
-        <li class="post">
-            <a href="/blog/2019/08/05/floyd-cycle-detection-in-linkedlist/">检测链表中是否有环</a>
         </li>
         
     </ul>

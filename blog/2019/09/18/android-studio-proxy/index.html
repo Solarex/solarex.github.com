@@ -1,0 +1,324 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Android Studio 代理问题 - Solarex's Blog</title>
+  <meta name="author" content="Solarex">
+
+  
+  <meta name="description" content="Android Studio 设置代理后gradle sync失败，解决方法。 今天到公司后，新需求下来了，同步代码，sync工程，开完晨会发现gradle sync失败了。 报错类似could not resolve xxx，AS是开了代理的，http代理8123端口，在AS里check &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://Solarex.github.io/blog/2019/09/18/android-studio-proxy/">
+  <link href="/favicon.ico" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <script src="/javascripts/ender.js"></script>
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <link href="/atom.xml" rel="alternate" title="Solarex's Blog" type="application/atom+xml">
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<script>
+    var _hmt = _hmt || [];
+    (function() {
+          var hm = document.createElement("script");
+            hm.src = "https://hm.baidu.com/hm.js?2574e8b2c205dfe8ff89e239fa38ca27";
+              var s = document.getElementsByTagName("script")[0]; 
+                s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-42746457-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Solarex's Blog</a></h1>
+  
+    <h2>我只想过，平平淡淡的生活，欲望啊，请放过脆弱的我</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:Solarex.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="http://solarex.github.io/wiki">Wiki</a></li>
+  <li><a href="/projects">Project</a></li>
+  <li><a href="http://solarex.github.io/resume">Resume</a></li>
+  <li><a href="/about">About</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Android Studio 代理问题</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2019-09-18T14:15:00+08:00" pubdate data-updated="true">Sep 18<span>th</span>, 2019</time>
+        
+         | <a href="#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>Android Studio 设置代理后gradle sync失败，解决方法。</p>
+
+<!-- more -->
+
+
+<p>今天到公司后，新需求下来了，同步代码，sync工程，开完晨会发现gradle sync失败了。</p>
+
+<p>报错类似<code>could not resolve xxx</code>，AS是开了代理的，http代理8123端口，在AS里check connection连接baidu居然报错read timeout。心想不会是墙又升高了吧，最近要国庆啥的，在Chrome里面打开了一下，google访问正常，梯子还是好的。看了下v2ray config文件，1080 socks端口，8123 http端口，对的啊，感觉一脸懵逼。把AS代理切换到socks，check connection通了，可是gradle sync的时候v2ray报错<code>rejected  v2ray.com/core/proxy/socks: unknown Socks version: 67</code>，AS的socks代理貌似是有问题的，所以之前一直用http代理，现在的问题是socks代理工作正常，http代理出问题了。</p>
+
+<p><code>lsof -i:8123</code>发现是<code>privoxy</code>，尝试<code>kill -9 PID</code>了一下，发现杀死之后又会重启一个进程。开Activity Monitor，搜索<code>privoxy</code>发现<code>privoxy</code>路径是<code>~/Library/Application Support/ShadowsocksX-NG</code>，parent process是<code>launchd</code>，问题比较清晰了，<code>privoxy</code>是在开机的时候自动启动的，而且是SSR里面的，而SSR被我冷藏后<code>launch at login</code>取消了，SSR的socks端口号和v2ray的端口号不一样，导致<code>privoxy</code>转发socks流量出现了问题，而且v2ray命令行启动的时候没有报8123端口被占用，直接启动成功了。</p>
+
+<p>于是尝试取消开机启动SSR的<code>privoxy</code>，在<code>Users&amp;Groups</code>里<code>Login Items</code>看了一下没发现，搜索了一下发现了plist文件在<code>~/Library/LaunchAgents</code>，同时发现了一个工具<a href="https://nektony.com/mac-app-cleaner">App Cleaner &amp; Uninstaller</a>可以管理启动项。</p>
+
+<p><code>brew cask install app-cleaner</code>之后关闭ShadowsocksX-NG的启动项，重启电脑，启动v2ray，切换AS代理到到http代理，sync成功了。</p>
+
+<p>吐槽下AS的socks代理，真不给力。</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Solarex</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2019-09-18T14:15:00+08:00" pubdate data-updated="true">Sep 18<span>th</span>, 2019</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/tools/'>tools</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2019/08/12/singleton-pattern/" title="Previous Post: 单例模式">&laquo; 单例模式</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2019/10/05/womxnly/" title="Next Post: 玫瑰少年">玫瑰少年 &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+    <h1>Recent Posts</h1>
+    <ul id="recent_posts">
+        
+        <li class="post">
+            <a href="/blog/2019/10/07/que-sera-sera/">Que Sera Sera</a>
+        </li>
+        
+        <li class="post">
+            <a href="/blog/2019/10/05/womxnly/">玫瑰少年</a>
+        </li>
+        
+        <li class="post">
+            <a href="/blog/2019/09/18/android-studio-proxy/">Android Studio 代理问题</a>
+        </li>
+        
+        <li class="post">
+            <a href="/blog/2019/08/12/singleton-pattern/">单例模式</a>
+        </li>
+        
+        <li class="post">
+            <a href="/blog/2019/08/10/lock-free-multithreading-with-atomic-operations/">Lock-free multithreading with atomic operations</a>
+        </li>
+        
+    </ul>
+    <h1>Notes</h1>
+    <ul id="recent_posts">
+        <li class="post">
+            <a href="https://solarex.github.io/reading-notes/">读书笔记</a>
+        </li>
+        <li class="post">
+            <a href="https://solarex.github.io/learning-notes/">学习笔记</a>
+        </li>
+        <li class="post">
+            <a href="https://solarex.github.io/leetcode-solution-comments/">LeetCode题解笔记</a>
+        </li>
+    </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/flyfire">@flyfire</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'flyfire',
+            count: 5,
+            skip_forks: false,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+<section class="googleplus googleplus-hidden">
+  <h1>
+    <a href="https://plus.google.com/107384356964511479070?rel=author">
+      <img src="http://www.google.com/images/icons/ui/gprofile_button-32.png" width="32" height="32">
+      Google+
+    </a>
+  </h1>
+</section>
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2019 - Solarex -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+  - <span class="credit">Theme by <a href="http://www.gehaxelt.in">Gehaxelt</a></span>
+  <span class="credit">and <a href="http://www.it-solutions-neef.de">IT Solutions Neef</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'solarex-blog';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://Solarex.github.io/blog/2019/09/18/android-studio-proxy/';
+        var disqus_url = 'http://Solarex.github.io/blog/2019/09/18/android-studio-proxy/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>
