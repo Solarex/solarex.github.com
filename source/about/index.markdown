@@ -16,16 +16,25 @@ footer: true
 <center><iframe width="475" height="267" src="https://www.youtube.com/embed/FM7MFYoylVs" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></center>
 -------------------------------------------------
 
-<center><em>Email</em></center>
-<center><img src="/images/gmail.gif" ></img></center>
-<center><em>Wechat</em></center>
-<center><img src="/images/wechat.png"/></center>
+### ;-)
+I am an Android Engineer working in Shenzhen.
 
-+ Solar[:4] + rex[:] = Solarex
+Principle for me:
+
++ Use Unix/Linux APAIC.
++ Use English APAIC.
++ Use Google as Search Engine APAIC.
++ Read original edition APAIC.
++ Do it best or give it up.
++ Never REPEAT.
+
+Contact me via:
+
++ <a href="mailto:rh.hou.work@gmail.com"><img src="/images/gmail.gif"/></a>
 + [flyfire@github](https://github.com/flyfire),[solarex@github](https://github.com/solarex)
 + [Weibo](http://weibo.com/Solarex)
 + [Zhihu](http://www.zhihu.com/people/solarex/)
 + [Telegram](https://t.me/Solarex)
-+ <strike> [OldBlog](https://flyfire-blog.appspot.com/),[OldGallery](https://flyfire-img.appspot.com/),[OldDisc](https://flyfire-disc.appspot.com/) </strike>
-+ [Stackoverflow](https://stackoverflow.com/users/2573305/)
 
+<center><em>Wechat</em></center>
+<center><img src="/images/wechat.png"/></center>
