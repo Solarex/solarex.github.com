@@ -9,7 +9,10 @@
   <meta name="author" content="Solarex">
 
   
-  <meta name="description" content="Intents are probably Android’s most powerful tool. They tie together loosely coupled components and make it possible to start Activities that are not &hellip;">
+  <meta name="description" content="在同一台电脑上有多个github账户时，切换ssh key会比较麻烦，可以使用ssh config来简化这一动作。 在使用ssh-keygen时，为不同的账户选择不同的ssh key文件。 1
+2
+hrh@Solarex:~$ ls ~/.ssh/
+id_rsa_accountA &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -91,6 +94,98 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/06/02/ssh-key-config-for-multi-github-accounts/">SSH Key Settings for Multi Github Accounts</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-06-02T15:13:00+08:00" pubdate data-updated="true">Jun 2<span>nd</span>, 2014</time>
+        
+         | <a href="/blog/2014/06/02/ssh-key-config-for-multi-github-accounts/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>在同一台电脑上有多个github账户时，切换ssh key会比较麻烦，可以使用ssh config来简化这一动作。</p>
+
+<p>在使用<code>ssh-keygen</code>时，为不同的账户选择不同的ssh key文件。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>hrh@Solarex:~<span class="nv">$ </span>ls ~/.ssh/
+</span><span class='line'>id_rsa_accountA id_rsa_accountA.pub id_rsa_accountB id_rsa_accountB.pub known_hosts config
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p></p>
+
+<p>在<code>~/.bashrc</code>中添加ssh key。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>ssh-add ~/.ssh/id_rsa_accountA &gt;/dev/null 2&gt;&amp;1
+</span><span class='line'>ssh-add ~/.ssh/id_rsa_accountB &gt;/dev/null 2&gt;&amp;1
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>配置ssh config文件<code>~/.ssh/config</code>。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="c">#AccountA</span>
+</span><span class='line'>Host github-a.com
+</span><span class='line'>    HostName github.com
+</span><span class='line'>    User git
+</span><span class='line'>    IdentityFile ~/.ssh/id_rsa_accountA
+</span><span class='line'>
+</span><span class='line'><span class="c">#AccountB</span>
+</span><span class='line'>Host github-b.com
+</span><span class='line'>    HostName github.com
+</span><span class='line'>    User git
+</span><span class='line'>    IdentityFile ~/.ssh/id_rsa_accountB
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这样以后使用AccountA时可以<code>git clone git@github-a.com:user/repos.git local_dir</code>这样操作，clone下来后可以<code>cd local_dir</code>对<code>user.name</code>和<code>user.email</code>来进行config来覆盖global config，剩下的就和平时没有什么区别了，使用AccountB时相似操作就可以了。</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2014/06/02/ssh-key-config-for-multi-github-accounts/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
   
   
     <article>
@@ -375,128 +470,9 @@
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2012/07/27/blog-on-github/">使用Octopress和Github写博客</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2012-07-27T14:50:00+08:00" pubdate data-updated="true">Jul 27<span>th</span>, 2012</time>
-        
-         | <a href="/blog/2012/07/27/blog-on-github/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><center><em>Ubuntu下建立Octopress博客过程</em></center>
-
-
-<center><p><img src="/images/octopress_logo.jpg" alt="Octopress"></p></center>
-
-
-<ul>
-<li>首先安装<code>git</code></li>
-</ul>
-
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo apt-get install git
-</span></code></pre></td></tr></table></div></figure>
-
-
-<ul>
-<li>安装<code>rvm</code>和<code>ruby 1.9.3</code></li>
-</ul>
-
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>curl -L https://get.rvm.io | bash -s stable --ruby<span class="o">=</span>1.9.3
-</span></code></pre></td></tr></table></div></figure>
-
-
-<ul>
-<li>克隆<code>octopress</code>到本地</li>
-</ul>
-
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>git clone git://github.com/imathis/octopress.git
-</span></code></pre></td></tr></table></div></figure>
-
-
-<ul>
-<li>安装依赖</li>
-</ul>
-
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>gem sources -a http://ruby.taobao.org/
-</span><span class='line'>gem sources -r http://rubygems.org/
-</span><span class='line'>gem sources -l <span class="c">#确保只有淘宝的ruby镜像</span>
-</span><span class='line'>gem install bundle
-</span><span class='line'>bundle install <span class="c">#建议更改Gemfile第一行source为taobao镜像</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<ul>
-<li>安装<code>slash</code>主题</li>
-</ul>
-
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>git clone git://github.com/tommy351/Octopress-Theme-Slash.git .themes/slash
-</span><span class='line'>rake install<span class="o">[</span><span class="s1">&#39;slash&#39;</span><span class="o">]</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>可以定制<code>slash</code>主题，由于众所周知的原因，我把博客的分享换成了国内的jiathis，评论系统换成了国内的多说，需要更改的地方也不是很多，就不详细叙述了，具体可以参考我的代码。当然你也可以使用其他的分享、评论系统，或者使用默认的也行。至于其他的第三方帐号，我只使用了Google Analytics，这个也很简单，就不赘述了。</p>
-
-<ul>
-<li>生成网站、预览</li>
-</ul>
-
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>rake generate <span class="o">&amp;&amp;</span> rake preview
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>如果你没有改动<code>Rakefile</code>里的<code>server_port</code>的话，默认就可以在 <a href="http://localhost:4000/">http://localhost:4000/</a> 查看博客了。</p>
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2012/07/27/blog-on-github/">Read on &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
   <div class="pagination">
+    
+      <a class="prev" href="/blog/page/20/">&larr; Older</a>
     
     <a href="/blog/archives">Blog Archives</a>
     
@@ -509,6 +485,10 @@
     <section>
     <h1>Recent Posts</h1>
     <ul id="recent_posts">
+        
+        <li class="post">
+            <a href="/blog/2019/10/10/who-awake-nativepollonce-in-messagequeue/">谁唤醒了MessageQueue中的nativePollOnce</a>
+        </li>
         
         <li class="post">
             <a href="/blog/2019/10/07/que-sera-sera/">Que Sera Sera</a>
@@ -524,10 +504,6 @@
         
         <li class="post">
             <a href="/blog/2019/08/12/singleton-pattern/">单例模式</a>
-        </li>
-        
-        <li class="post">
-            <a href="/blog/2019/08/10/lock-free-multithreading-with-atomic-operations/">Lock-free multithreading with atomic operations</a>
         </li>
         
     </ul>

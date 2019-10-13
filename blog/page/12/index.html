@@ -9,7 +9,7 @@
   <meta name="author" content="Solarex">
 
   
-  <meta name="description" content="In the last post, we walked through the core functionality necessary for building a RecyclerView LayoutManager. In this post, we are going to add &hellip;">
+  <meta name="description" content="In the previous post, we discussed adding proper support for data set changes and targeted scrolling. In this installment of the series, we will &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -91,6 +91,68 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/01/13/building-a-recyclerview-layoutmanager-part-iii/">Building a RecyclerView LayoutManager Part III</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2016-01-13T00:48:00+08:00" pubdate data-updated="true">Jan 13<span>th</span>, 2016</time>
+        
+         | <a href="/blog/2016/01/13/building-a-recyclerview-layoutmanager-part-iii/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>In the previous post, we discussed adding proper support for data set changes and targeted scrolling. In this installment of the series, we will focus on properly supporting animations in your fancy new LayoutManager.In case you’ve forgotten, the code samples are <a href="https://github.com/devunwired/recyclerview-playground">on GitHub</a>.</p>
+
+<h2>The Problem With Free</h2>
+
+<p>We talked about notifyDataSetChanged() the last time, but you may have noticed that changing the data in this way doesn’t animate the change**. RecyclerView includes a new API for making animated changes, which requires you to notify the adapter which positions in the adapter have changed, and what the action was:</p>
+
+<ul>
+<li><code>notifyItemInserted()</code> and <code>notifyItemRangeInserted()</code>: Insertion of new item(s) at the given position(s).</li>
+<li><code>notifyItemChanged()</code> and <code>notifyItemRangeChanged()</code>: Invalidate he item(s) at the given position(s), nothing structural has changed in the data set.</li>
+<li><code>notifyItemRemoved()</code> and <code>notifyItemRangeRemoved()</code>: Removal of the item(s) at the given position(s).</li>
+<li><code>notifyItemMoved()</code>: An item has relocated to a new position in the data set.</li>
+</ul>
+
+
+<p>By default, your LayoutManager will get “simple item animations” for free when these methods are used. These animations are simply based on whether each current view position is still present in the layout after a change. New views are faded in, removed views are faded out, and other views are moved to their new location. Here’s what our grid layout looks like with the free animations:</p>
+
+<center><img src="/images/building_recyclerview_layoutmanager_animation.gif" width="380" height="674" /></center>
+
+
+
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2016/01/13/building-a-recyclerview-layoutmanager-part-iii/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
   
   
     <article>
@@ -826,52 +888,6 @@
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2015/11/23/android-starting-window/">Android Starting Window</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2015-11-23T12:48:00+08:00" pubdate data-updated="true">Nov 23<span>rd</span>, 2015</time>
-        
-         | <a href="/blog/2015/11/23/android-starting-window/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p><center><img src="/images/android_robot.png" width="255" height="300" /></center></p>
-
-
-
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2015/11/23/android-starting-window/">Read on &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/13/">&larr; Older</a>
@@ -889,6 +905,10 @@
     <ul id="recent_posts">
         
         <li class="post">
+            <a href="/blog/2019/10/10/who-awake-nativepollonce-in-messagequeue/">谁唤醒了MessageQueue中的nativePollOnce</a>
+        </li>
+        
+        <li class="post">
             <a href="/blog/2019/10/07/que-sera-sera/">Que Sera Sera</a>
         </li>
         
@@ -902,10 +922,6 @@
         
         <li class="post">
             <a href="/blog/2019/08/12/singleton-pattern/">单例模式</a>
-        </li>
-        
-        <li class="post">
-            <a href="/blog/2019/08/10/lock-free-multithreading-with-atomic-operations/">Lock-free multithreading with atomic operations</a>
         </li>
         
     </ul>

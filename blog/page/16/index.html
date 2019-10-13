@@ -9,11 +9,7 @@
   <meta name="author" content="Solarex">
 
   
-  <meta name="description" content="Java Thread and Multithreading Tutorial Java Thread Example
-Java Thread Sleep
-Java Thread Join
-Java Thread States
-Java Thread wait, notify and &hellip;">
+  <meta name="description" content="Context is probably the most used element in Android applications…it may also be the most misused.Context objects are so common, and get passed &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -95,6 +91,52 @@ Java Thread wait, notify and &hellip;">
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/10/14/android-context/">Android Context</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-10-14T10:11:00+08:00" pubdate data-updated="true">Oct 14<span>th</span>, 2014</time>
+        
+         | <a href="/blog/2014/10/14/android-context/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><center><p><img src="/images/android_robot.png" width="255" height="300"></p></center>
+
+
+<p>Context is probably the most used element in Android applications…it may also be the most misused.Context objects are so common, and get passed around so frequently, it can be easy to create a situation you didn’t intend.  Loading resources, launching a new Activity, obtaining a system service, getting internal file paths, and creating views all require a Context (and that’s not even getting started on the full list!) to accomplish the task.  What I’d like to do is provide for you some insights on how Context works alongside some tips that will (hopefully) allow you to leverage it more effectively in your applications.</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2014/10/14/android-context/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
   
   
     <article>
@@ -327,57 +369,6 @@ Java Thread wait, notify and &hellip;">
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2014/09/30/moving-bitbucket-repo-to-github/">Moving Bitbucket Repo to Github</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-09-30T15:38:00+08:00" pubdate data-updated="true">Sep 30<span>th</span>, 2014</time>
-        
-         | <a href="/blog/2014/09/30/moving-bitbucket-repo-to-github/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>git clone https://bitbucket.org/username/repos.git local_dir
-</span><span class='line'><span class="nb">cd </span>local_dir
-</span><span class='line'>git remote rename origin bitbucket
-</span><span class='line'>git remote add origin git@github.com:username/repos.git
-</span><span class='line'>git push -u origin master
-</span><span class='line'>git remote rm bitbucket
-</span></code></pre></td></tr></table></div></figure>
-
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/17/">&larr; Older</a>
@@ -395,6 +386,10 @@ Java Thread wait, notify and &hellip;">
     <ul id="recent_posts">
         
         <li class="post">
+            <a href="/blog/2019/10/10/who-awake-nativepollonce-in-messagequeue/">谁唤醒了MessageQueue中的nativePollOnce</a>
+        </li>
+        
+        <li class="post">
             <a href="/blog/2019/10/07/que-sera-sera/">Que Sera Sera</a>
         </li>
         
@@ -408,10 +403,6 @@ Java Thread wait, notify and &hellip;">
         
         <li class="post">
             <a href="/blog/2019/08/12/singleton-pattern/">单例模式</a>
-        </li>
-        
-        <li class="post">
-            <a href="/blog/2019/08/10/lock-free-multithreading-with-atomic-operations/">Lock-free multithreading with atomic operations</a>
         </li>
         
     </ul>

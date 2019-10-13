@@ -9,7 +9,7 @@
   <meta name="author" content="Solarex">
 
   
-  <meta name="description" content="In Android What is VSYNC and its usage? VSYNC is the event posted periodically by the kernal at fixed interval where the input handling, Animation &hellip;">
+  <meta name="description" content="Choreographer is the one which acts like a interface between application view system and lower layer display system for rendering the views. &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -91,6 +91,53 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/10/10/choreographer-in-android/">Choreographer in Android</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2016-10-10T20:38:00+08:00" pubdate data-updated="true">Oct 10<span>th</span>, 2016</time>
+        
+         | <a href="/blog/2016/10/10/choreographer-in-android/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Choreographer is the one which acts like a interface between application view system and lower layer display system for rendering the views.</p>
+
+<p>ViewRootImpl is the ViewParent or root below which only Activity window DecorView will be attached. All the view layouts set by the activity through <code>setContentView()</code> will attached the DecorView whose parent is ViewRootImpl. Actually ViewRootImpl is not a View its just a ViewParent which handled and manages the View Hierarchies for displaying, handling input events etc.</p>
+
+<p>The number of root views that are active in your process. Each root view is associated with a window, so this can help you identify memory leaks involving dialogs or other windows.</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2016/10/10/choreographer-in-android/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
   
   
     <article>
@@ -276,53 +323,6 @@
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2016/09/15/defining-pointcuts-by-pattern/">Defining Pointcuts by Pattern</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2016-09-15T16:16:00+08:00" pubdate data-updated="true">Sep 15<span>th</span>, 2016</time>
-        
-         | <a href="/blog/2016/09/15/defining-pointcuts-by-pattern/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h2>Pointcuts by pattern</h2>
-
-<p>Going through all the different ways of defining pointcuts and explaining them in an easy manner would be a near impossible feat for this post. Rather than aiming for the impossible let’s narrow down the scope, and talk about the most commonly used pointcut definitions and how we can experiment with them. We will get you started with defining your own pointcuts!</p>
-
-<p>You can get the code for this blog series at the Git repository <a href="https://github.com/Nosfert/AspectJ-Tutorial-jayway">here</a>.</p>
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2016/09/15/defining-pointcuts-by-pattern/">Read on &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/10/">&larr; Older</a>
@@ -340,6 +340,10 @@
     <ul id="recent_posts">
         
         <li class="post">
+            <a href="/blog/2019/10/10/who-awake-nativepollonce-in-messagequeue/">谁唤醒了MessageQueue中的nativePollOnce</a>
+        </li>
+        
+        <li class="post">
             <a href="/blog/2019/10/07/que-sera-sera/">Que Sera Sera</a>
         </li>
         
@@ -353,10 +357,6 @@
         
         <li class="post">
             <a href="/blog/2019/08/12/singleton-pattern/">单例模式</a>
-        </li>
-        
-        <li class="post">
-            <a href="/blog/2019/08/10/lock-free-multithreading-with-atomic-operations/">Lock-free multithreading with atomic operations</a>
         </li>
         
     </ul>

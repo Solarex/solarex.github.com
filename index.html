@@ -9,7 +9,7 @@
   <meta name="author" content="Solarex">
 
   
-  <meta name="description" content="Whatever will be,will be~ ">
+  <meta name="description" content="在看Handler相关源码的时候，我们都知道在MessageQueue的nativePollOnce这里会阻塞，那什么时候主线程从这里被唤醒呢？ ">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -91,6 +91,49 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2019/10/10/who-awake-nativepollonce-in-messagequeue/">谁唤醒了MessageQueue中的nativePollOnce</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2019-10-10T00:00:00+08:00" pubdate data-updated="true">Oct 10<span>th</span>, 2019</time>
+        
+         | <a href="/blog/2019/10/10/who-awake-nativepollonce-in-messagequeue/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>在看Handler相关源码的时候，我们都知道在MessageQueue的nativePollOnce这里会阻塞，那什么时候主线程从这里被唤醒呢？</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2019/10/10/who-awake-nativepollonce-in-messagequeue/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
   
   
     <article>
@@ -267,53 +310,6 @@
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2019/08/10/lock-free-multithreading-with-atomic-operations/">Lock-free Multithreading With Atomic Operations</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2019-08-10T10:16:00+08:00" pubdate data-updated="true">Aug 10<span>th</span>, 2019</time>
-        
-         | <a href="/blog/2019/08/10/lock-free-multithreading-with-atomic-operations/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>清空Reeder发现internal/pointers一系列关于多线程的文章，感觉很不错，转载在此。</p>
-
-<p>这是系列第三篇，期待作者继续更新~</p>
-
-<p>Synchronizing threads at a lower level.</p>
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2019/08/10/lock-free-multithreading-with-atomic-operations/">Read on &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/2/">&larr; Older</a>
@@ -329,6 +325,10 @@
     <ul id="recent_posts">
         
         <li class="post">
+            <a href="/blog/2019/10/10/who-awake-nativepollonce-in-messagequeue/">谁唤醒了MessageQueue中的nativePollOnce</a>
+        </li>
+        
+        <li class="post">
             <a href="/blog/2019/10/07/que-sera-sera/">Que Sera Sera</a>
         </li>
         
@@ -342,10 +342,6 @@
         
         <li class="post">
             <a href="/blog/2019/08/12/singleton-pattern/">单例模式</a>
-        </li>
-        
-        <li class="post">
-            <a href="/blog/2019/08/10/lock-free-multithreading-with-atomic-operations/">Lock-free multithreading with atomic operations</a>
         </li>
         
     </ul>

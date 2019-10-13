@@ -9,7 +9,16 @@
   <meta name="author" content="Solarex">
 
   
-  <meta name="description" content=" Android provides a variety of powerful APIs for applying animation to UI elements and drawing custom 2D and 3D graphics. ">
+  <meta name="description" content="1
+2
+3
+4
+5
+6
+git clone https://bitbucket.org/username/repos.git local_dir
+cd local_dir
+git remote rename origin bitbucket
+git remote add origin git@ &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -91,6 +100,57 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/09/30/moving-bitbucket-repo-to-github/">Moving Bitbucket Repo to Github</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-09-30T15:38:00+08:00" pubdate data-updated="true">Sep 30<span>th</span>, 2014</time>
+        
+         | <a href="/blog/2014/09/30/moving-bitbucket-repo-to-github/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>git clone https://bitbucket.org/username/repos.git local_dir
+</span><span class='line'><span class="nb">cd </span>local_dir
+</span><span class='line'>git remote rename origin bitbucket
+</span><span class='line'>git remote add origin git@github.com:username/repos.git
+</span><span class='line'>git push -u origin master
+</span><span class='line'>git remote rm bitbucket
+</span></code></pre></td></tr></table></div></figure>
+
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -322,130 +382,6 @@
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2014/09/16/zhihu-intent-fileter-schema/">跳出浏览器</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-09-16T12:52:00+08:00" pubdate data-updated="true">Sep 16<span>th</span>, 2014</time>
-        
-         | <a href="/blog/2014/09/16/zhihu-intent-fileter-schema/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><center><p><img src="/images/zhihu_logo.png" alt="zhihu"></p></center>
-
-
-<p>之前使用浏览器浏览知乎网站时，网站上会显示打开应用，不同的浏览器点击会有不同的反应(跳转网页或者打开知乎应用)，当时思考了一下具体的实现方式，觉得可能是知乎网站根据UC或者Chrome浏览器不同的UA显示不同的网页代码，在点击应用的时候会触发超链接，知乎客户端根据特定的Schema来在客户端中打开不同的问题页面，最近在网上浏览到一片文章，作者对这种冲浏览器跳转到客户端应用的实现方式进行了具体的分析，我只想到文章中的前两种方式，后面的Chrome浏览器的Chrome Intent以及后台启动http服务来响应网页链接的方式囿于眼界没有想到，不得不佩服文章作者视野之开阔。文章不错，特分享在此。</p>
-
-<p>Ref:<a href="http://zhuanlan.zhihu.com/andlib/19848910">#黑科技# 跳出浏览器</a></p>
-
-<p>当移动浪潮来袭，不论是传统 PC 网站/应用，还是新兴的移动互联网，都一并蜂拥的走进用户的手机。提供一个便于手机浏览的 Web 页面，再造一个功能丰富的移动 App 成了每个产品的标配。提供移动 Web 页面，可以使得用户更易获取产品信息，在微信上、微博中，搜索里点个链接，就可以立刻享用产品功能；而提供移动 App，则可以提供更好的产品体验，使用 native api 能构建更丰富的特色功能，提供更出众的性能表现。</p>
-
-<p>来想象一下这个场景，当别人发给你一个链接，是知乎问题「豌豆荚的员工工作方式是什么样的？」，你在手机浏览器上慢吞吞的加载好了，答案看得特别激动想点个赞。结果发现，还！要！登！录！我明明已经安装了知乎的 App 好吗！为啥不让我愉快的在知乎 App 上操作呐？</p>
-
-<p>这就是本 #黑科技# 的主题，有了移动 Web 页面，又提供了移动 App，如何能让两者更完美的结合在一起呢？当用户已经安装了 App 的前提下，访问移动端 Web 页面时，可以无缝的跳转到 App 中对应的位置去？</p>
-
-<center><p><img src="/images/zhihu_question_wandoulab.jpg" alt="wandoulabs"></p></center>
-
-
-<p>依然举上面那个栗子，知乎的同学其实已经有了解决方案，就是「打开应用」那个按钮，如果已经安装了知乎 App，点击后就会从浏览器跳转到应用中了。类似于这样的按钮，背后的技术方案是什么？有哪些局限性？有没有什么一招搞定的必杀技？这就是本文讨论的主要内容。</p>
-
-<h2>第一招：拦截 Http 跳转</h2>
-
-<p>在 Android 中，最标准的方式，就是在应用的配置文件 <code>AndroidManifest.xml</code> 中，通过 <code>&lt;activity&gt;</code> 标签里的 <code>&lt;intent-filter&gt;</code> 来声明：“本应用可以更好的处理某些 url 对应的页面，浏览器你交给我吧”。套在例子上，声明形如：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-</pre></td><td class='code'><pre><code class='xml'><span class='line'><span class="nt">&lt;activity</span> <span class="na">android:name=</span><span class="s">”com.zhihu.android.QuestionActivity”</span><span class="nt">&gt;</span>
-</span><span class='line'>  <span class="nt">&lt;intent-filter&gt;</span>
-</span><span class='line'>    <span class="nt">&lt;action</span> <span class="na">android:name=</span><span class="s">”android.intent.action.VIEW”</span> <span class="nt">/&gt;</span>
-</span><span class='line'>    <span class="nt">&lt;category</span> <span class="na">android:name=</span><span class="s">”android.intent.category.DEFAULT”</span> <span class="nt">/&gt;</span>
-</span><span class='line'>    <span class="nt">&lt;category</span> <span class="na">android:name=</span><span class="s">”android.intent.category.BROWSABLE”</span> <span class="nt">/&gt;</span>
-</span><span class='line'>    <span class="c">&lt;!-- 关键所在，匹配相应域名和 url 模式 --&gt;</span>
-</span><span class='line'>    <span class="nt">&lt;data</span> <span class="na">android:scheme=</span><span class="s">”http”</span> <span class="na">android:host=</span><span class="s">”www.zhihu.com”</span>
-</span><span class='line'><span class="na">android:pathPattern=</span><span class="s">”/question/.*”</span> <span class="nt">/&gt;</span>
-</span><span class='line'>  <span class="nt">&lt;/intent-filter&gt;</span>
-</span><span class='line'><span class="nt">&lt;/activity&gt;</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>做了上述的声明之后，在 Chrome 里访问 豌豆荚的员工工作方式是什么样的？，便可以跳转到知乎 Android 客户端，并打开这个问题的页面。不过这个解决方案有挺多问题，最重要的一个原因是：“兼容性”。</p>
-
-<p>除了 Chrome，从豌豆荚上的下载量看，最热门的手机浏览器是这些：</p>
-
-<center><p><img src="/images/mobile_browser_share.jpg" alt="mobile browser"></p></center>
-
-
-<p>而以上浏览器，大都不遵守 Android 的协定，不支持通过匹配 url 跳转到更适合的应用中去。臆测其原因，大抵是国内浏览器都不愿将流量导给其他应用吧。</p>
-
-<h2>第二招：自定义 Scheme</h2>
-
-<p>如此，那就另辟蹊径，既然 http 协议的 url 会被很多浏览器拦自行处理掉，那就不用 http 协议而采用自定义的 scheme 试试看。</p>
-
-<p>将 <code>AndroidManifest.xml</code> 中的声明修改如下：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-</pre></td><td class='code'><pre><code class='xml'><span class='line'><span class="nt">&lt;activity</span> <span class="na">android:name=</span><span class="s">”com.zhihu.android.QuestionActivity”</span><span class="nt">&gt;</span>
-</span><span class='line'>  <span class="nt">&lt;intent-filter&gt;</span>
-</span><span class='line'>    <span class="nt">&lt;action</span> <span class="na">android:name=</span><span class="s">”android.intent.action.VIEW”</span> <span class="nt">/&gt;</span>
-</span><span class='line'>    <span class="nt">&lt;category</span> <span class="na">android:name=</span><span class="s">”android.intent.category.DEFAULT”</span> <span class="nt">/&gt;</span>
-</span><span class='line'>    <span class="nt">&lt;category</span> <span class="na">android:name=</span><span class="s">”android.intent.category.BROWSABLE”</span> <span class="nt">/&gt;</span>
-</span><span class='line'>    <span class="c">&lt;!-- 关键所在，匹配相应的 scheme --&gt;</span>
-</span><span class='line'>    <span class="nt">&lt;data</span> <span class="na">android:scheme=</span><span class="s">”zhihu”</span> <span class="na">android:host=</span><span class="s">”questions”</span> <span class="nt">/&gt;</span>
-</span><span class='line'>  <span class="nt">&lt;/intent-filter&gt;</span>
-</span><span class='line'><span class="nt">&lt;/activity&gt;</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>把「打开应用」的跳转链接设置为形如 &ldquo;zhihu://questions/…&rdquo; 的 url，点击后就可以匹配跳转到应用对应的 activity 中去。当然，如果简单的使用 <code>&lt;a&gt;</code> 标签来做这件事情，若手机中未安装知乎客户端，点击后就会跳转到一个错误页面（地址是 zhihu://questions/…）。解决方案也简单，使用 <code>&lt;iframe&gt;</code> 即可，详情就不在此赘述。</p>
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2014/09/16/zhihu-intent-fileter-schema/">Read on &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/18/">&larr; Older</a>
@@ -463,6 +399,10 @@
     <ul id="recent_posts">
         
         <li class="post">
+            <a href="/blog/2019/10/10/who-awake-nativepollonce-in-messagequeue/">谁唤醒了MessageQueue中的nativePollOnce</a>
+        </li>
+        
+        <li class="post">
             <a href="/blog/2019/10/07/que-sera-sera/">Que Sera Sera</a>
         </li>
         
@@ -476,10 +416,6 @@
         
         <li class="post">
             <a href="/blog/2019/08/12/singleton-pattern/">单例模式</a>
-        </li>
-        
-        <li class="post">
-            <a href="/blog/2019/08/10/lock-free-multithreading-with-atomic-operations/">Lock-free multithreading with atomic operations</a>
         </li>
         
     </ul>

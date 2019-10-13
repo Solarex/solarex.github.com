@@ -4,7 +4,7 @@
   <title><![CDATA[Category: dev | Solarex's Blog]]></title>
   <link href="http://Solarex.github.io/blog/categories/dev/atom.xml" rel="self"/>
   <link href="http://Solarex.github.io/"/>
-  <updated>2019-10-06T21:02:58+08:00</updated>
+  <updated>2019-10-13T23:17:10+08:00</updated>
   <id>http://Solarex.github.io/</id>
   <author>
     <name><![CDATA[Solarex]]></name>
@@ -12,6 +12,18 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[谁唤醒了MessageQueue中的nativePollOnce]]></title>
+    <link href="http://Solarex.github.io/blog/2019/10/10/who-awake-nativepollonce-in-messagequeue/"/>
+    <updated>2019-10-10T00:00:00+08:00</updated>
+    <id>http://Solarex.github.io/blog/2019/10/10/who-awake-nativepollonce-in-messagequeue</id>
+    <content type="html"><![CDATA[<p>在看Handler相关源码的时候，我们都知道在MessageQueue的nativePollOnce这里会阻塞，那什么时候主线程从这里被唤醒呢？</p>
+
+<!-- more -->
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[单例模式]]></title>
@@ -642,20 +654,6 @@ reader_thread.start()
 
 <ul>
 <li><a href="https://www.internalpointers.com/post/gentle-introduction-multithreading">A gentle introduction to multithreading</a></li>
-</ul>
-
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Dagger2学习]]></title>
-    <link href="http://Solarex.github.io/blog/2019/04/30/learning-dagger2/"/>
-    <updated>2019-04-30T16:17:00+08:00</updated>
-    <id>http://Solarex.github.io/blog/2019/04/30/learning-dagger2</id>
-    <content type="html"><![CDATA[<h3>reference</h3>
-
-<ul>
-<li><a href="https://www.youtube.com/playlist?list=PLrnPJCHvNZuA2ioi4soDZKz8euUQnJW65">Dagger2 Beginner Tutorial</a></li>
 </ul>
 
 ]]></content>

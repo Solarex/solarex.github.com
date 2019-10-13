@@ -5,11 +5,11 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>Solarex's Blog</title>
+  <title>谁唤醒了MessageQueue中的nativePollOnce - Solarex's Blog</title>
   <meta name="author" content="Solarex">
 
   
-  <meta name="description" content="本文主要分析Java平台BlockingQueue的各个实现。 ">
+  <meta name="description" content="在看Handler相关源码的时候，我们都知道在MessageQueue的nativePollOnce这里会阻塞，那什么时候主线程从这里被唤醒呢？ ">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -18,7 +18,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://Solarex.github.io/blog/page/3/">
+  <link rel="canonical" href="http://Solarex.github.io/blog/2019/10/10/who-awake-nativepollonce-in-messagequeue/">
   <link href="/favicon.ico" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <script src="/javascripts/ender.js"></script>
@@ -89,15 +89,12 @@
 </nav>
   <div id="main">
     <div id="content">
-      <div class="blog-index">
+      <div>
+<article class="hentry" role="article">
   
-  
-  
-    <article>
-      
   <header>
     
-      <h1 class="entry-title"><a href="/blog/2019/08/01/java-blockingqueue/">Java BlockingQueue解析</a></h1>
+      <h1 class="entry-title">谁唤醒了MessageQueue中的nativePollOnce</h1>
     
     
       <p class="meta">
@@ -113,81 +110,30 @@
   
 
 
-<time datetime="2019-08-01T20:26:00+08:00" pubdate data-updated="true">Aug 1<span>st</span>, 2019</time>
+<time datetime="2019-10-10T00:00:00+08:00" pubdate data-updated="true">Oct 10<span>th</span>, 2019</time>
         
-         | <a href="/blog/2019/08/01/java-blockingqueue/#disqus_thread">Comments</a>
+         | <a href="#disqus_thread">Comments</a>
         
       </p>
     
   </header>
 
 
-  <div class="entry-content"><p>本文主要分析Java平台BlockingQueue的各个实现。</p>
+<div class="entry-content"><p>在看Handler相关源码的时候，我们都知道在MessageQueue的nativePollOnce这里会阻塞，那什么时候主线程从这里被唤醒呢？</p>
+
+<!-- more -->
 
 </div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2019/08/01/java-blockingqueue/">Read on &rarr;</a>
-    </footer>
-  
 
 
-    </article>
-  
-  
-    <article>
+  <footer>
+    <p class="meta">
       
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2019/07/28/aqs/">Java AQS解析</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
   
 
+<span class="byline author vcard">Posted by <span class="fn">Solarex</span></span>
 
-<time datetime="2019-07-28T16:59:00+08:00" pubdate data-updated="true">Jul 28<span>th</span>, 2019</time>
-        
-         | <a href="/blog/2019/07/28/aqs/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p><code>AbstractQueuedSynchronizer</code>是很多并发工具类如<code>ReentrantLock</code>的实现基础，本文对其进行分析。</p>
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2019/07/28/aqs/">Read on &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
-  
-    <article>
       
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2019/06/28/futuretask/">Java FutureTask解析</a></h1>
-    
-    
-      <p class="meta">
-        
 
 
 
@@ -199,124 +145,42 @@
   
 
 
-<time datetime="2019-06-28T16:59:00+08:00" pubdate data-updated="true">Jun 28<span>th</span>, 2019</time>
-        
-         | <a href="/blog/2019/06/28/futuretask/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>本文主要对FutureTask源码进行分析。</p>
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2019/06/28/futuretask/">Read on &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
-  
-    <article>
+<time datetime="2019-10-10T00:00:00+08:00" pubdate data-updated="true">Oct 10<span>th</span>, 2019</time>
       
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2019/05/28/thread/">Android Thread解析</a></h1>
-    
-    
-      <p class="meta">
-        
 
-
-
-
-
-
-
-
+<span class="categories">
   
+    <a class='category' href='/blog/categories/android/'>android</a>, <a class='category' href='/blog/categories/dev/'>dev</a>
+  
+</span>
 
 
-<time datetime="2019-05-28T16:58:00+08:00" pubdate data-updated="true">May 28<span>th</span>, 2019</time>
-        
-         | <a href="/blog/2019/05/28/thread/#disqus_thread">Comments</a>
-        
-      </p>
+    </p>
     
-  </header>
-
-
-  <div class="entry-content"><p>本文主要分析Android平台上的Thread类源码，分为Java部分和native部分。</p>
-
+      <div class="sharing">
+  
+  
+  
 </div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2019/05/28/thread/">Read on &rarr;</a>
-    </footer>
-  
 
-
-    </article>
-  
-  
-    <article>
+    
+    <p class="meta">
       
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2019/04/30/learning-dagger2/">Dagger2学习</a></h1>
-    
-    
-      <p class="meta">
-        
+        <a class="basic-alignment left" href="/blog/2019/10/07/que-sera-sera/" title="Previous Post: Que Sera Sera">&laquo; Que Sera Sera</a>
+      
+      
+    </p>
+  </footer>
+</article>
 
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2019-04-30T16:17:00+08:00" pubdate data-updated="true">Apr 30<span>th</span>, 2019</time>
-        
-         | <a href="/blog/2019/04/30/learning-dagger2/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h3>reference</h3>
-
-<ul>
-<li><a href="https://www.youtube.com/playlist?list=PLrnPJCHvNZuA2ioi4soDZKz8euUQnJW65">Dagger2 Beginner Tutorial</a></li>
-</ul>
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
 
 </div>
-  
-  
 
-
-    </article>
-  
-  <div class="pagination">
-    
-      <a class="prev" href="/blog/page/4/">&larr; Older</a>
-    
-    <a href="/blog/archives">Blog Archives</a>
-    
-    <a class="next" href="/blog/page/2/">Newer &rarr;</a>
-    
-  </div>
-</div>
 <aside class="sidebar">
   
     <section>
@@ -361,7 +225,7 @@
 <section>
   <h1>GitHub Repos</h1>
   <ul id="gh_repos">
-    <li class="loading">Status updating&#8230;</li>
+    <li class="loading">Status updating...</li>
   </ul>
   
   <a href="https://github.com/flyfire">@flyfire</a> on GitHub
@@ -403,6 +267,7 @@
   
 </aside>
 
+
     </div>
   </div>
   <footer role="contentinfo"><p>
@@ -419,7 +284,10 @@
       var disqus_shortname = 'solarex-blog';
       
         
-        var disqus_script = 'count.js';
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://Solarex.github.io/blog/2019/10/10/who-awake-nativepollonce-in-messagequeue/';
+        var disqus_url = 'http://Solarex.github.io/blog/2019/10/10/who-awake-nativepollonce-in-messagequeue/';
+        var disqus_script = 'embed.js';
       
     (function () {
       var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
