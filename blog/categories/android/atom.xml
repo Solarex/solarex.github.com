@@ -4,7 +4,7 @@
   <title><![CDATA[Category: android | Solarex's Blog]]></title>
   <link href="http://Solarex.github.io/blog/categories/android/atom.xml" rel="self"/>
   <link href="http://Solarex.github.io/"/>
-  <updated>2019-10-13T23:17:10+08:00</updated>
+  <updated>2019-10-15T23:51:54+08:00</updated>
   <id>http://Solarex.github.io/</id>
   <author>
     <name><![CDATA[Solarex]]></name>
@@ -12,6 +12,18 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[如何精确测量一个ViewTree的绘制时长]]></title>
+    <link href="http://Solarex.github.io/blog/2019/10/15/how-to-measure-viewtree-time-cost-exactly/"/>
+    <updated>2019-10-15T23:44:00+08:00</updated>
+    <id>http://Solarex.github.io/blog/2019/10/15/how-to-measure-viewtree-time-cost-exactly</id>
+    <content type="html"><![CDATA[<p>我们都知道在Android中View树的绘制需要经历measure,layout,draw三个流程，那如何精确测量一个View树的绘制时长呢？</p>
+
+<!-- more -->
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[谁唤醒了MessageQueue中的nativePollOnce]]></title>
@@ -1174,39 +1186,6 @@ A’ = p<em>R + q</em>G + r<em>B + s</em>A + t;
 <li><a href="https://hencoder.com/tag/hui-zhi/">自定义View-绘制</a></li>
 </ul>
 
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[RecyclerView平滑滑动到指定位置]]></title>
-    <link href="http://Solarex.github.io/blog/2018/05/30/recyclerview-smooth-scoll-to-position/"/>
-    <updated>2018-05-30T14:33:00+08:00</updated>
-    <id>http://Solarex.github.io/blog/2018/05/30/recyclerview-smooth-scoll-to-position</id>
-    <content type="html"><![CDATA[<p>最近在做一个周日历的新需求，其中有个要求是要RecyclerView平滑的滑动到指定位置，刚开始的时候我以为只要调用<code>smoothScrollToPosition</code>这个方法就可以了，测试的时候发现，<code>smoothScrollToPosition</code>只会对不可见的item有效，对于已经可见的item滑动没有效果，于是翻看了一下<code>smoothScrollToPosition</code>的源码，发现是调用了<code>LayoutManger</code>的<code>smoothScrollToPosition</code>方法。</p>
-
-<!-- more -->
-
-
-<p>```java
-// LinearLayoutManager</p>
-
-<pre><code>@Override
-public void smoothScrollToPosition(RecyclerView recyclerView, RecyclerView.State state,
-        int position) {
-    LinearSmoothScroller linearSmoothScroller =
-            new LinearSmoothScroller(recyclerView.getContext());
-    linearSmoothScroller.setTargetPosition(position);
-    startSmoothScroll(linearSmoothScroller);
-}
-</code></pre>
-
-<p>```</p>
-
-<p>发现其实是实例化了一个<code>LinearSmoothScroller</code>，然后调用<code>startSmoothScroll</code>将<code>LinearSmoothScroller</code>传入进去。在<a href="https://stackoverflow.com/questions/31235183/recyclerview-how-to-smooth-scroll-to-top-of-item-on-a-certain-position/32819067">StackOverflow</a>上看到一个回答，复写了<code>getVerticalSnapPreference</code>方法，返回<code>SNAP_START</code>，由于我的<code>RecyclerView</code>是水平滑动的，于是复写了<code>getHorizontalSnapPreference</code>返回<code>SNAP_START</code>，测试发现对可见的item也有滑动效果了，可是会有闪烁的现象。</p>
-
-<p>继续看<code>LinearSmoothScroller</code>源码，发现有<code>calculateSpeedPerPixel</code>方法，默认是用<code>25</code>去计算，复写这个方法，换一个大点的数去计算，发现滑动的速度慢下来了，闪烁的现象消失了。具体的代码可以参考<a href="https://github.com/flyfire/WeeklyCalendarViewDemo/blob/master/weeklycalendarview/src/main/java/com/solarexsoft/weeklycalendarview/WeeklyCalendarView.java">WeeklyCalendarView</a>。</p>
-
-<p>问题虽然解决了，但是<code>RecyclerView</code>与各个插件的协同工作机制，<code>LayoutManager</code>,<code>SmoothScroller</code>原理没来的及分析，这个留待以后分析。</p>
 ]]></content>
   </entry>
   

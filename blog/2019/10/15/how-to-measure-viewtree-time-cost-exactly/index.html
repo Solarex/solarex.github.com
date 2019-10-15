@@ -5,12 +5,11 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>Java反射 - Solarex's Blog</title>
+  <title>如何精确测量一个ViewTree的绘制时长 - Solarex's Blog</title>
   <meta name="author" content="Solarex">
 
   
-  <meta name="description" content=" // TODO Ref: Java Reflection Tutorial
-Trail: The Reflection API ">
+  <meta name="description" content="我们都知道在Android中View树的绘制需要经历measure,layout,draw三个流程，那如何精确测量一个View树的绘制时长呢？ ">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -19,7 +18,7 @@ Trail: The Reflection API ">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://Solarex.github.io/blog/2014/09/16/java-reflection-tutorial/">
+  <link rel="canonical" href="http://Solarex.github.io/blog/2019/10/15/how-to-measure-viewtree-time-cost-exactly/">
   <link href="/favicon.ico" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <script src="/javascripts/ender.js"></script>
@@ -95,7 +94,7 @@ Trail: The Reflection API ">
   
   <header>
     
-      <h1 class="entry-title">Java反射</h1>
+      <h1 class="entry-title">如何精确测量一个ViewTree的绘制时长</h1>
     
     
       <p class="meta">
@@ -111,7 +110,7 @@ Trail: The Reflection API ">
   
 
 
-<time datetime="2014-09-16T14:35:00+08:00" pubdate data-updated="true">Sep 16<span>th</span>, 2014</time>
+<time datetime="2019-10-15T23:44:00+08:00" pubdate data-updated="true">Oct 15<span>th</span>, 2019</time>
         
          | <a href="#disqus_thread">Comments</a>
         
@@ -120,22 +119,9 @@ Trail: The Reflection API ">
   </header>
 
 
-<div class="entry-content"><p><center><img src="/images/java-reflection-tutorial.png"></center></p>
-
-
-
+<div class="entry-content"><p>我们都知道在Android中View树的绘制需要经历measure,layout,draw三个流程，那如何精确测量一个View树的绘制时长呢？</p>
 
 <!-- more -->
-
-
-<p>// TODO</p>
-
-<p>Ref:</p>
-
-<ul>
-<li><a href="http://www.journaldev.com/1789/java-reflection-tutorial-for-classes-methods-fields-constructors-annotations-and-much-more">Java Reflection Tutorial</a></li>
-<li><a href="http://docs.oracle.com/javase/tutorial/reflect/">Trail: The Reflection API</a></li>
-</ul>
 
 </div>
 
@@ -159,12 +145,12 @@ Trail: The Reflection API ">
   
 
 
-<time datetime="2014-09-16T14:35:00+08:00" pubdate data-updated="true">Sep 16<span>th</span>, 2014</time>
+<time datetime="2019-10-15T23:44:00+08:00" pubdate data-updated="true">Oct 15<span>th</span>, 2019</time>
       
 
 <span class="categories">
   
-    <a class='category' href='/blog/categories/dev/'>dev</a>, <a class='category' href='/blog/categories/java/'>java</a>
+    <a class='category' href='/blog/categories/android/'>android</a>, <a class='category' href='/blog/categories/dev/'>dev</a>
   
 </span>
 
@@ -180,10 +166,8 @@ Trail: The Reflection API ">
     
     <p class="meta">
       
-        <a class="basic-alignment left" href="/blog/2014/09/16/zhihu-intent-fileter-schema/" title="Previous Post: 跳出浏览器">&laquo; 跳出浏览器</a>
+        <a class="basic-alignment left" href="/blog/2019/10/10/who-awake-nativepollonce-in-messagequeue/" title="Previous Post: 谁唤醒了MessageQueue中的nativePollOnce">&laquo; 谁唤醒了MessageQueue中的nativePollOnce</a>
       
-      
-        <a class="basic-alignment right" href="/blog/2014/09/21/android-guide-app-component/" title="Next Post: [Guides]App Component">[Guides]App Component &raquo;</a>
       
     </p>
   </footer>
@@ -301,8 +285,8 @@ Trail: The Reflection API ">
       
         
         // var disqus_developer = 1;
-        var disqus_identifier = 'http://Solarex.github.io/blog/2014/09/16/java-reflection-tutorial/';
-        var disqus_url = 'http://Solarex.github.io/blog/2014/09/16/java-reflection-tutorial/';
+        var disqus_identifier = 'http://Solarex.github.io/blog/2019/10/15/how-to-measure-viewtree-time-cost-exactly/';
+        var disqus_url = 'http://Solarex.github.io/blog/2019/10/15/how-to-measure-viewtree-time-cost-exactly/';
         var disqus_script = 'embed.js';
       
     (function () {

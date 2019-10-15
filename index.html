@@ -9,7 +9,7 @@
   <meta name="author" content="Solarex">
 
   
-  <meta name="description" content="在看Handler相关源码的时候，我们都知道在MessageQueue的nativePollOnce这里会阻塞，那什么时候主线程从这里被唤醒呢？ ">
+  <meta name="description" content="我们都知道在Android中View树的绘制需要经历measure,layout,draw三个流程，那如何精确测量一个View树的绘制时长呢？ ">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -91,6 +91,49 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2019/10/15/how-to-measure-viewtree-time-cost-exactly/">如何精确测量一个ViewTree的绘制时长</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2019-10-15T23:44:00+08:00" pubdate data-updated="true">Oct 15<span>th</span>, 2019</time>
+        
+         | <a href="/blog/2019/10/15/how-to-measure-viewtree-time-cost-exactly/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>我们都知道在Android中View树的绘制需要经历measure,layout,draw三个流程，那如何精确测量一个View树的绘制时长呢？</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2019/10/15/how-to-measure-viewtree-time-cost-exactly/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
   
   
     <article>
@@ -267,49 +310,6 @@
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2019/08/12/singleton-pattern/">单例模式</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2019-08-12T07:34:00+08:00" pubdate data-updated="true">Aug 12<span>th</span>, 2019</time>
-        
-         | <a href="/blog/2019/08/12/singleton-pattern/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>本文主要讲解单例模式的各种实现，以及对反射和反序列化攻击的防御。</p>
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2019/08/12/singleton-pattern/">Read on &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/2/">&larr; Older</a>
@@ -325,6 +325,10 @@
     <ul id="recent_posts">
         
         <li class="post">
+            <a href="/blog/2019/10/15/how-to-measure-viewtree-time-cost-exactly/">如何精确测量一个ViewTree的绘制时长</a>
+        </li>
+        
+        <li class="post">
             <a href="/blog/2019/10/10/who-awake-nativepollonce-in-messagequeue/">谁唤醒了MessageQueue中的nativePollOnce</a>
         </li>
         
@@ -338,10 +342,6 @@
         
         <li class="post">
             <a href="/blog/2019/09/18/android-studio-proxy/">Android Studio 代理问题</a>
-        </li>
-        
-        <li class="post">
-            <a href="/blog/2019/08/12/singleton-pattern/">单例模式</a>
         </li>
         
     </ul>
