@@ -119,6 +119,7 @@ footer: true
 + [HelloNDK](https://github.com/flyfire/HelloNDK)
 + [JavaWithKotlin](https://github.com/flyfire/JavaWithKotlin)
 + [GithubApp(kotlin)](https://github.com/flyfire/SolarexGithubApp)
++ [AIDLDemo](https://github.com/flyfire/SolarexAIDLDemo)
 
 <h3 id='bintray'>Bintray</h3>
 
