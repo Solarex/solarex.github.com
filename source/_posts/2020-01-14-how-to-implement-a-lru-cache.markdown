@@ -12,3 +12,5 @@ categories:
 本文主要讲解[LeetCode 146,LRU缓存机制](https://leetcode-cn.com/problems/lru-cache/)的解答，以及对Android平台LRU实现的分析，顺带分析下JakeWharthon大神的[DiskLruCache](https://github.com/JakeWharton/DiskLruCache)。
 
 <!-- more -->
+
++ [LeetCode 146 Solution](https://github.com/flyfire/LeetCodeSolutions/blob/master/src/main/java/com/solarexsoft/leetcode/editor/cn/L146LruCache.java)
