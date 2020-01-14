@@ -16,6 +16,7 @@ footer: true
 + [Android JSON解析框架](https://github.com/flyfire/SolarexJSONDemo)
 + [模仿Android线程间通信机制](https://github.com/flyfire/SolarexHandler)
 + [模仿Glide的图像处理框架](https://github.com/flyfire/SolarexGlideDemo)
++ [仿写EventBus](https://github.com/flyfire/SolarexEventBusDemo)
 
 <h3 id='designpatterns'>设计模式</h3>
 
