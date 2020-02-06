@@ -17,6 +17,7 @@ footer: true
 + [模仿Android线程间通信机制](https://github.com/flyfire/SolarexHandler)
 + [模仿Glide的图像处理框架](https://github.com/flyfire/SolarexGlideDemo)
 + [仿写EventBus](https://github.com/flyfire/SolarexEventBusDemo)
++ [Proxy that语法实现插件化](https://github.com/flyfire/SolarexProxyPluginDemo)
 
 <h3 id='designpatterns'>设计模式</h3>
 
