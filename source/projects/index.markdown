@@ -124,6 +124,10 @@ footer: true
 + [GithubApp(kotlin)](https://github.com/flyfire/SolarexGithubApp)
 + [AIDLDemo](https://github.com/flyfire/SolarexAIDLDemo)
 
+<h3 id='job'>Job-Hunting</h3>
+
++ [AndroidJobHunting(private)](https://github.com/flyfire/AndroidJobHunting)
+
 <h3 id='bintray'>Bintray</h3>
 
 + [Bintray](https://bintray.com/solarexsoft/maven)
