@@ -127,6 +127,7 @@ footer: true
 <h3 id='job'>Job-Hunting</h3>
 
 + [AndroidJobHunting(private)](https://github.com/flyfire/AndroidJobHunting)
++ [LearningStepByStep(private)](https://github.com/flyfire/learning-step-by-step)
 
 <h3 id='bintray'>Bintray</h3>
 
