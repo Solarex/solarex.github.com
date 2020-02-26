@@ -19,6 +19,7 @@ footer: true
 + [仿写EventBus](https://github.com/flyfire/SolarexEventBusDemo)
 + [Proxy that语法实现插件化](https://github.com/flyfire/SolarexProxyPluginDemo)
 + [Hook 方式实现插件化](https://github.com/flyfire/SolarexHookPluginDemo)
++ [模仿OkHttp的http框架](https://github.com/flyfire/SolarexOkHttpDemo)
 
 <h3 id='designpatterns'>设计模式</h3>
 
