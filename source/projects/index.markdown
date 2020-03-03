@@ -20,6 +20,7 @@ footer: true
 + [Proxy that语法实现插件化](https://github.com/flyfire/SolarexProxyPluginDemo)
 + [Hook 方式实现插件化](https://github.com/flyfire/SolarexHookPluginDemo)
 + [模仿OkHttp的http框架](https://github.com/flyfire/SolarexOkHttpDemo)
++ [模仿ARouter的路由框架](https://github.com/flyfire/SolarexRouterDemo)
 
 <h3 id='designpatterns'>设计模式</h3>
 
