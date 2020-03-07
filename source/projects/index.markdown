@@ -21,6 +21,7 @@ footer: true
 + [Hook 方式实现插件化](https://github.com/flyfire/SolarexHookPluginDemo)
 + [模仿OkHttp的http框架](https://github.com/flyfire/SolarexOkHttpDemo)
 + [模仿ARouter的路由框架](https://github.com/flyfire/SolarexRouterDemo)
++ [模仿RxJava部分操作符](https://github.com/flyfire/SolarexRxJavaDemo)
 
 <h3 id='designpatterns'>设计模式</h3>
 
