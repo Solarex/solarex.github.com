@@ -35,6 +35,7 @@ Contact me via:
 + [Weibo](http://weibo.com/Solarex)
 + [Zhihu](http://www.zhihu.com/people/solarex/)
 + [Telegram](https://t.me/Solarex)
++ [Twitter](https://twitter.com/SolarexCN)
 
 <center><em>Wechat</em></center>
 <center><img src="/images/wechat.png"/></center>
