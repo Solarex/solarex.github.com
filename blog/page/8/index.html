@@ -9,8 +9,7 @@
   <meta name="author" content="Solarex">
 
   
-  <meta name="description" content="
-">
+  <meta name="description" content="本文主要对Volley源码进行分析。 ">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -92,90 +91,6 @@
     <div id="content">
       <div class="blog-index">
   
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2018/04/03/coordinatelayout-behavior-analysis/">CoordinatorLayout Behavior分析</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2018-04-03T16:29:00+08:00" pubdate data-updated="true">Apr 3<span>rd</span>, 2018</time>
-        
-         | <a href="/blog/2018/04/03/coordinatelayout-behavior-analysis/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content">
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2018/03/25/android-touch-system/">Android触摸事件分发机制</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2018-03-25T16:26:00+08:00" pubdate data-updated="true">Mar 25<span>th</span>, 2018</time>
-        
-         | <a href="/blog/2018/03/25/android-touch-system/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><iframe src="//player.bilibili.com/player.html?aid=24566744&cid=41274515&page=1" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true"> </iframe>
-
-
-<h4>reference</h4>
-
-<ul>
-<li><a href="https://github.com/devunwired/custom-touch-examples">custom-touch-examples</a></li>
-</ul>
-
-</div>
-  
-  
-
-
-    </article>
   
   
     <article>
@@ -359,6 +274,112 @@
 
     </article>
   
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/12/26/writing-better-adapters/">Writing Better Adapters</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2016-12-26T16:11:00+08:00" pubdate data-updated="true">Dec 26<span>th</span>, 2016</time>
+        
+         | <a href="/blog/2016/12/26/writing-better-adapters/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Implementing adapters is one of the most frequent tasks for an Android developer. It’s the base for every list. Looking at apps, lists are the base of most apps.</p>
+
+<p>The schema we follow to implement list views is often the same: a View with an adapter that holds the data. Doing this all the time can make us blind to what we are writing, even to ugly code. Even worse, we end up repeating that ugly code.</p>
+
+<p>It’s time to take a close look into adapters.</p>
+
+<h2>RecyclerView Basics</h2>
+
+<p>The basic operations for RecyclerViews (but also applicable for ListView) are:</p>
+
+<ul>
+<li>Creating the view and the ViewHolder that holds the view information.</li>
+<li>Binding the ViewHolder to the data that the adapter holds, probably a list of model classes.</li>
+</ul>
+
+
+<p>Implementing this is pretty straightforward and not much can be done wrong here.</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2016/12/26/writing-better-adapters/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/10/10/choreographer-in-android/">Choreographer in Android</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2016-10-10T20:38:00+08:00" pubdate data-updated="true">Oct 10<span>th</span>, 2016</time>
+        
+         | <a href="/blog/2016/10/10/choreographer-in-android/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Choreographer is the one which acts like a interface between application view system and lower layer display system for rendering the views.</p>
+
+<p>ViewRootImpl is the ViewParent or root below which only Activity window DecorView will be attached. All the view layouts set by the activity through <code>setContentView()</code> will attached the DecorView whose parent is ViewRootImpl. Actually ViewRootImpl is not a View its just a ViewParent which handled and manages the View Hierarchies for displaying, handling input events etc.</p>
+
+<p>The number of root views that are active in your process. Each root view is associated with a window, so this can help you identify memory leaks involving dialogs or other windows.</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2016/10/10/choreographer-in-android/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/9/">&larr; Older</a>
@@ -376,14 +397,6 @@
     <ul id="recent_posts">
         
         <li class="post">
-            <a href="/blog/2019/10/15/how-to-measure-viewtree-time-cost-exactly/">如何精确测量一个ViewTree的绘制时长</a>
-        </li>
-        
-        <li class="post">
-            <a href="/blog/2019/10/10/who-awake-nativepollonce-in-messagequeue/">谁唤醒了MessageQueue中的nativePollOnce</a>
-        </li>
-        
-        <li class="post">
             <a href="/blog/2019/10/07/que-sera-sera/">Que Sera Sera</a>
         </li>
         
@@ -393,6 +406,14 @@
         
         <li class="post">
             <a href="/blog/2019/09/18/android-studio-proxy/">Android Studio 代理问题</a>
+        </li>
+        
+        <li class="post">
+            <a href="/blog/2019/08/12/singleton-pattern/">单例模式</a>
+        </li>
+        
+        <li class="post">
+            <a href="/blog/2019/08/10/lock-free-multithreading-with-atomic-operations/">Lock-free multithreading with atomic operations</a>
         </li>
         
     </ul>
@@ -458,7 +479,7 @@
     </div>
   </div>
   <footer role="contentinfo"><p>
-  Copyright &copy; 2019 - Solarex -
+  Copyright &copy; 2020 - Solarex -
   <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
   - <span class="credit">Theme by <a href="http://www.gehaxelt.in">Gehaxelt</a></span>
   <span class="credit">and <a href="http://www.it-solutions-neef.de">IT Solutions Neef</a></span>

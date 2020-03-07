@@ -9,7 +9,7 @@
   <meta name="author" content="Solarex">
 
   
-  <meta name="description" content=" C version C版本的hello,world深入详解之前上学的时候在SlideShare上看到过，记得当时大呼过瘾，许多C深入理解的知识基本上都被罗列了出来，现在看来仍然获益颇多。PDF版本可以在这里和这里下载。 ">
+  <meta name="description" content="Intents are probably Android’s most powerful tool. They tie together loosely coupled components and make it possible to start Activities that are not &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -91,146 +91,6 @@
     <div id="content">
       <div class="blog-index">
   
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2014/09/01/what-can-we-learn-from-hello-world/">What Can We Learn From Hello World</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-09-01T07:57:00+08:00" pubdate data-updated="true">Sep 1<span>st</span>, 2014</time>
-        
-         | <a href="/blog/2014/09/01/what-can-we-learn-from-hello-world/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><center><p><img src="/images/java_logo.svg" width="150" height="275" alt="java"></p></center>
-
-
-<h2>C version</h2>
-
-<p>C版本的<code>hello,world</code>深入详解之前上学的时候在<a href="http://www.slideshare.net/olvemaudal/deep-c">SlideShare</a>上看到过，记得当时大呼过瘾，许多C深入理解的知识基本上都被罗列了出来，现在看来仍然获益颇多。PDF版本可以在<a href="/downloads/files/DeepC0.pdf">这里和<a href="/downloads/files/DeepC1.pdf">这里</a>下载。</p>
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2014/09/01/what-can-we-learn-from-hello-world/">Read on &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2014/06/02/ssh-key-config-for-multi-github-accounts/">SSH Key Settings for Multi Github Accounts</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-06-02T15:13:00+08:00" pubdate data-updated="true">Jun 2<span>nd</span>, 2014</time>
-        
-         | <a href="/blog/2014/06/02/ssh-key-config-for-multi-github-accounts/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>在同一台电脑上有多个github账户时，切换ssh key会比较麻烦，可以使用ssh config来简化这一动作。</p>
-
-<p>在使用<code>ssh-keygen</code>时，为不同的账户选择不同的ssh key文件。</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>hrh@Solarex:~<span class="nv">$ </span>ls ~/.ssh/
-</span><span class='line'>id_rsa_accountA id_rsa_accountA.pub id_rsa_accountB id_rsa_accountB.pub known_hosts config
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p></p>
-
-<p>在<code>~/.bashrc</code>中添加ssh key。</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>ssh-add ~/.ssh/id_rsa_accountA &gt;/dev/null 2&gt;&amp;1
-</span><span class='line'>ssh-add ~/.ssh/id_rsa_accountB &gt;/dev/null 2&gt;&amp;1
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>配置ssh config文件<code>~/.ssh/config</code>。</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="c">#AccountA</span>
-</span><span class='line'>Host github-a.com
-</span><span class='line'>    HostName github.com
-</span><span class='line'>    User git
-</span><span class='line'>    IdentityFile ~/.ssh/id_rsa_accountA
-</span><span class='line'>
-</span><span class='line'><span class="c">#AccountB</span>
-</span><span class='line'>Host github-b.com
-</span><span class='line'>    HostName github.com
-</span><span class='line'>    User git
-</span><span class='line'>    IdentityFile ~/.ssh/id_rsa_accountB
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>这样以后使用AccountA时可以<code>git clone git@github-a.com:user/repos.git local_dir</code>这样操作，clone下来后可以<code>cd local_dir</code>对<code>user.name</code>和<code>user.email</code>来进行config来覆盖global config，剩下的就和平时没有什么区别了，使用AccountB时相似操作就可以了。</p>
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2014/06/02/ssh-key-config-for-multi-github-accounts/">Read on &rarr;</a>
-    </footer>
-  
-
-
-    </article>
   
   
     <article>
@@ -465,9 +325,178 @@
 
     </article>
   
-  <div class="pagination">
+  
+    <article>
+      
+  <header>
     
-      <a class="prev" href="/blog/page/20/">&larr; Older</a>
+      <h1 class="entry-title"><a href="/blog/2013/11/21/install-ubuntu-13-dot-04-on-macbook-pro-2011/">MacBook Pro 2011中安装Ubuntu 13.04</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-11-21T22:55:00+08:00" pubdate data-updated="true">Nov 21<span>st</span>, 2013</time>
+        
+         | <a href="/blog/2013/11/21/install-ubuntu-13-dot-04-on-macbook-pro-2011/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><center><p><img src="/images/logoubuntu.png" width="200" height="200" alt="ubuntu"></p></center>
+
+
+<p>之前已经在MacBook上装过Ubuntu了，不知怎么搞的，最近Ubuntu更新后，分辨率一直保持在1024×768，屏幕惨不忍睹，网上搜了好多，都是使用<a href="https://wiki.ubuntu.com/X/Config/Resolution">xrandr</a>之类的，但是执行<code>xrandr</code>的时候老是报错，搜了下，貌似是一个bug。不管了，重装一下吧。</p>
+
+<p>首先在MacBook下用<code>Disk Utility</code>分区，Ubuntu需要一个swap分区，一个<code>/</code>分区，用U盘安装的话有这两个就够了。但是我没有U盘，就又划分了一个2G的分区，把Ubuntu的镜像写进去，这样也便于以后恢复。分区全部使用FAT32格式。</p>
+
+<p>分好区后就是写Ubuntu的镜像文件了，注意要从Ubuntu官方网站上面下载针对Mac特定版本的iso文件，下载下来后，校验下如果没错的话，就可以用<code>UNetbooin</code>来烧Ubuntu的镜像了，可以烧到U盘中也可以像我一样烧到一个专门的分区中。分区的编号可以通过命令<code>diskutil list</code>来查看。</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2013/11/21/install-ubuntu-13-dot-04-on-macbook-pro-2011/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2012/07/27/blog-on-github/">使用Octopress和Github写博客</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-07-27T14:50:00+08:00" pubdate data-updated="true">Jul 27<span>th</span>, 2012</time>
+        
+         | <a href="/blog/2012/07/27/blog-on-github/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><center><em>Ubuntu下建立Octopress博客过程</em></center>
+
+
+<center><p><img src="/images/octopress_logo.jpg" alt="Octopress"></p></center>
+
+
+<ul>
+<li>首先安装<code>git</code></li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo apt-get install git
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>安装<code>rvm</code>和<code>ruby 1.9.3</code></li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>curl -L https://get.rvm.io | bash -s stable --ruby<span class="o">=</span>1.9.3
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>克隆<code>octopress</code>到本地</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>git clone git://github.com/imathis/octopress.git
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>安装依赖</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>gem sources -a http://ruby.taobao.org/
+</span><span class='line'>gem sources -r http://rubygems.org/
+</span><span class='line'>gem sources -l <span class="c">#确保只有淘宝的ruby镜像</span>
+</span><span class='line'>gem install bundle
+</span><span class='line'>bundle install <span class="c">#建议更改Gemfile第一行source为taobao镜像</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>安装<code>slash</code>主题</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>git clone git://github.com/tommy351/Octopress-Theme-Slash.git .themes/slash
+</span><span class='line'>rake install<span class="o">[</span><span class="s1">&#39;slash&#39;</span><span class="o">]</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>可以定制<code>slash</code>主题，由于众所周知的原因，我把博客的分享换成了国内的jiathis，评论系统换成了国内的多说，需要更改的地方也不是很多，就不详细叙述了，具体可以参考我的代码。当然你也可以使用其他的分享、评论系统，或者使用默认的也行。至于其他的第三方帐号，我只使用了Google Analytics，这个也很简单，就不赘述了。</p>
+
+<ul>
+<li>生成网站、预览</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>rake generate <span class="o">&amp;&amp;</span> rake preview
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>如果你没有改动<code>Rakefile</code>里的<code>server_port</code>的话，默认就可以在 <a href="http://localhost:4000/">http://localhost:4000/</a> 查看博客了。</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2012/07/27/blog-on-github/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  <div class="pagination">
     
     <a href="/blog/archives">Blog Archives</a>
     
@@ -482,14 +511,6 @@
     <ul id="recent_posts">
         
         <li class="post">
-            <a href="/blog/2019/10/15/how-to-measure-viewtree-time-cost-exactly/">如何精确测量一个ViewTree的绘制时长</a>
-        </li>
-        
-        <li class="post">
-            <a href="/blog/2019/10/10/who-awake-nativepollonce-in-messagequeue/">谁唤醒了MessageQueue中的nativePollOnce</a>
-        </li>
-        
-        <li class="post">
             <a href="/blog/2019/10/07/que-sera-sera/">Que Sera Sera</a>
         </li>
         
@@ -499,6 +520,14 @@
         
         <li class="post">
             <a href="/blog/2019/09/18/android-studio-proxy/">Android Studio 代理问题</a>
+        </li>
+        
+        <li class="post">
+            <a href="/blog/2019/08/12/singleton-pattern/">单例模式</a>
+        </li>
+        
+        <li class="post">
+            <a href="/blog/2019/08/10/lock-free-multithreading-with-atomic-operations/">Lock-free multithreading with atomic operations</a>
         </li>
         
     </ul>
@@ -564,7 +593,7 @@
     </div>
   </div>
   <footer role="contentinfo"><p>
-  Copyright &copy; 2019 - Solarex -
+  Copyright &copy; 2020 - Solarex -
   <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
   - <span class="credit">Theme by <a href="http://www.gehaxelt.in">Gehaxelt</a></span>
   <span class="credit">and <a href="http://www.it-solutions-neef.de">IT Solutions Neef</a></span>

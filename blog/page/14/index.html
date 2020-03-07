@@ -9,9 +9,9 @@
   <meta name="author" content="Solarex">
 
   
-  <meta name="description" content="Whetting Your Appetite
-Using the Python Interpreter Invoking the Interpreter Argument Passing
-Interactive Mode The Interpreter and Its Environment &hellip;">
+  <meta name="description" content="Background jobs best practices Running in a background service
+Loading data in the background
+Managing the device awake state Best Practices for &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -93,294 +93,6 @@ Interactive Mode The Interpreter and Its Environment &hellip;">
     <div id="content">
       <div class="blog-index">
   
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2015/03/29/python-tutorial/">Python Tutorial</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2015-03-29T11:17:00+08:00" pubdate data-updated="true">Mar 29<span>th</span>, 2015</time>
-        
-         | <a href="/blog/2015/03/29/python-tutorial/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><center><p><img src="/images/python_logo.png"></p></center>
-
-
-<ul>
-<li><a href="#1">Whetting Your Appetite</a></li>
-<li><a href="#2">Using the Python Interpreter</a>
-
-<ul>
-<li><a href="#2.1">Invoking the Interpreter</a>
-
-<ul>
-<li><a href="#2.1.1">Argument Passing</a></li>
-<li><a href="#2.1.2">Interactive Mode</a></li>
-</ul>
-</li>
-<li><a href="#2.2">The Interpreter and Its Environment</a>
-
-<ul>
-<li><a href="#2.2.1">Source Code Encoding</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a href="#3">An Informal Introduction to Python</a>
-
-<ul>
-<li><a href="#3.1">Using Python as Calculator</a>
-
-<ul>
-<li><a href="#3.1.1">Numbers</a></li>
-<li><a href="#3.1.2">Strings</a></li>
-<li><a href="#3.1.3">Lists</a></li>
-</ul>
-</li>
-<li><a href="#3.2">First Steps Towards Programming</a></li>
-</ul>
-</li>
-<li><a href="#4">More Control Flow Tools</a>
-
-<ul>
-<li><a href="#4.1">if Statements</a></li>
-<li><a href="#4.2">for Statements</a></li>
-<li><a href="#4.3">The range() Function</a></li>
-<li><a href="#4.4">break and continue Statements,and else Clauses and Loops</a></li>
-<li><a href="#4.5">pass Statements</a></li>
-<li><a href="#4.6">Defining Functions</a></li>
-<li><a href="#4.7">More on Defining Functions</a>
-
-<ul>
-<li><a href="#4.7.1">Default Argument Values</a></li>
-<li><a href="#4.7.2">Keyword Arguments</a></li>
-<li><a href="#4.7.3">Arbitrary Argument Lists</a></li>
-<li><a href="#4.7.4">Unpacking Argument Lists</a></li>
-<li><a href="#4.7.5">Lambda Expressions</a></li>
-<li><a href="#4.7.6">Documentation Strings</a></li>
-<li><a href="#4.7.7">Function Annotations</a></li>
-</ul>
-</li>
-<li><a href="#4.8">Intermezzo: Coding Style</a></li>
-</ul>
-</li>
-<li><a href="#5">Data Structures</a>
-
-<ul>
-<li><a href="#5.1">More on Lists</a>
-
-<ul>
-<li><a href="#5.1.1">Using Lists as Stacks</a></li>
-<li><a href="#5.1.2">Using Lists as Queues</a></li>
-<li><a href="#5.1.3">List Comprehensions</a></li>
-<li><a href="#5.1.4">Nested List Comprehensions</a></li>
-</ul>
-</li>
-<li><a href="#.5.2">The del Statement</a></li>
-<li><a href="#5.3">Tuples and Sequences</a></li>
-<li><a href="#5.4">Sets</a></li>
-<li><a href="#5.5">Dictionaries</a></li>
-<li><a href="#5.6">Looping Techniques</a></li>
-<li><a href="#5.7">More on Conditions</a></li>
-<li><a href="#5.8">Comparing Sequences and Other Types</a></li>
-</ul>
-</li>
-<li><a href="#6">Modules</a>
-
-<ul>
-<li><a href="#6.1">More on Modules</a>
-
-<ul>
-<li><a href="#6.1.1">Executing modules as scripts</a></li>
-<li><a href="#6.1.2">The Module Search Path</a></li>
-<li><a href="#6.1.3">&ldquo;Compiled&rdquo; Python files</a></li>
-</ul>
-</li>
-<li><a href="#6.2">Standard Modules</a></li>
-<li><a href="#6.3">The dir() Function</a></li>
-<li><a href="#6.4">Packages</a>
-
-<ul>
-<li><a href="#6.4.1">Importing * From a Package</a></li>
-<li><a href="#6.4.2">Intra-package References</a></li>
-<li><a href="#6.4.3">Packages in Multiple Directories</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a href="#7">Input and Output</a>
-
-<ul>
-<li><a href="#7.1">Fancier Output Formatting</a>
-
-<ul>
-<li><a href="#7.1.1">Old String Formatting</a></li>
-</ul>
-</li>
-<li><a href="#7.2">Reading and Writing Files</a>
-
-<ul>
-<li><a href="#7.2.1">Methods of File Objects</a></li>
-<li><a href="#7.2.2">Saving structured data with json</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a href="#8">Errors and Exceptions</a>
-
-<ul>
-<li><a href="#8.1">Syntax Errors</a></li>
-<li><a href="#8.2">Exceptions</a></li>
-<li><a href="#8.3">Handling Exceptions</a></li>
-<li><a href="#8.4">Raising Exceptions</a></li>
-<li><a href="#8.5">User-defined Exceptions</a></li>
-<li><a href="#8.6">Defining Clean-up Actions</a></li>
-<li><a href="#8.7">Predefined Clean-up Actions</a></li>
-</ul>
-</li>
-<li><a href="#9">Classes</a>
-
-<ul>
-<li><a href="#9.1">A Word About Names and Objects</a></li>
-<li><a href="#9.2">Python Scopes and Namespaces</a>
-
-<ul>
-<li><a href="#9.2.1">Scopes and Namespacs Example</a></li>
-</ul>
-</li>
-<li><a href="#9.3">A First Look at Classes</a>
-
-<ul>
-<li><a href="#9.3.1">Class Definition Syntax</a></li>
-<li><a href="#9.3.2">Class Objects</a></li>
-<li><a href="#9.3.3">Instance Objects</a></li>
-<li><a href="#9.3.4">Method Objects</a></li>
-<li><a href="#9.3.5">Class and Instance Variables</a></li>
-</ul>
-</li>
-<li><a href="#9.4">Random Remarks</a></li>
-<li><a href="#9.5">Inheritance</a>
-
-<ul>
-<li><a href="#9.5.1">Multiple Inheritance</a></li>
-</ul>
-</li>
-<li><a href="#9.6">Private Variables</a></li>
-<li><a href="#9.7">Odds and Ends</a></li>
-<li><a href="#9.8">Exceptions Are Classes Too</a></li>
-<li><a href="#9.9">Iterators</a></li>
-<li><a href="#9.10">Generators</a></li>
-<li><a href="#9.11">Generator Expressions</a></li>
-</ul>
-</li>
-<li><a href="#10">Brief Tour of the Standard Library</a>
-
-<ul>
-<li><a href="#10.1">Operating System Interface</a></li>
-<li><a href="#10.2">File Wildcards</a></li>
-<li><a href="#10.3">Command Line Arguments</a></li>
-<li><a href="#10.4">Error Output Redirection and Program Termination</a></li>
-<li><a href="#10.5">String Pattern Matching</a></li>
-<li><a href="#10.6">Mathematics</a></li>
-<li><a href="#10.7">Internet Access</a></li>
-<li><a href="#10.8">Dates and Times</a></li>
-<li><a href="#10.9">Data Compression</a></li>
-<li><a href="#10.10">Performance Measurement</a></li>
-<li><a href="#10.11">Quality Control</a></li>
-<li><a href="#10.12">Batteries Included</a></li>
-</ul>
-</li>
-<li><a href="#11">Brief Tour of the Standard Library &ndash; Part II</a>
-
-<ul>
-<li><a href="#11.1">Output Formatting</a></li>
-<li><a href="#11.2">Templating</a></li>
-<li><a href="#11.3">Working with Binary Data Record Layouts</a></li>
-<li><a href="#11.4">Multi-threading</a></li>
-<li><a href="#11.5">Logging</a></li>
-<li><a href="#11.6">Weak References</a></li>
-<li><a href="#11.7">Tools for Working with Lists</a></li>
-<li><a href="#11.8">Decimal Floating Point Arithmetic</a></li>
-</ul>
-</li>
-</ul>
-
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2015/03/29/python-tutorial/">Read on &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2015/03/22/using-gnu-command-line-tools-on-mac-os-x/">Using GNU Command Line Tools on Mac OS X</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2015-03-22T23:05:00+08:00" pubdate data-updated="true">Mar 22<span>nd</span>, 2015</time>
-        
-         | <a href="/blog/2015/03/22/using-gnu-command-line-tools-on-mac-os-x/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p><p><center><img src="/images/apple_mac_logo.jpg" width="225" height="225"></center>
-Unlike Ubuntu shipped with GNU command line tools,Mac OS X shipped with the BSD version,which make me WTF when I encountered with some compatibility issues.Fortunately,it&rsquo;s quit easy to install gnu tools by using homebrew in Mac OS X and set them as default.</p>
-
-<p></div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2015/03/22/using-gnu-command-line-tools-on-mac-os-x/">Read on &rarr;</a>
-    </footer>
-  
-
-
-    </article>
   
   
     <article>
@@ -625,6 +337,129 @@ Unlike Ubuntu shipped with GNU command line tools,Mac OS X shipped with the BSD 
 
     </article>
   
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/10/24/android-contentprovider/">Android ContentProvider</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-10-24T12:16:00+08:00" pubdate data-updated="true">Oct 24<span>th</span>, 2014</time>
+        
+         | <a href="/blog/2014/10/24/android-contentprovider/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><center><p><img src="/images/android_logo.jpg"/></p></center>
+
+
+<ul>
+<li><a href="#overview">Android ContentProvider</a>
+
+<ul>
+<li><a href="#basics">Content Provider Basics</a></li>
+<li><a href="#using">Using Content Providers</a></li>
+<li><a href="#writing">Writing your own Content Provider</a></li>
+<li><a href="#performance">Better Performance with ContentProviderOperation</a></li>
+</ul>
+</li>
+</ul>
+
+
+<h2 id="overview">Android ContentProvider</h2>
+
+
+<p>This is a tutorial covering Android&rsquo;s ContentProvider.</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2014/10/24/android-contentprovider/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/10/24/android-loader/">Android Loader</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-10-24T06:34:00+08:00" pubdate data-updated="true">Oct 24<span>th</span>, 2014</time>
+        
+         | <a href="/blog/2014/10/24/android-loader/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p><center><img src="/images/android_logo.jpg"/></center></p>
+
+
+<ul>
+<li><a href="#overview">Android Loader</a>
+
+<ul>
+<li><a href="#before">Life before Loaders</a></li>
+<li><a href="#loadermanager">Understanding the LoaderManager</a></li>
+<li><a href="#implementing">Implementing Loaders</a></li>
+</ul>
+</li>
+</ul>
+
+
+<h2 id="overview">Android Loader</h2>
+
+
+<p>This post gives a brief introduction to Loaders and the LoaderManager. The first section describes how data was loaded prior to the release of Android 3.0, pointing out out some of the flaws of the pre-Honeycomb APIs. The second section defines the purpose of each class and summarizes their powerful ability in asynchronously loading data.</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2014/10/24/android-loader/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/15/">&larr; Older</a>
@@ -642,14 +477,6 @@ Unlike Ubuntu shipped with GNU command line tools,Mac OS X shipped with the BSD 
     <ul id="recent_posts">
         
         <li class="post">
-            <a href="/blog/2019/10/15/how-to-measure-viewtree-time-cost-exactly/">如何精确测量一个ViewTree的绘制时长</a>
-        </li>
-        
-        <li class="post">
-            <a href="/blog/2019/10/10/who-awake-nativepollonce-in-messagequeue/">谁唤醒了MessageQueue中的nativePollOnce</a>
-        </li>
-        
-        <li class="post">
             <a href="/blog/2019/10/07/que-sera-sera/">Que Sera Sera</a>
         </li>
         
@@ -659,6 +486,14 @@ Unlike Ubuntu shipped with GNU command line tools,Mac OS X shipped with the BSD 
         
         <li class="post">
             <a href="/blog/2019/09/18/android-studio-proxy/">Android Studio 代理问题</a>
+        </li>
+        
+        <li class="post">
+            <a href="/blog/2019/08/12/singleton-pattern/">单例模式</a>
+        </li>
+        
+        <li class="post">
+            <a href="/blog/2019/08/10/lock-free-multithreading-with-atomic-operations/">Lock-free multithreading with atomic operations</a>
         </li>
         
     </ul>
@@ -724,7 +559,7 @@ Unlike Ubuntu shipped with GNU command line tools,Mac OS X shipped with the BSD 
     </div>
   </div>
   <footer role="contentinfo"><p>
-  Copyright &copy; 2019 - Solarex -
+  Copyright &copy; 2020 - Solarex -
   <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
   - <span class="credit">Theme by <a href="http://www.gehaxelt.in">Gehaxelt</a></span>
   <span class="credit">and <a href="http://www.it-solutions-neef.de">IT Solutions Neef</a></span>

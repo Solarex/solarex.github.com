@@ -9,7 +9,8 @@
   <meta name="author" content="Solarex">
 
   
-  <meta name="description" content="最近项目不太忙，解bug的间隙把百合仙子最近几年的博客翻看了一下，想起很多往事，权且把应该放到饭否的一些碎碎念放到这里吧。 仙子现在还在坚持使用InoReader，自从Google Reader关闭之后，我也尝试过几种替代工具，feedly，inoreader，QQ邮箱的阅读空间，把从Google &hellip;">
+  <meta name="description" content="已迁移到gitbook，请访问深入理解Java虚拟机笔记
+">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -91,90 +92,6 @@
     <div id="content">
       <div class="blog-index">
   
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2018/09/12/a-few-lately-thoughts/">碎碎念</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2018-09-12T21:51:00+08:00" pubdate data-updated="true">Sep 12<span>th</span>, 2018</time>
-        
-         | <a href="/blog/2018/09/12/a-few-lately-thoughts/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>最近项目不太忙，解bug的间隙把百合仙子最近几年的博客翻看了一下，想起很多往事，权且把应该放到饭否的一些碎碎念放到这里吧。</p>
-
-<ul>
-<li><p>仙子现在还在坚持使用InoReader，自从Google Reader关闭之后，我也尝试过几种替代工具，feedly，inoreader，QQ邮箱的阅读空间，把从Google Reader导出的OPML导入了进去，我登录了InoReader和feedly账号看了下，大部分博客都已经停更了，一片红，QQ邮箱阅读空间里面也一片狼藉，也懒得删，反正现在已经不用了。之前上大学的时候不像现在专一一个方向，订阅了好多博客，现在有了好多垂直的网站或者App来获取专一方向的信息，比如开发者头条，Gank.io，AndroidWeekly等。QQ邮箱的阅读空间被张小龙搬到微信弄成了公众号，不知不觉间订阅了好多公众号，直到上周微信弹出公众号订阅已达上限才发现原来自己订阅了这么多，可自从订阅号改版后打开更少了，有些公众号直接快捷方式放到了Launcher上，可也很少打开查看，sigh。</p>
-
-<p></div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2018/09/12/a-few-lately-thoughts/">Read on &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2018/07/12/notes-on-effective-java/">EffectiveJava2nd读书笔记</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2018-07-12T14:30:00+08:00" pubdate data-updated="true">Jul 12<span>th</span>, 2018</time>
-        
-         | <a href="/blog/2018/07/12/notes-on-effective-java/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>已迁移到gitbook，请访问<a href="https://solarex.github.io/reading-notes/effective-java/readme.html">EffectiveJava笔记</a>。</p>
-</div>
-  
-  
-
-
-    </article>
   
   
     <article>
@@ -412,6 +329,118 @@
 
     </article>
   
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2018/07/02/analysis-of-hashmap/">HashMap源码分析</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2018-07-02T19:31:00+08:00" pubdate data-updated="true">Jul 2<span>nd</span>, 2018</time>
+        
+         | <a href="/blog/2018/07/02/analysis-of-hashmap/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p><code>HashMap</code>是存储key-value的集合，底层采用<code>Node&lt;K,V&gt;[] table</code>实现，初始大小为2<sup>4</sup>即16。</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2018/07/02/analysis-of-hashmap/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2018/07/01/datastructure-and-algorithms/">数据结构与算法</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2018-07-01T19:06:00+08:00" pubdate data-updated="true">Jul 1<span>st</span>, 2018</time>
+        
+         | <a href="/blog/2018/07/01/datastructure-and-algorithms/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h2>ArrayList</h2>
+
+<ul>
+<li>尾插效率高，支持随机访问</li>
+<li>中间插入或者删除效率低</li>
+<li>空间不够用时，自动增长为现有空间的1.5倍</li>
+<li>底层使用Object数组来存储数据，使用System.arrayCopy来移动元素</li>
+</ul>
+
+
+<h2>LinkedList</h2>
+
+<ul>
+<li>头插，中间插，删除效率高</li>
+<li>不支持随机访问</li>
+<li>MessageQueue中Message根据msg.when来进行插入，mMessages指向头结点</li>
+</ul>
+
+
+<h2>Vector</h2>
+
+<ul>
+<li>底层使用数组实现，增长看<code>capacityIncrement</code>，若<code>capacityIncrement</code>小于0，翻倍增长</li>
+<li>方法有<code>synchronized</code>修饰，线程安全</li>
+<li><code>Stack</code>栈底层实现使用的<code>Vector</code></li>
+<li><code>Stack</code>在同一端进行插入和删除，<code>FILO</code></li>
+<li>队列<code>Queue</code>是只允许在一端进行插入操作，而在另一端进行删除操作的线性表，插入的一端称为队尾，删除的一端称为队头</li>
+<li>把队列的头尾相接的顺序存储结构称为循环队列</li>
+<li>双端队列<code>Deque</code>是一种具有队列和栈的性质的数据结构，双端队列中的元素可以从两端弹出，其限定插入和删除操作在队列的两端进行。<code>LinkedList</code>，<code>ArrayDeque</code>实现了<code>Deque</code>接口,<code>LinkedBlockingQueue</code>实现了<code>BlockingDeque</code>接口</li>
+<li>优先级队列，<code>PriorityQueue</code>，<code>MessageQueue</code>根据<code>Message.when</code>来进行插入</li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
+  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/6/">&larr; Older</a>
@@ -429,14 +458,6 @@
     <ul id="recent_posts">
         
         <li class="post">
-            <a href="/blog/2019/10/15/how-to-measure-viewtree-time-cost-exactly/">如何精确测量一个ViewTree的绘制时长</a>
-        </li>
-        
-        <li class="post">
-            <a href="/blog/2019/10/10/who-awake-nativepollonce-in-messagequeue/">谁唤醒了MessageQueue中的nativePollOnce</a>
-        </li>
-        
-        <li class="post">
             <a href="/blog/2019/10/07/que-sera-sera/">Que Sera Sera</a>
         </li>
         
@@ -446,6 +467,14 @@
         
         <li class="post">
             <a href="/blog/2019/09/18/android-studio-proxy/">Android Studio 代理问题</a>
+        </li>
+        
+        <li class="post">
+            <a href="/blog/2019/08/12/singleton-pattern/">单例模式</a>
+        </li>
+        
+        <li class="post">
+            <a href="/blog/2019/08/10/lock-free-multithreading-with-atomic-operations/">Lock-free multithreading with atomic operations</a>
         </li>
         
     </ul>
@@ -511,7 +540,7 @@
     </div>
   </div>
   <footer role="contentinfo"><p>
-  Copyright &copy; 2019 - Solarex -
+  Copyright &copy; 2020 - Solarex -
   <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
   - <span class="credit">Theme by <a href="http://www.gehaxelt.in">Gehaxelt</a></span>
   <span class="credit">and <a href="http://www.it-solutions-neef.de">IT Solutions Neef</a></span>

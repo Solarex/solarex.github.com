@@ -9,7 +9,7 @@
   <meta name="author" content="Solarex">
 
   
-  <meta name="description" content="While writing what was intended to be the final post of this series, a discussion of predictive animations, I ran into a number of interesting &hellip;">
+  <meta name="description" content="In the last post, we walked through the core functionality necessary for building a RecyclerView LayoutManager. In this post, we are going to add &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -91,118 +91,6 @@
     <div id="content">
       <div class="blog-index">
   
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2016/01/15/building-a-recyclerview-layoutmanager-part-iv/">Building a RecyclerView LayoutManager Part IV</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2016-01-15T16:14:00+08:00" pubdate data-updated="true">Jan 15<span>th</span>, 2016</time>
-        
-         | <a href="/blog/2016/01/15/building-a-recyclerview-layoutmanager-part-iv/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>While writing what was intended to be the final post of this series, a discussion of predictive animations, I ran into a number of interesting challenges that I thought warranted their own discussion. This series began as an investigation into whether RecyclerView could easily handle a layout structure that could scroll in both the horizontal and vertical axes, and how difficult it would be for the developer to build their own LayoutManager. I chose a basic grid of uniform items as the structure, thinking it would be the most straightforward to implement.</p>
-
-<p>The following graphic represents the basic goal of what the implementation ought to achieve while the user scrolls around the screen.</p>
-
-<center><img src="/images/building_recyclerview_layoutmanager_redux.gif" width="600" height="360"></center>
-
-
-
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2016/01/15/building-a-recyclerview-layoutmanager-part-iv/">Read on &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2016/01/13/building-a-recyclerview-layoutmanager-part-iii/">Building a RecyclerView LayoutManager Part III</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2016-01-13T00:48:00+08:00" pubdate data-updated="true">Jan 13<span>th</span>, 2016</time>
-        
-         | <a href="/blog/2016/01/13/building-a-recyclerview-layoutmanager-part-iii/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>In the previous post, we discussed adding proper support for data set changes and targeted scrolling. In this installment of the series, we will focus on properly supporting animations in your fancy new LayoutManager.In case you’ve forgotten, the code samples are <a href="https://github.com/devunwired/recyclerview-playground">on GitHub</a>.</p>
-
-<h2>The Problem With Free</h2>
-
-<p>We talked about notifyDataSetChanged() the last time, but you may have noticed that changing the data in this way doesn’t animate the change**. RecyclerView includes a new API for making animated changes, which requires you to notify the adapter which positions in the adapter have changed, and what the action was:</p>
-
-<ul>
-<li><code>notifyItemInserted()</code> and <code>notifyItemRangeInserted()</code>: Insertion of new item(s) at the given position(s).</li>
-<li><code>notifyItemChanged()</code> and <code>notifyItemRangeChanged()</code>: Invalidate he item(s) at the given position(s), nothing structural has changed in the data set.</li>
-<li><code>notifyItemRemoved()</code> and <code>notifyItemRangeRemoved()</code>: Removal of the item(s) at the given position(s).</li>
-<li><code>notifyItemMoved()</code>: An item has relocated to a new position in the data set.</li>
-</ul>
-
-
-<p>By default, your LayoutManager will get “simple item animations” for free when these methods are used. These animations are simply based on whether each current view position is still present in the layout after a change. New views are faded in, removed views are faded out, and other views are moved to their new location. Here’s what our grid layout looks like with the free animations:</p>
-
-<center><img src="/images/building_recyclerview_layoutmanager_animation.gif" width="380" height="674" /></center>
-
-
-
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2016/01/13/building-a-recyclerview-layoutmanager-part-iii/">Read on &rarr;</a>
-    </footer>
-  
-
-
-    </article>
   
   
     <article>
@@ -892,6 +780,98 @@
 
     </article>
   
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2015/11/23/saving-android-view-state/">Saving Android View State Correctly</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2015-11-23T17:40:00+08:00" pubdate data-updated="true">Nov 23<span>rd</span>, 2015</time>
+        
+         | <a href="/blog/2015/11/23/saving-android-view-state/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p><center><img src="/images/android_training.jpg"/></center></p>
+
+
+
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2015/11/23/saving-android-view-state/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2015/11/23/android-starting-window/">Android Starting Window</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2015-11-23T12:48:00+08:00" pubdate data-updated="true">Nov 23<span>rd</span>, 2015</time>
+        
+         | <a href="/blog/2015/11/23/android-starting-window/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p><center><img src="/images/android_robot.png" width="255" height="300" /></center></p>
+
+
+
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2015/11/23/android-starting-window/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/13/">&larr; Older</a>
@@ -909,14 +889,6 @@
     <ul id="recent_posts">
         
         <li class="post">
-            <a href="/blog/2019/10/15/how-to-measure-viewtree-time-cost-exactly/">如何精确测量一个ViewTree的绘制时长</a>
-        </li>
-        
-        <li class="post">
-            <a href="/blog/2019/10/10/who-awake-nativepollonce-in-messagequeue/">谁唤醒了MessageQueue中的nativePollOnce</a>
-        </li>
-        
-        <li class="post">
             <a href="/blog/2019/10/07/que-sera-sera/">Que Sera Sera</a>
         </li>
         
@@ -926,6 +898,14 @@
         
         <li class="post">
             <a href="/blog/2019/09/18/android-studio-proxy/">Android Studio 代理问题</a>
+        </li>
+        
+        <li class="post">
+            <a href="/blog/2019/08/12/singleton-pattern/">单例模式</a>
+        </li>
+        
+        <li class="post">
+            <a href="/blog/2019/08/10/lock-free-multithreading-with-atomic-operations/">Lock-free multithreading with atomic operations</a>
         </li>
         
     </ul>
@@ -991,7 +971,7 @@
     </div>
   </div>
   <footer role="contentinfo"><p>
-  Copyright &copy; 2019 - Solarex -
+  Copyright &copy; 2020 - Solarex -
   <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
   - <span class="credit">Theme by <a href="http://www.gehaxelt.in">Gehaxelt</a></span>
   <span class="credit">and <a href="http://www.it-solutions-neef.de">IT Solutions Neef</a></span>
