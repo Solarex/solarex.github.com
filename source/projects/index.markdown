@@ -106,6 +106,7 @@ footer: true
 + [读书笔记gitbook](https://solarex.github.io/reading-notes/)
 + [极客时间学习笔记markdown](https://github.com/flyfire/notes-on-geektime-md)
 + [极客时间学习笔记gitbook](https://solarex.github.io/learning-notes/)
++ [android sticky notes](https://github.com/flyfire/android-sticky-notes)
 
 <h3 id='python-practice'>Python学习</h3>
 + [DownloadTwitterLikes](https://github.com/flyfire/DownloadTwitterLikes)
