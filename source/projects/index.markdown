@@ -127,6 +127,7 @@ footer: true
 + [JavaWithKotlin](https://github.com/flyfire/JavaWithKotlin)
 + [GithubApp(kotlin)](https://github.com/flyfire/SolarexGithubApp)
 + [AIDLDemo](https://github.com/flyfire/SolarexAIDLDemo)
++ [RxJavaInAction](https://github.com/flyfire/RxJavaInAction)
 
 <h3 id='job'>Job-Hunting</h3>
 
