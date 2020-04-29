@@ -129,6 +129,7 @@ footer: true
 + [AIDLDemo](https://github.com/flyfire/SolarexAIDLDemo)
 + [RxJavaInAction](https://github.com/flyfire/RxJavaInAction)
 + [LearningRxJavaDemo](https://github.com/flyfire/LearningRxJavaDemo)
++ [SolarexRoomWordSample](https://github.com/flyfire/SolarexRoomWordSample)
 
 <h3 id='job'>Job-Hunting</h3>
 
