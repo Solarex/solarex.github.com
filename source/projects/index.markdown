@@ -130,6 +130,7 @@ footer: true
 + [RxJavaInAction](https://github.com/flyfire/RxJavaInAction)
 + [LearningRxJavaDemo](https://github.com/flyfire/LearningRxJavaDemo)
 + [SolarexRoomWordSample](https://github.com/flyfire/SolarexRoomWordSample)
++ [SolarexKotlinCoroutineDemo](https://github.com/flyfire/SolarexKotlinCoroutineDemo)
 
 <h3 id='job'>Job-Hunting</h3>
 
