@@ -131,6 +131,7 @@ footer: true
 + [LearningRxJavaDemo](https://github.com/flyfire/LearningRxJavaDemo)
 + [SolarexRoomWordSample](https://github.com/flyfire/SolarexRoomWordSample)
 + [SolarexKotlinCoroutineDemo](https://github.com/flyfire/SolarexKotlinCoroutineDemo)
++ [SolarexExoPlayerDemo](https://github.com/flyfire/SolarexExoPlayerDemo)
 
 <h3 id='job'>Job-Hunting</h3>
 
