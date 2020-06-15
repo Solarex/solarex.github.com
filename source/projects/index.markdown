@@ -100,6 +100,7 @@ footer: true
 + [SolarexSleepStatisticsViewDemo](https://github.com/flyfire/SolarexSleepStatisticsViewDemo)
 + [SolarexRulerViewDemo](https://github.com/flyfire/SolarexRulerViewDemo)
 + [EnergyControlCircleDemo](https://github.com/flyfire/EnergyControlCircleDemo)
++ [RevealAnimationDemo](https://github.com/flyfire/RevealAnimationDemo)
 
 <h3 id='notebook'>学习笔记</h3>
 + [读书笔记markdown](https://github.com/flyfire/Notebook)
