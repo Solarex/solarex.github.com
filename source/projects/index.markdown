@@ -133,6 +133,8 @@ footer: true
 + [SolarexRoomWordSample](https://github.com/flyfire/SolarexRoomWordSample)
 + [SolarexKotlinCoroutineDemo](https://github.com/flyfire/SolarexKotlinCoroutineDemo)
 + [SolarexExoPlayerDemo](https://github.com/flyfire/SolarexExoPlayerDemo)
++ [RevealAnimationLayout](https://github.com/flyfire/RevealAnimationLayout)
++ [CustomBubbleRevealAnimationDemo](https://github.com/flyfire/CustomBubbleRevealAnimationDemo)
 
 <h3 id='job'>Job-Hunting</h3>
 
